@@ -8,6 +8,8 @@
 
 #include "include/ui/widget/TrayOtpCodes.hpp"
 #include "include/ui/widget/TrayProfileSelector.hpp"
+#include "include/ui/widget/RoutingQuickMenu.hpp"
+#include "include/ui/setting/RouteItem.h"
 
 void MainWindow::trayClickEvent() {
     constexpr qint64 recentlyActiveMs = 350;
@@ -178,6 +180,101 @@ void MainWindow::openTrayOtpCodes() {
     trayOtpCodes->popupAt(QCursor::pos());
 }
 
+void MainWindow::on_toolButton_link1_clicked() {
+    const auto &url = Configs::dataManager->settingsRepo->quick_link_1;
+    if (url.isEmpty()) {
+        QMessageBox::information(this, "Quick Link 1", "Set the URL in Settings → Basic Settings → Quick Links.");
+        return;
+    }
+    QDesktopServices::openUrl(QUrl(url));
+}
+
+void MainWindow::on_toolButton_link2_clicked() {
+    const auto &url = Configs::dataManager->settingsRepo->quick_link_2;
+    if (url.isEmpty()) {
+        QMessageBox::information(this, "Quick Link 2", "Set the URL in Settings → Basic Settings → Quick Links.");
+        return;
+    }
+    QDesktopServices::openUrl(QUrl(url));
+}
+
+void MainWindow::on_toolButton_link3_clicked() {
+    const auto &url = Configs::dataManager->settingsRepo->quick_link_3;
+    if (url.isEmpty()) {
+        QMessageBox::information(this, "Quick Link 3", "Set the URL in Settings → Basic Settings → Quick Links.");
+        return;
+    }
+    QDesktopServices::openUrl(QUrl(url));
+}
+
+void MainWindow::refreshRoutingStatus() {
+    if (auto *label = findChild<QLabel *>(QStringLiteral("routingStatus")))
+        setStatusText(label, RoutingQuickMenu::statusSummary());
+}
+
+void MainWindow::openRoutingQuickMenu(const QPoint &globalPos) {
+    if (routingQuickMenu) routingQuickMenu->close();
+
+    // Applying a routing change means regenerating the config, so a running
+    // profile has to be restarted for it to take effect.
+    const auto applyToRunningProfile = [this] {
+        refreshRoutingStatus();
+        if (Configs::dataManager->settingsRepo->started_id >= 0)
+            profile_start(Configs::dataManager->settingsRepo->started_id);
+    };
+    const auto withActiveProfile = [applyToRunningProfile](const std::function<void(Configs::RouteProfile &)> &change) {
+        auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
+            Configs::dataManager->settingsRepo->current_route_id);
+        if (!profile) return;
+        change(*profile);
+        Configs::dataManager->routesRepo->Save(profile);
+        applyToRunningProfile();
+    };
+
+    RoutingQuickMenu::Callbacks cb;
+    cb.setDefaultOutbound = [withActiveProfile](int outboundID) {
+        withActiveProfile([outboundID](Configs::RouteProfile &profile) { profile.defaultOutboundID = outboundID; });
+    };
+    cb.setApplyProfileRules = [withActiveProfile](bool enabled) {
+        withActiveProfile([enabled](Configs::RouteProfile &profile) { profile.applyProfileRules = enabled; });
+    };
+    cb.openProfile = [this, applyToRunningProfile] {
+        auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
+            Configs::dataManager->settingsRepo->current_route_id);
+        // Raw profiles have their own editor; the structured one cannot show them.
+        if (!profile || profile->isRaw) {
+            on_menu_routing_settings_triggered();
+            return;
+        }
+        if (dialog_is_using) return;
+        dialog_is_using = true;
+        auto *editor = new RouteItem(this, profile);
+        connect(editor, &RouteItem::settingsChanged, this,
+                [applyToRunningProfile](const std::shared_ptr<Configs::RouteProfile> &edited) {
+                    Configs::dataManager->routesRepo->Save(edited);
+                    applyToRunningProfile();
+                });
+        connect(editor, &QDialog::finished, this, [this, editor] {
+            editor->deleteLater();
+            dialog_is_using = false;
+        });
+        editor->show();
+    };
+    cb.manageProfiles = [this] { on_menu_routing_settings_triggered(); };
+
+    routingQuickMenu = new RoutingQuickMenu(cb, this);
+    routingQuickMenu->popupAt(globalPos);
+}
+
+void MainWindow::refreshQuickLinkButtons() {
+    auto *btn1 = findChild<QToolButton*>("linkBtn1");
+    auto *btn2 = findChild<QToolButton*>("linkBtn2");
+    auto *btn3 = findChild<QToolButton*>("linkBtn3");
+    if (btn1) btn1->setText(Configs::dataManager->settingsRepo->quick_link_name_1.isEmpty() ? tr("Link 1") : Configs::dataManager->settingsRepo->quick_link_name_1);
+    if (btn2) btn2->setText(Configs::dataManager->settingsRepo->quick_link_name_2.isEmpty() ? tr("Link 2") : Configs::dataManager->settingsRepo->quick_link_name_2);
+    if (btn3) btn3->setText(Configs::dataManager->settingsRepo->quick_link_name_3.isEmpty() ? tr("Link 3") : Configs::dataManager->settingsRepo->quick_link_name_3);
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
         if (!qobject_cast<QLineEdit *>(QApplication::focusWidget())) {
@@ -208,6 +305,12 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
         } else if (obj == ui->tabWidget && mouseEvent->button() == Qt::RightButton) {
             on_tabWidget_customContextMenuRequested(mouseEvent->position().toPoint());
             return true;
+        } else if (mouseEvent->button() == Qt::LeftButton) {
+            if (auto *segment = qobject_cast<QFrame *>(obj);
+                segment && segment->objectName() == QStringLiteral("routingStatusButton")) {
+                openRoutingQuickMenu(segment->mapToGlobal(QPoint(segment->width() / 2, 0)));
+                return true;
+            }
         }
     } else if (type == QEvent::MouseButtonDblClick) {
         if (obj == ui->splitter) {

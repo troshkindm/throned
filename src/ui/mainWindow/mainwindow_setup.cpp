@@ -341,15 +341,58 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
 
     // top bar
-    ui->toolButton_program->setMenu(ui->menu_program);
-    ui->toolButton_preferences->setMenu(ui->menu_preferences);
-    ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
-    ui->toolButton_testing->setMenu(ui->menuTesting);
-    ui->toolButton_tools->setMenu(ui->menuTools);
-    ui->toolButton_program->installEventFilter(this);
+        ui->toolButton_program->setMenu(ui->menu_program);
+        ui->toolButton_preferences->setMenu(ui->menu_preferences);
+        ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
+        ui->toolButton_testing->setMenu(ui->menuTesting);
+        ui->toolButton_tools->setMenu(ui->menuTools);
+        ui->toolButton_program->installEventFilter(this);
 
-    designMinimumSize = minimumSize();
-    applyTopBarMetrics();
+        // Quick link buttons (created in code, added to the command bar)
+        auto *linkBtn1 = new QToolButton(this);
+        linkBtn1->setObjectName(QStringLiteral("linkBtn1"));
+        linkBtn1->setText(Configs::dataManager->settingsRepo->quick_link_name_1.isEmpty() ? tr("Link 1") : Configs::dataManager->settingsRepo->quick_link_name_1);
+        linkBtn1->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        linkBtn1->setIconSize(QSize(19, 19));
+        linkBtn1->setFixedHeight(38);
+        linkBtn1->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        connect(linkBtn1, &QAbstractButton::clicked, this, &MainWindow::on_toolButton_link1_clicked);
+        ui->horizontalLayout_2->addWidget(linkBtn1);
+        auto *sepL1 = new QFrame(this);
+        sepL1->setObjectName(QStringLiteral("vSeparator"));
+        sepL1->setFixedSize(1, 33);
+        ui->horizontalLayout_2->addWidget(sepL1);
+
+        auto *linkBtn2 = new QToolButton(this);
+        linkBtn2->setObjectName(QStringLiteral("linkBtn2"));
+        linkBtn2->setText(Configs::dataManager->settingsRepo->quick_link_name_2.isEmpty() ? tr("Link 2") : Configs::dataManager->settingsRepo->quick_link_name_2);
+        linkBtn2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        linkBtn2->setIconSize(QSize(19, 19));
+        linkBtn2->setFixedHeight(38);
+        linkBtn2->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        connect(linkBtn2, &QAbstractButton::clicked, this, &MainWindow::on_toolButton_link2_clicked);
+        ui->horizontalLayout_2->addWidget(linkBtn2);
+        auto *sepL2 = new QFrame(this);
+        sepL2->setObjectName(QStringLiteral("vSeparator"));
+        sepL2->setFixedSize(1, 33);
+        ui->horizontalLayout_2->addWidget(sepL2);
+
+        auto *linkBtn3 = new QToolButton(this);
+        linkBtn3->setObjectName(QStringLiteral("linkBtn3"));
+        linkBtn3->setText(Configs::dataManager->settingsRepo->quick_link_name_3.isEmpty() ? tr("Link 3") : Configs::dataManager->settingsRepo->quick_link_name_3);
+        linkBtn3->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        linkBtn3->setIconSize(QSize(19, 19));
+        linkBtn3->setFixedHeight(38);
+        linkBtn3->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        connect(linkBtn3, &QAbstractButton::clicked, this, &MainWindow::on_toolButton_link3_clicked);
+        ui->horizontalLayout_2->addWidget(linkBtn3);
+        auto *sepL3 = new QFrame(this);
+        sepL3->setObjectName(QStringLiteral("vSeparator"));
+        sepL3->setFixedSize(1, 33);
+        ui->horizontalLayout_2->addWidget(sepL3);
+
+        designMinimumSize = minimumSize();
+        applyTopBarMetrics();
 
     ui->menubar->setVisible(false);
     connect(ui->actionRuntime_Stats, &QAction::triggered, this, [=, this]() {

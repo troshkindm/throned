@@ -54,7 +54,20 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->random_listen_port->setChecked(Configs::dataManager->settingsRepo->random_inbound_port);
     D_LOAD_INT(test_concurrent)
     D_LOAD_STRING(test_latency_url)
-    D_LOAD_BOOL(disable_tray)
+        // quick_link fields (created in code, from .ui)
+        quick_link_1 = ui->quick_link_1;
+        quick_link_2 = ui->quick_link_2;
+        quick_link_3 = ui->quick_link_3;
+        quick_link_name_1 = ui->quick_link_name_1;
+        quick_link_name_2 = ui->quick_link_name_2;
+        quick_link_name_3 = ui->quick_link_name_3;
+        if (quick_link_1) quick_link_1->setText(Configs::dataManager->settingsRepo->quick_link_1);
+        if (quick_link_2) quick_link_2->setText(Configs::dataManager->settingsRepo->quick_link_2);
+        if (quick_link_3) quick_link_3->setText(Configs::dataManager->settingsRepo->quick_link_3);
+        if (quick_link_name_1) quick_link_name_1->setText(Configs::dataManager->settingsRepo->quick_link_name_1);
+        if (quick_link_name_2) quick_link_name_2->setText(Configs::dataManager->settingsRepo->quick_link_name_2);
+        if (quick_link_name_3) quick_link_name_3->setText(Configs::dataManager->settingsRepo->quick_link_name_3);
+        D_LOAD_BOOL(disable_tray)
     ui->reset_proxy_on_disable_sp->setChecked(Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp);
     ui->url_timeout->setText(Int2String(Configs::dataManager->settingsRepo->url_test_timeout_ms));
     ui->speedtest_mode->setCurrentIndex(Configs::dataManager->settingsRepo->speed_test_mode);
@@ -340,7 +353,14 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->random_inbound_port = ui->random_listen_port->isChecked();
     D_SAVE_INT(test_concurrent)
     D_SAVE_STRING(test_latency_url)
-    D_SAVE_BOOL(disable_tray)
+        // quick_link fields (created in code, from .ui)
+        Configs::dataManager->settingsRepo->quick_link_1 = quick_link_1 ? quick_link_1->text() : "";
+        Configs::dataManager->settingsRepo->quick_link_2 = quick_link_2 ? quick_link_2->text() : "";
+        Configs::dataManager->settingsRepo->quick_link_3 = quick_link_3 ? quick_link_3->text() : "";
+        Configs::dataManager->settingsRepo->quick_link_name_1 = quick_link_name_1 ? quick_link_name_1->text() : "";
+        Configs::dataManager->settingsRepo->quick_link_name_2 = quick_link_name_2 ? quick_link_name_2->text() : "";
+        Configs::dataManager->settingsRepo->quick_link_name_3 = quick_link_name_3 ? quick_link_name_3->text() : "";
+        D_SAVE_BOOL(disable_tray)
     Configs::dataManager->settingsRepo->proxy_scheme = ui->proxy_scheme->currentText().toLower();
     Configs::dataManager->settingsRepo->speed_test_mode = ui->speedtest_mode->currentIndex();
     Configs::dataManager->settingsRepo->simple_dl_url = ui->simple_down_url->text();

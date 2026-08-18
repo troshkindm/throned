@@ -49,6 +49,7 @@ namespace Configs_sys {
 }
 
 class TrayProfileSelector;
+class RoutingQuickMenu;
 class TrayOtpCodes;
 class TestRunner;
 
@@ -195,9 +196,13 @@ private slots:
 
     void on_menu_resolve_domain_triggered();
 
-    void on_menu_update_subscription_triggered();
+        void on_menu_update_subscription_triggered();
 
-    void on_profilesTableView_doubleClicked(const QModelIndex &index);
+        void on_toolButton_link1_clicked();
+        void on_toolButton_link2_clicked();
+        void on_toolButton_link3_clicked();
+
+        void on_profilesTableView_doubleClicked(const QModelIndex &index);
 
     void on_profilesTableView_customContextMenuRequested(const QPoint &pos);
 
@@ -215,6 +220,11 @@ private:
     QMenu *trayMenu = nullptr;    // tray context menu
     QPointer<TrayProfileSelector> traySelector;
     void openTraySelector(bool routing);
+    QPointer<RoutingQuickMenu> routingQuickMenu;
+    void openRoutingQuickMenu(const QPoint &globalPos);
+    // Refresh the routing segment of the status bar from the active profile.
+    void refreshRoutingStatus();
+    void refreshQuickLinkButtons();  // Update quick link button texts from settings
     QPointer<TrayOtpCodes> trayOtpCodes;
     void openTrayOtpCodes();
     QShortcut *shortcut_esc = new QShortcut(QKeySequence::Cancel, this);
