@@ -40,6 +40,8 @@
 
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
+#include "include/database/GroupsRepo.h"
+#include "include/database/ProfilesRepo.h"
 
 #include "include/ui/mainwindow_interface.h"
 #include "include/stats/traffic/TrafficLooper.hpp"
@@ -642,13 +644,13 @@ briefly interrupts traffic.
             return parsed;
         };
         profile->Rules += rule(QStringLiteral("Simple Address Proxy"), QJsonObject{
-            {"domain", QJsonArray{"chatgpt.com", "openrouter.example", "deepgram.example"}},
+            {"domain", QJsonArray{"assistant.example", "gateway.example", "voice.example"}},
             {"domain_suffix", QJsonArray{"example.org", "example.net", "apis.example.com"}},
-            {"rule_set", QJsonArray{"geosite-anthropic", "geosite-openai", "geosite-telegram"}},
+            {"rule_set", QJsonArray{"geosite-example-ai", "geosite-example-chat", "geosite-example-code"}},
             {"outbound", QStringLiteral("proxy")},
         });
         profile->Rules += rule(QStringLiteral("Simple Process Name Proxy"), QJsonObject{
-            {"process_name", QJsonArray{"Discord.exe", "Code.exe", "brave.exe"}},
+            {"process_name", QJsonArray{"DemoChat.exe", "EditorDemo.exe", "ExampleBrowser.exe"}},
             {"outbound", QStringLiteral("proxy")},
         });
         profile->Rules += rule(QString::fromLatin1(Configs::LocalProxyRuleName), QJsonObject{
@@ -691,6 +693,52 @@ briefly interrupts traffic.
         }
         window->resize(1180, 780);
 
+        // `-ui-preview` is forced onto a temporary database in main(), so it is
+        // safe to seed the real widgets here. Keep every value visibly synthetic:
+        // RFC 5737 addresses, reserved example domains, and invented programs.
+        if (auto group = Configs::dataManager->groupsRepo->CurrentGroup()) {
+            group->name = QStringLiteral("Demo subscription");
+            group->url = QStringLiteral("https://subscription.example/profiles");
+            group->info = QStringLiteral("upload=8589934592; download=25769803776; total=107374182400; expire=4102444800");
+            group->sub_last_update = 1788037200;
+            Configs::dataManager->groupsRepo->Save(group);
+
+            const struct {
+                const char *type;
+                const char *address;
+                int port;
+                const char *name;
+                const char *country;
+                int latency;
+                const char *downSpeed;
+                const char *upSpeed;
+                long long up;
+                long long down;
+            } profileSamples[] = {
+                {"vless", "192.0.2.10", 443, "Demo West", "DE", 42, "148 Mbps", "36 Mbps", 7340032, 94371840},
+                {"trojan", "198.51.100.24", 8443, "Demo North", "FI", 57, "96 Mbps", "28 Mbps", 4194304, 68157440},
+                {"hysteria", "203.0.113.42", 443, "Demo East", "JP", 83, "74 Mbps", "19 Mbps", 2097152, 39845888},
+                {"shadowsocks", "192.0.2.71", 2087, "Demo Backup", "NL", 109, "51 Mbps", "14 Mbps", 1048576, 18874368},
+            };
+            for (const auto &sample : profileSamples) {
+                auto profile = Configs::ProfilesRepo::NewProfile(QString::fromLatin1(sample.type));
+                if (!profile || !profile->outbound) continue;
+                profile->outbound->SetAddress(QString::fromLatin1(sample.address));
+                profile->outbound->server_port = sample.port;
+                profile->outbound->name = QString::fromLatin1(sample.name);
+                profile->test_country = QString::fromLatin1(sample.country);
+                profile->SetLatency(sample.latency);
+                profile->dl_speed = QString::fromLatin1(sample.downSpeed);
+                profile->ul_speed = QString::fromLatin1(sample.upSpeed);
+                profile->ip_out = QString::fromLatin1(sample.address);
+                profile->traffic_uplink = sample.up;
+                profile->traffic_downlink = sample.down;
+                Configs::dataManager->profilesRepo->AddProfile(profile, group->id);
+            }
+            window->refresh_groups();
+            window->refresh_proxy_list({}, true);
+        }
+
         QList<Stats::ConnectionMetadata> connections;
         const struct {
             const char *dest;
@@ -703,18 +751,18 @@ briefly interrupts traffic.
             long long up;
             long long down;
         } samples[] = {
-            {"104.18.32.1:443", "chatgpt.com", "AyuGram.exe", "C:\\Users\\me\\AppData\\Roaming\\AyuGram\\AyuGram.exe",
+            {"203.0.113.10:443", "assistant.example", "DemoChat.exe", "C:\\DemoApps\\DemoChat\\DemoChat.exe",
              "proxy", "tcp", "tls", 18422, 918233},
-            {"142.250.74.110:443", "accounts.google.com", "chrome.exe", "C:\\Program Files\\Google\\Chrome\\chrome.exe",
+            {"198.51.100.24:443", "accounts.example.net", "ExampleBrowser.exe", "C:\\Program Files\\Example Browser\\ExampleBrowser.exe",
              "proxy", "tcp", "tls", 4211, 88231},
-            {"192.168.1.1:53", "", "svchost.exe", "C:\\Windows\\System32\\svchost.exe",
+            {"192.0.2.53:53", "resolver.example", "SystemDemo.exe", "C:\\DemoApps\\SystemDemo.exe",
              "direct", "udp", "dns", 128, 344},
-            {"140.82.121.6:443", "github.com", "Code.exe", "C:\\Program Files\\Microsoft VS Code\\Code.exe",
+            {"198.51.100.7:443", "code.example.org", "EditorDemo.exe", "C:\\Program Files\\Example Editor\\EditorDemo.exe",
              "direct", "tcp", "tls", 9120, 240113},
-            {"3.233.158.24:443", "daily-code-pa.googleapis.com", "agy.exe",
-             "C:\\Users\\me\\AppData\\Local\\Programs\\agy\\agy.exe", "direct", "tcp", "tls", 2211, 51002},
-            {"239.255.255.250:1900", "", "NVIDIA Overlay.exe",
-             "C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\CEF\\NVIDIA Overlay.exe",
+            {"203.0.113.88:443", "sync.example.com", "SyncDemo.exe",
+             "C:\\DemoApps\\SyncDemo\\SyncDemo.exe", "direct", "tcp", "tls", 2211, 51002},
+            {"192.0.2.190:1900", "discovery.example", "OverlayDemo.exe",
+             "C:\\DemoApps\\OverlayDemo\\OverlayDemo.exe",
              "direct", "udp", "", 640, 0},
         };
         int index = 0;
@@ -861,27 +909,27 @@ briefly interrupts traffic.
         editor->setRules(0, "domain:updates.example.com\n");
         editor->setRules(1, "domain:ads.example\nip:198.51.100.0/24\n");
         editor->setRules(2,
-            "processPath:C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe\n"
-            "processName:Discord.exe\nprocessName:Code.exe\n"
-            "domain:chatgpt.com\ndomain:openrouter.example\ndomain:deepgram.example\n"
-            "domain:audioshake.example\ndomain:*.openslr.example\ndomain:daily-code-pa.example.com\n"
-            "domain:code-pa.example.com\ndomain:oauth2.example.com\ndomain:accounts.example.com\n"
+            "processPath:C:\\Program Files\\Example Browser\\ExampleBrowser.exe\n"
+            "processName:DemoChat.exe\nprocessName:EditorDemo.exe\n"
+            "domain:assistant.example\ndomain:gateway.example\ndomain:voice.example\n"
+            "domain:audio.example\ndomain:*.datasets.example\ndomain:daily-api.example.com\n"
+            "domain:code-api.example.com\ndomain:oauth.example.com\ndomain:accounts.example.com\n"
             "domain:apis.example.com\ndomain:example.com\ndomain:usercontent.example.com\n"
-            "domain:static.example.com\ndomain:antigravity.example\ndomain:forge.example\n"
-            "domain:usercontent.forge.example\nsuffix:example.org\nsuffix:example.net\n"
+            "domain:static.example.com\ndomain:assets.example\ndomain:packages.example\n"
+            "domain:usercontent.packages.example\nsuffix:example.org\nsuffix:example.net\n"
             "keyword:telemetry\nregex:^cdn[0-9]+\\.example\\.com$\n"
-            "ruleset:geosite-telegram\nruleset:geosite-anthropic\nruleset:geosite-openai\n"
-            "ruleset:geosite-google\nruleset:geosite-github\nruleset:geosite-docker\n"
-            "ruleset:geosite-jetbrains\nruleset:geosite-huggingface\nruleset:geosite-kaggle\n"
-            "ruleset:geosite-mojang\nruleset:geosite-curseforge\nruleset:geosite-qt\n"
-            "ip:172.64.0.0/16\nip:198.51.100.0/24\nruleset:geoip-cloudflare\n");
+            "ruleset:geosite-example-chat\nruleset:geosite-example-ai\nruleset:geosite-example-search\n"
+            "ruleset:geosite-example-code\nruleset:geosite-example-containers\nruleset:geosite-example-ide\n"
+            "ruleset:geosite-example-models\nruleset:geosite-example-games\nruleset:geosite-example-media\n"
+            "ruleset:geosite-example-docs\nruleset:geosite-example-cdn\nruleset:geosite-example-updates\n"
+            "ip:192.0.2.0/24\nip:198.51.100.0/24\nruleset:geoip-example-cdn\n");
         editor->setRules(3, {});
         editor->setAdvancedRules({QObject::tr("regional-routing"), QObject::tr("fallback-policy")});
         editor->setRuleSetCatalog({
-            QStringLiteral("geosite-anthropic"), QStringLiteral("geosite-chatgpt"),
-            QStringLiteral("geosite-google"), QStringLiteral("geosite-telegram"),
-            QStringLiteral("geoip-cloudflare"), QStringLiteral("geoip-openai"),
-            QStringLiteral("geoip-private"), QStringLiteral("geoip-telegram"),
+            QStringLiteral("geosite-example-ai"), QStringLiteral("geosite-example-chat"),
+            QStringLiteral("geosite-example-code"), QStringLiteral("geosite-example-search"),
+            QStringLiteral("geoip-example-cdn"), QStringLiteral("geoip-example-service"),
+            QStringLiteral("geoip-private"), QStringLiteral("geoip-example-chat"),
         });
         editor->setLocalProxyTrafficEnabled(true);
         tabs->addTab(editor, QCoreApplication::translate("RouteItem", "Simple"));
@@ -911,17 +959,17 @@ briefly interrupts traffic.
                 if (auto *modal = QApplication::activeModalWidget())
                     if (auto *editor = modal->findChild<QPlainTextEdit *>())
                         editor->setPlainText(QStringLiteral(
-                            "# pasted from a friend\n"
-                            "chatgpt.com\n"
+                            "# sample rule list\n"
+                            "assistant.example\n"
                             ".example.org\n"
                             "  \"cdn.example.net\",\n"
-                            "- geosite-openai\n"
+                            "- geosite-example-ai\n"
                             "domain_suffix: example.io\n"
-                            "process_name: AyuGram.exe\n"
-                            "C:\\Program Files\\NVIDIA App\\CEF\\NVIDIA Overlay.exe\n"
+                            "process_name: DemoChat.exe\n"
+                            "C:\\DemoApps\\OverlayDemo\\OverlayDemo.exe\n"
                             "198.51.100.0/24\n"
                             "2001:db8::/32\n"
-                            "rule_set:geoip-cloudflare\n"
+                            "rule_set:geoip-example-cdn\n"
                             "regexp:^cdn[0-9]+\\.example\\.com$\n"
                             "telemetry\n"
                             "?? total nonsense here\n"));
@@ -1031,6 +1079,22 @@ int main(int argc, char* argv[]) {
 #ifdef NKR_CPP_USE_APPDATA
     useAppdata = true;
 #endif
+
+    // Screenshot mode must never inherit or copy a real Throne/Throned profile.
+    // Give it a private database even if the caller forgets `-appdata` or points
+    // that argument at a persistent directory.
+    std::unique_ptr<QTemporaryDir> uiPreviewWorkdir;
+    if (arguments.contains(QStringLiteral("-ui-preview"))) {
+        uiPreviewWorkdir = std::make_unique<QTemporaryDir>();
+        if (!uiPreviewWorkdir->isValid()) return 2;
+        QDir previewDir(uiPreviewWorkdir->path());
+        if (!previewDir.mkpath(QStringLiteral("config"))) return 2;
+        QFile emptyDb(previewDir.absoluteFilePath(QStringLiteral("config/throne.db")));
+        if (!emptyDb.open(QIODevice::WriteOnly)) return 2;
+        emptyDb.close();
+        useAppdata = true;
+        appdataDir = uiPreviewWorkdir->path();
+    }
     QApplication::setApplicationName("Throned");
 
     // Control mode talks to a running instance and exits. It has to happen

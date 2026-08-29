@@ -664,7 +664,7 @@ static QFrame *makeLogs(bool ru)
     log->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     log->setHtml(
         "<table width='100%' cellspacing='0' cellpadding='0'>"
-        "<tr><td width='116' valign='top'><span style='color:#627589'>[17:39:59.137]</span></td><td width='54' valign='top'><span style='color:#2ebc75'>INFO</span></td><td>[router] &nbsp; exchanged A example-service.eu-central-1.elb.amazonaws.com. 29 IN A 203.0.113.88</td></tr>"
+        "<tr><td width='116' valign='top'><span style='color:#627589'>[17:39:59.137]</span></td><td width='54' valign='top'><span style='color:#2ebc75'>INFO</span></td><td>[router] &nbsp; exchanged A origin.example.net. 29 IN A 203.0.113.88</td></tr>"
         "<tr><td valign='top'><span style='color:#627589'>[17:39:59.602]</span></td><td valign='top'><span style='color:#2ebc75'>INFO</span></td><td>[router] &nbsp; found process path: C:\\Program Files\\ExampleApp\\<span style='color:#c397ff'>client.exe</span></td></tr>"
         "<tr><td valign='top'><span style='color:#627589'>[17:39:59.602]</span></td><td valign='top'><span style='color:#2ebc75'>INFO</span></td><td>inbound/tun[tun-in]: inbound connection from <span style='color:#f5a524'>172.19.0.1:55759</span></td></tr>"
         "<tr><td valign='top'><span style='color:#627589'>[17:39:59.602]</span></td><td valign='top'><span style='color:#2ebc75'>INFO</span></td><td>outbound/hysteria2[proxy]: outbound connection to <span style='color:#f5a524'>203.0.113.42:443</span></td></tr>"
@@ -1028,13 +1028,13 @@ static QWidget *makeRulesContent(bool ru)
                                trText(ru, "Common routing behavior.", "Частые сценарии маршрутизации."), {}, "blue", ru, true));
     layout->addWidget(ruleCard(MaterialPath::Apps, trText(ru, "Applications", "Приложения"),
                                trText(ru, "Match by installed app, running process, or executable.", "Выбор установленной программы, процесса или файла."),
-                               {{"Discord", "app"}, {"Telegram Desktop", "app"}}, "blue", ru));
+                               {{"Demo Chat", "app"}, {"Message Desk", "app"}}, "blue", ru));
     layout->addWidget(ruleCard(MaterialPath::Public, trText(ru, "Domains & rule sets", "Домены и наборы правил"),
                                trText(ru, "Match domain names and remote geosite lists.", "Домены и удалённые списки geosite."),
-                               {{"chatgpt.com", "domain"}, {"openrouter.ai", "domain"}, {"Telegram · Geosite", "ruleset"}, {"Anthropic · Geosite", "ruleset"}}, "cyan", ru));
+                               {{"assistant.example", "domain"}, {"gateway.example", "domain"}, {"Example Chat · Geosite", "ruleset"}, {"Example AI · Geosite", "ruleset"}}, "cyan", ru));
     layout->addWidget(ruleCard(MaterialPath::Process, trText(ru, "Processes & IP/CIDR", "Процессы и IP/CIDR"),
                                trText(ru, "Match process path, port, IP address, or CIDR range.", "Путь процесса, порт, IP-адрес или диапазон CIDR."),
-                               {{"client.exe", "process"}, {"172.64.0.0/16", "network"}}, "green", ru, false, false));
+                               {{"DemoClient.exe", "process"}, {"192.0.2.0/24", "network"}}, "green", ru, false, false));
     layout->addWidget(ruleCard(MaterialPath::List, trText(ru, "Advanced / raw rules", "Расширенные / raw-правила"),
                                trText(ru, "Nested conditions, exact priority, and lossless JSON.", "Вложенные условия, точный приоритет и JSON без потерь."),
                                {}, "cyan", ru, false, false));
@@ -1129,9 +1129,9 @@ static QWidget *makeAdvancedRulesContent(bool ru)
     layout->addWidget(notice);
 
     layout->addWidget(orderedRule(2, trText(ru, "AI services", "AI-сервисы"), "proxy",
-                                  {{trText(ru, "Domain", "Домен"), "chatgpt.com"}, {"Rule set", "geosite:anthropic"}}, "blue", ru));
+                                  {{trText(ru, "Domain", "Домен"), "assistant.example"}, {"Rule set", "geosite:example-ai"}}, "blue", ru));
     layout->addWidget(orderedRule(4, trText(ru, "Development tools", "Инструменты разработки"), "proxy",
-                                  {{trText(ru, "Application", "Приложение"), "Codex"}, {trText(ru, "Process", "Процесс"), "client.exe"}}, "blue", ru));
+                                  {{trText(ru, "Application", "Приложение"), "Demo Editor"}, {trText(ru, "Process", "Процесс"), "DemoClient.exe"}}, "blue", ru));
     layout->addWidget(orderedRule(7, trText(ru, "Local proxy inbounds", "Локальные proxy-inbound"), "proxy",
                                   {{"Inbound", "mixed-in"}, {"Inbound", "socks-in"}}, "blue", ru));
     layout->addWidget(orderedRule(9, trText(ru, "Imported custom rule", "Импортированное правило"), "proxy",
@@ -1318,7 +1318,7 @@ public:
         auto *testing = settingsSection(trText(ru, "Testing", "Тестирование"),
             trText(ru, "Defaults used by URL and speed tests.", "Параметры URL-тестов и проверки скорости."));
         auto *testingLayout = qobject_cast<QVBoxLayout *>(testing->layout());
-        auto *url = new QLineEdit("https://cp.cloudflare.com/generate_204");
+        auto *url = new QLineEdit("https://latency.example/generate_204");
         testingLayout->addWidget(settingsField(trText(ru, "Latency test URL", "URL для проверки задержки"), url));
         auto *timeout = new QComboBox;
         timeout->addItems({"3000 ms", "5000 ms", "10000 ms"});

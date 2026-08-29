@@ -105,13 +105,14 @@ throned --route-editor-preview [--advanced] [--detail] [--paste] \
         [-lang ru] [-theme graphite] --output routes.png
 
 # main window on an isolated configuration, with sample connections
-throned -appdata <empty dir> -lang en -theme graphite -ui-preview <prefix>
+throned -lang en -theme graphite -ui-preview <prefix>
 ```
 
 `-ui-preview` writes `<prefix>-window.png`, `<prefix>-menu.png`,
-`<prefix>-menu-in-place.png` and `<prefix>-submenu.png`. Pre-create
-`<dir>/config/throne.db` as an empty file first: without it the launch treats
-the directory as a fresh install and copies the real configuration into it.
+`<prefix>-menu-in-place.png` and `<prefix>-submenu.png`. It always runs against
+an automatically created temporary database containing only reserved example
+domains and RFC 5737 documentation addresses; persisted profiles and
+subscriptions are never opened or copied.
 
 `-lang` and `-theme` also work on a normal launch and override the stored
 choices for that run only.
