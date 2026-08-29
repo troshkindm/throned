@@ -4,6 +4,7 @@
 // Full definition: MainWindow's destructor lives here and destroys the unique_ptr.
 #include "include/ui/mainWindow/TestRunner.h"
 
+#include <QActionGroup>
 #include <QMenu>
 #include <QAction>
 #include <QSignalBlocker>
@@ -424,46 +425,79 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     auto *logToolsLayout = new QHBoxLayout(logTools);
     logToolsLayout->setContentsMargins(0, 0, 8, 5);
     logToolsLayout->setSpacing(6);
-    auto *clearLog = new QPushButton(tr("Clear"), logTools);
-    auto *copyLog = new QPushButton(tr("Copy"), logTools);
-    for (auto *button : {clearLog, copyLog}) button->setObjectName(QStringLiteral("logToolButton"));
-    logToolsLayout->addWidget(clearLog);
-    logToolsLayout->addWidget(copyLog);
-    auto *autoScrollLabel = new QLabel(tr("Auto-scroll"), logTools);
-    autoScrollLabel->setObjectName(QStringLiteral("logAutoScrollLabel"));
-    logToolsLayout->addWidget(autoScrollLabel);
-    auto *autoScrollSource = new QCheckBox(logTools);
-    autoScrollSource->setChecked(Configs::dataManager->settingsRepo->log_auto_scroll);
-    autoScrollSource->hide();
-    auto *autoScroll = new ThronedToggle(autoScrollSource->isChecked(), logTools);
-    autoScroll->bindTo(autoScrollSource);
-    logToolsLayout->addWidget(autoScroll);
-    auto *logLevel = new QComboBox(logTools);
-    logLevel->setObjectName(QStringLiteral("logLevelSelector"));
-    for (const auto &level : Configs::SingBox::LogLevels) logLevel->addItem(level.toUpper(), level);
-    const int currentLogLevel =
-        logLevel->findData(Configs::SingBox::NormalizeLogLevel(Configs::dataManager->settingsRepo->log_level));
-    logLevel->setCurrentIndex(currentLogLevel >= 0 ? currentLogLevel : 0);
-    logLevel->setFixedWidth(106);
-    logLevel->setToolTip(tr("Hides log lines below this level, and sets the core's own log level for the next start"));
-    logLevelSelector = logLevel;
-    logToolsLayout->addWidget(logLevel);
-    connect(clearLog, &QPushButton::clicked, this, [this] { clear_log_view(); });
-    connect(copyLog, &QPushButton::clicked, this, [this] {
+    // One menu instead of six controls: at 1024 px the strip had no room left for
+    // the tabs themselves.
+    auto *logMenuButton = new QToolButton(logTools);
+    logMenuButton->setObjectName(QStringLiteral("panelIconButton"));
+    logMenuButton->setPopupMode(QToolButton::InstantPopup);
+    logMenuButton->setCursor(Qt::PointingHandCursor);
+    logMenuButton->setFocusPolicy(Qt::NoFocus);
+    logMenuButton->setToolTip(tr("Log tools"));
+    auto *logMenu = new QMenu(logMenuButton);
+    auto *clearAction = logMenu->addAction(tr("Clear"));
+    auto *copyAction = logMenu->addAction(tr("Copy all"));
+    auto *autoScrollAction = logMenu->addAction(tr("Auto-scroll"));
+    autoScrollAction->setCheckable(true);
+    autoScrollAction->setChecked(Configs::dataManager->settingsRepo->log_auto_scroll);
+    logMenu->addSeparator();
+    auto *levelMenu = logMenu->addMenu(tr("Level"));
+    levelMenu->setToolTipsVisible(true);
+    levelMenu->setToolTip(tr("Hides log lines below this level, and sets the core's own log level for the next start"));
+    logLevelActions = new QActionGroup(this);
+    for (const auto &level : Configs::SingBox::LogLevels) {
+        auto *levelAction = levelMenu->addAction(level.toUpper());
+        levelAction->setCheckable(true);
+        levelAction->setData(level);
+        logLevelActions->addAction(levelAction);
+    }
+    logMenuButton->setMenu(logMenu);
+    logToolsLayout->addWidget(logMenuButton);
+    connect(clearAction, &QAction::triggered, this, [this] { clear_log_view(); });
+    connect(copyAction, &QAction::triggered, this, [this] {
         QApplication::clipboard()->setText(ui->masterLogBrowser->toPlainText());
     });
-    connect(autoScrollSource, &QCheckBox::toggled, this, [](bool enabled) {
+    connect(autoScrollAction, &QAction::toggled, this, [](bool enabled) {
         Configs::dataManager->settingsRepo->log_auto_scroll = enabled;
         Configs::dataManager->settingsRepo->Save();
     });
-    connect(logLevel, &QComboBox::currentIndexChanged, this, [logLevel, this] {
-        Configs::dataManager->settingsRepo->log_level = logLevel->currentData().toString();
+    connect(logLevelActions, &QActionGroup::triggered, this, [this](QAction *action) {
+        Configs::dataManager->settingsRepo->log_level = action->data().toString();
         Configs::dataManager->settingsRepo->Save();
         updateLogFilterFields();
     });
-    statsPanelTools = {clearLog, copyLog, autoScrollLabel, autoScroll, logLevel};
+    statsPanelTools = {logMenuButton};
     ui->stats_widget->setCornerWidget(logTools, Qt::TopRightCorner);
     bodyLayout->addWidget(ui->splitter, 1);
+
+    // The closed panel is its own card. Squashing the tab widget instead left the
+    // tabs sitting bare on the window with a sliver of the page under them.
+    statsStrip = new QFrame(body);
+    statsStrip->setObjectName(QStringLiteral("logsStrip"));
+    auto *stripLayout = new QHBoxLayout(statsStrip);
+    stripLayout->setContentsMargins(9, 4, 7, 4);
+    stripLayout->setSpacing(2);
+    for (int tab = 0; tab < ui->stats_widget->count(); tab++) {
+        auto *tabButton = new QToolButton(statsStrip);
+        tabButton->setObjectName(QStringLiteral("stripTab"));
+        tabButton->setText(ui->stats_widget->tabText(tab));
+        tabButton->setCursor(Qt::PointingHandCursor);
+        tabButton->setFocusPolicy(Qt::NoFocus);
+        connect(tabButton, &QToolButton::clicked, this, [this, tab] {
+            ui->stats_widget->setCurrentIndex(tab);
+            setStatsPanelOpen(true);
+        });
+        stripLayout->addWidget(tabButton);
+        statsStripTabs.append(tabButton);
+    }
+    stripLayout->addStretch(1);
+    statsStripToggle = new QToolButton(statsStrip);
+    statsStripToggle->setObjectName(QStringLiteral("panelIconButton"));
+    statsStripToggle->setCursor(Qt::PointingHandCursor);
+    statsStripToggle->setFocusPolicy(Qt::NoFocus);
+    statsStripToggle->setToolTip(tr("Show logs and connections"));
+    connect(statsStripToggle, &QToolButton::clicked, this, [this] { setStatsPanelOpen(true); });
+    stripLayout->addWidget(statsStripToggle);
+    bodyLayout->addWidget(statsStrip);
 
     // Bottom chrome mirrors the header: a full-width strip closed by a hairline
     // rather than another bordered card stacked inside the content area.
@@ -660,11 +694,15 @@ QLineEdit#serverSearch {
 }
 QLineEdit#serverSearch:hover { border-color: #4A535E; }
 QLineEdit#serverSearch:focus { border-color: #2F91FF; }
-QComboBox#logLevelSelector {
-    background: #171B21; border: 1px solid #2F3136; border-radius: 5px;
-    padding: 6px 28px 6px 9px;
+QFrame#logsStrip { background: #171B21; border: 1px solid #2F3136; border-radius: 7px; }
+QFrame#logsStrip QToolButton#stripTab {
+    background: transparent; border: none; color: #A4ABB4;
+    padding: 4px 11px; border-radius: 5px; font-weight: 500;
 }
-QComboBox#logLevelSelector:hover { border-color: #4A535E; }
+QFrame#logsStrip QToolButton#stripTab:hover { color: #F1F3F5; background: #222529; }
+QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; padding: 3px; }
+QToolButton#panelIconButton:hover { background: #222529; }
+QToolButton#panelIconButton::menu-indicator { image: none; width: 0px; }
 QTabWidget#groupsCard, QTabWidget#logsCard { background: transparent; }
 QTabWidget#groupsCard::pane, QTabWidget#logsCard::pane {
     background: #171B21; border: 1px solid #2F3136; border-radius: 7px; top: -1px;

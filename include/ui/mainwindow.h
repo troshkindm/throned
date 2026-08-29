@@ -269,6 +269,10 @@ private:
     class ProfileRowDelegate *profileRowDelegate = nullptr;
     class QStyledItemDelegate *compactRowDelegate = nullptr;
     class QToolButton *statsPanelToggle = nullptr;
+    class QToolButton *statsStripToggle = nullptr;
+    class QFrame *statsStrip = nullptr;
+    QList<class QToolButton *> statsStripTabs;
+    class QActionGroup *logLevelActions = nullptr;
     QList<QWidget *> statsPanelTools;
     // What the view is attached to: rows from the view or its selection model are
     // proxy rows, not profilesTableModel rows.
@@ -394,7 +398,6 @@ private:
     int minLogLevelRank = -1;
     // Level the running core was configured with, so a selection below it can say so.
     int coreLogLevelRank_ = -1;
-    QComboBox *logLevelSelector = nullptr;
     QMutex logMutex;
     QQueue<QString> logQueue;
     QWaitCondition logWaiter;

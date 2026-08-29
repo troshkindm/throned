@@ -8,6 +8,7 @@
 #include <QHeaderView>
 #include <QScrollBar>
 #include <QTimer>
+#include <QActionGroup>
 #include <QToolButton>
 
 #include <future>
@@ -90,9 +91,11 @@ void MainWindow::refresh_auto_selector_view()
 
 void MainWindow::updateLogFilterFields() {
     const auto level = Configs::SingBox::NormalizeLogLevel(Configs::dataManager->settingsRepo->log_level);
-    if (logLevelSelector != nullptr) {
-        const QSignalBlocker blocker(logLevelSelector);
-        if (const int index = logLevelSelector->findData(level); index >= 0) logLevelSelector->setCurrentIndex(index);
+    if (logLevelActions != nullptr) {
+        for (QAction *action : logLevelActions->actions()) {
+            const QSignalBlocker blocker(action);
+            action->setChecked(action->data().toString() == level);
+        }
     }
     const int rank = Configs::SingBox::LogLevelRank(level);
     bool levelChanged;
@@ -649,30 +652,25 @@ void MainWindow::refreshUdpColumnVisibility() {
 
 void MainWindow::setStatsPanelOpen(bool open, bool save) {
     auto *settings = Configs::dataManager->settingsRepo.get();
-    // The corner widget is taller than the tabs, and both only report their real
-    // height once laid out - before that the strip would be measured too short.
-    int strip = ui->stats_widget->tabBar()->sizeHint().height();
-    if (auto *corner = ui->stats_widget->cornerWidget(Qt::TopRightCorner))
-        strip = qMax(strip, corner->sizeHint().height());
-    strip += 6;
-    const QList<int> sizes = ui->splitter->sizes();
+    const auto colors = themeManager->Colors();
+    if (statsStripToggle != nullptr)
+        statsStripToggle->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::ChevronUp, colors.textMuted, 18));
+    if (auto *tools = ui->stats_widget->cornerWidget(Qt::TopRightCorner))
+        for (auto *menuButton : tools->findChildren<QToolButton *>(QStringLiteral("panelIconButton")))
+            if (menuButton->menu() != nullptr)
+                menuButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::More, colors.textMuted, 18));
 
-    if (open) {
-        ui->stats_widget->setMaximumHeight(QWIDGETSIZE_MAX);
-        const int total = sizes.size() == 2 ? sizes[0] + sizes[1] : ui->splitter->height();
-        const int panel = qBound(140, settings->stats_panel_height, qMax(140, total - 200));
-        ui->splitter->setSizes({total - panel, panel});
-    } else {
-        // Remember the height it had, so reopening lands where it was left.
-        if (sizes.size() == 2 && sizes[1] > strip + 20) settings->stats_panel_height = sizes[1];
-        ui->stats_widget->setMaximumHeight(strip);
-        // Without handing the freed height back explicitly the splitter leaves it
-        // as a gap between the table and the strip.
-        const int total = sizes.size() == 2 ? sizes[0] + sizes[1] : ui->splitter->height();
-        ui->splitter->setSizes({total - strip, strip});
+    if (statsStrip != nullptr) {
+        // Two widgets, one visible at a time: the strip is a card of its own, so the
+        // closed state has the same rounded block every other panel here has.
+        const QList<int> current = ui->splitter->sizes();
+        if (!open && current.size() == 2 && ui->stats_widget->isVisible() && current[1] > 60)
+            settings->stats_panel_height = current[1];
+        ui->stats_widget->setVisible(open);
+        statsStrip->setVisible(!open);
     }
-    // Squashing the tab widget still leaves a sliver of the page under the tabs.
-    if (auto *page = ui->stats_widget->currentWidget()) page->setVisible(open);
+    // A hidden splitter child gives all of its height back on its own; nothing to
+    // compute here beyond the height the panel had.
     // The tools act on a panel that is not on screen while it is closed.
     for (QWidget *tool : statsPanelTools) {
         if (tool != nullptr) tool->setVisible(open);
@@ -693,18 +691,10 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
         if (laidOut.size() != 2) return;
         const int total = laidOut[0] + laidOut[1];
         if (total <= 0) return;
-        if (open) {
-            const int panel = qBound(140, Configs::dataManager->settingsRepo->stats_panel_height,
-                                     qMax(140, total - 200));
-            ui->splitter->setSizes({total - panel, panel});
-        } else {
-            // Re-measured now that the tab bar has a real height: sizeHint left a
-            // sliver of the page showing below the strip.
-            // Exactly the tab bar: any slack shows a sliver of the page under it.
-            const int laidOutStrip = ui->stats_widget->tabBar()->height() + 2;
-            ui->stats_widget->setMaximumHeight(laidOutStrip);
-            ui->splitter->setSizes({total - laidOutStrip, laidOutStrip});
-        }
+        if (!open) return;
+        const int panel = qBound(140, Configs::dataManager->settingsRepo->stats_panel_height,
+                                 qMax(140, total - 200));
+        ui->splitter->setSizes({total - panel, panel});
     });
 }
 
