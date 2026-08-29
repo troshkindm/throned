@@ -5832,6 +5832,10 @@ Deleted %5 Profiles:
         <translation>[%1] Оставлен собственный DNS профиля: ваши настройки его сломали бы (%2).</translation>
     </message>
     <message>
+        <source>[%1] Kept the profile&apos;s own DNS: %2</source>
+        <translation>[%1] Оставлен собственный DNS профиля: %2</translation>
+    </message>
+    <message>
         <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
         <translation>Локальный DNS и режим TUN не могут работать вместе. Пожалуйста, введите IP для использования в качестве локального DNS в меню «Настройки маршрутизации» → «Назначить локал. DNS»</translation>
     </message>

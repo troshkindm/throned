@@ -2533,8 +2533,16 @@ namespace Configs {
                 if (dataManager->settingsRepo->apply_dns_to_full_config) {
                     BuildContext dnsCtx;
                     dnsCtx.ent = ent;
+                    // Not calculatePrerequisites: that would add chain servers for outbounds this
+                    // config does not have. Only the platform facts the dns servers depend on.
+                    dnsCtx.tunEnabled = dataManager->settingsRepo->spmode_vpn;
+#ifdef Q_OS_LINUX
+                    dnsCtx.isResolvedUsed = isSystemdResolvedDefaultResolver();
+#endif
                     buildDNSSection(dnsCtx);
-                    if (dnsCtx.error.isEmpty() && dnsCtx.result->coreConfig.contains("dns")) {
+                    if (!dnsCtx.error.isEmpty()) {
+                        MW_show_log(QObject::tr("[%1] Kept the profile\x27s own DNS: %2").arg(name, dnsCtx.error));
+                    } else if (dnsCtx.result->coreConfig.contains("dns")) {
                         const auto original = obj.value("dns");
                         obj["dns"] = dnsCtx.result->coreConfig["dns"];
                         // The profile\x27s own rules may name its dns servers; swapping the section
