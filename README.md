@@ -15,66 +15,79 @@
   <img alt="Platforms" src="https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-lightgrey?style=flat-square">
 </p>
 
+<p align="center">
+  <img src="docs/ui-preview/main-en.png" width="860" alt="Throned main window">
+</p>
+
 ---
 
-## Why this fork exists
+## What Throned adds
 
-I maintain Throned because I wanted to fix a few problems that affected me
-directly, test those changes on Windows and Linux, and publish installers I can
-actually use without waiting for a particular upstream release.
+Everything upstream Throne does, plus the following. Each item is a fork
+addition, not an upstream feature.
 
-This project uses AI-assisted tools extensively while developing, reviewing, and
-documenting changes. I still test releases before publishing them, but this is a
-personal best-effort project — not an official Throne build, and not a promise of
-support. If you need the upstream project and its support channels, please use
-[Throne](https://github.com/throneproj/Throne). Throned is provided as-is,
-without warranty.
+**Routing**
+
+- Simple and Advanced modes over one rule document — cards by rule kind, or the raw ordered list where the first match wins.
+- Paste a whole rule list as plain text; bare lines and sing-box spellings (`domain_suffix`, `process_name`, `rule_set`) both work.
+- Application picker backed by installed applications, running processes, or a manually chosen executable.
+- Right-click a live connection to turn it into a rule — domain, subdomains, process, executable or address, to proxy, direct or block.
+- Send a rule bucket through a *named profile or chain*, not just proxy/direct/block.
+- Quick menu on the status bar: active profile, where unmatched traffic goes, and a switch that turns the profile's rules off entirely.
+- Rule values are trimmed before use, and references that point nowhere are reported instead of failing the router silently.
+- Unknown imported fields survive a round trip as `Preserved JSON`.
+
+**TUN and DNS**
+
+- Windows TUN self-loop guard: traffic recaptured on the TUN peer is dropped before it can loop, while DNS to the peer stays hijacked. Derived from the configured subnet, so custom ranges are covered.
+- Transition guard (Windows): a WFP filter held by the core covers the gap between stopping one profile and starting the next, where traffic would otherwise take the physical interface.
+- Your DNS settings can be applied over a full-config profile's own `dns` section — and are kept out when doing so would break it.
+- Rule-set, GeoIP and GeoSite downloads follow the active proxy over a dedicated authenticated local inbound, instead of depending on a profile's `final` outbound.
+
+**DPI bypass**
+
+- Its own screen: TLS spoof method, decoy SNI, QUIC blocking, and the rule sets it applies to — also available per routing rule.
+
+**Testing and monitoring**
+
+- UDP latency and jitter probe with its own column, menu action and configurable target.
+- Ping monitor on the traffic graph: up to three targets, the direct path measured beside the proxy one, and latency spikes flagged.
+- Batch URL test, speed test and outbound-IP resolution over a multi-row selection.
+
+**Interface**
+
+- Frameless window with native chrome (QWindowKit), five themes, one set of semantic color tokens across every screen.
+- Log view with a level filter, wrapped lines on a hanging timestamp gutter, and auto-scroll.
+- Group tabs show subscription usage and expiry.
+- Status strip is a caption/value grid with fixed columns, so a long name or a fast transfer no longer shoves it around.
+
+**Operating it**
+
+- **Copy Diagnostics** — one paste with version, OS, TUN and routing state and the recent log, secrets masked.
+- Background update check announced in the tray. Nothing downloads or installs on its own.
+- Control CLI over a local socket, for a person or a script.
 
 ---
 
 ## Interface
 
-Throned 1.2 replaces the inherited Qt forms with a redesigned shell: a frameless
-window with its own chrome, a single header band instead of stacked panels, and
-one set of semantic color tokens shared by every screen.
-
-<p align="center">
-  <img src="docs/ui-preview/main-en.png" width="820" alt="Throned main window">
-</p>
-
-The status strip is a caption/value grid: connection and exit country, inbound
-address, proxy and direct rates, and the active routing profile.
-
-<p align="center">
-  <img src="docs/ui-preview/status-bar.png" width="820" alt="Status bar">
-</p>
-
 Routing has a **Simple** mode that sorts rules into application, domain,
 rule-set and address cards, and an **Advanced** mode that exposes the real
-ordered rule list where the first match wins.
+ordered rule list.
 
 <p align="center">
   <img src="docs/ui-preview/routes-simple-en.png" width="820" alt="Routing profile editor">
 </p>
 
-Settings are grouped into sections with inline help instead of a dense grid of
-checkboxes.
-
 <p align="center">
-  <img src="docs/ui-preview/settings-en.png" width="820" alt="Settings">
+  <img src="docs/ui-preview/connection-rule-menu.png" width="700" alt="Rule from a connection">
 </p>
-
-> Screens are rendered from the application itself; the settings screen and the
-> theme swatches come from the bundled harness (`tools/ui-demo`). Every server,
-> host and path is placeholder data using the reserved documentation ranges from
-> RFC 5737.
 
 ### Themes
 
 Five built-in themes, switchable in **Settings → Appearance**. The background
-ramp stays close to neutral in all of them and the chroma budget goes to the
-accent instead, which keeps text edges crisp — a uniformly tinted dark window at
-low luminance contrast reads as slightly out of focus.
+ramp stays near-neutral in all of them and the chroma budget goes to the accent,
+which keeps text edges crisp.
 
 | Midnight | Graphite |
 | --- | --- |
@@ -84,104 +97,16 @@ low luminance contrast reads as slightly out of focus.
 | --- | --- | --- |
 | <img src="docs/ui-preview/theme-ocean.png" alt="Ocean"> | <img src="docs/ui-preview/theme-violet.png" alt="Violet"> | <img src="docs/ui-preview/theme-ember.png" alt="Ember"> |
 
+> Screens are rendered from the application itself. Every server, host and path
+> is placeholder data using the reserved documentation ranges from RFC 5737.
+
 ---
 
-## What Throned adds
+## Control CLI
 
-### Windows TUN self-loop fix
-
-After a network-interface change, an internal sing-tun system-stack connection
-could fall through to `direct`, get captured by the same TUN again, and repeat
-indefinitely — voice chat cutting out, repeated `ThronedCore.exe -> 172.19.0.2`
-log lines, rising CPU, recovering only until the next restart of TUN mode.
-
-Throned carries the upstream interface-monitor fix plus an early peer guard
-calculated from the configured TUN subnet, so custom ranges are covered too. DNS
-to the peer stays hijacked; other recaptured peer traffic is dropped before
-sniffing, user rules, or a direct outbound can loop it again.
-
-### Rule-set downloads that follow the proxy
-
-Remote sing-box rule sets and Throned's own route/GeoIP/GeoSite downloads go
-through the active proxy over a dedicated authenticated local inbound, instead
-of depending on a routing profile's `final` outbound being `proxy`.
-
-### Rules from the connection list
-
-Right-click a live connection to turn it into a routing rule. The menu opens
-with the verdict that connection actually got, then offers every rule the row
-can produce — domain, domain and subdomains, process, executable, address —
-each routable to proxy, direct or block. A candidate that already exists in the
-active profile says so instead of adding a duplicate.
-
-<p align="center">
-  <img src="docs/ui-preview/connection-rule-menu.png" width="700" alt="Rule from a connection">
-</p>
-
-### Routing editor
-
-- Simple and Advanced modes over one shared rule document; switching modes never
-  deletes, regroups, or silently reorders rules.
-- Rules are sorted into application, domain, rule-set and address cards, laid out
-  in even columns filled top to bottom, sorted by kind and name. Large cards get
-  an inline filter and fold past 24 entries.
-- **Paste list** edits every rule of one action as plain text. Bare lines are
-  recognised on their own, and sing-box spellings (`domain_suffix`,
-  `process_name`, `rule_set`) are accepted, so a list from a config or a chat
-  message can be pasted whole.
-- An application picker backed by installed applications, running processes, and
-  manual executable selection.
-- Unknown imported fields stay as opaque JSON in their original position, marked
-  `Preserved JSON`.
-
-<p align="center">
-  <img src="docs/ui-preview/routes-paste-en.png" width="620" alt="Paste rule list">
-</p>
-
-<p align="center">
-  <img src="docs/ui-preview/routes-advanced-en.png" width="820" alt="Advanced routing">
-</p>
-
-### Process rules that actually match
-
-- Process lookup is switched on by any profile that uses process rules. It used
-  to ride on traffic statistics, so turning those off silently stopped every
-  process rule from matching.
-- A rule that matches only on a process now gets a mirrored DNS rule. sing-box
-  routes DNS through a separate list, so an application pulled onto the proxy by
-  name still resolved its hostnames through the direct resolver — which is why a
-  process rule alone often needed the domains listed by hand as well.
-
-### Routing quick menu
-
-The routing segment of the status bar opens a panel over the window: active
-profile, whether unmatched traffic goes direct or through the proxy, and a
-switch that turns the profile's own rules off entirely. Throned's internal rules
-— TUN DNS hijack, sniffing, the peer guard, the local-proxy option — keep
-applying either way.
-
-### Main window workflow
-
-- Selecting several rows reveals batch actions — URL test, speed test, and
-  outbound-IP resolution operate on the preserved selection.
-- Logs wrap at the window edge with a hanging timestamp/level gutter, a level
-  filter, and auto-scroll. Process paths are highlighted whole, spaces included.
-- Status-bar readings are elided to their cell and padded to fixed columns, so
-  a long profile name or a fast transfer no longer shoves the strip around.
-
-### Update checks
-
-Throned can look for a new release on a schedule and announce it in the tray
-instead of interrupting with a dialog. Nothing downloads or installs on its own:
-clicking the notification opens the same prompt the manual check shows. The
-interval lives in *Settings → Subscription* and can be switched off.
-
-### Control interface
-
-A running Throned can be driven from the command line, by a person or by a
-program. The command travels to the open window over a local socket, runs
-against the same database the interface uses, and the answer comes back on
-stdout.
+A running Throned can be driven from the command line. The command travels to
+the open window over a local socket, runs against the same database the
+interface uses, and the answer comes back on stdout.
 
 ```sh
 throned --cli status
@@ -190,138 +115,94 @@ throned --cli route app add discord.exe --via direct
 throned --cli route rules            # the ordered rule list; first match wins
 ```
 
-Every command is also addressable as JSON, and replies are always
-`{"ok":true,"data":{…}}` or `{"ok":false,"error":"…"}`:
+Every command is also addressable as JSON, replying `{"ok":true,"data":{…}}` or
+`{"ok":false,"error":"…"}`:
 
 ```sh
 throned --cli '{"cmd":"routing.set_default","outbound":"proxy"}'
 throned --cli '{"cmd":"logs","lines":50,"contains":"reject"}'
 ```
 
-`routing.export` hands over the whole profile as a lossless document — every
-rule with every field, in evaluation order — and `routing.import` takes an
-edited one back. `{"cmd":"schema"}` describes the command surface *and* the rule
-format, both generated from the code that dispatches and parses them, so the
-reference cannot drift from what the app accepts.
+`routing.export` hands over the whole profile losslessly and `routing.import`
+takes an edited one back; `{"cmd":"schema"}` describes the command surface and
+the rule format, both generated from the code that parses them. Routing edits
+restart the core — pass `"apply": false` to batch several and finish with
+`routing.apply`.
 
-Routing edits restart the core so they take effect. Pass `"apply": false` to
-batch several and finish with `routing.apply`, interrupting traffic once instead
-of once per edit.
-
-The socket is restricted to the current user. Anything able to reach it can
-change where traffic goes, so it is not a public interface.
-`throned --cli help` prints the whole reference.
-
-> The examples are lowercase because Windows resolves executable names without
-> regard to case. The Linux binary is named `Throned`, and there case matters.
-
-### Naming and migration
-
-The application, core process, installer, Linux bundle, and TUN interface all
-use the Throned name. On first launch an existing Throne configuration is copied
-in when no Throned database exists yet. The legacy `throne://` link scheme
-remains supported, so old subscriptions and shared profiles keep opening.
+The socket is restricted to the current user; anything able to reach it can
+change where traffic goes. `throned --cli help` prints the whole reference.
 
 ---
 
 ## Downloads
 
-Stable builds are published on the
+Stable builds are on the
 [Releases](https://github.com/troshkindm/throned/releases) page.
 
-| Platform | Package | Status |
-| --- | --- | --- |
-| Windows x64 | Installer EXE | Recommended |
-| Windows x64 | Portable ZIP | Supported |
-| Linux x64 / ARM64 | Portable ZIP | Supported |
-| Debian/Ubuntu x64 / ARM64 | Bundled-Qt DEB | Recommended |
-| Debian/Ubuntu x64 / ARM64 | System-Qt DEB | Smaller package; uses distro Qt |
-| Fedora/openSUSE x64 / ARM64 | Bundled-Qt RPM | Recommended |
-| Fedora/openSUSE x64 / ARM64 | System-Qt RPM | Smaller package; uses distro Qt |
-| Windows ARM64 / legacy Windows | Not currently published | Planned |
-| macOS | Build from source | Upstream-compatible, not CI-tested here |
+| Platform | Package |
+| --- | --- |
+| Windows x64 | Installer EXE (recommended), portable ZIP |
+| Linux x64 / ARM64 | Portable ZIP |
+| Debian / Ubuntu x64 / ARM64 | DEB, bundled Qt (recommended) or system Qt |
+| Fedora / openSUSE x64 / ARM64 | RPM, bundled Qt (recommended) or system Qt |
+| Windows ARM64, legacy Windows | Planned |
+| macOS | Build from source; upstream-compatible, not CI-tested here |
 
-TUN mode requires administrator privileges on Windows and elevated network
+TUN mode needs administrator privileges on Windows and elevated network
 capabilities on Linux.
 
----
+Throned inherits Throne's protocol support: VLESS, VMess, Trojan, Shadowsocks,
+SOCKS, HTTP(S), TUIC, Hysteria, Hysteria2, AnyTLS, ShadowTLS, Snell,
+WireGuard/AmneziaWG, SSH, Mieru, NaiveProxy, Juicity, TrustTunnel, custom
+outbounds and configs, chains, and extra cores.
 
-## Versioning and releases
-
-Throned uses ordinary numeric [Semantic Versioning](https://semver.org/):
-
-- patch fixes — `1.0.1`, `1.0.2`;
-- backward-compatible features — `1.1.0`;
-- incompatible changes — `2.0.0`.
-
-Each release note states which Throne version or commit it is based on. A
-release is published only after the Windows x64 installer, Windows portable
-build, Linux x64/ARM64 portable builds, and all four Debian packages complete
-successfully. Development builds remain available as GitHub Actions artifacts.
-
-The `1.1.0` release also publishes legacy-named transition archives solely so
-the `1.0.0` updater can hand over to Throned. New installations and later
-updates use the `Throned-*` packages.
+On first launch an existing Throne configuration is copied in when no Throned
+database exists yet, and `throne://` links keep working.
 
 ---
 
 ## Building
 
-The authoritative build recipes live in
-[.github/workflows/throned-windows.yml](.github/workflows/throned-windows.yml).
-They build `ThronedCore`, the Qt application, and portable packages in clean
-GitHub runners.
+The authoritative recipes are in
+[.github/workflows](.github/workflows) — they build `ThronedCore`, the Qt
+application and the packages in clean runners. Expected toolchain: Go 1.26.x,
+CMake + Ninja, Qt 6.11.x, Protobuf 31.x, and MSVC on Windows or GCC on Linux.
 
-The project currently expects:
-
-- Go 1.26.x
-- CMake and Ninja
-- Qt 6.11.x
-- Protobuf 31.x
-- MSVC on Windows or GCC on Linux
-
-The UI preview harness builds on its own against Qt alone, without a database,
-core process, or networking side effects:
+The UI preview harness builds against Qt alone, with no database, core process
+or networking:
 
 ```sh
 cmake -S tools/ui-demo -B build-ui
 cmake --build build-ui
 ```
 
-The application itself can also render its real screens headlessly
+The application also renders its real screens headlessly
 (`--route-editor-preview`, `-ui-preview`), which is how the screenshots above
-are produced. See [docs/ui-redesign.md](docs/ui-redesign.md) for both and for
-the design notes behind the redesign.
+are made. See [docs/ui-redesign.md](docs/ui-redesign.md).
 
 ---
 
-## Supported protocols
+## About this fork
 
-Throned inherits Throne's sing-box and Xray protocol support, including VLESS,
-VMess, Trojan, Shadowsocks, SOCKS, HTTP(S), TUIC, Hysteria, Hysteria2, AnyTLS,
-ShadowTLS, Snell, WireGuard/AmneziaWG, SSH, Mieru, NaiveProxy, Juicity,
-TrustTunnel, custom outbounds, custom configs, chains, and extra cores.
+I maintain Throned to fix problems that affect me directly, test the changes on
+Windows and Linux, and publish installers without waiting for a particular
+upstream release. Upstream changes are merged from
+[throneproj/Throne](https://github.com/throneproj/Throne) periodically, and
+fork patches are kept small enough to rebase, retire, or propose upstream.
 
----
+AI-assisted tools are used extensively while writing, reviewing and documenting
+changes. Releases are tested before publishing, but this is a personal
+best-effort project — not an official Throne build and not a promise of support.
+For the upstream project and its support channels, use
+[Throne](https://github.com/throneproj/Throne). Throned is provided as-is,
+without warranty.
 
-## Upstream policy
+Versioning is ordinary [SemVer](https://semver.org/), and each release note
+states which Throne version or commit it is based on. Bug reports should include
+the Throned version, OS, TUN settings, routing profile, and the log around the
+problem.
 
-Upstream changes are periodically merged from
-[throneproj/Throne](https://github.com/throneproj/Throne). Throned-specific
-patches are kept small and documented so they can be rebased, retired when
-upstream supersedes them, or proposed upstream where appropriate.
-
-Bug reports should include the Throned version, operating system, TUN settings,
-routing profile, and the log section from when the problem occurs.
-
----
-
-## Credits and license
-
-Throned is built on the work of
-[Throne](https://github.com/throneproj/Throne),
+Built on [Throne](https://github.com/throneproj/Throne),
 [sing-box](https://github.com/SagerNet/sing-box),
-[Xray-core](https://github.com/XTLS/Xray-core), Qt, and the other projects
-listed in the source tree.
-
-Licensed under [GPL-3.0](LICENSE).
+[Xray-core](https://github.com/XTLS/Xray-core), Qt, and the other projects listed
+in the source tree. Licensed under [GPL-3.0](LICENSE).
