@@ -64,6 +64,10 @@ void MainWindow::setupConnectionList()
     ui->connections->horizontalHeader()->setSectionResizeMode(ConnectionsFilterHeader::ColClose, QHeaderView::Fixed);
     ui->connections->setColumnWidth(ConnectionsFilterHeader::ColClose, CLOSE_COLUMN_WIDTH);
     ui->connections->verticalHeader()->hide();
+    // Numbers read right-aligned, and the header has to follow them.
+    for (int column : {ConnectionsFilterHeader::ColTraffic, ConnectionsFilterHeader::ColSpeed})
+        if (auto* headerItem = ui->connections->horizontalHeaderItem(column))
+            headerItem->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
     ui->connections->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->connections, &QWidget::customContextMenuRequested, this, &MainWindow::showConnectionMenu);
     refreshConnectionCloseIcons();
@@ -377,6 +381,10 @@ void MainWindow::buildConnectionRow(const int row)
         {
             ui->connections->setItem(row, column, new QTableWidgetItem());
         }
+        for (int column : {ConnectionsFilterHeader::ColTraffic, ConnectionsFilterHeader::ColSpeed})
+        {
+            ui->connections->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        }
     }
     if (ui->connections->cellWidget(row, ConnectionsFilterHeader::ColClose) != nullptr) return;
 
@@ -404,8 +412,8 @@ void MainWindow::fillConnectionRow(const int row, const Stats::ConnectionMetadat
         conn.process,
         prot,
         conn.outbound,
-        ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓",
-        ReadableSize(conn.uploadSpeed) + "/s↑" + " " + ReadableSize(conn.downloadSpeed) + "/s↓",
+        QStringLiteral("↑ ") + ReadableSize(conn.upload) + QStringLiteral("   ↓ ") + ReadableSize(conn.download),
+        QStringLiteral("↑ ") + ReadableSize(conn.uploadSpeed) + QStringLiteral("/s   ↓ ") + ReadableSize(conn.downloadSpeed) + QStringLiteral("/s"),
     };
     for (int column = 0; column < ConnectionsFilterHeader::ColClose; column++)
     {

@@ -793,6 +793,8 @@ briefly interrupts traffic.
         window->refresh_status(Stats::DisplaySpeed(proxy) + QChar(0x001F) + Stats::DisplaySpeed(direct));
         window->refresh_status();
 
+        // The panel ships closed, but the screenshots exist to show what is inside it.
+        window->setStatsPanelOpen(true, false);
         for (auto *tabs : window->findChildren<QTabWidget *>())
             for (int tab = 0; tab < tabs->count(); ++tab)
                 if (tabs->widget(tab)->findChild<QTableWidget *>(QStringLiteral("connections")) != nullptr)

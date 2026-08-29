@@ -10,12 +10,13 @@
 class ConnectionsFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
-    enum Column { ColDest = 0, ColProcess = 1, ColProtocol = 2, ColOutbound = 3, ColClose = 6, ColumnCount = 7 };
+    enum Column { ColDest = 0, ColProcess = 1, ColProtocol = 2, ColOutbound = 3,
+                  ColTraffic = 4, ColSpeed = 5, ColClose = 6, ColumnCount = 7 };
 
     explicit ConnectionsFilterHeader(QWidget *parent = nullptr)
         : QHeaderView(Qt::Horizontal, parent) {
         setSectionsClickable(true);
-        setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        setDefaultAlignment(Qt::AlignLeft | Qt::AlignTop);
 
         dest_filter = makeEdit();
         process_filter = makeEdit();

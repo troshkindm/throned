@@ -653,6 +653,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tablePalette.setColor(QPalette::HighlightedText, QColor(QStringLiteral("#FFFFFF")));
     ui->profilesTableView->setPalette(tablePalette);
     ui->connections->setShowGrid(false);
+    // Every tab page of the bottom panel is a card too, for the same reason the
+    // group pages are: the view inside fills its viewport square.
+    for (int tab = 0; tab < ui->stats_widget->count(); ++tab) {
+        QWidget *page = ui->stats_widget->widget(tab);
+        page->setProperty("thronedCard", true);
+        page->setAttribute(Qt::WA_StyledBackground, true);
+    }
     ui->masterLogBrowser->setLineWrapMode(QTextEdit::WidgetWidth);
     const QString mainStyleTemplate = QStringLiteral(R"(
 * { font-size: %BASE_FONT_PX%px; color: #F1F3F5; }
@@ -718,7 +725,7 @@ QTabWidget#groupsCard QTabBar::tab:hover, QTabWidget#logsCard QTabBar::tab:hover
 QTabWidget#groupsCard QTabBar::tab:selected, QTabWidget#logsCard QTabBar::tab:selected {
     color: #F1F3F5; background: #182530; border-bottom: 2px solid #237AE9;
 }
-QWidget#profilesPage {
+QWidget[thronedCard="true"] {
     background: #171B21; border: 1px solid #343A42; border-radius: 8px;
 }
 /* The group page paints the card; the table and its headers stay transparent so
