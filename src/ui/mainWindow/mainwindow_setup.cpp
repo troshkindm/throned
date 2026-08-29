@@ -704,8 +704,9 @@ QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136
 QToolButton#panelIconButton:hover { background: #222529; }
 QToolButton#panelIconButton::menu-indicator { image: none; width: 0px; }
 QTabWidget#groupsCard, QTabWidget#logsCard { background: transparent; }
-QTabWidget#groupsCard::pane, QTabWidget#logsCard::pane {
-    background: #171B21; border: 1px solid #2F3136; border-radius: 7px; top: -1px;
+QTabWidget#groupsCard::pane { background: transparent; border: none; top: -1px; }
+QTabWidget#logsCard::pane {
+    background: #171B21; border: 1px solid #343A42; border-radius: 8px; top: -1px;
 }
 QTabWidget#groupsCard::tab-bar, QTabWidget#logsCard::tab-bar { left: 3px; }
 QTabWidget#groupsCard QTabBar, QTabWidget#logsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
@@ -717,21 +718,28 @@ QTabWidget#groupsCard QTabBar::tab:hover, QTabWidget#logsCard QTabBar::tab:hover
 QTabWidget#groupsCard QTabBar::tab:selected, QTabWidget#logsCard QTabBar::tab:selected {
     color: #F1F3F5; background: #182530; border-bottom: 2px solid #237AE9;
 }
+QWidget#profilesPage {
+    background: #171B21; border: 1px solid #343A42; border-radius: 8px;
+}
+/* The group page paints the card; the table and its headers stay transparent so
+   the rounded corners are not filled in square by the view. */
 QTableView, QTableWidget, QTextBrowser {
-    background: #171B21; border: none; outline: none;
+    background: transparent; border: none; outline: none;
     selection-color: white; selection-background-color: #143C48;
 }
 QHeaderView::section {
-    background: #171B21; color: #C2C7CE; border: none; border-right: 1px solid #2F3136;
+    background: transparent; color: #C2C7CE; border: none; border-right: 1px solid #2F3136;
     border-bottom: 1px solid #2F3136; padding: 5px 8px; font-weight: 500;
 }
-QHeaderView { background: #171B21; }
+QHeaderView { background: transparent; }
 QHeaderView::section:vertical,
 QHeaderView::section:vertical:checked,
 QHeaderView::section:vertical:pressed {
+    /* Opaque: paintSection() fills with QPalette::Button, which a transparent rule zeroes to black. */
     color: #8295A6; background: #171B21; border-right: 1px solid #2F3136;
 }
-QTableCornerButton::section { background: #171B21; border: none; border-right: 1px solid #2F3136; border-bottom: 1px solid #2F3136; }
+ProfilesTableVerticalHeader { qproperty-sectionBackground: #171B21; }
+QTableCornerButton::section { background: transparent; border: none; border-right: 1px solid #2F3136; border-bottom: 1px solid #2F3136; }
 QTableView::item, QTableWidget::item { border-bottom: 1px solid #2F3136; padding: 3px 7px; }
 QTableView::item:selected, QTableWidget::item:selected {
     color: white; background: #143C48;
@@ -1206,6 +1214,12 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int, int, int) {
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (Configs::dataManager->settingsRepo->refreshing_group || group == nullptr) return;
+        // Comfortable rows size themselves: the Server column stretches and the metric
+        // columns are fixed, so every window resize emits this. Recording it would pin
+        // the table to the width it happened to have when the layout first ran.
+        if (m_adjustingColumns) return;
+        if (profilesTableModel != nullptr
+            && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable) return;
         group->column_width.clear();
         for (int i = 0; i < ui->profilesTableView->horizontalHeader()->count(); i++) {
             group->column_width.push_back(ui->profilesTableView->horizontalHeader()->sectionSize(i));

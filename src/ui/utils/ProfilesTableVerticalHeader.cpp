@@ -50,7 +50,8 @@ void ProfilesTableVerticalHeader::updateWidthFromRowCount() {
 
 void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const {
     painter->save();
-    painter->fillRect(rect, palette().color(QPalette::Button));
+    painter->fillRect(rect, m_sectionBackground.isValid() ? m_sectionBackground
+                                                          : palette().color(QPalette::Base));
     if (rect.width() > 1) {
         painter->setPen(palette().color(QPalette::Mid));
         painter->drawLine(rect.topRight(), rect.bottomRight());

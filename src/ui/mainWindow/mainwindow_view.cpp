@@ -337,7 +337,10 @@ void MainWindow::refresh_proxy_list_column_size() {
         }
         const bool comfortable = profilesTableModel != nullptr
             && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable;
-        if (group->column_width.isEmpty() && comfortable) {
+        // Comfortable columns are stretch + fixed, never user-dragged, so a width
+        // saved by an older build must not freeze them.
+        if (comfortable) {
+            group->column_width.clear();
             hHeader->setSectionResizeMode(ProfilesTableModel::ColcServer, QHeaderView::Stretch);
             for (int col : {ProfilesTableModel::ColcPing, ProfilesTableModel::ColcSpeed,
                             ProfilesTableModel::ColcTraffic}) {

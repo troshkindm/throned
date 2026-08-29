@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QColor>
 #include <QHeaderView>
 
 class ProfilesTableModel;
@@ -7,6 +8,9 @@ class ProfilesFilterProxyModel;
 
 class ProfilesTableVerticalHeader : public QHeaderView {
     Q_OBJECT
+    // paintSection cannot read the ::section QSS rule, and the widget-level rule has
+    // to stay transparent for the card corners, so the fill colour comes in by name.
+    Q_PROPERTY(QColor sectionBackground MEMBER m_sectionBackground)
 public:
     explicit ProfilesTableVerticalHeader(QWidget *parent = nullptr);
 
@@ -22,4 +26,5 @@ protected:
 private:
     ProfilesTableModel *m_model = nullptr;
     ProfilesFilterProxyModel *m_proxy = nullptr;
+    QColor m_sectionBackground;
 };

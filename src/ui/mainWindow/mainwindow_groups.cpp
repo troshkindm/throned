@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QTimer>
+#include <QStyle>
 #include <QVBoxLayout>
 
 #include "include/configs/sub/GroupUpdater.hpp"
@@ -42,7 +43,14 @@ void MainWindow::show_group(int gid) {
         Configs::dataManager->settingsRepo->Save();
     }
 
-    ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->profilesTableView);
+    // The page, not the table, paints the rounded card: a QTableView fills its
+    // viewport square, so the pane's corners never survive underneath it.
+    auto *page = ui->tabWidget->widget(groupId2TabIndex(gid));
+    page->setObjectName(QStringLiteral("profilesPage"));
+    page->setAttribute(Qt::WA_StyledBackground, true);
+    page->style()->unpolish(page);
+    page->style()->polish(page);
+    page->layout()->addWidget(ui->profilesTableView);
 
     refresh_proxy_list({}, true);
 
