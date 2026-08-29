@@ -13,7 +13,7 @@ namespace Configs {
 class ProfilesTableModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    enum { ProfileIdRole = Qt::UserRole };
+    enum { ProfileIdRole = Qt::UserRole, RowVisualRole };
 
     enum Column {
         ColType = 0,
@@ -24,6 +24,39 @@ public:
         ColUDP,
         ColumnCount,
     };
+
+    // Comfortable rows fold type, address, country and exit IP into one Server
+    // column and split what Test Result used to pack into its own columns.
+    enum ComfortColumn {
+        ColcServer = 0,
+        ColcPing,
+        ColcSpeed,
+        ColcTraffic,
+        ComfortColumnCount,
+    };
+
+    enum class RowStyle { Compact, Comfortable };
+
+    // Everything a comfortable row paints, resolved once per row.
+    struct RowVisual {
+        QString name;
+        QString chip;      // protocol, drawn as an outlined chip
+        QString address;
+        QString flag;      // country, already converted to its flag glyph
+        QString exitIp;
+        QString latency;
+        QString udp;
+        QString speedDown;
+        QString speedUp;
+        QString trafficDown;
+        QString trafficUp;
+        int latencyMs = 0; // kLatencyConnectOnly / negative / 0 = never tested
+        bool udpDegraded = false;
+        bool running = false;
+    };
+
+    void setRowStyle(RowStyle style);
+    RowStyle rowStyle() const { return m_rowStyle; }
 
     // Off until a UDP test has actually produced something to show.
     void setUdpColumnVisible(bool visible);
@@ -64,6 +97,7 @@ public:
     const FilterKey *filterKeyAt(int row) const;
 
 private:
+    RowVisual buildRowVisual(const std::shared_ptr<Configs::Profile> &profile, bool isRunning) const;
     void ensureCached(int profileId) const;
     void evictOne() const;
     void setProfileIds(const QList<int> &ids);
@@ -77,5 +111,8 @@ private:
 
     mutable QHash<int, FilterKey> m_filterKeys;
     bool m_udpColumnVisible = false;
+    RowStyle m_rowStyle = RowStyle::Compact;
     mutable bool m_filterIndexBuilt = false;
 };
+
+Q_DECLARE_METATYPE(ProfilesTableModel::RowVisual)

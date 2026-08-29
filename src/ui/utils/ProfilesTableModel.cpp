@@ -1,5 +1,8 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/global/Configs.hpp"
+#include "include/global/CountryHelper.hpp"
+#include "include/global/Utils.hpp"
+#include "include/database/entities/Group.h"
 #include "include/database/entities/Profile.h"
 #include "include/configs/common/Outbound.h"
 #include <QApplication>
@@ -19,9 +22,17 @@ int ProfilesTableModel::rowCount(const QModelIndex &parent) const {
 
 int ProfilesTableModel::columnCount(const QModelIndex &parent) const {
     if (parent.isValid()) return 0;
+    if (m_rowStyle == RowStyle::Comfortable) return ComfortColumnCount;
     // ColUDP is the last column, so leaving it out of the count removes it entirely
     // rather than leaving an empty slot behind.
     return m_udpColumnVisible ? ColumnCount : ColumnCount - 1;
+}
+
+void ProfilesTableModel::setRowStyle(RowStyle style) {
+    if (m_rowStyle == style) return;
+    beginResetModel();
+    m_rowStyle = style;
+    endResetModel();
 }
 
 void ProfilesTableModel::setUdpColumnVisible(bool visible) {
@@ -88,9 +99,48 @@ void ProfilesTableModel::evictOne() const {
     m_cache.remove(id);
 }
 
+ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
+    const std::shared_ptr<Configs::Profile> &profile, bool isRunning) const {
+    RowVisual visual;
+    visual.running = isRunning;
+    if (profile->outbound) {
+        visual.name = profile->outbound->name;
+        visual.chip = profile->outbound->DisplayType();
+        visual.address = profile->outbound->DisplayAddress();
+    }
+
+    const auto group = Configs::dataManager->groupsRepo->GetGroup(profile->gid);
+    const auto shown = group ? group->test_items_to_show : Configs::testShowItems::all;
+    const bool showSpeed = shown == Configs::testShowItems::all || shown == Configs::testShowItems::speedOnly;
+    const bool showIP = shown == Configs::testShowItems::all || shown == Configs::testShowItems::ipOnly;
+
+    if (!profile->test_country.isEmpty()) visual.flag = CountryCodeToFlag(profile->test_country);
+    if (showIP) visual.exitIp = profile->ip_out;
+
+    visual.latencyMs = profile->latency;
+    if (profile->latency == Configs::kLatencyConnectOnly) visual.latency = tr("Connect OK");
+    else if (profile->latency < 0) visual.latency = tr("Unavailable");
+    else if (profile->latency > 0) visual.latency = QStringLiteral("%1 ms").arg(profile->latency);
+
+    visual.udp = profile->DisplayUDPResult();
+    visual.udpDegraded = profile->udp_loss > 0 || profile->udp_jitter >= 10 || profile->udp_avg < 0;
+
+    if (showSpeed) {
+        if (!profile->dl_speed.isEmpty() && profile->dl_speed != QStringLiteral("N/A"))
+            visual.speedDown = profile->dl_speed;
+        if (!profile->ul_speed.isEmpty() && profile->ul_speed != QStringLiteral("N/A"))
+            visual.speedUp = profile->ul_speed;
+    }
+    if (profile->traffic_downlink + profile->traffic_uplink != 0) {
+        visual.trafficDown = ReadableSize(profile->traffic_downlink);
+        visual.trafficUp = ReadableSize(profile->traffic_uplink);
+    }
+    return visual;
+}
+
 QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid() || index.row() < 0 || index.row() >= m_profileIds.size()
-        || index.column() < 0 || index.column() >= ColumnCount) {
+        || index.column() < 0 || index.column() >= columnCount()) {
         return {};
     }
     const int profileId = m_profileIds[index.row()];
@@ -106,6 +156,28 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     const int startedId = Configs::dataManager->settingsRepo->started_id;
     const bool isRunning = (profile->id == startedId);
     QColor linkColor = isRunning ? QApplication::palette().link().color() : QColor();
+
+    if (m_rowStyle == RowStyle::Comfortable) {
+        if (role == RowVisualRole) return QVariant::fromValue(buildRowVisual(profile, isRunning));
+        if (role == Qt::TextAlignmentRole) {
+            return static_cast<int>((index.column() == ColcServer ? Qt::AlignLeft : Qt::AlignRight)
+                                    | Qt::AlignVCenter);
+        }
+        // The delegate paints; these keep keyboard search and accessibility honest.
+        if (role == Qt::DisplayRole) {
+            switch (index.column()) {
+            case ColcServer: return profile->outbound ? profile->outbound->name : QString();
+            case ColcPing: return profile->DisplayTestResult();
+            case ColcSpeed: return QString();
+            case ColcTraffic: return profile->DisplayTraffic();
+            default: return {};
+            }
+        }
+        if (role == Qt::ToolTipRole && index.column() == ColcPing && !profile->udp_error.isEmpty()) {
+            return tr("UDP probe error: %1").arg(profile->udp_error);
+        }
+        return {};
+    }
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
@@ -155,6 +227,18 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 }
 
 QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (m_rowStyle == RowStyle::Comfortable && orientation == Qt::Horizontal) {
+        if (role == Qt::TextAlignmentRole)
+            return static_cast<int>((section == ColcServer ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignVCenter);
+        if (role != Qt::DisplayRole) return {};
+        switch (section) {
+        case ColcServer: return tr("Server");
+        case ColcPing: return tr("Ping · UDP");
+        case ColcSpeed: return tr("Speed");
+        case ColcTraffic: return tr("Traffic");
+        default: return {};
+        }
+    }
     if (role == Qt::TextAlignmentRole && orientation == Qt::Horizontal) {
         // A header centred over left-aligned text reads as a third alignment;
         // each one now sits over its own column's edge.

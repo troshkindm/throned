@@ -1180,11 +1180,32 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         int columnIndex = header->logicalIndexAt(pos);
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
+
+        const bool comfortable = Configs::dataManager->settingsRepo->profile_rows_comfortable;
+        // Offered from every column: it is the only place the row style is reachable.
+        const auto addRowStyleAction = [this, comfortable](QMenu& menu) {
+            auto* rows = menu.addAction(tr("Comfortable rows"));
+            rows->setCheckable(true);
+            rows->setChecked(comfortable);
+            connect(rows, &QAction::triggered, this, [this](bool on) {
+                Configs::dataManager->settingsRepo->profile_rows_comfortable = on;
+                Configs::dataManager->settingsRepo->Save();
+                refreshProfileRowStyle();
+            });
+        };
+
+        if (comfortable) {
+            QMenu menu(this);
+            addRowStyleAction(menu);
+            menu.exec(header->mapToGlobal(pos));
+            return;
+        }
         if (columnIndex == ProfilesTableModel::ColUDP) {
             QMenu menu(this);
             auto* toggle = menu.addAction(tr("Show UDP column"));
             toggle->setCheckable(true);
             toggle->setChecked(Configs::dataManager->settingsRepo->show_udp_column);
+            addRowStyleAction(menu);
             if (menu.exec(header->mapToGlobal(pos)) != toggle) return;
             Configs::dataManager->settingsRepo->show_udp_column = toggle->isChecked();
             Configs::dataManager->settingsRepo->Save();
@@ -1365,11 +1386,14 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 });
             return;
         }
+        QMenu menu(this);
+        addRowStyleAction(menu);
+        menu.exec(header->mapToGlobal(pos));
     });
     refreshUdpColumnVisibility();
     ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
-    ui->profilesTableView->verticalHeader()->setDefaultSectionSize(34);
     ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    refreshProfileRowStyle();
     ui->profilesTableView->setTabKeyNavigation(false);
     ui->profilesTableView->horizontalHeader()->setResizeContentsPrecision(0);
 

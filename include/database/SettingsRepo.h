@@ -247,6 +247,8 @@ namespace Configs {
         bool apply_dns_to_full_config = false;
         bool monitor_ping = false;
         bool show_udp_column = false;
+        // Two-line profile rows; the compact one-line table is the other setting.
+        bool profile_rows_comfortable = true;
         bool dpi_bypass_block_quic = true;
         QString dpi_bypass_method = "spoof";
         QString dpi_bypass_spoof_sni = "api-maps.yandex.ru";

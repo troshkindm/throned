@@ -142,6 +142,10 @@ public:
     // The UDP column stays out of the way until the group has something to put in it.
     void refreshUdpColumnVisibility();
 
+    // Switches the profile table between the compact one-line rows and the
+    // two-line ones, including the column set the model exposes.
+    void refreshProfileRowStyle();
+
     void profile_stop(bool crash = false, bool block = false, bool manual = false);
 
     int get_profile_to_start();
@@ -258,6 +262,8 @@ private:
     // Monotonic, and invalid while the window is active or was never activated; see trayClickEvent().
     QElapsedTimer sinceWindowDeactivated;
     ProfilesTableModel *profilesTableModel = nullptr;
+    class ProfileRowDelegate *profileRowDelegate = nullptr;
+    class QStyledItemDelegate *compactRowDelegate = nullptr;
     // What the view is attached to: rows from the view or its selection model are
     // proxy rows, not profilesTableModel rows.
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;

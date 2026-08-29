@@ -5224,6 +5224,10 @@ Please try again.</source>
         <translation>Показывать колонку UDP</translation>
     </message>
     <message>
+        <source>Comfortable rows</source>
+        <translation>Просторные строки</translation>
+    </message>
+    <message>
         <source>Copy Diagnostics</source>
         <translation>Скопировать диагностику</translation>
     </message>
@@ -5574,8 +5578,27 @@ Name: %1</source>
         <translation>Результат теста</translation>
     </message>
     <message>
+        <source>Server</source>
+        <translation>Сервер</translation>
+    </message>
+    <message>
+        <source>Ping · UDP</source>
+        <translation>Пинг · UDP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
         <source>Traffic</source>
         <translation>Трафик</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileRowDelegate</name>
+    <message>
+        <source>UDP %1</source>
+        <translation>UDP %1</translation>
     </message>
 </context>
 <context>

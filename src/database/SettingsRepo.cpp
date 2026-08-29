@@ -62,6 +62,7 @@ namespace Configs {
             {"apply_dns_to_full_config",      &apply_dns_to_full_config},
             {"monitor_ping",                  &monitor_ping},
             {"show_udp_column",               &show_udp_column},
+            {"profile_rows_comfortable",      &profile_rows_comfortable},
             {"use_custom_icons",              &use_custom_icons},
             {"xray_mux_default_on",           &xray_mux_default_on},
             {"use_dns_object",                &use_dns_object},

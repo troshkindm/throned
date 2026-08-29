@@ -54,14 +54,27 @@ public:
     }
 
     void setLastFilterColumn(int column) {
-        m_lastFilterColumn = editForColumn(column) ? column : ProfilesTableModel::ColName;
+        const int fallback = m_comfortable ? ProfilesTableModel::ColcServer : ProfilesTableModel::ColName;
+        m_lastFilterColumn = editForColumn(column) ? column : fallback;
     }
 
     bool filtersVisible() const { return m_filtersVisible; }
 
+    // Comfortable rows expose two filter fields: the Server column and the country one.
+    void setRowStyle(bool comfortable) {
+        if (m_comfortable == comfortable) return;
+        m_comfortable = comfortable;
+        m_lastFilterColumn = comfortable ? ProfilesTableModel::ColcServer : ProfilesTableModel::ColName;
+        setFiltersVisible(m_filtersVisible);
+    }
+
     void focusLastFilterField() {
         if (!m_filtersVisible) return;
         QLineEdit *edit = editForColumn(m_lastFilterColumn);
+        // A column index saved under the other row style has no field here.
+        if (edit == nullptr) edit = editForColumn(m_comfortable ? ProfilesTableModel::ColcServer
+                                                                : ProfilesTableModel::ColName);
+        if (edit == nullptr) return;
         // Tab/Backtab/Shortcut focus reasons make QLineEdit select all; OtherFocusReason does not.
         edit->setFocus(Qt::OtherFocusReason);
         edit->end(false);
@@ -126,7 +139,7 @@ public slots:
             btn->setToolTip(QString("%1\n%2").arg(visible ? tr("Disable Filter") : tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
         }
 
-        for (QLineEdit *edit : filterEdits()) edit->setVisible(visible);
+        for (QLineEdit *edit : filterEdits()) edit->setVisible(visible && editForColumn(columnOf(edit)) == edit);
 
         emit geometriesChanged();
 
@@ -135,6 +148,18 @@ public slots:
     }
 
     void adjustPositions() {
+        if (m_comfortable) {
+            if (!m_filtersVisible || count() <= ProfilesTableModel::ColcPing) return;
+            const int comfortableHeight = 24;
+            const int comfortableTop = height() - comfortableHeight - 4;
+            const auto placeComfortable = [&](QLineEdit *edit, int section) {
+                edit->setGeometry(sectionViewportPosition(section) + 2, comfortableTop,
+                                  sectionSize(section) - 4, comfortableHeight);
+            };
+            placeComfortable(name_filter, ProfilesTableModel::ColcServer);
+            placeComfortable(test_filter, ProfilesTableModel::ColcPing);
+            return;
+        }
         if (!m_filtersVisible || !address_filter || !name_filter || !type_filter
             || !test_filter || count() <= ProfilesTableModel::ColTestResult) {
 	        return;
@@ -189,6 +214,12 @@ private:
     }
 
     QLineEdit *editForColumn(int column) const {
+        if (m_comfortable) {
+            // Type and address fold into the Server column, where the global search covers them.
+            if (column == ProfilesTableModel::ColcServer) return name_filter;
+            if (column == ProfilesTableModel::ColcPing) return test_filter;
+            return nullptr;
+        }
         switch (column) {
         case ProfilesTableModel::ColType:       return type_filter;
         case ProfilesTableModel::ColAddress:    return address_filter;
@@ -199,6 +230,11 @@ private:
     }
 
     int columnOf(QLineEdit *edit) const {
+        if (m_comfortable) {
+            if (edit == name_filter) return ProfilesTableModel::ColcServer;
+            if (edit == test_filter) return ProfilesTableModel::ColcPing;
+            return -1;
+        }
         if (edit == type_filter)    return ProfilesTableModel::ColType;
         if (edit == address_filter) return ProfilesTableModel::ColAddress;
         if (edit == name_filter)    return ProfilesTableModel::ColName;
@@ -211,5 +247,6 @@ private:
     QLineEdit* name_filter;
     QLineEdit* test_filter;
     bool m_filtersVisible = false;
+    bool m_comfortable = false;
     int m_lastFilterColumn = ProfilesTableModel::ColName;
 };

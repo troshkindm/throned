@@ -21,6 +21,9 @@
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/stats/dialog_auto_selector.h"
+#include <QStyledItemDelegate>
+
+#include "include/ui/utils/ProfileRowDelegate.h"
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/StartStopButton.hpp"
@@ -327,7 +330,20 @@ void MainWindow::refresh_proxy_list_column_size() {
         if (!group->column_width.isEmpty() && group->column_width.size() != columnCount) {
             group->column_width.clear();
         }
-        if (group->column_width.isEmpty()) {
+        const bool comfortable = profilesTableModel != nullptr
+            && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable;
+        if (group->column_width.isEmpty() && comfortable) {
+            hHeader->setSectionResizeMode(ProfilesTableModel::ColcServer, QHeaderView::Stretch);
+            for (int col : {ProfilesTableModel::ColcPing, ProfilesTableModel::ColcSpeed,
+                            ProfilesTableModel::ColcTraffic}) {
+                hHeader->setSectionResizeMode(col, QHeaderView::Fixed);
+                hHeader->resizeSection(col, ProfileRowDelegate::metricColumnWidth(
+                                                col, ui->profilesTableView->font()));
+            }
+            ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            group->clearCalculatedColumnWidth();
+            for (int i = 0; i < columnCount; i++) group->calculated_column_width << hHeader->sectionSize(i);
+        } else if (group->column_width.isEmpty()) {
             hHeader->setSectionResizeMode(ProfilesTableModel::ColType, QHeaderView::ResizeToContents);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColAddress, QHeaderView::Stretch);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColName, QHeaderView::Stretch);
@@ -627,4 +643,25 @@ void MainWindow::pollPingMonitor() {
 void MainWindow::refreshUdpColumnVisibility() {
     if (profilesTableModel == nullptr) return;
     profilesTableModel->setUdpColumnVisible(Configs::dataManager->settingsRepo->show_udp_column);
+}
+
+void MainWindow::refreshProfileRowStyle() {
+    if (profilesTableModel == nullptr) return;
+    const bool comfortable = Configs::dataManager->settingsRepo->profile_rows_comfortable;
+    if (profileRowDelegate == nullptr) profileRowDelegate = new ProfileRowDelegate(this);
+    if (compactRowDelegate == nullptr) compactRowDelegate = new QStyledItemDelegate(this);
+
+    ui->profilesTableView->setItemDelegate(comfortable ? static_cast<QStyledItemDelegate *>(profileRowDelegate)
+                                                       : compactRowDelegate);
+    profilesTableModel->setRowStyle(comfortable ? ProfilesTableModel::RowStyle::Comfortable
+                                                : ProfilesTableModel::RowStyle::Compact);
+    ui->profilesTableView->verticalHeader()->setDefaultSectionSize(comfortable ? ProfileRowDelegate::RowHeight : 34);
+    if (auto *filterHeader = dynamic_cast<ProfilesTableFilterHeader *>(ui->profilesTableView->horizontalHeader()))
+        filterHeader->setRowStyle(comfortable);
+    // Widths saved for the other column set would land on the wrong columns.
+    if (auto group = Configs::dataManager->groupsRepo->CurrentGroup(); group != nullptr) {
+        group->column_width.clear();
+        group->clearCalculatedColumnWidth();
+    }
+    refresh_proxy_list_column_size();
 }
