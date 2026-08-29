@@ -128,7 +128,7 @@ int ProfileRowDelegate::metricColumnWidth(int column, const QFont &font) {
     switch (column) {
     case ProfilesTableModel::ColcPing:
         return qMax(bold.horizontalAdvance(QStringLiteral("9999 ms")),
-                    small.horizontalAdvance(tr("UDP %1").arg(QStringLiteral("999 ±99 / 99%")))) + kPadX * 2;
+                    small.horizontalAdvance(tr("UDP %1").arg(QStringLiteral("999 ms ±99 / 99%")))) + kPadX * 2;
     case ProfilesTableModel::ColcSpeed:
         return qMax(plain.horizontalAdvance(QStringLiteral("↓ 9999 Mbps")),
                     small.horizontalAdvance(QStringLiteral("↑ 9999 Mbps"))) + kPadX * 2;
@@ -271,7 +271,7 @@ QSize ProfileRowDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
                      smallMetrics.horizontalAdvance(visual.address));
         break;
     case ProfilesTableModel::ColcPing:
-        width = qMax(floorWidth(QStringLiteral("9999 ms"), tr("UDP %1").arg(QStringLiteral("999 ±99 / 99%"))),
+        width = qMax(floorWidth(QStringLiteral("9999 ms"), tr("UDP %1").arg(QStringLiteral("999 ms ±99 / 99%"))),
                      qMax(boldMetrics.horizontalAdvance(visual.latency),
                           smallMetrics.horizontalAdvance(visual.udp.isEmpty() ? QString() : tr("UDP %1").arg(visual.udp))));
         break;
