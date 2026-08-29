@@ -85,6 +85,7 @@ namespace Configs {
             {"dns_optimistic", &dns_optimistic},
             {"dns_use_hosts", &dns_use_hosts},
             {"dns_predefined_enable", &dns_predefined_enable},
+            {"connection_sort_asc", &connection_sort_asc},
         };
 
         intMap = {
@@ -98,6 +99,7 @@ namespace Configs {
             {"font_size",              &font_size},
             {"max_log_line",           &max_log_line},
             {"stats_tab",              &stats_tab},
+            {"connection_sort",        &connection_sort},
             {"traffic_stats_retention_days", &traffic_stats_retention_days},
             {"sub_auto_update",        &sub_auto_update},
             {"route_auto_update",      &route_auto_update},

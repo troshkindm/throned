@@ -97,29 +97,6 @@
    </item>
    <item>
     <widget class="QTabWidget" name="tabs">
-     <property name="styleSheet">
-      <string notr="true">QTabWidget::pane {
-    margin-top: 1px;
-    border-radius: 4px;
-}
-
-QTabBar {
-    background: transparent;
-    qproperty-drawBase: 0;
-}
-
-QTabBar::tab {
-    border: 1px solid #777777;
-    border-radius: 4px;
-
-    padding: 2px 4px;
-    margin-right: 1px;
-}
-
-QTabBar::tab:selected {
-    border: 1px solid palette(highlight);
-}</string>
-     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>

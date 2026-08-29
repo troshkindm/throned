@@ -12,6 +12,7 @@ service LibcoreService {
   rpc QueryURLTest(EmptyReq) returns (QueryURLTestResponse);
   rpc QueryStats(EmptyReq) returns (QueryStatsResp);
   rpc QueryConnections(EmptyReq) returns (QueryConnectionsResp);
+  rpc CloseConnections(CloseConnectionsRequest) returns (CloseConnectionsResponse);
   //
   rpc SetSystemDNS(SetSystemDNSRequest) returns (EmptyResp);
   rpc SetTransitionGuard(SetTransitionGuardRequest) returns (ErrorResp);
@@ -222,6 +223,17 @@ message ConnectionMetaData {
   optional string process_path = 11 [default = ""]; // full path (icon lookup etc.)
   repeated string chain = 12;                        // outbound chain, for later use
   optional int64 closed_at = 13 [default = 0];       // 0 while live
+}
+
+// Ids come from a previous QueryConnections; ones that already closed are a
+// no-op, so a stale table never turns into an error.
+message CloseConnectionsRequest {
+  repeated string ids = 1;
+}
+
+message CloseConnectionsResponse {
+  optional int32 closed = 1 [default = 0];
+  optional string error = 2 [default = ""];
 }
 
 message SetTransitionGuardRequest {

@@ -295,4 +295,10 @@ namespace Stats
         }
     }
 
+    void ConnectionLister::restoreSort(const ConnectionSort newSort, const bool ascending)
+    {
+        sort = newSort;
+        asc = ascending;
+    }
+
 }

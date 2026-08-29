@@ -30,6 +30,8 @@
 #include <QKeySequence>
 #include <QSet>
 #include <QHash>
+#include <QIcon>
+#include <QToolButton>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
@@ -312,6 +314,10 @@ private:
     QMutex mu_download_update;
     QMutex mu_download_dashboard;
     QMutex connectionListMu;
+    class ConnectionsFilterHeader *connectionFilterHeader = nullptr;
+    QTimer *connectionFilterDebounce = nullptr;
+    QToolButton *connectionCloseAllButton = nullptr;
+    QIcon connectionCloseIcon;
     int toolTipID;
     SpeedWidget *speedChartWidget;
     // Latency over time, beside the throughput chart: a path can carry bytes fine
@@ -597,6 +603,27 @@ private:
     void setupConnectionList();
 
     void setupConnectionSortMenu();
+
+    void setupConnectionFilter();
+
+    void restoreConnectionSort();
+
+    void applyConnectionSort(Stats::ConnectionSort sort);
+
+    void applyConnectionFilters();
+
+    void buildConnectionRow(int row);
+
+    void fillConnectionRow(int row, const Stats::ConnectionMetadata &conn);
+
+    void resizeConnectionRows(int count);
+
+    // Rows are rewritten on every poll, so ids are read at click time, never captured.
+    void closeConnections(const QStringList &ids);
+
+    QStringList listedConnectionIds() const;
+
+    void refreshConnectionCloseIcons();
 
     // The window's own component, not an outside caller: it drives the data
     // view, the profile table and the geo-asset prompt while a sweep runs.

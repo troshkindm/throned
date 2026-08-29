@@ -565,6 +565,25 @@ namespace API {
         return {};
     }
 
+    QString Client::CloseConnections(bool *rpcOK, const QStringList &ids, int *closedCount) const
+    {
+        if (closedCount != nullptr) *closedCount = 0;
+        libcore::CloseConnectionsRequest request;
+        for (const auto &id : ids) request.ids.push_back(id.toStdString());
+        libcore::CloseConnectionsResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("CloseConnections", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            if (closedCount != nullptr) *closedCount = reply.closed.value();
+            return QString::fromStdString(reply.error.value());
+        } else {
+            NOT_OK
+            return "IPC error";
+        }
+    }
+
     QString Client::CheckConfig(bool* rpcOK, const QString& config, bool isXray) const
     {
         libcore::LoadConfigReq request;

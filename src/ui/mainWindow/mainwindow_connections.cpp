@@ -1,22 +1,57 @@
 #include "include/ui/mainwindow.h"
+#include "include/api/RPC.h"
+#include "include/ui/utils/ConnectionsFilterHeader.h"
 
 #include <QAbstractItemView>
 #include <QApplication>
+#include <QBoxLayout>
 #include <QClipboard>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QHostAddress>
+#include <QIcon>
 #include <QMenu>
+#include <QPainter>
+#include <QPixmap>
+#include <QTabWidget>
 #include <QTableWidget>
 #include <QTimer>
+#include <QToolButton>
 #include <QToolTip>
-#include <memory>
+
+namespace
+{
+    constexpr int CLOSE_COLUMN_WIDTH = 26;
+    constexpr int CLOSE_ICON_SIZE = 12;
+    // Carries the row's current connection id to the click handler; refreshed on every poll.
+    constexpr char CONN_ID_PROPERTY[] = "throne_conn_id";
+
+    QString ProtocolText(const Stats::ConnectionMetadata& conn)
+    {
+        return conn.protocol.isEmpty() ? conn.network : conn.network + " (" + conn.protocol + ")";
+    }
+
+    // The material set is pure black, so it has to be tinted for dark themes.
+    QIcon RecolorIcon(const QString& path, const QColor& color)
+    {
+        QPixmap pixmap(path);
+        if (pixmap.isNull()) return QIcon(path);
+        QPainter painter(&pixmap);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        painter.fillRect(pixmap.rect(), color);
+        painter.end();
+        return QIcon(pixmap);
+    }
+}
 
 #include "include/database/RoutesRepo.h"
 #include "include/database/DatabaseManager.h"
 
 void MainWindow::setupConnectionList()
 {
+    connectionFilterHeader = new ConnectionsFilterHeader(ui->connections);
+    ui->connections->setHorizontalHeader(connectionFilterHeader);
+
     ui->connections->horizontalHeader()->setHighlightSections(false);
     ui->connections->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->connections->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -25,10 +60,16 @@ void MainWindow::setupConnectionList()
     ui->connections->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
     ui->connections->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     ui->connections->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
+    // ResizeToContents would collapse the title-less close column: cell widgets do not count as contents.
+    ui->connections->horizontalHeader()->setSectionResizeMode(ConnectionsFilterHeader::ColClose, QHeaderView::Fixed);
+    ui->connections->setColumnWidth(ConnectionsFilterHeader::ColClose, CLOSE_COLUMN_WIDTH);
     ui->connections->verticalHeader()->hide();
     ui->connections->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->connections, &QWidget::customContextMenuRequested, this, &MainWindow::showConnectionMenu);
+    refreshConnectionCloseIcons();
+    restoreConnectionSort();
     setupConnectionSortMenu();
+    setupConnectionFilter();
     connect(ui->connections, &QTableWidget::cellClicked, this, [=,this](int row, int column)
     {
         auto selected = ui->connections->item(row, column);
@@ -185,6 +226,88 @@ void MainWindow::showConnectionMenu(const QPoint &pos)
     menu.exec(ui->connections->viewport()->mapToGlobal(pos));
 }
 
+void MainWindow::restoreConnectionSort()
+{
+    const auto* settings = Configs::dataManager->settingsRepo.get();
+    const int stored = settings->connection_sort;
+    if (stored < Stats::Default || stored > Stats::BySpeed) return;
+    // Runs before setup_rpc() spawns the lister thread, so writing the pair unguarded is safe.
+    Stats::connection_lister->restoreSort(static_cast<Stats::ConnectionSort>(stored), settings->connection_sort_asc);
+}
+
+void MainWindow::applyConnectionSort(Stats::ConnectionSort sort)
+{
+    Stats::connection_lister->setSort(sort);
+    auto* settings = Configs::dataManager->settingsRepo.get();
+    settings->connection_sort = Stats::connection_lister->getSort();
+    settings->connection_sort_asc = Stats::connection_lister->isSortAscending();
+    settings->Save();
+    Stats::connection_lister->ForceUpdate();
+}
+
+void MainWindow::setupConnectionFilter()
+{
+    auto* btnFilter = new QToolButton(this);
+    btnFilter->setIcon(QIcon(":/icon/filter.png"));
+    btnFilter->setToolTip(tr("Enable Filter"));
+    btnFilter->setCheckable(true);
+    connect(btnFilter, &QToolButton::toggled, connectionFilterHeader, &ConnectionsFilterHeader::setFiltersVisible);
+    connect(connectionFilterHeader, &ConnectionsFilterHeader::closeRequested, btnFilter, [btnFilter] { btnFilter->setChecked(false); });
+
+    connectionCloseAllButton = new QToolButton(this);
+    connectionCloseAllButton->setIcon(connectionCloseIcon);
+    connectionCloseAllButton->setToolTip(tr("Close every connection listed below"));
+    connect(connectionCloseAllButton, &QToolButton::clicked, this, [this] { closeConnections(listedConnectionIds()); });
+
+    auto* corner = new QWidget(this);
+    auto* cornerLayout = new QHBoxLayout(corner);
+    cornerLayout->setContentsMargins(0, 0, 0, 0);
+    cornerLayout->setSpacing(2);
+    cornerLayout->addWidget(btnFilter);
+    cornerLayout->addWidget(connectionCloseAllButton);
+    // The log tools already hold this corner, so join them there; taking it would evict them.
+    if (auto* host = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
+        host != nullptr && host->layout() != nullptr) {
+        host->layout()->addWidget(corner);
+    } else {
+        ui->stats_widget->setCornerWidget(corner, Qt::TopRightCorner);
+    }
+
+    // The corner widget spans the whole tab bar, so it stays put and only greys out away from the connections tab.
+    auto syncEnabled = [=,this] { corner->setEnabled(ui->stats_widget->currentWidget() == ui->connections_tab); };
+    connect(ui->stats_widget, &QTabWidget::currentChanged, this, [syncEnabled](int) { syncEnabled(); });
+    syncEnabled();
+
+    connectionFilterDebounce = new QTimer(this);
+    connectionFilterDebounce->setSingleShot(true);
+    connectionFilterDebounce->setInterval(50);
+    connect(connectionFilterDebounce, &QTimer::timeout, this, [this] { applyConnectionFilters(); });
+    connect(connectionFilterHeader, &ConnectionsFilterHeader::filtersChanged, this, [this] { connectionFilterDebounce->start(); });
+}
+
+void MainWindow::applyConnectionFilters()
+{
+    connectionListMu.lock();
+    ui->connections->setUpdatesEnabled(false);
+    const bool active = connectionFilterHeader->hasActiveFilter();
+    for (int row = 0; row < ui->connections->rowCount(); row++)
+    {
+        bool hide = false;
+        if (active)
+        {
+            auto text = [this, row](int column)
+            {
+                const auto* item = ui->connections->item(row, column);
+                return item == nullptr ? QString() : item->text();
+            };
+            hide = !connectionFilterHeader->accepts(text(0), text(1), text(2), text(3));
+        }
+        ui->connections->setRowHidden(row, hide);
+    }
+    ui->connections->setUpdatesEnabled(true);
+    connectionListMu.unlock();
+}
+
 // Right-click the Traffic / Speed headers to pick the sub-field they sort by;
 // left-clicking still sorts by total.
 void MainWindow::setupConnectionSortMenu()
@@ -225,7 +348,126 @@ void MainWindow::setupConnectionSortMenu()
         auto* chosen = menu.exec(header->mapToGlobal(pos));
         if (chosen == nullptr || !chosen->data().isValid()) return;
 
-        Stats::connection_lister->setSort(static_cast<Stats::ConnectionSort>(chosen->data().toInt()));
+        applyConnectionSort(static_cast<Stats::ConnectionSort>(chosen->data().toInt()));
+    });
+}
+
+void MainWindow::refreshConnectionCloseIcons()
+{
+    // ApplyTheme() fires PaletteChange from the constructor, one line before setupUi() builds the table.
+    if (connectionFilterHeader == nullptr) return;
+
+    connectionCloseIcon = RecolorIcon(":/icon/material/cancel.png", palette().color(QPalette::ButtonText));
+    if (connectionCloseAllButton != nullptr) connectionCloseAllButton->setIcon(connectionCloseIcon);
+    for (int row = 0; row < ui->connections->rowCount(); row++)
+    {
+        if (auto* btn = qobject_cast<QToolButton*>(ui->connections->cellWidget(row, ConnectionsFilterHeader::ColClose)))
+        {
+            btn->setIcon(connectionCloseIcon);
+        }
+    }
+}
+
+void MainWindow::buildConnectionRow(const int row)
+{
+    if (ui->connections->item(row, 0) == nullptr)
+    {
+        for (int column = 0; column < ConnectionsFilterHeader::ColClose; column++)
+        {
+            ui->connections->setItem(row, column, new QTableWidgetItem());
+        }
+    }
+    if (ui->connections->cellWidget(row, ConnectionsFilterHeader::ColClose) != nullptr) return;
+
+    auto* btn = new QToolButton(ui->connections);
+    btn->setAutoRaise(true);
+    btn->setCursor(Qt::PointingHandCursor);
+    btn->setFocusPolicy(Qt::NoFocus);
+    btn->setIcon(connectionCloseIcon);
+    btn->setIconSize(QSize(CLOSE_ICON_SIZE, CLOSE_ICON_SIZE));
+    btn->setToolTip(tr("Close this connection"));
+    connect(btn, &QToolButton::clicked, this, [this, btn] {
+        const auto id = btn->property(CONN_ID_PROPERTY).toString();
+        if (!id.isEmpty()) closeConnections({id});
+    });
+    ui->connections->setCellWidget(row, ConnectionsFilterHeader::ColClose, btn);
+}
+
+void MainWindow::fillConnectionRow(const int row, const Stats::ConnectionMetadata& conn)
+{
+    const auto dest = DisplayDest(conn.dest, conn.domain);
+    const auto prot = ProtocolText(conn);
+
+    const QString columns[ConnectionsFilterHeader::ColClose] = {
+        dest,
+        conn.process,
+        prot,
+        conn.outbound,
+        ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓",
+        ReadableSize(conn.uploadSpeed) + "/s↑" + " " + ReadableSize(conn.downloadSpeed) + "/s↓",
+    };
+    for (int column = 0; column < ConnectionsFilterHeader::ColClose; column++)
+    {
+        auto* item = ui->connections->item(row, column);
+        item->setText(columns[column]);
+        item->setData(Stats::IDKEY, conn.id);
+    }
+
+    // The context menu reads its rule candidates off the first column only.
+    auto* anchor = ui->connections->item(row, 0);
+    anchor->setData(Stats::DESTKEY, conn.dest);
+    anchor->setData(Stats::DOMAINKEY, conn.domain);
+    anchor->setData(Stats::PROCESSKEY, conn.process);
+    anchor->setData(Stats::PROCESSPATHKEY, conn.processPath);
+    anchor->setData(Stats::OUTBOUNDKEY, conn.outbound);
+
+    // Sorting reshuffles which connection a row shows, so the button is re-stamped every poll.
+    if (auto* btn = ui->connections->cellWidget(row, ConnectionsFilterHeader::ColClose))
+    {
+        btn->setProperty(CONN_ID_PROPERTY, conn.id);
+    }
+
+    ui->connections->setRowHidden(row, !connectionFilterHeader->accepts(dest, conn.process, prot, conn.outbound));
+}
+
+// Rows are reused rather than recreated: a rebuilt row would delete the close button out from under a click.
+void MainWindow::resizeConnectionRows(const int count)
+{
+    while (ui->connections->rowCount() > count) ui->connections->removeRow(ui->connections->rowCount() - 1);
+    while (ui->connections->rowCount() < count)
+    {
+        const int row = ui->connections->rowCount();
+        ui->connections->insertRow(row);
+        buildConnectionRow(row);
+    }
+}
+
+QStringList MainWindow::listedConnectionIds() const
+{
+    QStringList ids;
+    for (int row = 0; row < ui->connections->rowCount(); row++)
+    {
+        if (ui->connections->isRowHidden(row)) continue;
+        const auto* item = ui->connections->item(row, 0);
+        if (item == nullptr) continue;
+        const auto id = item->data(Stats::IDKEY).toString();
+        if (!id.isEmpty()) ids << id;
+    }
+    return ids;
+}
+
+void MainWindow::closeConnections(const QStringList& ids)
+{
+    if (ids.isEmpty()) return;
+    // Deferred: ForceUpdate() rewrites the table synchronously, and we are inside a row button's own click handler.
+    QTimer::singleShot(0, this, [this, ids] {
+        bool rpcOK = false;
+        const auto err = API::defaultClient->CloseConnections(&rpcOK, ids);
+        if (!rpcOK || !err.isEmpty())
+        {
+            MW_show_log(tr("Failed to close connections: %1").arg(err.isEmpty() ? tr("IPC error") : err));
+            return;
+        }
         Stats::connection_lister->ForceUpdate();
     });
 }
@@ -243,63 +485,14 @@ void MainWindow::UpdateConnectionList(const QMap<QString, Stats::ConnectionMetad
             row--;
             continue;
         }
-
-        const auto conn = toUpdate[key];
-        ui->connections->item(row, 0)->setText(DisplayDest(conn.dest, conn.domain));
-
-        ui->connections->item(row, 1)->setText(conn.process);
-
-        auto prot = conn.network;
-        if (!conn.protocol.isEmpty()) prot += " ("+conn.protocol+")";
-        ui->connections->item(row, 2)->setText(prot);
-
-        ui->connections->item(row, 3)->setText(conn.outbound);
-        ui->connections->item(row, 0)->setData(Stats::OUTBOUNDKEY, conn.outbound);
-        ui->connections->item(row, 0)->setData(Stats::DOMAINKEY, conn.domain);
-
-        ui->connections->item(row, 4)->setText(ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓");
-
-        ui->connections->item(row, 5)->setText(ReadableSize(conn.uploadSpeed) + "/s↑" + " " + ReadableSize(conn.downloadSpeed) + "/s↓");
+        fillConnectionRow(row, toUpdate[key]);
     }
-    int row = ui->connections->rowCount();
     for (const auto& conn : toAdd)
     {
+        const int row = ui->connections->rowCount();
         ui->connections->insertRow(row);
-        auto f0 = std::make_unique<QTableWidgetItem>();
-        f0->setData(Stats::IDKEY, conn.id);
-        f0->setData(Stats::DESTKEY, conn.dest);
-        f0->setData(Stats::DOMAINKEY, conn.domain);
-        f0->setData(Stats::PROCESSKEY, conn.process);
-        f0->setData(Stats::PROCESSPATHKEY, conn.processPath);
-        f0->setData(Stats::OUTBOUNDKEY, conn.outbound);
-
-        auto f = f0->clone();
-        f->setText(DisplayDest(conn.dest, conn.domain));
-        ui->connections->setItem(row, 0, f);
-
-        f = f0->clone();
-        f->setText(conn.process);
-        ui->connections->setItem(row, 1, f);
-
-        f = f0->clone();
-        auto prot = conn.network;
-        if (!conn.protocol.isEmpty()) prot += " ("+conn.protocol+")";
-        f->setText(prot);
-        ui->connections->setItem(row, 2, f);
-
-        f = f0->clone();
-        f->setText(conn.outbound);
-        ui->connections->setItem(row, 3, f);
-
-        f = f0->clone();
-        f->setText(ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓");
-        ui->connections->setItem(row, 4, f);
-
-        f = f0->clone();
-        f->setText(ReadableSize(conn.uploadSpeed) + "/s↑" + " " + ReadableSize(conn.downloadSpeed) + "/s↓");
-        ui->connections->setItem(row, 5, f);
-
-        row++;
+        buildConnectionRow(row);
+        fillConnectionRow(row, conn);
     }
     ui->connections->setUpdatesEnabled(true);
     connectionListMu.unlock();
@@ -309,46 +502,10 @@ void MainWindow::UpdateConnectionListWithRecreate(const QList<Stats::ConnectionM
 {
     connectionListMu.lock();
     ui->connections->setUpdatesEnabled(false);
-    ui->connections->setRowCount(0);
-    int row=0;
-    for (const auto& conn : connections)
+    resizeConnectionRows(static_cast<int>(connections.size()));
+    for (int row = 0; row < connections.size(); row++)
     {
-        ui->connections->insertRow(row);
-        auto f0 = std::make_unique<QTableWidgetItem>();
-        f0->setData(Stats::IDKEY, conn.id);
-        f0->setData(Stats::DESTKEY, conn.dest);
-        f0->setData(Stats::DOMAINKEY, conn.domain);
-        f0->setData(Stats::PROCESSKEY, conn.process);
-        f0->setData(Stats::PROCESSPATHKEY, conn.processPath);
-        f0->setData(Stats::OUTBOUNDKEY, conn.outbound);
-
-        auto f = f0->clone();
-        f->setText(DisplayDest(conn.dest, conn.domain));
-        ui->connections->setItem(row, 0, f);
-
-        f = f0->clone();
-        f->setText(conn.process);
-        ui->connections->setItem(row, 1, f);
-
-        f = f0->clone();
-        auto prot = conn.network;
-        if (!conn.protocol.isEmpty()) prot += " ("+conn.protocol+")";
-        f->setText(prot);
-        ui->connections->setItem(row, 2, f);
-
-        f = f0->clone();
-        f->setText(conn.outbound);
-        ui->connections->setItem(row, 3, f);
-
-        f = f0->clone();
-        f->setText(ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓");
-        ui->connections->setItem(row, 4, f);
-
-        f = f0->clone();
-        f->setText(ReadableSize(conn.uploadSpeed) + "/s↑" + " " + ReadableSize(conn.downloadSpeed) + "/s↓");
-        ui->connections->setItem(row, 5, f);
-
-        row++;
+        fillConnectionRow(row, connections[row]);
     }
     ui->connections->setUpdatesEnabled(true);
     connectionListMu.unlock();

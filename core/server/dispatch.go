@@ -119,6 +119,7 @@ var handlers = map[string]handlerFn{
 	"QueryUDPTest":        handle(globalServer.QueryUDPTest),
 	"QueryStats":          handle(globalServer.QueryStats),
 	"QueryConnections":    handle(globalServer.QueryConnections),
+	"CloseConnections":    handle(globalServer.CloseConnections),
 	"QueryAutoSelectors":  handle(globalServer.QueryAutoSelectors),
 	"AutoSelectorAction":  handle(globalServer.AutoSelectorAction),
 	"IsPrivileged":        handle(globalServer.IsPrivileged),

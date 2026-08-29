@@ -68,7 +68,12 @@ namespace Stats
 
         void setSort(ConnectionSort newSort);
 
+        // Restores a persisted pair as-is; setSort() would read the repeat as a direction flip.
+        void restoreSort(ConnectionSort newSort, bool ascending);
+
         ConnectionSort getSort() const { return sort; }
+
+        bool isSortAscending() const { return asc; }
 
     private:
         void update();

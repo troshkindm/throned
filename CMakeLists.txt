@@ -259,6 +259,7 @@ set(PROJECT_SOURCES
         include/ui/utils/ProfilesTableVerticalHeader.h
         src/ui/utils/ProfilesTableVerticalHeader.cpp
         include/ui/utils/ProfilesTableFilterHeader.h
+        include/ui/utils/ConnectionsFilterHeader.h
         include/ui/utils/ScreenQrScanner.h
         src/ui/utils/ScreenQrScanner.cpp
 

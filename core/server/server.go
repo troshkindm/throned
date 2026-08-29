@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/google/shlex"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
@@ -808,6 +809,36 @@ func (s *server) QueryConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Q
 		closed = append(closed, connMetaToProto(c))
 	}
 	return &gen.QueryConnectionsResp{Active: active, Closed: closed}, nil
+}
+
+// Ids that already closed are a silent no-op: the client's table is always a poll behind.
+func (s *server) CloseConnections(ctx context.Context, in *gen.CloseConnectionsRequest) (*gen.CloseConnectionsResponse, error) {
+	if len(in.Ids) == 0 {
+		return &gen.CloseConnectionsResponse{Closed: To(int32(0))}, nil
+	}
+	box := currentBox()
+	if box == nil {
+		return &gen.CloseConnectionsResponse{Error: To("no instance is running")}, nil
+	}
+	tm := service.PtrFromContext[trafficcontrol.Manager](box.Context())
+	if tm == nil {
+		return &gen.CloseConnectionsResponse{Error: To("no traffic manager found")}, nil
+	}
+
+	var closed int32
+	for _, raw := range in.Ids {
+		id, err := uuid.FromString(raw)
+		if err != nil {
+			continue
+		}
+		tracker := tm.Connection(id)
+		if tracker == nil {
+			continue
+		}
+		tracker.Close() //nolint:errcheck — the tracker leaves the manager either way
+		closed++
+	}
+	return &gen.CloseConnectionsResponse{Closed: To(closed)}, nil
 }
 
 func (s *server) IsPrivileged(ctx context.Context, _ *gen.EmptyReq) (*gen.IsPrivilegedResponse, error) {

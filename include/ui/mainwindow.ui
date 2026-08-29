@@ -389,28 +389,6 @@ QToolButton::menu-indicator {
        <enum>Qt::Orientation::Vertical</enum>
       </property>
       <widget class="GroupTabWidget" name="tabWidget">
-       <property name="styleSheet">
-        <string notr="true">QTabWidget::tab-bar {
-    left: 2px;
-}
-
-QTabBar {
-    background: transparent;
-    qproperty-drawBase: 0;
-}
-
-QTabBar::tab {
-    border: 1px solid #777777;
-
-    border-radius: 4px;
-    padding: 2px 4px;
-    margin-right: 1px;
-}
-
-QTabBar::tab:selected {
-    border: 1px solid palette(highlight);
-}</string>
-       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -501,28 +479,6 @@ QTabBar::tab:selected {
             <widget class="QTabWidget" name="stats_widget">
              <property name="autoFillBackground">
               <bool>true</bool>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QTabWidget::tab-bar {
-    left: 2px;
-}
-
-QTabBar {
-    background: transparent;
-    qproperty-drawBase: 0;
-}
-
-QTabBar::tab {
-    border: 1px solid #777777;
-
-    border-radius: 4px;
-    padding: 2px 4px;
-    margin-right: 1px;
-}
-
-QTabBar::tab:selected {
-    border: 1px solid palette(highlight);
-}</string>
              </property>
              <property name="tabPosition">
               <enum>QTabWidget::TabPosition::North</enum>
@@ -663,6 +619,11 @@ QTabBar::tab:selected {
                   </property>
                   <property name="toolTip">
                    <string>Click to sort by speed; right-click to choose total/down/up</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string notr="true"/>
                   </property>
                  </column>
                 </widget>

@@ -54,6 +54,13 @@ void MainWindow::changeEvent(QEvent *event) {
         for (QWidget *w : allChildren) {
             refreshStylesheetCache(w);
         }
+        // Tab chrome lives in the app sheet now (ThemeManager owns it), and the loop above only
+        // reaches widget-level ones, so the tab bars would keep their stale metrics without this.
+        const QString appSheet = qApp->styleSheet();
+        if (!appSheet.isEmpty()) {
+            qApp->setStyleSheet("");
+            qApp->setStyleSheet(appSheet);
+        }
 
         // Qt skips setFont when unchanged, so bump the point size to force a real FontChange.
         auto forceFontReapply = [](QWidget *w) {
@@ -74,6 +81,7 @@ void MainWindow::changeEvent(QEvent *event) {
         type == QEvent::PaletteChange ||
         type == QEvent::StyleChange) {
         scheduleProxyListRefresh();
+        refreshConnectionCloseIcons();
     }
     if (type == QEvent::WindowStateChange) {
         syncConnectionViewState();

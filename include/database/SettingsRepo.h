@@ -119,6 +119,9 @@ namespace Configs {
         QString splitter_state = "";
         bool enable_stats = true;
         int stats_tab = 0; // either connection or log
+        // Stats::ConnectionSort; 0 == Stats::Default, the core's own ordering.
+        int connection_sort = 0;
+        bool connection_sort_asc = false;
         // Days of hour-resolution history to retain (the 48h minute-resolution window is fixed); clamped to >= 1 in use.
         int traffic_stats_retention_days = 90;
         bool disable_traffic_aggregation = false;
