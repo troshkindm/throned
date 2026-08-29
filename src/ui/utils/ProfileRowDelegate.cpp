@@ -27,6 +27,22 @@ namespace {
         return font;
     }
 
+    // The address line sits one step down from the name, not two: at -2 it was
+    // small enough that the exit IP read as part of the server address.
+    QFont metaFont(const QFont &base) {
+        QFont font = base;
+        if (font.pixelSize() > 0) font.setPixelSize(qMax(10, font.pixelSize() - 1));
+        else font.setPointSizeF(qMax(7.5, font.pointSizeF() - 0.75));
+        return font;
+    }
+
+    QFont captionFont(const QFont &base) {
+        QFont font = secondaryFont(base);
+        font.setWeight(QFont::DemiBold);
+        font.setCapitalization(QFont::AllUppercase);
+        return font;
+    }
+
     QColor latencyColor(int latencyMs, const ThronedThemeColors &colors) {
         if (latencyMs == Configs::kLatencyConnectOnly) return colors.accent;
         if (latencyMs < 0) return QColor(QStringLiteral("#E06C6C"));
@@ -58,6 +74,21 @@ namespace {
 
     int chipWidth(const QFontMetrics &metrics, const QString &text) {
         return metrics.horizontalAdvance(text) + 12;
+    }
+
+    // Filled, unlike the outlined protocol chip: a country reads as a stamp, and a
+    // flag glyph comes from the emoji font, which ignores the row's type size.
+    void drawBadge(QPainter *painter, const QRect &rect, const QString &text,
+                   const QFont &font, const QColor &fill, const QColor &ink) {
+        painter->save();
+        painter->setFont(font);
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(fill);
+        painter->setRenderHint(QPainter::Antialiasing, true);
+        painter->drawRoundedRect(QRectF(rect), 2.5, 2.5);
+        painter->setPen(ink);
+        painter->drawText(rect, Qt::AlignCenter, text);
+        painter->restore();
     }
 
     // Right-aligned stack: a value over a smaller note, either of which may be absent.
@@ -136,7 +167,8 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 
     switch (index.column()) {
     case ProfilesTableModel::ColcServer: {
-        const auto [nameRect, metaRect] = lineRects(cell, boldMetrics.height(), smallMetrics.height());
+        const auto [nameRect, metaRect] = lineRects(cell, boldMetrics.height(),
+                                                    QFontMetrics(metaFont(opt.font)).height());
         const int chipSpace = visual.chip.isEmpty() ? 0 : chipWidth(smallMetrics, visual.chip) + kChipGap;
         painter->setFont(bold);
         painter->setPen(visual.running && !selected ? colors.accent : ink);
@@ -154,21 +186,35 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
                          selected ? subtle : colors.border, muted);
         }
 
-        painter->setFont(small);
+        const QFont meta = metaFont(opt.font);
+        const QFont caption = captionFont(opt.font);
+        const QFontMetrics metaMetrics(meta);
+        const QFontMetrics captionMetrics(caption);
         int x = metaRect.left();
-        const auto drawMeta = [&](const QString &text, const QColor &color) {
+        const auto drawMeta = [&](const QString &text, const QColor &color, const QFont &font) {
             if (text.isEmpty() || x >= metaRect.right()) return;
-            const QString shown = smallMetrics.elidedText(text, Qt::ElideRight, metaRect.right() - x);
+            const QFontMetrics metrics(font);
+            const QString shown = metrics.elidedText(text, Qt::ElideRight, metaRect.right() - x);
+            painter->setFont(font);
             painter->setPen(color);
             painter->drawText(QRect(x, metaRect.top(), metaRect.right() - x, metaRect.height()),
                               Qt::AlignLeft | Qt::AlignVCenter, shown);
-            x += smallMetrics.horizontalAdvance(shown);
+            x += metrics.horizontalAdvance(shown);
         };
-        drawMeta(visual.address, subtle);
-        if (!visual.flag.isEmpty() || !visual.exitIp.isEmpty()) {
-            drawMeta(QStringLiteral("  ·  "), selected ? subtle : colors.border);
-            drawMeta(visual.flag.isEmpty() ? QString() : visual.flag + QStringLiteral(" "), subtle);
-            drawMeta(visual.exitIp, selected ? opt.palette.color(QPalette::HighlightedText) : colors.accent);
+        drawMeta(visual.address, muted, meta);
+        // Named, because the two addresses on this line are otherwise the same shape.
+        if (!visual.country.isEmpty() || !visual.exitIp.isEmpty()) {
+            drawMeta(QStringLiteral("   |   "), selected ? subtle : colors.border, meta);
+            drawMeta(tr("exit") + QStringLiteral(" "), subtle, caption);
+            if (!visual.country.isEmpty() && x + 30 < metaRect.right()) {
+                const int badgeH = captionMetrics.height() + 2;
+                const QRect badge(x, metaRect.center().y() - badgeH / 2,
+                                  captionMetrics.horizontalAdvance(visual.country) + 9, badgeH);
+                drawBadge(painter, badge, visual.country, caption,
+                          selected ? colors.selectionBorder : colors.surfaceHover, muted);
+                x = badge.right() + 7;
+            }
+            drawMeta(visual.exitIp, selected ? opt.palette.color(QPalette::HighlightedText) : colors.accentHover, meta);
         }
         break;
     }
@@ -205,7 +251,7 @@ QSize ProfileRowDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
     const QFontMetrics boldMetrics{primaryFont(option.font)};
     const QFontMetrics smallMetrics{secondaryFont(option.font)};
     const int height = qMax(ProfileRowDelegate::RowHeight,
-                            boldMetrics.height() + smallMetrics.height() + kLineGap + 12);
+                            boldMetrics.height() + QFontMetrics(metaFont(option.font)).height() + kLineGap + 12);
 
     const QFontMetrics plainMetrics{option.font};
     const auto stackWidth = [&](const QString &top, const QString &bottom) {

@@ -24,6 +24,8 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z";
     case Glyph::ChevronDown:
         return "M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6-1.41-1.41z";
+    case Glyph::ChevronUp:
+        return "M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z";
     case Glyph::ChevronRight:
         return "M9.29 6.71a.996.996 0 0 0 0 1.41L13.17 12l-3.88 3.88a.996.996 0 1 0 1.41 1.41l4.59-4.59a.996.996 0 0 0 0-1.41L10.7 6.71a.996.996 0 0 0-1.41 0z";
     case Glyph::Code:

@@ -15,6 +15,7 @@ enum class Glyph {
     Bolt,
     Check,
     ChevronDown,
+    ChevronUp,
     ChevronRight,
     Code,
     Desktop,

@@ -269,6 +269,7 @@ void MainWindow::setupConnectionFilter()
     if (auto* host = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
         host != nullptr && host->layout() != nullptr) {
         host->layout()->addWidget(corner);
+        statsPanelTools.append(corner);
     } else {
         ui->stats_widget->setCornerWidget(corner, Qt::TopRightCorner);
     }

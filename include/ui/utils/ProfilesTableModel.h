@@ -42,7 +42,7 @@ public:
         QString name;
         QString chip;      // protocol, drawn as an outlined chip
         QString address;
-        QString flag;      // country, already converted to its flag glyph
+        QString country;   // two-letter code, drawn as a badge rather than a flag glyph
         QString exitIp;
         QString latency;
         QString udp;

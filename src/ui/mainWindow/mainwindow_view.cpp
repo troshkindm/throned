@@ -20,6 +20,8 @@
 #include "include/database/SettingsRepo.h"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/ui/setting/Icon.hpp"
+#include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/stats/dialog_auto_selector.h"
 #include <QStyledItemDelegate>
 
@@ -643,6 +645,67 @@ void MainWindow::pollPingMonitor() {
 void MainWindow::refreshUdpColumnVisibility() {
     if (profilesTableModel == nullptr) return;
     profilesTableModel->setUdpColumnVisible(Configs::dataManager->settingsRepo->show_udp_column);
+}
+
+void MainWindow::setStatsPanelOpen(bool open, bool save) {
+    auto *settings = Configs::dataManager->settingsRepo.get();
+    // The corner widget is taller than the tabs, and both only report their real
+    // height once laid out - before that the strip would be measured too short.
+    int strip = ui->stats_widget->tabBar()->sizeHint().height();
+    if (auto *corner = ui->stats_widget->cornerWidget(Qt::TopRightCorner))
+        strip = qMax(strip, corner->sizeHint().height());
+    strip += 6;
+    const QList<int> sizes = ui->splitter->sizes();
+
+    if (open) {
+        ui->stats_widget->setMaximumHeight(QWIDGETSIZE_MAX);
+        const int total = sizes.size() == 2 ? sizes[0] + sizes[1] : ui->splitter->height();
+        const int panel = qBound(140, settings->stats_panel_height, qMax(140, total - 200));
+        ui->splitter->setSizes({total - panel, panel});
+    } else {
+        // Remember the height it had, so reopening lands where it was left.
+        if (sizes.size() == 2 && sizes[1] > strip + 20) settings->stats_panel_height = sizes[1];
+        ui->stats_widget->setMaximumHeight(strip);
+        // Without handing the freed height back explicitly the splitter leaves it
+        // as a gap between the table and the strip.
+        const int total = sizes.size() == 2 ? sizes[0] + sizes[1] : ui->splitter->height();
+        ui->splitter->setSizes({total - strip, strip});
+    }
+    // Squashing the tab widget still leaves a sliver of the page under the tabs.
+    if (auto *page = ui->stats_widget->currentWidget()) page->setVisible(open);
+    // The tools act on a panel that is not on screen while it is closed.
+    for (QWidget *tool : statsPanelTools) {
+        if (tool != nullptr) tool->setVisible(open);
+    }
+    if (statsPanelToggle != nullptr) {
+        statsPanelToggle->setIcon(MaterialIcon::icon(
+            open ? MaterialIcon::Glyph::ChevronDown : MaterialIcon::Glyph::ChevronUp,
+            themeManager->Colors().textMuted, 18));
+        statsPanelToggle->setToolTip(open ? tr("Hide the panel") : tr("Show logs and connections"));
+    }
+    settings->stats_panel_open = open;
+    if (save) settings->Save();
+
+    // Sizes taken before the first layout pass are meaningless, so redo the split
+    // once the window has one. Harmless afterwards: it re-applies what it just set.
+    QTimer::singleShot(0, this, [this, open] {
+        const QList<int> laidOut = ui->splitter->sizes();
+        if (laidOut.size() != 2) return;
+        const int total = laidOut[0] + laidOut[1];
+        if (total <= 0) return;
+        if (open) {
+            const int panel = qBound(140, Configs::dataManager->settingsRepo->stats_panel_height,
+                                     qMax(140, total - 200));
+            ui->splitter->setSizes({total - panel, panel});
+        } else {
+            // Re-measured now that the tab bar has a real height: sizeHint left a
+            // sliver of the page showing below the strip.
+            // Exactly the tab bar: any slack shows a sliver of the page under it.
+            const int laidOutStrip = ui->stats_widget->tabBar()->height() + 2;
+            ui->stats_widget->setMaximumHeight(laidOutStrip);
+            ui->splitter->setSizes({total - laidOutStrip, laidOutStrip});
+        }
+    });
 }
 
 void MainWindow::refreshProfileRowStyle() {

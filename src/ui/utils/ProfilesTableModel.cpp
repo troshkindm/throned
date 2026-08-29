@@ -1,6 +1,5 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/global/Configs.hpp"
-#include "include/global/CountryHelper.hpp"
 #include "include/global/Utils.hpp"
 #include "include/database/entities/Group.h"
 #include "include/database/entities/Profile.h"
@@ -114,7 +113,7 @@ ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
     const bool showSpeed = shown == Configs::testShowItems::all || shown == Configs::testShowItems::speedOnly;
     const bool showIP = shown == Configs::testShowItems::all || shown == Configs::testShowItems::ipOnly;
 
-    if (!profile->test_country.isEmpty()) visual.flag = CountryCodeToFlag(profile->test_country);
+    visual.country = profile->test_country.toUpper();
     if (showIP) visual.exitIp = profile->ip_out;
 
     visual.latencyMs = profile->latency;

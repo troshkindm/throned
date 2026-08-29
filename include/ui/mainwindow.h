@@ -146,6 +146,10 @@ public:
     // two-line ones, including the column set the model exposes.
     void refreshProfileRowStyle();
 
+    // The log/connections panel collapses to its tab strip; the strip stays
+    // visible so the panel can be found again.
+    void setStatsPanelOpen(bool open, bool save = true);
+
     void profile_stop(bool crash = false, bool block = false, bool manual = false);
 
     int get_profile_to_start();
@@ -264,6 +268,8 @@ private:
     ProfilesTableModel *profilesTableModel = nullptr;
     class ProfileRowDelegate *profileRowDelegate = nullptr;
     class QStyledItemDelegate *compactRowDelegate = nullptr;
+    class QToolButton *statsPanelToggle = nullptr;
+    QList<QWidget *> statsPanelTools;
     // What the view is attached to: rows from the view or its selection model are
     // proxy rows, not profilesTableModel rows.
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;

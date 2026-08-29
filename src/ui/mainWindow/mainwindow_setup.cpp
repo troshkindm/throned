@@ -461,6 +461,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         Configs::dataManager->settingsRepo->Save();
         updateLogFilterFields();
     });
+    statsPanelTools = {clearLog, copyLog, autoScrollLabel, autoScroll, logLevel};
     ui->stats_widget->setCornerWidget(logTools, Qt::TopRightCorner);
     bodyLayout->addWidget(ui->splitter, 1);
 
@@ -477,23 +478,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // was tallest, leaving the rest floating. A caption/value grid gives the bar
     // a rhythm without wrapping anything in a box.
     statusDirectSpeed = new QLabel(statusCard);
-    struct StatusItem { QLabel *value; MaterialIcon::Glyph glyph; QString caption; int stretch; };
+    // No glyphs down here: five of them cost ~135 px of a 1024 px strip, which is
+    // what pushed the routing summary into an ellipsis at the default window size.
+    struct StatusItem { QLabel *value; QString caption; int stretch; };
     const QList<StatusItem> statusItems{
-        {ui->label_running, MaterialIcon::Glyph::Public, tr("Connection"), 5},
-        {ui->label_inbound, MaterialIcon::Glyph::Desktop, tr("Inbound"), 4},
-        {ui->label_speed, MaterialIcon::Glyph::Shield, QStringLiteral("Proxy"), 5},
-        {statusDirectSpeed, MaterialIcon::Glyph::Direct, QStringLiteral("Direct"), 5},
+        {ui->label_running, tr("Connection"), 5},
+        {ui->label_inbound, tr("Inbound"), 4},
+        {ui->label_speed, QStringLiteral("Proxy"), 4},
+        {statusDirectSpeed, QStringLiteral("Direct"), 4},
     };
     QList<QPair<QLabel *, MaterialIcon::Glyph>> mutedIcons;
-    for (const auto &[value, glyph, caption, stretch] : statusItems) {
+    for (const auto &[value, caption, stretch] : statusItems) {
         auto *cell = new QWidget(statusCard);
         cell->setObjectName(QStringLiteral("statusCell"));
         auto *cellLayout = new QHBoxLayout(cell);
         cellLayout->setContentsMargins(0, 0, 0, 0);
         cellLayout->setSpacing(9);
-        auto *icon = new QLabel(cell);
-        mutedIcons.append({icon, glyph});
-        cellLayout->addWidget(icon, 0, Qt::AlignVCenter);
         auto *text = new QVBoxLayout;
         text->setContentsMargins(0, 0, 0, 0);
         text->setSpacing(1);
@@ -529,9 +529,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     auto *routingButtonLayout = new QHBoxLayout(routingButton);
     routingButtonLayout->setContentsMargins(8, 3, 10, 3);
     routingButtonLayout->setSpacing(9);
-    auto *routingIcon = new QLabel(routingButton);
-    mutedIcons.append({routingIcon, MaterialIcon::Glyph::Routes});
-    routingButtonLayout->addWidget(routingIcon, 0, Qt::AlignVCenter);
     auto *routingText = new QVBoxLayout;
     routingText->setContentsMargins(0, 0, 0, 0);
     routingText->setSpacing(1);
@@ -546,7 +543,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     routingCaption->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     routingText->addWidget(routingStatus);
     routingButtonLayout->addLayout(routingText, 1);
-    statusLayout->addWidget(routingButton, 3);
+    statusLayout->addStretch(1);
+    statusLayout->addWidget(routingButton, 4);
     auto *selectionCard = new QFrame(redesignedCentral);
     selectionCard->setObjectName(QStringLiteral("selectionCard"));
     auto *selectionLayout = new QHBoxLayout(selectionCard);
@@ -755,6 +753,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (sizes.size() != 2) return;
         const int total = sizes[0] + sizes[1];
         if (total <= 0) return;
+        // A closed panel is deliberately short; this migration must not reopen it.
+        if (!Configs::dataManager->settingsRepo->stats_panel_open) return;
         if (sizes[0] * 100 < total * 52 || sizes[1] < 120)
             ui->splitter->setSizes({total * 3 / 5, total * 2 / 5});
     });
@@ -1390,6 +1390,25 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         addRowStyleAction(menu);
         menu.exec(header->mapToGlobal(pos));
     });
+    // Added last so it sits at the end of the corner strip, past the tools the
+    // connections tab appends to it.
+    statsPanelToggle = new QToolButton(this);
+    statsPanelToggle->setAutoRaise(true);
+    statsPanelToggle->setCursor(Qt::PointingHandCursor);
+    statsPanelToggle->setFocusPolicy(Qt::NoFocus);
+    if (auto *corner = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
+        corner != nullptr && corner->layout() != nullptr) {
+        corner->layout()->addWidget(statsPanelToggle);
+    }
+    connect(statsPanelToggle, &QToolButton::clicked, this,
+            [this] { setStatsPanelOpen(!Configs::dataManager->settingsRepo->stats_panel_open); });
+    // Clicking a tab of a closed panel opens it on that tab, so the strip is not
+    // a row of dead labels.
+    connect(ui->stats_widget->tabBar(), &QTabBar::tabBarClicked, this, [this](int) {
+        if (!Configs::dataManager->settingsRepo->stats_panel_open) setStatsPanelOpen(true);
+    });
+    setStatsPanelOpen(Configs::dataManager->settingsRepo->stats_panel_open, false);
+
     refreshUdpColumnVisibility();
     ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
     ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
