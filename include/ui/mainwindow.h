@@ -621,6 +621,10 @@ private:
     // Shared by the tab strip and the table header menus, so hiding the button
     // never leaves the user without a way to bring it back.
     void addFavoritesButtonAction(class QMenu &menu);
+    // The comfortable set is configurable; the compact one carries the filter row
+    // and its own UDP toggle, so it stays fixed.
+    void addProfileColumnsMenu(class QMenu &menu);
+    void applyProfileColumnVisibility();
 
     static std::shared_ptr<Configs::Profile> vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent);
 

@@ -8,6 +8,7 @@
 #include <QHeaderView>
 #include <QAbstractItemView>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTimer>
@@ -484,6 +485,43 @@ void MainWindow::setFavoritesButtonVisible(bool on) {
     // Staying in a view whose only indicator just disappeared would read as the
     // group having lost most of its servers.
     if (!on && settings->profiles_favorites_view) setFavoritesView(false);
+}
+
+void MainWindow::applyProfileColumnVisibility() {
+    if (profilesTableModel == nullptr) return;
+    auto *view = ui->profilesTableView;
+    const auto *settings = Configs::dataManager->settingsRepo.get();
+    if (profilesTableModel->rowStyle() != ProfilesTableModel::RowStyle::Comfortable) {
+        // Compact columns are not configurable here, and a hidden index survives a
+        // style switch, so anything hidden earlier has to come back.
+        for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column)
+            view->setColumnHidden(column, false);
+        return;
+    }
+    view->setColumnHidden(ProfilesTableModel::ColcPing, !settings->profiles_show_ping);
+    view->setColumnHidden(ProfilesTableModel::ColcSpeed, !settings->profiles_show_speed);
+    view->setColumnHidden(ProfilesTableModel::ColcTraffic, !settings->profiles_show_traffic);
+    refresh_proxy_list_column_size();
+}
+
+void MainWindow::addProfileColumnsMenu(QMenu &menu) {
+    auto *settings = Configs::dataManager->settingsRepo.get();
+    QMenu *columns = menu.addMenu(tr("Columns"));
+    const QList<QPair<QString, bool *>> entries{
+        {tr("Ping · UDP"), &settings->profiles_show_ping},
+        {tr("Speed"), &settings->profiles_show_speed},
+        {tr("Traffic"), &settings->profiles_show_traffic},
+    };
+    for (const auto &[label, flag] : entries) {
+        QAction *action = columns->addAction(label);
+        action->setCheckable(true);
+        action->setChecked(*flag);
+        connect(action, &QAction::triggered, this, [this, flag](bool on) {
+            *flag = on;
+            Configs::dataManager->settingsRepo->Save();
+            applyProfileColumnVisibility();
+        });
+    }
 }
 
 void MainWindow::addFavoritesButtonAction(QMenu &menu) {
@@ -981,6 +1019,7 @@ void MainWindow::refreshProfileRowStyle() {
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(comfortable ? ProfileRowDelegate::RowHeight : 34);
     if (auto *filterHeader = dynamic_cast<ProfilesTableFilterHeader *>(ui->profilesTableView->horizontalHeader()))
         filterHeader->setRowStyle(comfortable);
+    applyProfileColumnVisibility();
     // Widths saved for the other column set would land on the wrong columns.
     if (auto group = Configs::dataManager->groupsRepo->CurrentGroup(); group != nullptr) {
         group->column_width.clear();

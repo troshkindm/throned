@@ -254,6 +254,9 @@ namespace Configs {
         bool profile_rows_comfortable = true;
         bool profiles_favorites_view = false;
         bool profiles_favorites_button = true;
+        bool profiles_show_ping = true;
+        bool profiles_show_speed = true;
+        bool profiles_show_traffic = true;
         bool dpi_bypass_block_quic = true;
         QString dpi_bypass_method = "spoof";
         QString dpi_bypass_spoof_sni = "api-maps.yandex.ru";

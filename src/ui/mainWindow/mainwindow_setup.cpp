@@ -1551,6 +1551,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (comfortable) {
             QMenu menu(this);
             addRowStyleAction(menu);
+            addProfileColumnsMenu(menu);
             addFavoritesButtonAction(menu);
             menu.exec(header->mapToGlobal(pos));
             return;
