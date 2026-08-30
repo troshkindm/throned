@@ -933,7 +933,6 @@ ProfilesTableVerticalHeader {
     qproperty-sectionBorder: #2F3136;
     qproperty-sectionRunningBackground: #182530;
     qproperty-sectionRunningBorder: #1D7585;
-    qproperty-sectionOuterBorder: #3E454F;
 }
 /* Opaque, so it hides the card border underneath: it has to draw that edge itself. */
 QTableCornerButton::section {

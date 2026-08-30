@@ -80,14 +80,10 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     const QColor separator = m_sectionBorder.isValid() ? m_sectionBorder : palette().color(QPalette::Mid);
     const QColor stateBorder = m_sectionRunningBorder.isValid()
         ? m_sectionRunningBorder : (view != nullptr ? view->palette().color(QPalette::Link) : separator);
-    const QColor outerBorder = m_sectionOuterBorder.isValid() ? m_sectionOuterBorder : separator;
     painter->fillRect(rect, background);
 
-    // The opaque gutter covers the card edge. Repaint that outer edge for every
-    // populated row, while keeping the inner divider neutral instead of turning
-    // it into the old oversized "running" stripe.
-    painter->setPen(outerBorder);
-    painter->drawLine(rect.topLeft(), rect.bottomLeft());
+    // The card already owns the outer edge. Painting another line at the gutter's
+    // left edge lands one pixel beside it and reads as a double border.
     painter->setPen(separator);
     if (rect.width() > 1) painter->drawLine(rect.topRight(), rect.bottomRight());
     painter->setPen((selected || running) ? stateBorder : separator);
