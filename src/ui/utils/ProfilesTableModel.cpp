@@ -121,6 +121,7 @@ ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
     else if (profile->latency < 0) visual.latency = tr("Unavailable");
     else if (profile->latency > 0) visual.latency = QStringLiteral("%1 ms").arg(profile->latency);
 
+    visual.favorite = profile->favorite;
     visual.udp = profile->DisplayUDPResult();
     visual.udpDegraded = profile->udp_loss > 0 || profile->udp_jitter >= 10 || profile->udp_avg < 0;
 

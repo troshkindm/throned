@@ -63,6 +63,8 @@ namespace Configs {
             {"monitor_ping",                  &monitor_ping},
             {"show_udp_column",               &show_udp_column},
             {"profile_rows_comfortable",      &profile_rows_comfortable},
+            {"profiles_favorites_view",       &profiles_favorites_view},
+            {"profiles_favorites_button",     &profiles_favorites_button},
             {"stats_panel_open",              &stats_panel_open},
             {"use_custom_icons",              &use_custom_icons},
             {"xray_mux_default_on",           &xray_mux_default_on},

@@ -271,6 +271,12 @@ private:
     class QToolButton *statsPanelToggle = nullptr;
     int statsStripHeight = 39;
     class QVariantAnimation *rowFlashAnimation = nullptr;
+    class QToolButton *favoritesButton = nullptr;
+    class QAction *favoriteAction = nullptr;
+    class QWidget *profilesEmptyState = nullptr;
+    class QLabel *profilesEmptyIcon = nullptr;
+    class QLabel *profilesEmptyTitle = nullptr;
+    class QLabel *profilesEmptySub = nullptr;
     class QToolButton *statsStripToggle = nullptr;
     class QFrame *statsStrip = nullptr;
     class QVariantAnimation *statsPanelAnimation = nullptr;
@@ -591,6 +597,17 @@ private:
     // names a server people then cannot find is the complaint this answers.
     void revealRunningProfile();
     void flashProfileRow(int proxyRow);
+    // Favourites are a view over every group, not a group of their own: the tab
+    // order stays a pure list of real groups.
+    void setFavoritesView(bool on);
+    void toggleFavorite(const QList<int> &ids);
+    void refreshFavoritesButtonIcon();
+    // An empty table has to say which of the three reasons it is empty for.
+    void refreshProfilesEmptyState();
+    void setFavoritesButtonVisible(bool on);
+    // Shared by the tab strip and the table header menus, so hiding the button
+    // never leaves the user without a way to bring it back.
+    void addFavoritesButtonAction(class QMenu &menu);
 
     static std::shared_ptr<Configs::Profile> vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent);
 

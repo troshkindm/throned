@@ -108,10 +108,10 @@ namespace Configs {
     void Database::execBatchInsertProfilesChunk(const std::vector<ProfileInsertRow>& rows) {
         if (rows.empty()) return;
         const size_t n = rows.size();
-        std::string sql = "INSERT INTO profiles (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, ip_out, outbound_json, traffic_dl, traffic_up) VALUES ";
+        std::string sql = "INSERT INTO profiles (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, ip_out, outbound_json, traffic_dl, traffic_up, favorite) VALUES ";
         for (size_t i = 0; i < n; ++i) {
             if (i > 0) sql += ",";
-            sql += "(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            sql += "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         }
         try {
             SQLite::Statement stmt(db, sql);
@@ -130,6 +130,7 @@ namespace Configs {
                 stmt.bind(idx++, r.outbound_json);
                 stmt.bind(idx++, static_cast<int64_t>(r.traffic_dl));
                 stmt.bind(idx++, static_cast<int64_t>(r.traffic_up));
+                stmt.bind(idx++, r.favorite ? 1 : 0);
             }
             stmt.exec();
             maybeCheckpoint(static_cast<int>(rows.size()));
@@ -141,10 +142,10 @@ namespace Configs {
     void Database::execBatchReplaceProfilesChunk(const std::vector<ProfileInsertRow>& rows) {
         if (rows.empty()) return;
         const size_t n = rows.size();
-        std::string sql = "INSERT OR REPLACE INTO profiles (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, ip_out, outbound_json, traffic_dl, traffic_up) VALUES ";
+        std::string sql = "INSERT OR REPLACE INTO profiles (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, ip_out, outbound_json, traffic_dl, traffic_up, favorite) VALUES ";
         for (size_t i = 0; i < n; ++i) {
             if (i > 0) sql += ",";
-            sql += "(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            sql += "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         }
         try {
             SQLite::Statement stmt(db, sql);
@@ -163,6 +164,7 @@ namespace Configs {
                 stmt.bind(idx++, r.outbound_json);
                 stmt.bind(idx++, static_cast<int64_t>(r.traffic_dl));
                 stmt.bind(idx++, static_cast<int64_t>(r.traffic_up));
+                stmt.bind(idx++, r.favorite ? 1 : 0);
             }
             stmt.exec();
             maybeCheckpoint(static_cast<int>(rows.size()));

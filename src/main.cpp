@@ -992,6 +992,8 @@ briefly interrupts traffic.
                 profile->ip_out = QString::fromLatin1(sample.address);
                 profile->traffic_uplink = sample.up;
                 profile->traffic_downlink = sample.down;
+                // One starred row, so the favourites view and the row mark are visible.
+                profile->favorite = QString::fromLatin1(sample.name) == QStringLiteral("Demo East");
                 Configs::dataManager->profilesRepo->AddProfile(profile, group->id);
                 if (profileIndex++ == 1)
                     Configs::dataManager->settingsRepo->started_id = profile->id;

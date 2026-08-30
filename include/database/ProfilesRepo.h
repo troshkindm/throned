@@ -65,6 +65,9 @@ namespace Configs {
         
         QList<int> GetAllProfileIds() const;
 
+        // Starred profiles across every group, in group tab order then row order.
+        QList<int> GetFavoriteProfileIds() const;
+
         QList<int> GetProfileIdsByType(const QString& type) const;
         
         // No-op unless id >= 0.

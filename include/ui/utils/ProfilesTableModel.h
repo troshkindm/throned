@@ -53,6 +53,7 @@ public:
         QString speedDown;
         QString speedUp;
         QString trafficDown;
+        bool favorite = false;
         QString trafficUp;
         int latencyMs = 0; // kLatencyConnectOnly / negative / 0 = never tested
         bool udpDegraded = false;

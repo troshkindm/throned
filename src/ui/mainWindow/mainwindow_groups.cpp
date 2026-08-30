@@ -124,6 +124,10 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
             }
         });
 
+        // The button lives on this strip, so this is the first place someone looks
+        // for it after hiding it.
+        menu.addSeparator();
+        addFavoritesButtonAction(menu);
         menu.exec(ui->tabWidget->tabBar()->mapToGlobal(p));
         return;
     }

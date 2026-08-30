@@ -278,6 +278,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     } else if (type == QEvent::Resize) {
+        if (obj == ui->profilesTableView->viewport()) refreshProfilesEmptyState();
         if (auto *label = qobject_cast<QLabel *>(obj); label && statusElidedLabels.contains(label)) {
             const QString full = label->property("statusFullText").toString();
             if (!full.isEmpty()) setStatusText(label, full);

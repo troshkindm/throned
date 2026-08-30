@@ -1,3 +1,4 @@
+#include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/utils/ProfileRowDelegate.h"
 
 #include "include/database/entities/Profile.h"
@@ -16,6 +17,7 @@ namespace {
     constexpr int kExitGap = 18;
     constexpr int kExitMinWidth = 92;
     constexpr int kAddressMinWidth = 132;
+    constexpr int kStarSize = 13;
 
     QFont primaryFont(const QFont &base) {
         QFont font = base;
@@ -217,6 +219,16 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
                                  exitWidth, nameRect.height());
             exitMetaRect = QRect(metaRect.right() - exitWidth + 1, metaRect.top(),
                                  exitWidth, metaRect.height());
+        }
+
+        // A starred row has to read as starred from any group, so the mark sits
+        // ahead of the name rather than in a column that may be scrolled away.
+        if (visual.favorite) {
+            const QPixmap star = MaterialIcon::pixmap(MaterialIcon::Glyph::Star,
+                                                      selected ? subtle : colors.textMuted, kStarSize);
+            painter->drawPixmap(QPointF(leftNameRect.left(),
+                                        leftNameRect.center().y() - kStarSize / 2.0), star);
+            leftNameRect.setLeft(leftNameRect.left() + kStarSize + 5);
         }
 
         const int chipSpace = visual.chip.isEmpty() ? 0 : chipWidth(smallMetrics, visual.chip) + kChipGap;

@@ -1,4 +1,6 @@
 #include "include/ui/mainwindow.h"
+#include "include/ui/widget/MaterialIcon.h"
+#include "include/ui/setting/ThemeManager.hpp"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -494,6 +496,25 @@ void MainWindow::on_menu_resolve_domain_triggered() {
 }
 
 void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &pos) {
+    // Built here rather than in the .ui: the wording depends on what is selected.
+    if (favoriteAction == nullptr) {
+        favoriteAction = new QAction(this);
+        connect(favoriteAction, &QAction::triggered, this,
+                [this] { toggleFavorite(get_now_selected_list()); });
+        ui->menu_server->insertAction(ui->menu_server->actions().value(0), favoriteAction);
+        ui->menu_server->insertSeparator(ui->menu_server->actions().value(1));
+    }
+    const QList<int> selected = get_now_selected_list();
+    bool allFavorite = !selected.isEmpty();
+    for (const int id : selected) {
+        const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+        if (profile == nullptr || !profile->favorite) { allFavorite = false; break; }
+    }
+    favoriteAction->setEnabled(!selected.isEmpty());
+    favoriteAction->setText(allFavorite ? tr("Remove from favourites") : tr("Add to favourites"));
+    favoriteAction->setIcon(MaterialIcon::icon(
+        allFavorite ? MaterialIcon::Glyph::StarOutline : MaterialIcon::Glyph::Star,
+        themeManager->Colors().textMuted, 16));
     ui->menu_server->popup(ui->profilesTableView->viewport()->mapToGlobal(pos));
 }
 

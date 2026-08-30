@@ -39,6 +39,9 @@ namespace Configs {
         if (!profilesColumnExists("latency_at"))
             db.exec("ALTER TABLE profiles ADD COLUMN latency_at INTEGER NOT NULL DEFAULT 0");
 
+        if (!profilesColumnExists("favorite"))
+            db.exec("ALTER TABLE profiles ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0");
+
         db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_name ON profiles(name)");
     }
 
@@ -81,6 +84,7 @@ namespace Configs {
         
         if (json.contains("traffic_dl")) profile->traffic_downlink = json["traffic_dl"].toVariant().toLongLong();
         if (json.contains("traffic_up")) profile->traffic_uplink = json["traffic_up"].toVariant().toLongLong();
+        profile->favorite = json["favorite"].toBool();
         
         profile->name = profile->outbound->name;
         
@@ -98,8 +102,8 @@ namespace Configs {
         db.exec(R"(
             INSERT INTO profiles
             (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country,
-            ip_out, outbound_json, traffic_dl, traffic_up)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ip_out, outbound_json, traffic_dl, traffic_up, favorite)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 type = excluded.type, name = excluded.name, gid = excluded.gid,
                 latency = excluded.latency, latency_at = excluded.latency_at,
@@ -107,6 +111,7 @@ namespace Configs {
                 test_country = excluded.test_country, ip_out = excluded.ip_out,
                 outbound_json = excluded.outbound_json,
                 traffic_dl = excluded.traffic_dl, traffic_up = excluded.traffic_up,
+                favorite = excluded.favorite,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -121,7 +126,8 @@ namespace Configs {
             profile->ip_out.toStdString(),
             outboundJson.toStdString(),
             static_cast<long long>(profile->traffic_downlink),
-            static_cast<long long>(profile->traffic_uplink)
+            static_cast<long long>(profile->traffic_uplink),
+            profile->favorite ? 1 : 0
         );
     }
 
@@ -145,6 +151,7 @@ namespace Configs {
         row.outbound_json = outboundJson.toStdString();
         row.traffic_dl = static_cast<long long>(profile->traffic_downlink);
         row.traffic_up = static_cast<long long>(profile->traffic_uplink);
+        row.favorite = profile->favorite;
         return row;
     }
 
@@ -169,6 +176,7 @@ namespace Configs {
 
         json["traffic_dl"] = static_cast<qint64>(stmt.getColumn(11).getInt64());
         json["traffic_up"] = static_cast<qint64>(stmt.getColumn(12).getInt64());
+        json["favorite"] = stmt.getColumn(13).getInt() != 0;
         
         return profileFromJson(json);
     }
@@ -176,7 +184,7 @@ namespace Configs {
     std::shared_ptr<Profile> ProfilesRepo::loadFromDatabase(int id) const {
         auto query = db.query(R"(
             SELECT id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country,
-                   ip_out, outbound_json, traffic_dl, traffic_up
+                   ip_out, outbound_json, traffic_dl, traffic_up, favorite
             FROM profiles WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -270,7 +278,7 @@ namespace Configs {
             idList += QString::number(chunkIds[i]);
         }
         std::string sql = "SELECT id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, "
-                         "ip_out, outbound_json, traffic_dl, traffic_up FROM profiles WHERE id IN (" +
+                         "ip_out, outbound_json, traffic_dl, traffic_up, favorite FROM profiles WHERE id IN (" +
                          idList.toStdString() + ") ORDER BY id";
         auto query = db.query(sql);
         if (!query) return result;
@@ -418,6 +426,17 @@ namespace Configs {
     QList<int> ProfilesRepo::GetAllProfileIds() const {
         QList<int> ids;
         auto query = db.query("SELECT id FROM profiles ORDER BY id");
+        if (query) {
+            while (query->executeStep()) {
+                ids.append(query->getColumn(0).getInt());
+            }
+        }
+        return ids;
+    }
+
+    QList<int> ProfilesRepo::GetFavoriteProfileIds() const {
+        QList<int> ids;
+        auto query = db.query("SELECT id FROM profiles WHERE favorite = 1 ORDER BY gid, id");
         if (query) {
             while (query->executeStep()) {
                 ids.append(query->getColumn(0).getInt());

@@ -25,6 +25,7 @@ namespace Configs {
         std::string outbound_json;
         long long traffic_dl = 0;
         long long traffic_up = 0;
+        bool favorite = false;
     };
     // icons is the icons/ folder, handled by the UI layer rather than the database.
     struct BackupParts {

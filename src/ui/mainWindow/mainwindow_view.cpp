@@ -384,6 +384,7 @@ void MainWindow::refresh_proxy_list_column_size() {
         // blocked to keep this routine from re-entering itself. Without a nudge the
         // header ends up at the new width while the rows are still painted at the old
         // one, which is what a window resize used to leave behind.
+        refreshProfilesEmptyState();
         ui->profilesTableView->viewport()->update();
         vBar->blockSignals(vBarBlocked);
         m_adjustingColumns = false;
@@ -414,9 +415,111 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
     if (currentGroup == nullptr) return;
     if (!ids.isEmpty()) {
         for (auto id:ids) profilesTableModel->refreshProfileId(id);
+    } else if (Configs::dataManager->settingsRepo->profiles_favorites_view) {
+        profilesTableModel->refreshTable(
+            Configs::dataManager->profilesRepo->GetFavoriteProfileIds(), mayNeedReset);
     } else {
         profilesTableModel->refreshTable(currentGroup->profiles, mayNeedReset);
     }
+}
+
+void MainWindow::setFavoritesView(bool on) {
+    auto *settings = Configs::dataManager->settingsRepo.get();
+    if (settings->profiles_favorites_view == on && favoritesButton != nullptr
+        && favoritesButton->isChecked() == on) {
+        return;
+    }
+    settings->profiles_favorites_view = on;
+    settings->Save();
+    if (favoritesButton != nullptr) {
+        const QSignalBlocker blocker(favoritesButton);
+        favoritesButton->setChecked(on);
+        favoritesButton->setToolTip(on ? tr("Back to the group") : tr("Show favourites"));
+    }
+    // Rows here come from several groups, so dragging one would rewrite the order
+    // of a group the user cannot even see.
+    ui->profilesTableView->setDragEnabled(!on);
+    refreshFavoritesButtonIcon();
+    refresh_proxy_list({}, true);
+}
+
+void MainWindow::refreshProfilesEmptyState() {
+    if (profilesEmptyState == nullptr || profilesFilterModel == nullptr) return;
+    profilesEmptyState->setGeometry(ui->profilesTableView->viewport()->rect());
+    if (profilesFilterModel->rowCount() > 0) {
+        profilesEmptyState->hide();
+        return;
+    }
+    const auto colors = themeManager->Colors();
+    const bool favorites = Configs::dataManager->settingsRepo->profiles_favorites_view;
+    const bool searching = !globalFilterString.isEmpty();
+    const int hidden = profilesTableModel != nullptr ? profilesTableModel->rowCount() : 0;
+
+    MaterialIcon::Glyph glyph = MaterialIcon::Glyph::Apps;
+    QString title;
+    QString sub;
+    if (searching) {
+        glyph = MaterialIcon::Glyph::Search;
+        title = tr("Nothing matches “%1”").arg(globalFilterString);
+        sub = hidden > 0 ? tr("All %n server(s) are still here — the search is hiding them.", "", hidden)
+                         : tr("Clear the search to see the list again.");
+    } else if (favorites) {
+        glyph = MaterialIcon::Glyph::StarOutline;
+        title = tr("No favourites yet");
+        sub = tr("Right-click a server and add it to favourites to keep it here, from any group.");
+    } else {
+        title = tr("No servers in this group");
+        sub = tr("Paste a subscription link to fetch them, or add one server by hand.");
+    }
+    profilesEmptyIcon->setPixmap(MaterialIcon::pixmap(glyph, colors.textSubtle, 40));
+    profilesEmptyTitle->setText(title);
+    profilesEmptySub->setText(sub);
+    profilesEmptyState->show();
+    profilesEmptyState->raise();
+}
+
+void MainWindow::setFavoritesButtonVisible(bool on) {
+    auto *settings = Configs::dataManager->settingsRepo.get();
+    settings->profiles_favorites_button = on;
+    settings->Save();
+    if (favoritesButton != nullptr) favoritesButton->setVisible(on);
+    // Staying in a view whose only indicator just disappeared would read as the
+    // group having lost most of its servers.
+    if (!on && settings->profiles_favorites_view) setFavoritesView(false);
+}
+
+void MainWindow::addFavoritesButtonAction(QMenu &menu) {
+    auto *action = menu.addAction(tr("Favourites button"));
+    action->setCheckable(true);
+    action->setChecked(Configs::dataManager->settingsRepo->profiles_favorites_button);
+    connect(action, &QAction::triggered, this, [this](bool on) { setFavoritesButtonVisible(on); });
+}
+
+void MainWindow::refreshFavoritesButtonIcon() {
+    if (favoritesButton == nullptr) return;
+    const auto colors = themeManager->Colors();
+    favoritesButton->setIcon(MaterialIcon::icon(
+        MaterialIcon::Glyph::Star,
+        favoritesButton->isChecked() ? colors.accent : colors.textMuted, 18));
+}
+
+void MainWindow::toggleFavorite(const QList<int> &ids) {
+    if (ids.isEmpty()) return;
+    // One click sets them all the same way; mixed selections turn on.
+    bool allFavorite = true;
+    for (const int id : ids) {
+        const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+        if (profile != nullptr && !profile->favorite) { allFavorite = false; break; }
+    }
+    for (const int id : ids) {
+        auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+        if (profile == nullptr) continue;
+        profile->favorite = !allFavorite;
+        Configs::dataManager->profilesRepo->Save(profile);
+    }
+    // Un-starring inside the favourites view removes the row, so rebuild the list.
+    if (Configs::dataManager->settingsRepo->profiles_favorites_view) refresh_proxy_list({}, true);
+    else refresh_proxy_list(ids, false);
 }
 
 std::shared_ptr<Configs::Profile> MainWindow::vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent) {

@@ -807,6 +807,17 @@ QTabWidget#groupsCard QTabBar::tab {
 }
 QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
 QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #24282D; border-color: #3D444D; }
+/* Same pill as a group tab, square: the fixed height carries the bottom margin
+   so the painted box comes out square and lines up with the tabs. */
+QToolButton#favoritesTabButton {
+    background: #222529; border: 1px solid #3E454F; border-radius: 5px;
+    margin: 0 6px 17px 0;
+}
+QToolButton#favoritesTabButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#favoritesTabButton:checked { background: #182530; border-color: #237AE9; }
+QWidget#profilesEmptyState { background: transparent; }
+QLabel#emptyStateTitle { color: #F1F3F5; font-size: 15px; font-weight: 600; background: transparent; }
+QLabel#emptyStateSub { color: #A4ABB4; font-size: 13px; background: transparent; }
 QWidget#statsPanelHost {
     background: #171B21; border: 1px solid #3E454F; border-radius: 8px;
 }
@@ -1068,6 +1079,51 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ui->label_inbound->installEventFilter(this);
     ui->splitter->installEventFilter(this);
     ui->tabWidget->installEventFilter(this);
+    // Lives inside the viewport so it never covers the header: the columns stay
+    // usable while there is nothing to show under them.
+    profilesEmptyState = new QWidget(ui->profilesTableView->viewport());
+    profilesEmptyState->setObjectName(QStringLiteral("profilesEmptyState"));
+    profilesEmptyState->setAttribute(Qt::WA_TransparentForMouseEvents);
+    auto *emptyLayout = new QVBoxLayout(profilesEmptyState);
+    emptyLayout->setContentsMargins(24, 24, 24, 24);
+    emptyLayout->setSpacing(0);
+    emptyLayout->addStretch(1);
+    profilesEmptyIcon = new QLabel(profilesEmptyState);
+    profilesEmptyIcon->setAlignment(Qt::AlignCenter);
+    emptyLayout->addWidget(profilesEmptyIcon);
+    emptyLayout->addSpacing(14);
+    profilesEmptyTitle = new QLabel(profilesEmptyState);
+    profilesEmptyTitle->setObjectName(QStringLiteral("emptyStateTitle"));
+    profilesEmptyTitle->setAlignment(Qt::AlignCenter);
+    emptyLayout->addWidget(profilesEmptyTitle);
+    emptyLayout->addSpacing(6);
+    profilesEmptySub = new QLabel(profilesEmptyState);
+    profilesEmptySub->setObjectName(QStringLiteral("emptyStateSub"));
+    profilesEmptySub->setAlignment(Qt::AlignCenter);
+    profilesEmptySub->setWordWrap(true);
+    profilesEmptySub->setMaximumWidth(390);
+    emptyLayout->addWidget(profilesEmptySub, 0, Qt::AlignHCenter);
+    emptyLayout->addStretch(1);
+    profilesEmptyState->hide();
+    ui->profilesTableView->viewport()->installEventFilter(this);
+
+    // Favourites sit beside the group tabs rather than among them: the tab order is
+    // a list of real group ids, and a fake entry in it would shift every lookup.
+    favoritesButton = new QToolButton(ui->tabWidget);
+    favoritesButton->setObjectName(QStringLiteral("favoritesTabButton"));
+    favoritesButton->setCheckable(true);
+    favoritesButton->setCursor(Qt::PointingHandCursor);
+    favoritesButton->setFocusPolicy(Qt::NoFocus);
+    favoritesButton->setIconSize(QSize(18, 18));
+    // Painted box is the widget minus the QSS margins, so add them back here to
+    // land on a 33x33 square matching a group tab.
+    favoritesButton->setFixedSize(39, 50);
+    connect(favoritesButton, &QToolButton::clicked, this, [this](bool on) { setFavoritesView(on); });
+    refreshFavoritesButtonIcon();
+    ui->tabWidget->setCornerWidget(favoritesButton, Qt::TopLeftCorner);
+    favoritesButton->setVisible(Configs::dataManager->settingsRepo->profiles_favorites_button);
+    connect(themeManager, &ThemeManager::themeChanged, this, [this] { refreshFavoritesButtonIcon(); });
+
     auto *tableTools = new QFrame(ui->tabWidget);
     tableTools->setObjectName(QStringLiteral("tableTools"));
     auto *tableToolsLayout = new QHBoxLayout(tableTools);
@@ -1409,6 +1465,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (comfortable) {
             QMenu menu(this);
             addRowStyleAction(menu);
+            addFavoritesButtonAction(menu);
             menu.exec(header->mapToGlobal(pos));
             return;
         }
@@ -1418,6 +1475,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             toggle->setCheckable(true);
             toggle->setChecked(Configs::dataManager->settingsRepo->show_udp_column);
             addRowStyleAction(menu);
+            addFavoritesButtonAction(menu);
             if (menu.exec(header->mapToGlobal(pos)) != toggle) return;
             Configs::dataManager->settingsRepo->show_udp_column = toggle->isChecked();
             Configs::dataManager->settingsRepo->Save();
@@ -1600,6 +1658,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         }
         QMenu menu(this);
         addRowStyleAction(menu);
+        addFavoritesButtonAction(menu);
         menu.exec(header->mapToGlobal(pos));
     });
     // Added last so it sits at the end of the corner strip, past the tools the
@@ -1618,6 +1677,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             [this] { setStatsPanelOpen(!Configs::dataManager->settingsRepo->stats_panel_open); });
     // Clicking a tab of a closed panel opens it on that tab, so the strip is not
     // a row of dead labels.
+    connect(ui->tabWidget->tabBar(), &QTabBar::tabBarClicked, this, [this](int) {
+        if (Configs::dataManager->settingsRepo->profiles_favorites_view) setFavoritesView(false);
+    });
     connect(ui->stats_widget->tabBar(), &QTabBar::tabBarClicked, this, [this](int) {
         if (!Configs::dataManager->settingsRepo->stats_panel_open) setStatsPanelOpen(true);
     });
@@ -1677,6 +1739,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             [this](bool selectFirst) { focusProfilesTable(selectFirst); });
 
     this->refresh_groups();
+    setFavoritesView(Configs::dataManager->settingsRepo->profiles_favorites_view);
 
     tray = new QSystemTrayIcon(nullptr);
     tray->setIcon(GetTrayIcon(Icon::NONE));

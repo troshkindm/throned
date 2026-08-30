@@ -35,6 +35,8 @@ enum class Glyph {
     Routes,
     Search,
     Settings,
+    Star,
+    StarOutline,
     Shield,
     SwapVertical,
     Tools,

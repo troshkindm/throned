@@ -55,6 +55,10 @@ namespace Configs {
 
         QString ip_out;
 
+        // Starred by the user. Lives on the profile row, so a subscription update that
+        // rewrites an outbound in place keeps it.
+        bool favorite = false;
+
         QString runningCountryInfo; // volatile, not saved to db
 
         Profile() = default;
