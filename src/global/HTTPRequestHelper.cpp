@@ -6,6 +6,7 @@
 #include <QNetworkRequest>
 #include <QTimer>
 #include <QFile>
+#include <QSaveFile>
 #include <QApplication>
 #include <QMap>
 #include <QStringList>
@@ -128,7 +129,8 @@ namespace Configs_network {
         return {};
     }
 
-    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool useProxy) {
+    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool useProxy,
+                                                const DownloadProgressCallback &progress) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(30000);
@@ -136,13 +138,34 @@ namespace Configs_network {
         if (const auto proxyError = configureProxy(accessManager, useProxy); !proxyError.isEmpty())
             return proxyError;
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+        request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
+                          Configs::dataManager->settingsRepo->GetUserAgent());
         if (Configs::dataManager->settingsRepo->net_insecure) {
             QSslConfiguration c;
             c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
             request.setSslConfiguration(c);
         }
 
+        // Do not retain a release-sized QByteArray inside QNetworkReply. QSaveFile
+        // streams into a sibling temporary file and only replaces the old target
+        // after the transfer and flush have both succeeded.
+        const auto filePath = Configs::GetBasePath() + "/" + fileName;
+        QFile::remove(filePath + QStringLiteral(".tmp")); // stale file from older builds
+        QSaveFile output(filePath);
+        if (!output.open(QIODevice::WriteOnly))
+            return QObject::tr("Could not open file.");
+
         auto _reply = accessManager.get(request);
+        QString writeError;
+        const auto drainReply = [&] {
+            const QByteArray chunk = _reply->readAll();
+            if (chunk.isEmpty() || !writeError.isEmpty()) return;
+            if (output.write(chunk) != chunk.size()) {
+                writeError = QObject::tr("Could not write file.");
+                _reply->abort();
+            }
+        };
+        connect(_reply, &QIODevice::readyRead, _reply, drainReply);
         connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {
             QStringList error_str;
             for (const auto &err: errors) {
@@ -152,51 +175,53 @@ namespace Configs_network {
         });
         connect(_reply, &QNetworkReply::downloadProgress, _reply, [&](qint64 bytesReceived, qint64 bytesTotal)
         {
-            runOnUiThread([=]{
-                GetMainWindow()->setDownloadReport(DownloadProgressReport{fileName, bytesReceived, bytesTotal}, true);
-                GetMainWindow()->UpdateDataView();
-            });
+            if (progress) {
+                progress(bytesReceived, bytesTotal);
+            } else {
+                runOnUiThread([=]{
+                    GetMainWindow()->setDownloadReport(DownloadProgressReport{fileName, bytesReceived, bytesTotal}, true);
+                    GetMainWindow()->UpdateDataView();
+                });
+            }
         });
         QEventLoop loop;
         connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        runOnUiThread([=]
-        {
-            GetMainWindow()->setDownloadReport({}, false);
-            GetMainWindow()->UpdateDataView(true);
-        });
+        drainReply();
+        if (!progress) {
+            runOnUiThread([=]
+            {
+                GetMainWindow()->setDownloadReport({}, false);
+                GetMainWindow()->UpdateDataView(true);
+            });
+        }
         auto netErr = _reply->error();
         const QString netErrStr = _reply->errorString();
         const int httpStatus = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        const QByteArray body = _reply->readAll();
         _reply->deleteLater();
 
+        if (!writeError.isEmpty()) {
+            output.cancelWriting();
+            return writeError;
+        }
         if (netErr != QNetworkReply::NetworkError::NoError) {
+            output.cancelWriting();
             return netErrStr;
         }
 
         if (httpStatus != 0 && (httpStatus < 200 || httpStatus >= 300)) {
+            output.cancelWriting();
             return QObject::tr("Download failed: server returned HTTP status %1.").arg(httpStatus);
         }
-        if (body.isEmpty()) {
+        if (output.size() <= 0) {
+            output.cancelWriting();
             return QObject::tr("Download failed: the server returned an empty response.");
         }
-
-        const auto filePath = Configs::GetBasePath() + "/" + fileName;
-        const auto tmpPath = filePath + ".tmp";
-        QFile tmp(tmpPath);
-        if (!tmp.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            return QObject::tr("Could not open file.");
-        }
-        if (tmp.write(body) != body.size() || !tmp.flush()) {
-            tmp.close();
-            tmp.remove();
+        if (!output.flush()) {
+            output.cancelWriting();
             return QObject::tr("Could not write file.");
         }
-        tmp.close();
-        QFile::remove(filePath);
-        if (!tmp.rename(filePath)) {
-            tmp.remove();
+        if (!output.commit()) {
             return QObject::tr("Could not save downloaded file.");
         }
         return "";

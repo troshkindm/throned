@@ -31,6 +31,7 @@
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedTitleBar.h"
+#include "include/ui/widget/UpdateStatusWidget.h"
 #include <QPainter>
 #include "include/ui/widget/ThronedToggle.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
@@ -694,9 +695,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     selectionCard->setFixedHeight(68);
     selectionCard->hide();
+    updateStatusWidget = new UpdateStatusWidget(redesignedCentral);
+    connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this] {
+        exit_reason = ExitReason::RunUpdater;
+        on_menu_exit_triggered();
+    });
+    connect(updateStatusWidget, &UpdateStatusWidget::retryRequested, this, [this] {
+        if (pendingUpdateDownloadUrl.isEmpty() || pendingUpdateAssetName.isEmpty()) {
+            updateStatusWidget->showError(tr("The update link is no longer available. Check for updates again."));
+            return;
+        }
+        startUpdateDownload(pendingUpdateDownloadUrl, pendingUpdateAssetName);
+    });
     rootLayout->addWidget(body, 1);
     rootLayout->addWidget(ui->data_view);
     rootLayout->addWidget(selectionCard);
+    rootLayout->addWidget(updateStatusWidget);
     rootLayout->addWidget(statusCard);
 
     // Icons are rasterised, so they have to be repainted whenever the theme
@@ -762,6 +776,33 @@ QFrame#commandBar {
 QFrame#statusCard, QFrame#selectionCard {
     background: #1B1E23; border: none; border-top: 1px solid #2F3136;
 }
+QFrame#updateStatus {
+    background: #171B21; border: none; border-top: 1px solid #2F3136;
+}
+QFrame#updateStatus QLabel#updateStatusIcon { background: transparent; }
+QFrame#updateStatus QLabel#updateStatusTitle {
+    color: #F1F3F5; background: transparent; font-weight: 600;
+}
+QFrame#updateStatus QLabel#updateStatusDetail { color: #747C86; background: transparent; }
+QFrame#updateStatus QPushButton {
+    border-radius: 5px; padding: 4px 10px; font-weight: 550;
+}
+QFrame#updateStatus QPushButton#updatePrimaryButton {
+    color: #F1F3F5; background: #237AE9; border: 1px solid #237AE9;
+}
+QFrame#updateStatus QPushButton#updatePrimaryButton:hover {
+    background: #3B8BF0; border-color: #3B8BF0;
+}
+QFrame#updateStatus QPushButton#updateSecondaryButton {
+    color: #A4ABB4; background: #222529; border: 1px solid #2F3136;
+}
+QFrame#updateStatus QPushButton#updateSecondaryButton:hover {
+    color: #F1F3F5; background: #292D33; border-color: #4A4F57;
+}
+QProgressBar#updateProgress {
+    background: #2F3136; border: none; border-radius: 1px;
+}
+QProgressBar#updateProgress::chunk { background: #237AE9; border-radius: 1px; }
 QFrame#commandBar QToolButton {
     background: transparent; border: none; border-radius: 6px; font-weight: 550; padding: 7px 9px;
 }

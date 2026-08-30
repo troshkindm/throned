@@ -8,13 +8,16 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QLocale>
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QScreen>
+#include <QScopeGuard>
 #include <QSet>
 #include <QTextBrowser>
 #include <QUrl>
@@ -30,6 +33,7 @@
 #include "include/global/Logger.hpp"
 #include "include/sys/Process.hpp"
 #include "include/ui/mainWindow/MainWindowInternal.h"
+#include "include/ui/widget/UpdateStatusWidget.h"
 
 #include "include/ui/group/dialog_manage_groups.h"
 #include "include/ui/setting/dialog_basic_settings.h"
@@ -177,11 +181,20 @@ void MainWindow::on_menu_exit_triggered() {
     prepare_exit();
     if (exit_reason == ExitReason::RunUpdater) {
         QDir::setCurrent(QApplication::applicationDirPath());
+        QString updaterLanguage = QStringLiteral("en");
+        switch (Configs::dataManager->settingsRepo->language) {
+        case 2: updaterLanguage = QStringLiteral("zh"); break;
+        case 3: updaterLanguage = QStringLiteral("fa"); break;
+        case 4: updaterLanguage = QStringLiteral("ru"); break;
+        case 0: updaterLanguage = QLocale::system().name().section(QChar('_'), 0, 0); break;
+        default: break;
+        }
+        const QStringList updaterArguments{QStringLiteral("--lang"), updaterLanguage};
 #ifdef Q_OS_WIN
         QFile::copy("./updater.exe", "./updater.old");
-        QProcess::startDetached("./updater.old", QStringList{});
+        QProcess::startDetached("./updater.old", updaterArguments);
 #else
-        QProcess::startDetached("./updater", QStringList{});
+        QProcess::startDetached("./updater", updaterArguments);
 #endif
     } else if (exit_reason == ExitReason::Restart || exit_reason == ExitReason::RestartWithTun || exit_reason == ExitReason::RestartWithDns) {
         QDir::setCurrent(QApplication::applicationDirPath());
@@ -528,6 +541,9 @@ void MainWindow::OpenDashboard() {
 }
 
 void MainWindow::CheckUpdate(bool silent) {
+    if (updateCheckInProgress_.exchange(true)) return;
+    const auto updateCheckGuard = qScopeGuard([this] { updateCheckInProgress_.store(false); });
+
     QString search;
 #ifdef Q_OS_WIN
 #  ifdef Q_PROCESSOR_ARM_64
@@ -564,17 +580,45 @@ void MainWindow::CheckUpdate(bool silent) {
         return;
     }
 
-    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/troshkindm/throned/releases");
+    const bool requestUsedProfile = Configs::dataManager->settingsRepo->started_id >= 0;
+    const auto rememberDirectFailure = [this, requestUsedProfile] {
+        if (requestUsedProfile) return;
+        updateCheckRetryAfterConnect_.store(true);
+        // Covers the race where the profile came up while the direct request was
+        // still timing out: there may be no later profile-start event to wake us.
+        runOnUiThread([this] {
+            if (Configs::dataManager->settingsRepo->started_id >= 0)
+                retryPendingUpdateCheck();
+        });
+    };
+
+    auto resp = NetworkRequestHelper::HttpGet(
+        "https://api.github.com/repos/troshkindm/throned/releases", false, requestUsedProfile);
     if (!resp.error.isEmpty()) {
+        rememberDirectFailure();
         if (!silent) runOnUiThread([=,this] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
         });
         return;
     }
 
+    QJsonParseError parseError;
+    const QJsonDocument releasesDocument = QJsonDocument::fromJson(resp.data, &parseError);
+    if (parseError.error != QJsonParseError::NoError || !releasesDocument.isArray()) {
+        rememberDirectFailure();
+        const QString error = parseError.error == QJsonParseError::NoError
+            ? tr("GitHub returned an unexpected response.")
+            : tr("Could not read GitHub's response: %1").arg(parseError.errorString());
+        if (!silent) runOnUiThread([=, this] {
+            MessageBoxWarning(tr("Update"), tr("Requesting update error: %1").arg(error));
+        });
+        return;
+    }
+    updateCheckRetryAfterConnect_.store(false);
+
     QString assets_name, release_download_url, release_url, release_note, note_pre_release;
     bool exitFlag = false;
-    QJsonArray array = QString2QJsonArray(resp.data);
+    const QJsonArray array = releasesDocument.array();
     for (const QJsonValue value : array) {
         QJsonObject release = value.toObject();
         if (release["prerelease"].toBool() && !Configs::dataManager->settingsRepo->allow_beta_update) continue;
@@ -607,36 +651,7 @@ void MainWindow::CheckUpdate(bool silent) {
                                              assets_name, release_note, allow_updater);
         //
         if (choice == UpdatePromptChoice::Update) {
-            // Download Update
-            runOnNewThread([=,this] {
-                if (!mu_download_update.tryLock()) {
-                    runOnUiThread([=,this](){
-                        MessageBoxWarning(tr("Cannot start"), tr("Last download request has not finished yet"));
-                    });
-                    return;
-                }
-                QString errors;
-                if (!release_download_url.isEmpty()) {
-                    const bool proxyAvailable = Configs::dataManager->settingsRepo->started_id >= 0;
-                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "Throned.zip", proxyAvailable);
-                    if (!res.isEmpty()) {
-                        errors += res;
-                    }
-                }
-                mu_download_update.unlock();
-                runOnUiThread([=,this] {
-                    if (errors.isEmpty()) {
-                        auto q = QMessageBox::question(nullptr, QObject::tr("Update"),
-                                                       QObject::tr("Update is ready, restart to install?"));
-                        if (q == QMessageBox::StandardButton::Yes) {
-                            this->exit_reason = ExitReason::RunUpdater;
-                            on_menu_exit_triggered();
-                        }
-                    } else {
-                        MessageBoxWarning(tr("Failed to download update assets"), errors);
-                    }
-                });
-            });
+            startUpdateDownload(release_download_url, assets_name);
         } else if (choice == UpdatePromptChoice::OpenInBrowser) {
             QDesktopServices::openUrl(QUrl(release_url));
         }
@@ -653,6 +668,62 @@ void MainWindow::CheckUpdate(bool silent) {
         tray->showMessage(QObject::tr("Throned update available"),
                           QObject::tr("%1 is ready to download. Click to see the release notes.").arg(assets_name),
                           QSystemTrayIcon::Information, 10000);
+    });
+}
+
+void MainWindow::startUpdateDownload(const QString &url, const QString &assetName) {
+    if (url.isEmpty() || assetName.isEmpty() || updateStatusWidget == nullptr) return;
+
+    pendingUpdateDownloadUrl = url;
+    pendingUpdateAssetName = assetName;
+    lastUpdateProgressMs_.store(0);
+    updateStatusWidget->showDownloading(assetName, 0, -1);
+
+    runOnNewThread([this, url, assetName] {
+        if (!mu_download_update.tryLock()) return;
+        const auto unlock = qScopeGuard([this] { mu_download_update.unlock(); });
+
+        const auto progress = [this, assetName](qint64 received, qint64 total) {
+            const qint64 now = QDateTime::currentMSecsSinceEpoch();
+            const bool complete = total > 0 && received >= total;
+            const qint64 previous = lastUpdateProgressMs_.load();
+            if (!complete && now - previous < 80) return;
+            lastUpdateProgressMs_.store(now);
+            runOnUiThread([this, assetName, received, total, complete] {
+                if (updateStatusWidget == nullptr) return;
+                if (complete) updateStatusWidget->showPreparing(assetName);
+                else updateStatusWidget->showDownloading(assetName, received, total);
+            });
+        };
+
+        const bool proxyAvailable = Configs::dataManager->settingsRepo->started_id >= 0;
+        const QString error = NetworkRequestHelper::DownloadAsset(
+            url, QStringLiteral("Throned.zip"), proxyAvailable, progress);
+        runOnUiThread([this, assetName, error] {
+            if (updateStatusWidget == nullptr) return;
+            if (error.isEmpty()) {
+                updateStatusWidget->showReady(assetName);
+            } else {
+                MW_show_log(tr("Update download failed: %1").arg(error));
+                updateStatusWidget->showError(error);
+            }
+        });
+    });
+}
+
+void MainWindow::retryPendingUpdateCheck() {
+    if (!updateCheckRetryAfterConnect_.exchange(false)) return;
+    QTimer::singleShot(1200, this, [this] {
+        if (Configs::dataManager->settingsRepo->started_id < 0) {
+            updateCheckRetryAfterConnect_.store(true);
+            return;
+        }
+        if (updateCheckInProgress_.load()) {
+            updateCheckRetryAfterConnect_.store(true);
+            QTimer::singleShot(1500, this, [this] { retryPendingUpdateCheck(); });
+            return;
+        }
+        runOnNewThread([this] { CheckUpdate(true); });
     });
 }
 

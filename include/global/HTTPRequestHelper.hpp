@@ -4,6 +4,8 @@
 #include <functional>
 
 namespace Configs_network {
+    using DownloadProgressCallback = std::function<void(qint64 received, qint64 total)>;
+
     struct HTTPResponse {
         QString error;
         QByteArray data;
@@ -30,7 +32,8 @@ namespace Configs_network {
 
         static QString GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name);
 
-        static QString DownloadAsset(const QString &url, const QString &fileName, bool useProxy = false);
+        static QString DownloadAsset(const QString &url, const QString &fileName, bool useProxy = false,
+                                     const DownloadProgressCallback &progress = {});
     };
 } // namespace Configs_network
 

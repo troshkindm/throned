@@ -375,6 +375,7 @@ void MainWindow::profile_start(int _id) {
             refresh_status();
             refresh_proxy_list({ent->id});
             refresh_auto_selector_view();
+            retryPendingUpdateCheck();
 
             // "Only route advertised network" rejects this probe, so the corner carries tunnel state.
             if (exitIsEndpoint) return;

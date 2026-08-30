@@ -5559,6 +5559,81 @@ Name: %1</source>
         <source>The running core writes at %1 - restart it to get more.</source>
         <translation>Запущенное ядро пишет на уровне %1 — перезапустите его, чтобы увидеть больше.</translation>
     </message>
+    <message>
+        <source>The update link is no longer available. Check for updates again.</source>
+        <translation>Ссылка на обновление больше недоступна. Проверьте обновления ещё раз.</translation>
+    </message>
+    <message>
+        <source>GitHub returned an unexpected response.</source>
+        <translation>GitHub вернул неожиданный ответ.</translation>
+    </message>
+    <message>
+        <source>Could not read GitHub&apos;s response: %1</source>
+        <translation>Не удалось прочитать ответ GitHub: %1</translation>
+    </message>
+    <message>
+        <source>Update download failed: %1</source>
+        <translation>Не удалось загрузить обновление: %1</translation>
+    </message>
+</context>
+<context>
+    <name>UpdateStatusWidget</name>
+    <message>
+        <source>Downloading %1</source>
+        <translation>Загрузка %1</translation>
+    </message>
+    <message>
+        <source>%1% · %2 of %3</source>
+        <translation>%1% · %2 из %3</translation>
+    </message>
+    <message>
+        <source>%1 downloaded</source>
+        <translation>Загружено %1</translation>
+    </message>
+    <message>
+        <source>Starting download…</source>
+        <translation>Начало загрузки…</translation>
+    </message>
+    <message>
+        <source>Preparing %1</source>
+        <translation>Подготовка %1</translation>
+    </message>
+    <message>
+        <source>Saving the downloaded package…</source>
+        <translation>Сохранение загруженного пакета…</translation>
+    </message>
+    <message>
+        <source>%1 is ready</source>
+        <translation>%1 готов к установке</translation>
+    </message>
+    <message>
+        <source>Restart when convenient to install it.</source>
+        <translation>Перезапустите приложение, когда будет удобно.</translation>
+    </message>
+    <message>
+        <source>Restart now</source>
+        <translation>Перезапустить</translation>
+    </message>
+    <message>
+        <source>Later</source>
+        <translation>Позже</translation>
+    </message>
+    <message>
+        <source>Update download failed</source>
+        <translation>Не удалось загрузить обновление</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Повторить</translation>
+    </message>
+    <message>
+        <source>Dismiss</source>
+        <translation>Скрыть</translation>
+    </message>
+    <message>
+        <source>GitHub could not be reached through the current connection.</source>
+        <translation>GitHub недоступен через текущее подключение.</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

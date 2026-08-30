@@ -56,6 +56,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/ui/widget/StartStopButton.hpp"
+#include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/control/ThronedControl.h"
 
 #ifdef Q_OS_WIN
@@ -700,6 +701,34 @@ briefly interrupts traffic.
         composed.save(path, "PNG");
     }
 
+    void CaptureUpdateStatusPreviews(MainWindow *window, const QString &prefix) {
+        auto *status = window->findChild<UpdateStatusWidget *>(QStringLiteral("updateStatus"));
+        if (status == nullptr) {
+            qWarning() << "Update status widget is missing from the main-window preview";
+            qApp->exit(2);
+            return;
+        }
+        const QString asset = QStringLiteral("Throned-1.4.0-windows64.zip");
+        status->showDownloading(asset, 19398656, 46137344);
+        QTimer::singleShot(180, window, [window, status, prefix, asset] {
+            window->grab().save(prefix + QStringLiteral("-update-downloading.png"), "PNG");
+            status->showPreparing(asset);
+            QTimer::singleShot(180, window, [window, status, prefix, asset] {
+                window->grab().save(prefix + QStringLiteral("-update-preparing.png"), "PNG");
+                status->showReady(asset);
+                QTimer::singleShot(180, window, [window, status, prefix] {
+                    window->grab().save(prefix + QStringLiteral("-update-ready.png"), "PNG");
+                    status->showError(UpdateStatusWidget::tr("GitHub could not be reached through the current connection."));
+                    QTimer::singleShot(180, window, [window, status, prefix] {
+                        window->grab().save(prefix + QStringLiteral("-update-error.png"), "PNG");
+                        status->dismiss();
+                        qApp->exit(0);
+                    });
+                });
+            });
+        });
+    }
+
     void CaptureConnectionsPreview(MainWindow *window, const QString &prefix) {
         window->grab().save(prefix + QStringLiteral("-window.png"), "PNG");
         auto *table = window->findChild<QTableWidget *>(QStringLiteral("connections"));
@@ -732,7 +761,7 @@ briefly interrupts traffic.
                 QTimer::singleShot(260, window, [prefix, window, startStop] {
                     window->grab().save(prefix + QStringLiteral("-stop-button.png"), "PNG");
                     startStop->setState(StartStopButton::State::Idle);
-                    qApp->exit(0);
+                    CaptureUpdateStatusPreviews(window, prefix);
                 });
             });
         });

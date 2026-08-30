@@ -64,6 +64,7 @@ class RoutingQuickMenu;
 class TrayOtpCodes;
 class TestRunner;
 class DialogVpnAuth;
+class UpdateStatusWidget;
 struct VpnAuthChallenge;
 
 namespace Qv2ray::ui { class SyntaxHighlighter; }
@@ -361,6 +362,12 @@ private:
     QLabel *pingLegendLabel = nullptr;
     QTimer *pingMonitorTimer = nullptr;
     std::atomic<bool> pingProbeInFlight_{false};
+    UpdateStatusWidget *updateStatusWidget = nullptr;
+    QString pendingUpdateAssetName;
+    QString pendingUpdateDownloadUrl;
+    std::atomic<bool> updateCheckInProgress_{false};
+    std::atomic<bool> updateCheckRetryAfterConnect_{false};
+    std::atomic<qint64> lastUpdateProgressMs_{0};
 
     // One tick of the monitor. Both paths are measured because a number on its own
     // cannot say whether the proxy or the connection underneath it went bad.
@@ -640,6 +647,8 @@ private:
     // reports a found release through the tray instead of a modal, so the periodic
     // background check never interrupts what the user is doing.
     void CheckUpdate(bool silent = false);
+    void startUpdateDownload(const QString &url, const QString &assetName);
+    void retryPendingUpdateCheck();
     // Set when a silent check found a release; run when the tray notification is clicked.
     std::function<void()> pendingUpdatePrompt;
 

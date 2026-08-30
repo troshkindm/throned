@@ -226,6 +226,8 @@ set(PROJECT_SOURCES
         src/ui/widget/ThronedWindowChrome.cpp
         include/ui/widget/ThronedToggle.h
         src/ui/widget/ThronedToggle.cpp
+        include/ui/widget/UpdateStatusWidget.h
+        src/ui/widget/UpdateStatusWidget.cpp
 
         src/ui/mainWindow/mainwindow_setup.cpp
         src/ui/mainWindow/mainwindow_events.cpp
