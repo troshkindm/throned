@@ -8,7 +8,7 @@
 
 #include "include/global/Configs.hpp"
 #include "include/stats/connections/connectionLister.hpp"
-#include "3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp"
+#include "include/ui/widget/ThroughputChart.h"
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/database/entities/Profile.h"
 #ifdef Q_OS_LINUX
@@ -356,7 +356,7 @@ private:
     QToolButton *connectionCloseAllButton = nullptr;
     QIcon connectionCloseIcon;
     int toolTipID;
-    SpeedWidget *speedChartWidget;
+    ThroughputChart *speedChartWidget;
     // Latency over time, beside the throughput chart: a path can carry bytes fine
     // and still have a UDP round trip that wanders, which is what breaks QUIC.
     MiniChartWidget *pingChartWidget = nullptr;

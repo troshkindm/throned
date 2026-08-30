@@ -304,13 +304,7 @@ void MainWindow::refresh_startstop_button() {
 void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp)
 {
     if (speedChartWidget) {
-        QMap<SpeedWidget::GraphType, long> pointData;
-        pointData[SpeedWidget::OUTBOUND_PROXY_UP] = proxyUp;
-        pointData[SpeedWidget::OUTBOUND_PROXY_DOWN] = proxyDl;
-        pointData[SpeedWidget::OUTBOUND_DIRECT_UP] = directUp;
-        pointData[SpeedWidget::OUTBOUND_DIRECT_DOWN] = directDl;
-
-        speedChartWidget->AddPointData(pointData);
+        speedChartWidget->addSample(proxyDl, proxyUp, directDl, directUp);
     }
 }
 

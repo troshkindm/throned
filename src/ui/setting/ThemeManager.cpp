@@ -278,6 +278,7 @@ void ThemeManager::LoadSkins() {
         skin.colors = thronedThemes().value(QStringLiteral("throned midnight"));
         skin.colors.dark = json.value(QStringLiteral("dark")).toBool(true);
         skin.colors.gloss = json.value(QStringLiteral("gloss")).toDouble(0.0);
+        skin.colors.chartBars = json.value(QStringLiteral("chartBars")).toBool(false);
         const QJsonObject colors = json.value(QStringLiteral("colors")).toObject();
         for (auto it = colors.constBegin(); it != colors.constEnd(); ++it) {
             const auto field = ThronedPalette::ColorFields().constFind(it.key());

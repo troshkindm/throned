@@ -173,8 +173,6 @@ set(PROJECT_SOURCES
 
         3rdparty/qv2ray/v2/ui/LogHighlighter.cpp
         3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.cpp
-        3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.cpp
-        3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp
         3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.cpp
 
         3rdparty/quirc/decode.c
@@ -252,6 +250,8 @@ set(PROJECT_SOURCES
         src/ui/widget/ActionButton.cpp
         include/ui/widget/StartStopButton.hpp
         src/ui/widget/StartStopButton.cpp
+        include/ui/widget/ThroughputChart.h
+        src/ui/widget/ThroughputChart.cpp
         include/ui/widget/GroupTabBar.h
         src/ui/widget/GroupTabBar.cpp
         include/ui/widget/TrayProfileSelector.hpp

@@ -1348,11 +1348,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             applyConnectionSort(sortType);
     });
 
-    speedChartWidget = new SpeedWidget(this);
+    speedChartWidget = new ThroughputChart(this);
     speedChartWidget->setObjectName(QStringLiteral("throughputChart"));
-    speedChartWidget->setFrameShape(QFrame::NoFrame);
-    speedChartWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    speedChartWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graph_tab->layout()->addWidget(speedChartWidget);
 
     // Second column: UDP round trip over time. Off by default because each sample

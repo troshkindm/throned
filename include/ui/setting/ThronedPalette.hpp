@@ -40,6 +40,8 @@ struct ThronedThemeColors {
     QColor scrollBarHover;
     // 0 flat, 1 full 2009-era gloss: a vertical sheen on the round command button.
     qreal gloss = 0.0;
+    // Retro equalizer instead of the smooth filled area on the throughput chart.
+    bool chartBars = false;
     bool dark = true;
 };
 
