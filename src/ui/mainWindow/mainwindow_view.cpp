@@ -8,6 +8,7 @@
 #include <QHeaderView>
 #include <QAbstractItemView>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QTimer>
 #include <QActionGroup>
