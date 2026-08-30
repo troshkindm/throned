@@ -5391,7 +5391,39 @@ Please try again.</source>
     </message>
     <message>
         <source>Auto-scroll</source>
-        <translation type="unfinished"></translation>
+        <translation>Автопрокрутка</translation>
+    </message>
+    <message>
+        <source>Copy all</source>
+        <translation>Копировать всё</translation>
+    </message>
+    <message>
+        <source>Level</source>
+        <translation>Уровень</translation>
+    </message>
+    <message>
+        <source>Filter...</source>
+        <translation>Фильтр...</translation>
+    </message>
+    <message>
+        <source>Log tools</source>
+        <translation>Инструменты журнала</translation>
+    </message>
+    <message>
+        <source>Click a tab to open</source>
+        <translation>Нажмите вкладку, чтобы открыть</translation>
+    </message>
+    <message>
+        <source>Hide the panel</source>
+        <translation>Скрыть панель</translation>
+    </message>
+    <message>
+        <source>Show logs and connections</source>
+        <translation>Показать журнал и подключения</translation>
+    </message>
+    <message>
+        <source>Connections %1</source>
+        <translation>Подключения %1</translation>
     </message>
     <message>
         <source>Routing profile and default traffic</source>

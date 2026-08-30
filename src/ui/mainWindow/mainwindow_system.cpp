@@ -66,6 +66,18 @@ void MainWindow::on_menu_basic_settings_triggered() {
     USE_DIALOG(DialogBasicSettings)
 }
 
+void MainWindow::openLogSettings() {
+    if (dialog_is_using) return;
+    dialog_is_using = true;
+    auto *dialog = new DialogBasicSettings(this);
+    dialog->showLoggingPage();
+    connect(dialog, &QDialog::finished, this, [=, this] {
+        dialog->deleteLater();
+        dialog_is_using = false;
+    });
+    dialog->show();
+}
+
 void MainWindow::on_menu_manage_groups_triggered() {
     USE_DIALOG(DialogManageGroups)
 }

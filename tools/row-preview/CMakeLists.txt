@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Widgets Network Svg)
 
 # The shipped delegate and theme, not copies: a change here is a change in the app.
 qt_add_executable(ThronedRowPreview MANUAL_FINALIZATION
@@ -15,9 +15,11 @@ qt_add_executable(ThronedRowPreview MANUAL_FINALIZATION
     ../../src/ui/utils/ProfileRowDelegate.cpp
     ../../include/ui/setting/ThemeManager.hpp
     ../../src/ui/setting/ThemeManager.cpp
+    ../../include/ui/widget/MaterialIcon.h
+    ../../src/ui/widget/MaterialIcon.cpp
 )
 
-target_link_libraries(ThronedRowPreview PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(ThronedRowPreview PRIVATE Qt6::Widgets Qt6::Network Qt6::Svg)
 target_include_directories(ThronedRowPreview PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
 set_target_properties(ThronedRowPreview PROPERTIES OUTPUT_NAME "row-preview")

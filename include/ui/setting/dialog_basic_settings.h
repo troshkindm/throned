@@ -10,6 +10,9 @@ namespace Ui {
     class DialogBasicSettings;
 }
 
+class QButtonGroup;
+class QStackedWidget;
+
 class DialogBasicSettings : public QDialog {
     Q_OBJECT
 
@@ -17,6 +20,8 @@ public:
     explicit DialogBasicSettings(QWidget *parent = nullptr);
 
     ~DialogBasicSettings();
+
+    void showLoggingPage();
 
 public slots:
 
@@ -29,6 +34,8 @@ private:
     SettingsBindings bindings_;
     QCheckBox *alwaysStandardUser_ = nullptr;
     QTimer *themeApplyDebounce_ = nullptr;
+    QStackedWidget *settingsStack_ = nullptr;
+    QButtonGroup *settingsNavGroup_ = nullptr;
 
     Ui::DialogBasicSettings *ui;
 

@@ -17,7 +17,10 @@ enum class Glyph {
     ChevronDown,
     ChevronUp,
     ChevronRight,
+    Close,
     Code,
+    Copy,
+    Delete,
     Desktop,
     Direct,
     File,
@@ -35,6 +38,7 @@ enum class Glyph {
     Shield,
     SwapVertical,
     Tools,
+    Tune,
     Users,
 };
 

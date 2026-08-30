@@ -2,7 +2,6 @@
 
 #include <QToolButton>
 #include <QColor>
-#include <QPixmap>
 
 class QPropertyAnimation;
 
@@ -55,9 +54,7 @@ private:
     void animate(QPropertyAnimation *anim, const QVariant &to, int duration);
     void setLoopRunning(QPropertyAnimation *anim, bool running);
     void updateLoops();
-    void ensureChromeCache();
 
-    QColor modeColor(Mode m) const;
     QColor idleRingColor() const;
     QColor glyphColor() const;
     QColor targetRingColor() const;
@@ -78,10 +75,4 @@ private:
     QPropertyAnimation *m_spinAnim = nullptr;
 
     bool m_shown = false;
-
-    QPixmap m_chromeCache;
-    QSize m_chromeKeySize;
-    qreal m_chromeKeyDpr = 0.0;
-    uint m_chromeKeyState = 0;
-    uint m_chromeKeySub = 0;
 };

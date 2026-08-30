@@ -13,8 +13,9 @@ namespace {
     constexpr double kLowFrom = 0.75;
     constexpr double kCriticalFrom = 0.90;
     constexpr int kLineHeight = 2;
-    // The tab reserves its bottom 2px for the selection indicator, so the meter sits above it.
-    constexpr int kSelectionBorder = 3;
+    // The group is now a detached pill. Keep the meter inside that pill rather
+    // than letting it fall into the gap above the profile table.
+    constexpr int kBottomInset = 8;
 
     QColor usageColor(double fraction) {
         if (fraction >= kCriticalFrom) return QColor(kCritical);
@@ -50,7 +51,7 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
         if (rect.isEmpty()) continue;
 
         // Inset so the line reads as part of the tab rather than the strip's own edge.
-        const QRect track(rect.left() + 6, rect.bottom() - kSelectionBorder - kLineHeight, rect.width() - 12, kLineHeight);
+        const QRect track(rect.left() + 7, rect.bottom() - kBottomInset, rect.width() - 14, kLineHeight);
         if (track.width() <= 0) continue;
 
         QColor spent = usageColor(*it);

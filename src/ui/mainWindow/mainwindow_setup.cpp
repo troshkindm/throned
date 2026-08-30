@@ -74,6 +74,7 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QScreen>
 #include <QDesktopServices>
 #include <QTimer>
 #include <QMessageBox>
@@ -293,6 +294,7 @@ static bool themeUsesDarkLog(const QString &theme) {
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+    const bool uiPreviewMode = Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview"));
     mainwindow = this;
     setAcceptDrops(true);
     MW_dialog_message = [=,this](MwMessage cmd, QStringList args) {
@@ -416,8 +418,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->splitter->setParent(body);
     ui->tabWidget->setStyleSheet({});
     ui->stats_widget->setStyleSheet({});
+    ui->stats_widget->setAutoFillBackground(false);
     ui->tabWidget->setObjectName(QStringLiteral("groupsCard"));
     ui->stats_widget->setObjectName(QStringLiteral("logsCard"));
+    statsPanelHost = ui->stats_widget;
+    while (statsPanelHost->parentWidget() != nullptr
+           && statsPanelHost->parentWidget() != ui->splitter) {
+        statsPanelHost = statsPanelHost->parentWidget();
+    }
+    if (statsPanelHost->parentWidget() != ui->splitter) statsPanelHost = ui->stats_widget;
+    statsPanelHost->setObjectName(QStringLiteral("statsPanelHost"));
+    statsPanelHost->setAttribute(Qt::WA_StyledBackground, true);
+    if (statsPanelHost->layout() != nullptr) statsPanelHost->layout()->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->tabBar()->setUsesScrollButtons(false);
     ui->stats_widget->tabBar()->setUsesScrollButtons(false);
     auto *logTools = new QWidget(ui->stats_widget);
@@ -432,8 +444,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     logMenuButton->setPopupMode(QToolButton::InstantPopup);
     logMenuButton->setCursor(Qt::PointingHandCursor);
     logMenuButton->setFocusPolicy(Qt::NoFocus);
+    logMenuButton->setFixedSize(28, 28);
+    logMenuButton->setIconSize(QSize(18, 18));
+    logMenuButton->setProperty("statsPage", ui->Logs->objectName());
     logMenuButton->setToolTip(tr("Log tools"));
     auto *logMenu = new QMenu(logMenuButton);
+    logMenu->setObjectName(QStringLiteral("logToolsMenu"));
     auto *clearAction = logMenu->addAction(tr("Clear"));
     auto *copyAction = logMenu->addAction(tr("Copy all"));
     auto *autoScrollAction = logMenu->addAction(tr("Auto-scroll"));
@@ -441,8 +457,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     autoScrollAction->setChecked(Configs::dataManager->settingsRepo->log_auto_scroll);
     logMenu->addSeparator();
     auto *levelMenu = logMenu->addMenu(tr("Level"));
+    levelMenu->setObjectName(QStringLiteral("logToolsMenu"));
     levelMenu->setToolTipsVisible(true);
     levelMenu->setToolTip(tr("Hides log lines below this level, and sets the core's own log level for the next start"));
+    levelMenu->setTitle(tr("Level") + QStringLiteral("        ")
+                        + Configs::SingBox::NormalizeLogLevel(
+                              Configs::dataManager->settingsRepo->log_level).toUpper());
     logLevelActions = new QActionGroup(this);
     for (const auto &level : Configs::SingBox::LogLevels) {
         auto *levelAction = levelMenu->addAction(level.toUpper());
@@ -450,21 +470,49 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         levelAction->setData(level);
         logLevelActions->addAction(levelAction);
     }
+    auto *filterAction = logMenu->addAction(tr("Filter..."));
     logMenuButton->setMenu(logMenu);
+    // InstantPopup normally anchors a menu at the button's left edge. This
+    // button lives against the window's right edge, so that default position
+    // sends most of the menu off-screen. Anchor its right edge instead and
+    // clamp it to the active screen for multi-monitor setups.
+    connect(logMenu, &QMenu::aboutToShow, logMenu, [logMenu, logMenuButton] {
+        QTimer::singleShot(0, logMenu, [logMenu, logMenuButton] {
+            const QSize menuSize = logMenu->sizeHint().expandedTo(logMenu->minimumSizeHint());
+            const QPoint buttonBottomRight = logMenuButton->mapToGlobal(
+                QPoint(logMenuButton->width(), logMenuButton->height() + 4));
+            QPoint menuPos(buttonBottomRight.x() - menuSize.width(), buttonBottomRight.y());
+            if (QScreen *screen = logMenuButton->screen()) {
+                const QRect available = screen->availableGeometry().adjusted(4, 4, -4, -4);
+                menuPos.setX(qBound(available.left(), menuPos.x(),
+                                    qMax(available.left(), available.right() - menuSize.width() + 1)));
+                if (menuPos.y() + menuSize.height() > available.bottom())
+                    menuPos.setY(logMenuButton->mapToGlobal(QPoint(0, -menuSize.height() - 4)).y());
+                menuPos.setY(qMax(available.top(), menuPos.y()));
+            }
+            logMenu->move(menuPos);
+        });
+    });
     logToolsLayout->addWidget(logMenuButton);
     connect(clearAction, &QAction::triggered, this, [this] { clear_log_view(); });
     connect(copyAction, &QAction::triggered, this, [this] {
         QApplication::clipboard()->setText(ui->masterLogBrowser->toPlainText());
     });
-    connect(autoScrollAction, &QAction::toggled, this, [](bool enabled) {
+    connect(autoScrollAction, &QAction::toggled, this, [autoScrollAction](bool enabled) {
         Configs::dataManager->settingsRepo->log_auto_scroll = enabled;
         Configs::dataManager->settingsRepo->Save();
+        const auto colors = themeManager->Colors();
+        autoScrollAction->setIcon(enabled
+            ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17) : QIcon());
     });
-    connect(logLevelActions, &QActionGroup::triggered, this, [this](QAction *action) {
+    connect(logLevelActions, &QActionGroup::triggered, this, [this, levelMenu](QAction *action) {
         Configs::dataManager->settingsRepo->log_level = action->data().toString();
         Configs::dataManager->settingsRepo->Save();
+        levelMenu->setTitle(tr("Level") + QStringLiteral("        ")
+                            + action->data().toString().toUpper());
         updateLogFilterFields();
     });
+    connect(filterAction, &QAction::triggered, this, [this] { openLogSettings(); });
     statsPanelTools = {logMenuButton};
     ui->stats_widget->setCornerWidget(logTools, Qt::TopRightCorner);
     bodyLayout->addWidget(ui->splitter, 1);
@@ -476,24 +524,57 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     auto *stripLayout = new QHBoxLayout(statsStrip);
     stripLayout->setContentsMargins(9, 4, 7, 4);
     stripLayout->setSpacing(2);
+    statsStrip->setFixedHeight(39);
     for (int tab = 0; tab < ui->stats_widget->count(); tab++) {
         auto *tabButton = new QToolButton(statsStrip);
         tabButton->setObjectName(QStringLiteral("stripTab"));
         tabButton->setText(ui->stats_widget->tabText(tab));
         tabButton->setCursor(Qt::PointingHandCursor);
         tabButton->setFocusPolicy(Qt::NoFocus);
-        connect(tabButton, &QToolButton::clicked, this, [this, tab] {
-            ui->stats_widget->setCurrentIndex(tab);
+        QWidget *page = ui->stats_widget->widget(tab);
+        tabButton->setProperty("statsPage", page->objectName());
+        connect(tabButton, &QToolButton::clicked, this, [this, page] {
+            ui->stats_widget->setCurrentWidget(page);
             setStatsPanelOpen(true);
         });
         stripLayout->addWidget(tabButton);
         statsStripTabs.append(tabButton);
+        if (page == ui->connections_tab) {
+            statsConnectionStripCount = new QToolButton(statsStrip);
+            statsConnectionStripCount->setObjectName(QStringLiteral("stripCountBadge"));
+            statsConnectionStripCount->setCursor(Qt::PointingHandCursor);
+            statsConnectionStripCount->setFocusPolicy(Qt::NoFocus);
+            statsConnectionStripCount->setFixedWidth(31);
+            statsConnectionStripCount->setToolTip(tr("Connections"));
+            connect(statsConnectionStripCount, &QToolButton::clicked, this, [this, page] {
+                ui->stats_widget->setCurrentWidget(page);
+                setStatsPanelOpen(true);
+            });
+            stripLayout->addWidget(statsConnectionStripCount);
+        }
+    }
+    const int connectionsTab = ui->stats_widget->indexOf(ui->connections_tab);
+    if (connectionsTab >= 0) {
+        ui->stats_widget->setTabText(connectionsTab, tr("Connections"));
+        statsConnectionTabCount = new QLabel(QStringLiteral("0"), ui->stats_widget->tabBar());
+        statsConnectionTabCount->setObjectName(QStringLiteral("tabCountBadge"));
+        statsConnectionTabCount->setAlignment(Qt::AlignCenter);
+        statsConnectionTabCount->setFixedWidth(31);
+        statsConnectionTabCount->setAttribute(Qt::WA_TransparentForMouseEvents);
+        ui->stats_widget->tabBar()->setTabButton(connectionsTab, QTabBar::RightSide,
+                                                 statsConnectionTabCount);
     }
     stripLayout->addStretch(1);
+    auto *stripHint = new QLabel(tr("Click a tab to open"), statsStrip);
+    stripHint->setObjectName(QStringLiteral("stripHint"));
+    stripLayout->addWidget(stripHint);
+    stripLayout->addSpacing(7);
     statsStripToggle = new QToolButton(statsStrip);
     statsStripToggle->setObjectName(QStringLiteral("panelIconButton"));
     statsStripToggle->setCursor(Qt::PointingHandCursor);
     statsStripToggle->setFocusPolicy(Qt::NoFocus);
+    statsStripToggle->setFixedSize(28, 28);
+    statsStripToggle->setIconSize(QSize(18, 18));
     statsStripToggle->setToolTip(tr("Show logs and connections"));
     connect(statsStripToggle, &QToolButton::clicked, this, [this] { setStatsPanelOpen(true); });
     stripLayout->addWidget(statsStripToggle);
@@ -625,13 +706,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Icons are rasterised, so they have to be repainted whenever the theme
     // changes; otherwise a blue glyph survives into a warm palette.
-    const auto retintIcons = [navigation, mutedIcons, selectionIcon] {
+    const auto retintIcons = [navigation, mutedIcons, selectionIcon, clearAction,
+                              copyAction, autoScrollAction, filterAction] {
         const auto colors = themeManager->Colors();
         for (const auto &[button, glyph] : navigation)
             button->setIcon(MaterialIcon::icon(glyph, colors.textMuted, 19));
         for (const auto &[label, glyph] : mutedIcons)
             label->setPixmap(MaterialIcon::pixmap(glyph, colors.textMuted, 18));
         selectionIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::List, colors.accent, 21));
+        clearAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Delete, colors.textMuted, 17));
+        copyAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Copy, colors.textMuted, 17));
+        autoScrollAction->setIcon(autoScrollAction->isChecked()
+            ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17) : QIcon());
+        filterAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, colors.textMuted, 17));
     };
     retintIcons();
     connect(themeManager, &ThemeManager::themeChanged, this, retintIcons);
@@ -657,7 +744,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // group pages are: the view inside fills its viewport square.
     for (int tab = 0; tab < ui->stats_widget->count(); ++tab) {
         QWidget *page = ui->stats_widget->widget(tab);
-        page->setProperty("thronedCard", true);
+        page->setProperty("thronedPanelPage", true);
         page->setAttribute(Qt::WA_StyledBackground, true);
     }
     ui->masterLogBrowser->setLineWrapMode(QTextEdit::WidgetWidth);
@@ -686,48 +773,80 @@ QFrame#commandBar QToolButton {
 QFrame#commandBar QToolButton:hover { background: #292D33; }
 QFrame#commandBar QToolButton::menu-indicator { image: none; width: 0px; }
 QLabel#controlLabel { font-weight: 550; }
-QWidget#tableTools, QWidget#logTools { background: transparent; }
+QWidget#logTools { background: transparent; }
+QFrame#tableTools {
+    background: #171B21; border: 1px solid #343A42; border-radius: 7px;
+}
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
 }
 QPushButton#logToolButton:hover { background: #292D33; border-color: #4A4F57; }
 QToolButton#tableFilterButton {
-    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    background: transparent; border: none; border-right: 1px solid #343A42;
+    border-radius: 6px;
 }
-QToolButton#tableFilterButton:hover { background: #292D33; border-color: #4A4F57; }
-QToolButton#tableFilterButton:checked { background: #182530; border-color: #237AE9; }
+QToolButton#tableFilterButton:hover { background: #292D33; }
+QToolButton#tableFilterButton:checked { background: #182B38; }
 QLineEdit#serverSearch {
-    background: #171B21; border: 1px solid #2F3136; border-radius: 6px; padding: 6px 9px 6px 5px;
+    background: transparent; border: none; border-radius: 6px;
+    padding: 6px 9px 6px 4px;
 }
-QLineEdit#serverSearch:hover { border-color: #4A535E; }
-QLineEdit#serverSearch:focus { border-color: #2F91FF; }
+QLineEdit#serverSearch:focus { background: #1B222A; }
 QFrame#logsStrip { background: #171B21; border: 1px solid #2F3136; border-radius: 7px; }
 QFrame#logsStrip QToolButton#stripTab {
     background: transparent; border: none; color: #A4ABB4;
     padding: 4px 11px; border-radius: 5px; font-weight: 500;
 }
 QFrame#logsStrip QToolButton#stripTab:hover { color: #F1F3F5; background: #222529; }
+QFrame#logsStrip QToolButton#stripCountBadge {
+    background: transparent; border: none; color: #747C86; padding: 4px 2px;
+    border-radius: 5px; font-weight: 550;
+}
+QFrame#logsStrip QToolButton#stripCountBadge:hover { color: #A4ABB4; background: #222529; }
+QFrame#logsStrip QLabel#stripHint { color: #747C86; background: transparent; font-size: 11px; }
 QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; padding: 3px; }
 QToolButton#panelIconButton:hover { background: #222529; }
+QToolButton#panelIconButton:checked { background: #182B38; border-color: #2E749A; }
 QToolButton#panelIconButton::menu-indicator { image: none; width: 0px; }
+QToolButton#connectionRowCloseButton { background: transparent; border: none; border-radius: 4px; padding: 2px; }
+QToolButton#connectionRowCloseButton:hover { background: #3A2227; }
 QTabWidget#groupsCard, QTabWidget#logsCard { background: transparent; }
-QTabWidget#groupsCard::pane { background: transparent; border: none; top: -1px; }
-QTabWidget#logsCard::pane {
-    background: #171B21; border: 1px solid #343A42; border-radius: 8px; top: -1px;
+QTabWidget#groupsCard::pane { background: transparent; border: none; top: 0px; }
+QTabWidget#groupsCard::tab-bar { left: 6px; }
+QTabWidget#groupsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
+QTabWidget#groupsCard QTabBar::tab {
+    background: #222529; border: 1px solid #343A42; border-radius: 5px;
+    padding: 6px 11px; margin-right: 6px; margin-bottom: 6px;
+    color: #C2C7CE; font-weight: 500;
 }
-QTabWidget#groupsCard::tab-bar, QTabWidget#logsCard::tab-bar { left: 3px; }
-QTabWidget#groupsCard QTabBar, QTabWidget#logsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
-QTabWidget#groupsCard QTabBar::tab, QTabWidget#logsCard QTabBar::tab {
-    background: transparent; border: none; border-bottom: 2px solid transparent;
-    padding: 6px 13px; margin-right: 3px; color: #A4ABB4; font-weight: 500;
+QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
+QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #24282D; border-color: #3D444D; }
+QWidget#statsPanelHost {
+    background: #171B21; border: 1px solid #343A42; border-radius: 8px;
 }
-QTabWidget#groupsCard QTabBar::tab:hover, QTabWidget#logsCard QTabBar::tab:hover { color: #F1F3F5; }
-QTabWidget#groupsCard QTabBar::tab:selected, QTabWidget#logsCard QTabBar::tab:selected {
-    color: #F1F3F5; background: #182530; border-bottom: 2px solid #237AE9;
+QTabWidget#logsCard::pane { background: transparent; border: none; top: 0px; }
+QTabWidget#logsCard::tab-bar { left: 5px; }
+QTabWidget#logsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
+QTabWidget#logsCard QTabBar::tab {
+    background: transparent; border: 1px solid transparent; border-radius: 5px;
+    padding: 5px 11px; margin: 4px 2px 4px 0; color: #A4ABB4; font-weight: 500;
 }
+QTabWidget#logsCard QTabBar::tab:hover { color: #F1F3F5; background: #222529; }
+QTabWidget#logsCard QTabBar::tab:selected { color: #F1F3F5; background: #292D33; border-color: #343A42; }
+QTabWidget#logsCard QTabBar QLabel#tabCountBadge {
+    color: #747C86; background: transparent; border: none; font-weight: 550;
+}
+QMenu#logToolsMenu {
+    background: #22262C; border: 1px solid #3A414A; border-radius: 7px; padding: 6px;
+}
+QMenu#logToolsMenu::item { padding: 7px 30px 7px 28px; border-radius: 4px; }
+QMenu#logToolsMenu::item:selected { background: #2D333B; }
+QMenu#logToolsMenu::item:disabled { color: #747C86; }
+QMenu#logToolsMenu::separator { height: 1px; background: #3A414A; margin: 4px 7px; }
 QWidget[thronedCard="true"] {
     background: #171B21; border: 1px solid #343A42; border-radius: 8px;
 }
+QWidget[thronedPanelPage="true"] { background: transparent; border: none; }
 /* The group page paints the card; the table and its headers stay transparent so
    the rounded corners are not filled in square by the view. */
 QTableView, QTableWidget, QTextBrowser {
@@ -739,14 +858,24 @@ QHeaderView::section {
     border-bottom: 1px solid #2F3136; padding: 5px 8px; font-weight: 500;
 }
 QHeaderView { background: transparent; }
+QHeaderView QLineEdit {
+    background: #20252B; color: #E7EAED; border: 1px solid #3A424C;
+    border-radius: 5px; padding: 3px 7px;
+}
+QHeaderView QLineEdit:hover { border-color: #525C68; }
+QHeaderView QLineEdit:focus { background: #222A33; border-color: #2F91FF; }
 QHeaderView::section:vertical,
 QHeaderView::section:vertical:checked,
 QHeaderView::section:vertical:pressed {
     /* Opaque: paintSection() fills with QPalette::Button, which a transparent rule zeroes to black. */
     color: #8295A6; background: #171B21; border-right: 1px solid #2F3136;
 }
-ProfilesTableVerticalHeader { qproperty-sectionBackground: #171B21; }
-QTableCornerButton::section { background: transparent; border: none; border-right: 1px solid #2F3136; border-bottom: 1px solid #2F3136; }
+ProfilesTableVerticalHeader {
+    qproperty-sectionBackground: #171B21;
+    qproperty-sectionForeground: #8295A6;
+    qproperty-sectionBorder: #2F3136;
+}
+QTableCornerButton::section { background: #171B21; border: none; border-right: 1px solid #2F3136; border-bottom: 1px solid #2F3136; }
 QTableView::item, QTableWidget::item { border-bottom: 1px solid #2F3136; padding: 3px 7px; }
 QTableView::item:selected, QTableWidget::item:selected {
     color: white; background: #143C48;
@@ -818,9 +947,11 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ui->masterLogBrowser->setDocument(qvLogDocument);
     applyLogBrowserFont();
     updateLogFilterFields();
-    runOnThread([=, this] {
-        log_process_loop();
-    }, LogThread);
+    if (!uiPreviewMode) {
+        runOnThread([=, this] {
+            log_process_loop();
+        }, LogThread);
+    }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=,this](const Qt::ColorScheme& scheme) {
@@ -842,58 +973,59 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         Configs::dataManager->settingsRepo->inbound_socks_port = MkPort(Configs::dataManager->settingsRepo->inbound_address);
     }
 
-    runOnNewThread([=, this] {GetDeviceDetails(); });
+    if (!uiPreviewMode) {
+        runOnNewThread([=, this] {GetDeviceDetails(); });
 
-    auto core_path = QApplication::applicationDirPath() + "/";
-    core_path += "ThronedCore";
+        auto core_path = QApplication::applicationDirPath() + "/";
+        core_path += "ThronedCore";
+        const bool coreDebugMode = Configs::dataManager->settingsRepo->log_level == "debug";
 
-    bool coreDebugMode = (Configs::dataManager->settingsRepo->log_level == "debug");
-
-    Configs::dataManager->settingsRepo->core_socket_name =
-        "thronedIPC-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
-    core_server = new QLocalServer(this);
-    core_server->setSocketOptions(QLocalServer::UserAccessOption);
-    if (!core_server->listen(Configs::dataManager->settingsRepo->core_socket_name)) {
-        qWarning() << "Failed to start IPC server:" << core_server->errorString();
-        qApp->quit();
-    }
-
-    connect(core_server, &QLocalServer::newConnection, this, [=, this]() {
-        auto socket = core_server->nextPendingConnection();
-        int profileId = -1;
-        {
-            // Hold coreProcessMutex: DS_cores may still be constructing core_process.
-            QMutexLocker lock(&coreProcessMutex);
-            if (!verify_core_pid(socket)) {
-                MW_show_log("[Warn] IPC connection from unexpected process rejected");
-                socket->close();
-                socket->deleteLater();
-                return;
-            }
-            if (core_process) {
-                profileId = core_process->start_profile_when_core_is_up;
-                core_process->start_profile_when_core_is_up = -1;
-            }
+        Configs::dataManager->settingsRepo->core_socket_name =
+            "thronedIPC-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
+        core_server = new QLocalServer(this);
+        core_server->setSocketOptions(QLocalServer::UserAccessOption);
+        if (!core_server->listen(Configs::dataManager->settingsRepo->core_socket_name)) {
+            qWarning() << "Failed to start IPC server:" << core_server->errorString();
+            qApp->quit();
         }
-        setup_rpc(socket);
-        Configs::dataManager->settingsRepo->core_running = true;
-        LOG_INFO(QString("elevated: %1").arg(Configs::IsAdmin() ? "yes" : "no"));
-        MW_dialog_message(MwMessage::CoreStarted, {Int2String(profileId)});
-    });
 
-    auto socketFullName = core_server->fullServerName();
-    runOnThread(
-        [=, this] {
-            QMutexLocker lock(&coreProcessMutex);
-            core_process = new Configs_sys::CoreProcess(core_path, socketFullName, coreDebugMode);
-            if (Configs::dataManager->settingsRepo->remember_enable &&
-                Configs::dataManager->settingsRepo->remember_id >= 0) {
-                core_process->start_profile_when_core_is_up =
-                    Configs::dataManager->settingsRepo->remember_id;
+        connect(core_server, &QLocalServer::newConnection, this, [=, this]() {
+            auto socket = core_server->nextPendingConnection();
+            int profileId = -1;
+            {
+                // Hold coreProcessMutex: DS_cores may still be constructing core_process.
+                QMutexLocker lock(&coreProcessMutex);
+                if (!verify_core_pid(socket)) {
+                    MW_show_log("[Warn] IPC connection from unexpected process rejected");
+                    socket->close();
+                    socket->deleteLater();
+                    return;
+                }
+                if (core_process) {
+                    profileId = core_process->start_profile_when_core_is_up;
+                    core_process->start_profile_when_core_is_up = -1;
+                }
             }
-            core_process->Start();
-        },
-        DS_cores);
+            setup_rpc(socket);
+            Configs::dataManager->settingsRepo->core_running = true;
+            LOG_INFO(QString("elevated: %1").arg(Configs::IsAdmin() ? "yes" : "no"));
+            MW_dialog_message(MwMessage::CoreStarted, {Int2String(profileId)});
+        });
+
+        const auto socketFullName = core_server->fullServerName();
+        runOnThread(
+            [=, this] {
+                QMutexLocker lock(&coreProcessMutex);
+                core_process = new Configs_sys::CoreProcess(core_path, socketFullName, coreDebugMode);
+                if (Configs::dataManager->settingsRepo->remember_enable &&
+                    Configs::dataManager->settingsRepo->remember_id >= 0) {
+                    core_process->start_profile_when_core_is_up =
+                        Configs::dataManager->settingsRepo->remember_id;
+                }
+                core_process->Start();
+            },
+            DS_cores);
+    }
 
     if (!Configs::dataManager->settingsRepo->font.isEmpty()) {
         auto font = qApp->font();
@@ -939,17 +1071,19 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(btnFilter, &QToolButton::toggled, static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::setFiltersVisible);
     connect(static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::closeRequested,
             btnFilter, [btnFilter] { btnFilter->setChecked(false); });
-    auto *tableTools = new QWidget(ui->tabWidget);
+    auto *tableTools = new QFrame(ui->tabWidget);
     tableTools->setObjectName(QStringLiteral("tableTools"));
     auto *tableToolsLayout = new QHBoxLayout(tableTools);
-    tableToolsLayout->setContentsMargins(0, 0, 8, 5);
-    tableToolsLayout->setSpacing(6);
+    tableToolsLayout->setContentsMargins(0, 0, 0, 0);
+    tableToolsLayout->setSpacing(0);
+    tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    btnFilter->setFixedSize(35, 32);
     tableToolsLayout->addWidget(btnFilter);
     auto *serverSearch = new QLineEdit(tableTools);
     serverSearch->setObjectName(QStringLiteral("serverSearch"));
     serverSearch->setPlaceholderText(tr("Search servers..."));
     serverSearch->setClearButtonEnabled(true);
-    serverSearch->setFixedWidth(230);
+    serverSearch->setFixedSize(236, 32);
     auto *searchAction = serverSearch->addAction(QIcon(), QLineEdit::LeadingPosition);
     tableToolsLayout->addWidget(serverSearch);
     connect(serverSearch, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -959,7 +1093,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ui->tabWidget->setCornerWidget(tableTools, Qt::TopRightCorner);
     const auto retintTableTools = [btnFilter, searchAction] {
         const auto colors = themeManager->Colors();
-        btnFilter->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter,
+        btnFilter->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune,
                                               btnFilter->isChecked() ? colors.accent : colors.textMuted, 17));
         // Qt centres a line-edit action on the frame, which puts the glyph above
         // the text's optical centre. Drawing it one pixel down inside a slightly
@@ -1074,6 +1208,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     });
 
     speedChartWidget = new SpeedWidget(this);
+    speedChartWidget->setObjectName(QStringLiteral("throughputChart"));
+    speedChartWidget->setFrameShape(QFrame::NoFrame);
+    speedChartWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    speedChartWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graph_tab->layout()->addWidget(speedChartWidget);
 
     // Second column: UDP round trip over time. Off by default because each sample
@@ -1117,6 +1255,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     pingLegendLabel->setStyleSheet(QStringLiteral("font-size: 10px;"));
     pingColumnLayout->addWidget(pingLegendLabel);
     pingChartWidget = new MiniChartWidget(pingColumn);
+    pingChartWidget->setObjectName(QStringLiteral("pingChart"));
     pingChartWidget->setCapacity(120);
     pingChartWidget->setFormatter([](const double value) { return QString::number(qRound(value)) + " ms"; });
     pingChartWidget->setCaption(QStringLiteral("UDP"));
@@ -1452,9 +1591,11 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     // Added last so it sits at the end of the corner strip, past the tools the
     // connections tab appends to it.
     statsPanelToggle = new QToolButton(this);
-    statsPanelToggle->setAutoRaise(true);
+    statsPanelToggle->setObjectName(QStringLiteral("panelIconButton"));
     statsPanelToggle->setCursor(Qt::PointingHandCursor);
     statsPanelToggle->setFocusPolicy(Qt::NoFocus);
+    statsPanelToggle->setFixedSize(28, 28);
+    statsPanelToggle->setIconSize(QSize(18, 18));
     if (auto *corner = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
         corner != nullptr && corner->layout() != nullptr) {
         corner->layout()->addWidget(statsPanelToggle);
@@ -1465,6 +1606,11 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     // a row of dead labels.
     connect(ui->stats_widget->tabBar(), &QTabBar::tabBarClicked, this, [this](int) {
         if (!Configs::dataManager->settingsRepo->stats_panel_open) setStatsPanelOpen(true);
+    });
+    connect(ui->stats_widget, &QTabWidget::currentChanged, this,
+            [this](int) { refreshStatsPanelTools(); });
+    connect(themeManager, &ThemeManager::themeChanged, this, [this] {
+        setStatsPanelOpen(Configs::dataManager->settingsRepo->stats_panel_open, false);
     });
     setStatsPanelOpen(Configs::dataManager->settingsRepo->stats_panel_open, false);
 
@@ -1918,13 +2064,15 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     connect(qApp, &QGuiApplication::commitDataRequest, this, &MainWindow::on_commitDataRequest);
 
-    auto t = new QTimer;
-    connect(t, &QTimer::timeout, this, [=,this]() { refresh_status(); });
-    t->start(2000);
+    if (!uiPreviewMode) {
+        auto *timer = new QTimer(this);
+        connect(timer, &QTimer::timeout, this, [this] { refresh_status(); });
+        timer->start(2000);
 
-    t = new QTimer;
-    connect(t, &QTimer::timeout, this, [&] { Configs_sys::logCounter.fetchAndStoreRelaxed(0); });
-    t->start(1000);
+        timer = new QTimer(this);
+        connect(timer, &QTimer::timeout, this, [] { Configs_sys::logCounter.fetchAndStoreRelaxed(0); });
+        timer->start(1000);
+    }
 
     m_proxyListRefreshDebounce = new QTimer(this);
     m_proxyListRefreshDebounce->setSingleShot(true);
@@ -2012,4 +2160,3 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 MainWindow::~MainWindow() {
     delete ui;
 }
-

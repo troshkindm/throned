@@ -119,7 +119,7 @@ namespace Configs {
         QString splitter_state = "";
         bool enable_stats = true;
         int stats_tab = 0; // either connection or log
-        // The log/connections panel starts closed; its height is what it had when closed.
+        // The log/connections panel starts closed; remember its last open height.
         bool stats_panel_open = false;
         int stats_panel_height = 240;
         // Stats::ConnectionSort; 0 == Stats::Default, the core's own ordering.

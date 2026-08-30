@@ -1,6 +1,8 @@
 #include "include/ui/mainwindow.h"
 #include "include/api/RPC.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/utils/ConnectionsFilterHeader.h"
+#include "include/ui/widget/MaterialIcon.h"
 
 #include <QAbstractItemView>
 #include <QApplication>
@@ -11,8 +13,6 @@
 #include <QHostAddress>
 #include <QIcon>
 #include <QMenu>
-#include <QPainter>
-#include <QPixmap>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTimer>
@@ -31,17 +31,6 @@ namespace
         return conn.protocol.isEmpty() ? conn.network : conn.network + " (" + conn.protocol + ")";
     }
 
-    // The material set is pure black, so it has to be tinted for dark themes.
-    QIcon RecolorIcon(const QString& path, const QColor& color)
-    {
-        QPixmap pixmap(path);
-        if (pixmap.isNull()) return QIcon(path);
-        QPainter painter(&pixmap);
-        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        painter.fillRect(pixmap.rect(), color);
-        painter.end();
-        return QIcon(pixmap);
-    }
 }
 
 #include "include/database/RoutesRepo.h"
@@ -90,6 +79,7 @@ void MainWindow::setupConnectionList()
             QToolTip::hideText();
         });
     });
+    refreshStatsPanelLabels();
 }
 
 namespace {
@@ -252,18 +242,40 @@ void MainWindow::applyConnectionSort(Stats::ConnectionSort sort)
 void MainWindow::setupConnectionFilter()
 {
     auto* btnFilter = new QToolButton(this);
-    btnFilter->setIcon(QIcon(":/icon/filter.png"));
+    btnFilter->setObjectName(QStringLiteral("panelIconButton"));
     btnFilter->setToolTip(tr("Enable Filter"));
     btnFilter->setCheckable(true);
+    btnFilter->setCursor(Qt::PointingHandCursor);
+    btnFilter->setFocusPolicy(Qt::NoFocus);
+    btnFilter->setFixedSize(28, 28);
+    btnFilter->setIconSize(QSize(18, 18));
     connect(btnFilter, &QToolButton::toggled, connectionFilterHeader, &ConnectionsFilterHeader::setFiltersVisible);
     connect(connectionFilterHeader, &ConnectionsFilterHeader::closeRequested, btnFilter, [btnFilter] { btnFilter->setChecked(false); });
 
     connectionCloseAllButton = new QToolButton(this);
-    connectionCloseAllButton->setIcon(connectionCloseIcon);
+    connectionCloseAllButton->setObjectName(QStringLiteral("panelIconButton"));
     connectionCloseAllButton->setToolTip(tr("Close every connection listed below"));
+    connectionCloseAllButton->setCursor(Qt::PointingHandCursor);
+    connectionCloseAllButton->setFocusPolicy(Qt::NoFocus);
+    connectionCloseAllButton->setFixedSize(28, 28);
+    connectionCloseAllButton->setIconSize(QSize(18, 18));
     connect(connectionCloseAllButton, &QToolButton::clicked, this, [this] { closeConnections(listedConnectionIds()); });
 
+    const auto retintConnectionTools = [this, btnFilter] {
+        const auto colors = themeManager->Colors();
+        btnFilter->setIcon(MaterialIcon::icon(
+            MaterialIcon::Glyph::Tune,
+            btnFilter->isChecked() ? colors.accent : colors.textMuted, 18));
+        if (connectionCloseAllButton != nullptr)
+            connectionCloseAllButton->setIcon(MaterialIcon::icon(
+                MaterialIcon::Glyph::Block, colors.textMuted, 18));
+    };
+    retintConnectionTools();
+    connect(btnFilter, &QToolButton::toggled, this, retintConnectionTools);
+    connect(themeManager, &ThemeManager::themeChanged, this, retintConnectionTools);
+
     auto* corner = new QWidget(this);
+    corner->setProperty("statsPage", ui->connections_tab->objectName());
     auto* cornerLayout = new QHBoxLayout(corner);
     cornerLayout->setContentsMargins(0, 0, 0, 0);
     cornerLayout->setSpacing(2);
@@ -273,15 +285,15 @@ void MainWindow::setupConnectionFilter()
     if (auto* host = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
         host != nullptr && host->layout() != nullptr) {
         host->layout()->addWidget(corner);
-        statsPanelTools.append(corner);
     } else {
         ui->stats_widget->setCornerWidget(corner, Qt::TopRightCorner);
     }
+    statsPanelTools.append(corner);
 
-    // The corner widget spans the whole tab bar, so it stays put and only greys out away from the connections tab.
-    auto syncEnabled = [=,this] { corner->setEnabled(ui->stats_widget->currentWidget() == ui->connections_tab); };
-    connect(ui->stats_widget, &QTabWidget::currentChanged, this, [syncEnabled](int) { syncEnabled(); });
-    syncEnabled();
+    // Only the active page contributes tools to the shared top-right corner.
+    // Disabled controls from another page still looked like part of the current
+    // toolbar and were especially noisy beside the log menu.
+    refreshStatsPanelTools();
 
     connectionFilterDebounce = new QTimer(this);
     connectionFilterDebounce->setSingleShot(true);
@@ -362,8 +374,12 @@ void MainWindow::refreshConnectionCloseIcons()
     // ApplyTheme() fires PaletteChange from the constructor, one line before setupUi() builds the table.
     if (connectionFilterHeader == nullptr) return;
 
-    connectionCloseIcon = RecolorIcon(":/icon/material/cancel.png", palette().color(QPalette::ButtonText));
-    if (connectionCloseAllButton != nullptr) connectionCloseAllButton->setIcon(connectionCloseIcon);
+    const auto colors = themeManager->Colors();
+    connectionCloseIcon = MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textMuted,
+                                             CLOSE_ICON_SIZE);
+    if (connectionCloseAllButton != nullptr)
+        connectionCloseAllButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Block,
+                                                             colors.textMuted, 18));
     for (int row = 0; row < ui->connections->rowCount(); row++)
     {
         if (auto* btn = qobject_cast<QToolButton*>(ui->connections->cellWidget(row, ConnectionsFilterHeader::ColClose)))
@@ -389,6 +405,7 @@ void MainWindow::buildConnectionRow(const int row)
     if (ui->connections->cellWidget(row, ConnectionsFilterHeader::ColClose) != nullptr) return;
 
     auto* btn = new QToolButton(ui->connections);
+    btn->setObjectName(QStringLiteral("connectionRowCloseButton"));
     btn->setAutoRaise(true);
     btn->setCursor(Qt::PointingHandCursor);
     btn->setFocusPolicy(Qt::NoFocus);
@@ -505,6 +522,7 @@ void MainWindow::UpdateConnectionList(const QMap<QString, Stats::ConnectionMetad
     }
     ui->connections->setUpdatesEnabled(true);
     connectionListMu.unlock();
+    refreshStatsPanelLabels();
 }
 
 void MainWindow::UpdateConnectionListWithRecreate(const QList<Stats::ConnectionMetadata>& connections)
@@ -518,4 +536,18 @@ void MainWindow::UpdateConnectionListWithRecreate(const QList<Stats::ConnectionM
     }
     ui->connections->setUpdatesEnabled(true);
     connectionListMu.unlock();
+    refreshStatsPanelLabels();
+}
+
+void MainWindow::refreshStatsPanelLabels()
+{
+    const int tab = ui->stats_widget->indexOf(ui->connections_tab);
+    if (tab < 0) return;
+    const int count = ui->connections->rowCount();
+    const QString countText = count > 99 ? QStringLiteral("100+") : QString::number(count);
+    // Keep the label and the number separate. Apart from matching the visual
+    // hierarchy, fixed-width badges stop the tabs jumping on every polling tick.
+    ui->stats_widget->setTabText(tab, tr("Connections"));
+    if (statsConnectionTabCount != nullptr) statsConnectionTabCount->setText(countText);
+    if (statsConnectionStripCount != nullptr) statsConnectionStripCount->setText(countText);
 }

@@ -433,6 +433,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     auto *stack = new QStackedWidget(body);
     stack->setObjectName(QStringLiteral("settingsStack"));
+    settingsStack_ = stack;
     auto *commonScroll = new QScrollArea(stack);
     commonScroll->setObjectName(QStringLiteral("settingsScroll"));
     commonScroll->setWidgetResizable(true);
@@ -708,6 +709,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     auto *navGroup = new QButtonGroup(this);
     navGroup->setExclusive(true);
+    settingsNavGroup_ = navGroup;
     const QList<MaterialIcon::Glyph> pageIcons{
         MaterialIcon::Glyph::Settings, MaterialIcon::Glyph::List, MaterialIcon::Glyph::Desktop,
         MaterialIcon::Glyph::Reload, MaterialIcon::Glyph::Tools, MaterialIcon::Glyph::Apps,
@@ -855,6 +857,14 @@ QDialog#basicSettingsDialog QWidget#settingsLegacyPage QPushButton:hover {
     themeManager->RegisterStyle(this, settingsStyleTemplate);
     setMinimumSize(900, 620);
     FitWindowToScreen(this, QSize(1000, 700));
+}
+
+void DialogBasicSettings::showLoggingPage() {
+    constexpr int loggingPage = 1;
+    if (settingsStack_ != nullptr && settingsStack_->count() > loggingPage)
+        settingsStack_->setCurrentIndex(loggingPage);
+    if (settingsNavGroup_ != nullptr)
+        if (auto *button = settingsNavGroup_->button(loggingPage)) button->setChecked(true);
 }
 
 DialogBasicSettings::~DialogBasicSettings() {

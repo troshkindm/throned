@@ -365,5 +365,5 @@ QString ProfilesTableModel::rowLabel(int sourceRow, int displayRow) const {
     if (Configs::dataManager->settingsRepo->started_id == id) {
         return QStringLiteral("✓");
     }
-    return QString::number(displayRow + 1) + QStringLiteral("  ");
+    return QString::number(displayRow + 1);
 }

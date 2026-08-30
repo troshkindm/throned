@@ -9,7 +9,9 @@
 #include <QScrollBar>
 #include <QTimer>
 #include <QActionGroup>
+#include <QPainter>
 #include <QToolButton>
+#include <QVariantAnimation>
 
 #include <future>
 #include <vector>
@@ -653,52 +655,156 @@ void MainWindow::refreshUdpColumnVisibility() {
     profilesTableModel->setUdpColumnVisible(Configs::dataManager->settingsRepo->show_udp_column);
 }
 
+void MainWindow::updateStatsPanelChevron(qreal openProgress) {
+    statsPanelOpenProgress = qBound(0.0, openProgress, 1.0);
+    const auto colors = themeManager->Colors();
+    const QPixmap glyph = MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronUp,
+                                               colors.textMuted, 16);
+    QPixmap canvas(20, 20);
+    canvas.fill(Qt::transparent);
+    QPainter painter(&canvas);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    painter.translate(canvas.width() / 2.0, canvas.height() / 2.0);
+    painter.rotate(180.0 * statsPanelOpenProgress);
+    painter.drawPixmap(-glyph.width() / 2, -glyph.height() / 2, glyph);
+    painter.end();
+    const QIcon icon(canvas);
+    if (statsStripToggle != nullptr) statsStripToggle->setIcon(icon);
+    if (statsPanelToggle != nullptr) statsPanelToggle->setIcon(icon);
+}
+
 void MainWindow::setStatsPanelOpen(bool open, bool save) {
     auto *settings = Configs::dataManager->settingsRepo.get();
+    QWidget *panel = statsPanelHost != nullptr ? statsPanelHost : ui->stats_widget;
+    const QList<int> current = ui->splitter->sizes();
+    if (!open && current.size() == 2 && panel->isVisible() && current[1] > 60)
+        settings->stats_panel_height = current[1];
+
+    if (statsPanelAnimation != nullptr) {
+        statsPanelAnimation->stop();
+        statsPanelAnimation->deleteLater();
+        statsPanelAnimation = nullptr;
+    }
+
+    settings->stats_panel_open = open;
+    if (statsPanelToggle != nullptr)
+        statsPanelToggle->setToolTip(open ? tr("Hide the panel") : tr("Show logs and connections"));
+    refreshStatsPanelTools();
+    if (save) settings->Save();
+
     const auto colors = themeManager->Colors();
-    if (statsStripToggle != nullptr)
-        statsStripToggle->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::ChevronUp, colors.textMuted, 18));
     if (auto *tools = ui->stats_widget->cornerWidget(Qt::TopRightCorner))
         for (auto *menuButton : tools->findChildren<QToolButton *>(QStringLiteral("panelIconButton")))
             if (menuButton->menu() != nullptr)
-                menuButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::More, colors.textMuted, 18));
+                menuButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::More,
+                                                       colors.textMuted, 18));
 
-    if (statsStrip != nullptr) {
-        // Two widgets, one visible at a time: the strip is a card of its own, so the
-        // closed state has the same rounded block every other panel here has.
-        const QList<int> current = ui->splitter->sizes();
-        if (!open && current.size() == 2 && ui->stats_widget->isVisible() && current[1] > 60)
-            settings->stats_panel_height = current[1];
-        ui->stats_widget->setVisible(open);
-        statsStrip->setVisible(!open);
+    if (statsStrip == nullptr || panel == nullptr) {
+        updateStatsPanelChevron(open ? 1.0 : 0.0);
+        return;
     }
-    // A hidden splitter child gives all of its height back on its own; nothing to
-    // compute here beyond the height the panel had.
-    // The tools act on a panel that is not on screen while it is closed.
-    for (QWidget *tool : statsPanelTools) {
-        if (tool != nullptr) tool->setVisible(open);
-    }
-    if (statsPanelToggle != nullptr) {
-        statsPanelToggle->setIcon(MaterialIcon::icon(
-            open ? MaterialIcon::Glyph::ChevronDown : MaterialIcon::Glyph::ChevronUp,
-            themeManager->Colors().textMuted, 18));
-        statsPanelToggle->setToolTip(open ? tr("Hide the panel") : tr("Show logs and connections"));
-    }
-    settings->stats_panel_open = open;
-    if (save) settings->Save();
 
-    // Sizes taken before the first layout pass are meaningless, so redo the split
-    // once the window has one. Harmless afterwards: it re-applies what it just set.
-    QTimer::singleShot(0, this, [this, open] {
-        const QList<int> laidOut = ui->splitter->sizes();
-        if (laidOut.size() != 2) return;
-        const int total = laidOut[0] + laidOut[1];
+    const auto applyOpenSplit = [this] {
+        const QList<int> sizes = ui->splitter->sizes();
+        if (sizes.size() != 2) return;
+        const int total = sizes[0] + sizes[1];
         if (total <= 0) return;
-        if (!open) return;
-        const int panel = qBound(140, Configs::dataManager->settingsRepo->stats_panel_height,
-                                 qMax(140, total - 200));
-        ui->splitter->setSizes({total - panel, panel});
+        const int panelHeight = qBound(140, Configs::dataManager->settingsRepo->stats_panel_height,
+                                       qMax(140, total - 200));
+        ui->splitter->setSizes({total - panelHeight, panelHeight});
+    };
+
+    // Restore, theme changes and screenshot mode deliberately stay immediate.
+    // User toggles get the short Smart-Animate-like handoff between the two
+    // direct layout children; this avoids animating application startup.
+    const bool animate = save && isVisible() && ui->splitter->height() > 0;
+    if (!animate) {
+        panel->setMinimumHeight(0);
+        panel->setMaximumHeight(QWIDGETSIZE_MAX);
+        statsStrip->setFixedHeight(39);
+        if (open) {
+            ui->stats_widget->show();
+            panel->show();
+            statsStrip->hide();
+            QTimer::singleShot(0, this, applyOpenSplit);
+        } else {
+            panel->hide();
+            statsStrip->show();
+        }
+        updateStatsPanelChevron(open ? 1.0 : 0.0);
+        return;
+    }
+
+    const QList<int> startSizes = ui->splitter->sizes();
+    const int startTotal = startSizes.size() == 2
+        ? startSizes[0] + startSizes[1] : ui->splitter->height();
+    const int targetPanel = qBound(140, settings->stats_panel_height,
+                                   qMax(140, startTotal - 200));
+    int panelStart = panel->isVisible() && startSizes.size() == 2 ? startSizes[1] : 0;
+    int stripStart = statsStrip->isVisible() ? statsStrip->height() : 0;
+    const int panelEnd = open ? targetPanel : 0;
+    const int stripEnd = open ? 0 : 39;
+    const qreal progressStart = statsPanelOpenProgress;
+    const qreal progressEnd = open ? 1.0 : 0.0;
+
+    panel->setMinimumHeight(0);
+    panel->setMaximumHeight(qMax(0, panelStart));
+    ui->stats_widget->show();
+    panel->show();
+    statsStrip->setMinimumHeight(0);
+    statsStrip->setMaximumHeight(qMax(0, stripStart));
+    statsStrip->show();
+
+    auto *animation = new QVariantAnimation(this);
+    statsPanelAnimation = animation;
+    animation->setStartValue(0.0);
+    animation->setEndValue(1.0);
+    animation->setDuration(190);
+    animation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(animation, &QVariantAnimation::valueChanged, this,
+            [this, panel, panelStart, panelEnd, stripStart, stripEnd,
+             progressStart, progressEnd](const QVariant &value) {
+        const qreal t = value.toReal();
+        const int panelHeight = qRound(panelStart + (panelEnd - panelStart) * t);
+        const int stripHeight = qRound(stripStart + (stripEnd - stripStart) * t);
+        panel->setMaximumHeight(qMax(0, panelHeight));
+        statsStrip->setMaximumHeight(qMax(0, stripHeight));
+        const int total = ui->splitter->height();
+        if (total > 0)
+            ui->splitter->setSizes({qMax(0, total - panelHeight), qMax(0, panelHeight)});
+        updateStatsPanelChevron(progressStart + (progressEnd - progressStart) * t);
     });
+    connect(animation, &QVariantAnimation::finished, this,
+            [this, animation, panel, open, applyOpenSplit] {
+        if (statsPanelAnimation != animation) return;
+        statsPanelAnimation = nullptr;
+        panel->setMinimumHeight(0);
+        panel->setMaximumHeight(QWIDGETSIZE_MAX);
+        statsStrip->setFixedHeight(39);
+        if (open) {
+            panel->show();
+            statsStrip->hide();
+            applyOpenSplit();
+        } else {
+            panel->hide();
+            statsStrip->show();
+        }
+        updateStatsPanelChevron(open ? 1.0 : 0.0);
+        animation->deleteLater();
+    });
+    animation->start();
+}
+
+void MainWindow::refreshStatsPanelTools() {
+    const bool open = Configs::dataManager->settingsRepo->stats_panel_open;
+    const QString currentPage = ui->stats_widget->currentWidget() != nullptr
+        ? ui->stats_widget->currentWidget()->objectName() : QString();
+    for (QWidget *tool : statsPanelTools) {
+        if (tool == nullptr) continue;
+        const QString page = tool->property("statsPage").toString();
+        tool->setVisible(open && (page.isEmpty() || page == currentPage));
+    }
 }
 
 void MainWindow::refreshProfileRowStyle() {

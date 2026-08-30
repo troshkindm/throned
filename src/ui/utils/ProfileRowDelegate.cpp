@@ -13,6 +13,9 @@ namespace {
     constexpr int kPadX = 8;
     constexpr int kChipGap = 8;
     constexpr int kLineGap = 3;
+    constexpr int kExitGap = 18;
+    constexpr int kExitMinWidth = 92;
+    constexpr int kAddressMinWidth = 132;
 
     QFont primaryFont(const QFont &base) {
         QFont font = base;
@@ -169,52 +172,87 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     case ProfilesTableModel::ColcServer: {
         const auto [nameRect, metaRect] = lineRects(cell, boldMetrics.height(),
                                                     QFontMetrics(metaFont(opt.font)).height());
-        const int chipSpace = visual.chip.isEmpty() ? 0 : chipWidth(smallMetrics, visual.chip) + kChipGap;
-        painter->setFont(bold);
-        painter->setPen(visual.running && !selected ? colors.accent : ink);
-        const QString name = boldMetrics.elidedText(visual.name, Qt::ElideRight,
-                                                    qMax(0, nameRect.width() - chipSpace));
-        painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, name);
-
-        if (!visual.chip.isEmpty()) {
-            const int chipX = nameRect.left() + boldMetrics.horizontalAdvance(name) + kChipGap;
-            const int chipH = smallMetrics.height() + 2;
-            const QRect chipRect(chipX, nameRect.center().y() - chipH / 2 + 1,
-                                 chipWidth(smallMetrics, visual.chip), chipH);
-            if (chipRect.right() <= cell.right())
-                drawChip(painter, chipRect, visual.chip, small,
-                         selected ? subtle : colors.border, muted);
-        }
-
         const QFont meta = metaFont(opt.font);
         const QFont caption = captionFont(opt.font);
         const QFontMetrics metaMetrics(meta);
         const QFontMetrics captionMetrics(caption);
-        int x = metaRect.left();
-        const auto drawMeta = [&](const QString &text, const QColor &color, const QFont &font) {
-            if (text.isEmpty() || x >= metaRect.right()) return;
-            const QFontMetrics metrics(font);
-            const QString shown = metrics.elidedText(text, Qt::ElideRight, metaRect.right() - x);
-            painter->setFont(font);
-            painter->setPen(color);
-            painter->drawText(QRect(x, metaRect.top(), metaRect.right() - x, metaRect.height()),
-                              Qt::AlignLeft | Qt::AlignVCenter, shown);
-            x += metrics.horizontalAdvance(shown);
-        };
-        drawMeta(visual.address, muted, meta);
-        // Named, because the two addresses on this line are otherwise the same shape.
-        if (!visual.country.isEmpty() || !visual.exitIp.isEmpty()) {
-            drawMeta(QStringLiteral("   |   "), selected ? subtle : colors.border, meta);
-            drawMeta(tr("exit") + QStringLiteral(" "), subtle, caption);
-            if (!visual.country.isEmpty() && x + 30 < metaRect.right()) {
+
+        const bool hasExit = !visual.country.isEmpty() || !visual.exitIp.isEmpty();
+        const int badgeWidth = visual.country.isEmpty()
+            ? 0 : captionMetrics.horizontalAdvance(visual.country) + 9;
+        const int naturalExitWidth = badgeWidth
+            + ((!visual.country.isEmpty() && !visual.exitIp.isEmpty()) ? 7 : 0)
+            + metaMetrics.horizontalAdvance(visual.exitIp);
+        const int availableExitWidth = qMax(0, cell.width() - kAddressMinWidth - kExitGap);
+        const int exitWidth = hasExit
+            ? qMin(qMax(kExitMinWidth, naturalExitWidth), availableExitWidth) : 0;
+        const bool showExit = hasExit && exitWidth >= 70;
+
+        QRect leftNameRect = nameRect;
+        QRect addressRect = metaRect;
+        QRect exitNameRect;
+        QRect exitMetaRect;
+        if (showExit) {
+            leftNameRect.setRight(nameRect.right() - exitWidth - kExitGap);
+            addressRect.setRight(metaRect.right() - exitWidth - kExitGap);
+            exitNameRect = QRect(nameRect.right() - exitWidth + 1, nameRect.top(),
+                                 exitWidth, nameRect.height());
+            exitMetaRect = QRect(metaRect.right() - exitWidth + 1, metaRect.top(),
+                                 exitWidth, metaRect.height());
+        }
+
+        const int chipSpace = visual.chip.isEmpty() ? 0 : chipWidth(smallMetrics, visual.chip) + kChipGap;
+        painter->setFont(bold);
+        painter->setPen(visual.running && !selected ? colors.accent : ink);
+        const QString name = boldMetrics.elidedText(visual.name, Qt::ElideRight,
+                                                    qMax(0, leftNameRect.width() - chipSpace));
+        painter->drawText(leftNameRect, Qt::AlignLeft | Qt::AlignVCenter, name);
+
+        if (!visual.chip.isEmpty()) {
+            const int chipX = leftNameRect.left() + boldMetrics.horizontalAdvance(name) + kChipGap;
+            const int chipH = smallMetrics.height() + 2;
+            const QRect chipRect(chipX, leftNameRect.center().y() - chipH / 2 + 1,
+                                 chipWidth(smallMetrics, visual.chip), chipH);
+            if (chipRect.right() <= leftNameRect.right())
+                drawChip(painter, chipRect, visual.chip, small,
+                         selected ? subtle : colors.border, muted);
+        }
+
+        painter->setFont(meta);
+        painter->setPen(muted);
+        painter->drawText(addressRect, Qt::AlignLeft | Qt::AlignVCenter,
+                          metaMetrics.elidedText(visual.address, Qt::ElideRight, addressRect.width()));
+
+        if (showExit) {
+            // EXIT is a secondary right-hand cluster, not punctuation in the
+            // server address. This keeps the address scannable and aligns the
+            // egress with the metric columns beside it.
+            painter->setFont(caption);
+            painter->setPen(subtle);
+            painter->drawText(exitNameRect, Qt::AlignRight | Qt::AlignVCenter, tr("exit"));
+
+            const int countryGap = (!visual.country.isEmpty() && !visual.exitIp.isEmpty()) ? 7 : 0;
+            const int ipRoom = qMax(0, exitMetaRect.width() - badgeWidth - countryGap);
+            const QString shownIp = metaMetrics.elidedText(visual.exitIp, Qt::ElideMiddle, ipRoom);
+            const int ipWidth = metaMetrics.horizontalAdvance(shownIp);
+            const int totalWidth = badgeWidth + countryGap + ipWidth;
+            int x = exitMetaRect.right() - totalWidth + 1;
+
+            if (!visual.country.isEmpty()) {
                 const int badgeH = captionMetrics.height() + 2;
-                const QRect badge(x, metaRect.center().y() - badgeH / 2,
-                                  captionMetrics.horizontalAdvance(visual.country) + 9, badgeH);
+                const QRect badge(x, exitMetaRect.center().y() - badgeH / 2,
+                                  badgeWidth, badgeH);
                 drawBadge(painter, badge, visual.country, caption,
                           selected ? colors.selectionBorder : colors.surfaceHover, muted);
-                x = badge.right() + 7;
+                x = badge.right() + 1 + countryGap;
             }
-            drawMeta(visual.exitIp, selected ? opt.palette.color(QPalette::HighlightedText) : colors.accentHover, meta);
+            if (!shownIp.isEmpty()) {
+                painter->setFont(meta);
+                painter->setPen(selected ? opt.palette.color(QPalette::HighlightedText)
+                                         : colors.accentHover);
+                painter->drawText(QRect(x, exitMetaRect.top(), ipWidth, exitMetaRect.height()),
+                                  Qt::AlignLeft | Qt::AlignVCenter, shownIp);
+            }
         }
         break;
     }
@@ -266,9 +304,12 @@ QSize ProfileRowDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
     int width = 0;
     switch (index.column()) {
     case ProfilesTableModel::ColcServer:
-        // The name column stretches, so this is only a floor for the meta line.
+        // The name column stretches, so this is a floor that still preserves a
+        // readable address beside the optional right-aligned EXIT cluster.
         width = qMax(boldMetrics.horizontalAdvance(visual.name) + chipWidth(smallMetrics, visual.chip) + kChipGap,
-                     smallMetrics.horizontalAdvance(visual.address));
+                     smallMetrics.horizontalAdvance(visual.address)
+                         + ((!visual.country.isEmpty() || !visual.exitIp.isEmpty())
+                                ? kExitGap + kExitMinWidth : 0));
         break;
     case ProfilesTableModel::ColcPing:
         width = qMax(floorWidth(QStringLiteral("9999 ms"), tr("UDP %1").arg(QStringLiteral("999 ms ±99 / 99%"))),

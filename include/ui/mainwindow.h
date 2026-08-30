@@ -271,7 +271,15 @@ private:
     class QToolButton *statsPanelToggle = nullptr;
     class QToolButton *statsStripToggle = nullptr;
     class QFrame *statsStrip = nullptr;
+    class QVariantAnimation *statsPanelAnimation = nullptr;
+    qreal statsPanelOpenProgress = 0.0;
+    // Direct child of the splitter that owns stats_widget. Hiding only the tab
+    // widget leaves this wrapper in the splitter, where it keeps an empty share
+    // of the window height.
+    class QWidget *statsPanelHost = nullptr;
     QList<class QToolButton *> statsStripTabs;
+    class QLabel *statsConnectionTabCount = nullptr;
+    class QToolButton *statsConnectionStripCount = nullptr;
     class QActionGroup *logLevelActions = nullptr;
     QList<QWidget *> statsPanelTools;
     // What the view is attached to: rows from the view or its selection model are
@@ -616,6 +624,14 @@ private:
     void SeedDashboard();
 
     void setupConnectionList();
+
+    void refreshStatsPanelLabels();
+
+    void refreshStatsPanelTools();
+
+    void updateStatsPanelChevron(qreal openProgress);
+
+    void openLogSettings();
 
     void setupConnectionSortMenu();
 
