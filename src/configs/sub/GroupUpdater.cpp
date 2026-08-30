@@ -952,6 +952,30 @@ namespace Subscription {
             MW_show_log("<<<<<<<< " + QObject::tr("Subscription request fininshed: %1").arg(groupName));
         }
 
+        // Parsed before anything is touched, so the order is fetch -> parse -> apply.
+        // It only builds profiles in memory; the database write is AddProfileBatch
+        // further down, after the group has been reconciled.
+        MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
+        rawUpdater->update(content);
+
+        // A 200 with an empty or unparsable body used to reach the diff as "the
+        // subscription lists no servers", and the diff deletes whatever the remote
+        // stopped listing - with sub_clear on, before the body was even parsed.
+        // Losing a group to one bad response is worse than skipping a refresh.
+        if (asURL && group != nullptr && rawUpdater->updated_order.isEmpty()) {
+            int owned = 0;
+            for (const int id : group->profiles) {
+                const auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
+                if (ent != nullptr && ent->type != "autoselector") ++owned;
+            }
+            if (owned > 0) {
+                MW_show_log("<<<<<<<< " + QObject::tr(
+                    "Subscription \"%1\" returned nothing usable, so the servers already in the "
+                    "group were kept. Use Clear servers if it really is empty now.").arg(group->name));
+                return;
+            }
+        }
+
         QList<std::shared_ptr<Configs::Profile>> in;
 
         // Profiles the subscription does not own and must never touch. An auto
@@ -1000,8 +1024,6 @@ namespace Subscription {
             }
         }
 
-        MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
-        rawUpdater->update(content);
         content.clear();
         Configs::dataManager->profilesRepo->AddProfileBatch(rawUpdater->updated_order, rawUpdater->gid_add_to);
         MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
