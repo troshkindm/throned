@@ -139,6 +139,7 @@ namespace Configs {
         qint64 app_auto_update_last = 0;
         bool show_system_dns = false;
         bool use_custom_icons = false;
+        bool follow_status_in_taskbar = true;
         bool skip_delete_confirmation = false;
         bool show_config_security = false;
         // -1 until a filter column has been used.

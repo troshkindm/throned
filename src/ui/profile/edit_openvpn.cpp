@@ -92,12 +92,12 @@ void EditOpenVPN::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditOpenVPN::onEnd() {
     auto outbound = this->ent->OpenVPN();
 
-    outbound->network = ui->network->currentText();
-    outbound->username = ui->username->text();
+    outbound->network = ui->network->currentText().trimmed();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
     outbound->static_challenge = ui->static_challenge->text();
     outbound->static_challenge_echo = ui->static_challenge_echo->isChecked();
-    outbound->mtu = ui->mtu->text().toInt();
+    outbound->mtu = ui->mtu->text().trimmed().toInt();
     outbound->otp_profile_id = ui->otp_profile->currentData().toInt();
     outbound->only_advertised_routes = ui->only_advertised_routes->isChecked();
     outbound->use_tunnel_dns = ui->use_tunnel_dns->isChecked();
@@ -106,9 +106,9 @@ bool EditOpenVPN::onEnd() {
     outbound->tls->certificate = CACHE.certificate;
     outbound->tls->client_certificate = CACHE.clientCertificate;
     outbound->tls->client_key = CACHE.clientKey;
-    outbound->tls->control_wrap->type = ui->control_wrap_type->currentText();
+    outbound->tls->control_wrap->type = ui->control_wrap_type->currentText().trimmed();
     outbound->tls->control_wrap->key = CACHE.controlWrapKey;
-    outbound->tls->control_wrap->direction = ui->control_wrap_direction->currentText();
+    outbound->tls->control_wrap->direction = ui->control_wrap_direction->currentText().trimmed();
 
     return true;
 }

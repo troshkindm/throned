@@ -47,11 +47,11 @@ void EditExtraCore::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
 bool EditExtraCore::onEnd() {
     auto outbound = ent->ExtraCore();
-    outbound->socksAddress = ui->socks_address->text();
-    outbound->socksPort = ui->socks_port->text().toInt();
+    outbound->socksAddress = ui->socks_address->text().trimmed();
+    outbound->socksPort = ui->socks_port->text().trimmed().toInt();
     outbound->extraCoreConf = ui->config->toPlainText();
-    outbound->extraCorePath = ui->path_combo->currentText();
-    outbound->extraCoreArgs = ui->args->text();
+    outbound->extraCorePath = ui->path_combo->currentText().trimmed();
+    outbound->extraCoreArgs = ui->args->text().trimmed();
 
     return true;
 }

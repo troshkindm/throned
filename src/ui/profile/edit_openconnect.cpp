@@ -87,12 +87,12 @@ void EditOpenConnect::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditOpenConnect::onEnd() {
     auto outbound = this->ent->OpenConnect();
 
-    outbound->flavor = ui->flavor->currentText();
-    outbound->username = ui->username->text();
+    outbound->flavor = ui->flavor->currentText().trimmed();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
-    outbound->auth_group = ui->auth_group->text();
+    outbound->auth_group = ui->auth_group->text().trimmed();
     outbound->server_path = ui->server_path->text().trimmed();
-    outbound->mtu = ui->mtu->text().toInt();
+    outbound->mtu = ui->mtu->text().trimmed().toInt();
     outbound->otp_profile_id = ui->otp_profile->currentData().toInt();
     outbound->only_advertised_routes = ui->only_advertised_routes->isChecked();
     outbound->use_tunnel_dns = ui->use_tunnel_dns->isChecked();

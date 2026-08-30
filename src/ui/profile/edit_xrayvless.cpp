@@ -25,9 +25,9 @@ void EditXrayVless::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
 bool EditXrayVless::onEnd() {
     auto outbound = ent->XrayVLESS();
-    outbound->uuid = ui->xray_uuid->text();
-    outbound->encryption = ui->xray_enc->text();
-    outbound->flow = ui->xray_flow->currentText();
+    outbound->uuid = ui->xray_uuid->text().trimmed();
+    outbound->encryption = ui->xray_enc->text().trimmed();
+    outbound->flow = ui->xray_flow->currentText().trimmed();
 
     return true;
 }

@@ -28,11 +28,11 @@ void EditShadowSocks::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditShadowSocks::onEnd() {
     auto outbound = this->ent->ShadowSocks();
 
-    outbound->method = ui->method->currentText();
+    outbound->method = ui->method->currentText().trimmed();
     outbound->password = ui->password->text();
     outbound->uot = ui->uot->isChecked();
-    outbound->plugin = ui->plugin->currentText();
-    outbound->plugin_opts = ui->plugin_opts->text();
+    outbound->plugin = ui->plugin->currentText().trimmed();
+    outbound->plugin_opts = ui->plugin_opts->text().trimmed();
 
     return true;
 }

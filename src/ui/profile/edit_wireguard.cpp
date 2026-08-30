@@ -101,9 +101,9 @@ void EditWireguard::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditWireguard::onEnd() {
     auto outbound = this->ent->Wireguard();
 
-    outbound->private_key = ui->private_key->text();
-    outbound->peer->public_key = ui->public_key->text();
-    outbound->peer->pre_shared_key = ui->preshared_key->text();
+    outbound->private_key = ui->private_key->text().trimmed();
+    outbound->peer->public_key = ui->public_key->text().trimmed();
+    outbound->peer->pre_shared_key = ui->preshared_key->text().trimmed();
     auto rawReserved = ui->reserved->text();
     outbound->peer->reserved = {};
     for (const auto& item: rawReserved.split(",")) {
@@ -111,28 +111,28 @@ bool EditWireguard::onEnd() {
         outbound->peer->reserved += item.trimmed().toInt();
     }
     outbound->peer->persistent_keepalive = ui->persistent_keepalive->text().trimmed();
-    outbound->mtu = ui->mtu->text().toInt();
+    outbound->mtu = ui->mtu->text().trimmed().toInt();
     outbound->system = ui->sys_ifc->isChecked();
     outbound->address = ui->local_addr->text().replace(" ", "").split(",");
-    outbound->worker_count = ui->workers->text().toInt();
+    outbound->worker_count = ui->workers->text().trimmed().toInt();
 
     outbound->enable_amnezia = ui->enable_amnezia->isChecked();
-    outbound->jc = ui->jc->text().toInt();
-    outbound->jmin = ui->jmin->text().toInt();
-    outbound->jmax = ui->jmax->text().toInt();
-    outbound->s1 = ui->s1->text().toInt();
-    outbound->s2 = ui->s2->text().toInt();
-    outbound->s3 = ui->s3->text().toInt();
-    outbound->s4 = ui->s4->text().toInt();
-    outbound->h1 = ui->h1->text();
-    outbound->h2 = ui->h2->text();
-    outbound->h3 = ui->h3->text();
-    outbound->h4 = ui->h4->text();
-    outbound->i1 = ui->i1->text();
-    outbound->i2 = ui->i2->text();
-    outbound->i3 = ui->i3->text();
-    outbound->i4 = ui->i4->text();
-    outbound->i5 = ui->i5->text();
+    outbound->jc = ui->jc->text().trimmed().toInt();
+    outbound->jmin = ui->jmin->text().trimmed().toInt();
+    outbound->jmax = ui->jmax->text().trimmed().toInt();
+    outbound->s1 = ui->s1->text().trimmed().toInt();
+    outbound->s2 = ui->s2->text().trimmed().toInt();
+    outbound->s3 = ui->s3->text().trimmed().toInt();
+    outbound->s4 = ui->s4->text().trimmed().toInt();
+    outbound->h1 = ui->h1->text().trimmed();
+    outbound->h2 = ui->h2->text().trimmed();
+    outbound->h3 = ui->h3->text().trimmed();
+    outbound->h4 = ui->h4->text().trimmed();
+    outbound->i1 = ui->i1->text().trimmed();
+    outbound->i2 = ui->i2->text().trimmed();
+    outbound->i3 = ui->i3->text().trimmed();
+    outbound->i4 = ui->i4->text().trimmed();
+    outbound->i5 = ui->i5->text().trimmed();
     outbound->header_protection_key = ui->header_protection_key->text().trimmed();
     outbound->content_padding_addition = ui->content_padding_addition->text().trimmed();
     outbound->rekey_after_time = ui->rekey_after_time->text().trimmed();

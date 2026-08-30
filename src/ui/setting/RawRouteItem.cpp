@@ -189,7 +189,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
 }
 
 void RawRouteItem::accept() {
-    chain->name = nameEdit->text();
+    chain->name = nameEdit->text().trimmed();
     if (chain->name.isEmpty()) {
         MessageBoxWarning(tr("Invalid operation"), tr("Cannot create Route Profile with empty name"));
         return;

@@ -28,13 +28,13 @@ void EditTailScale::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditTailScale::onEnd() {
     auto outbound = this->ent->Tailscale();
 
-    outbound->state_directory = ui->state_dir->text();
+    outbound->state_directory = ui->state_dir->text().trimmed();
     outbound->auth_key = ui->auth_key->text();
-    outbound->control_url = ui->control_plane->text();
+    outbound->control_url = ui->control_plane->text().trimmed();
     outbound->ephemeral = ui->ephemeral->isChecked();
-    outbound->hostname = ui->hostname->text();
+    outbound->hostname = ui->hostname->text().trimmed();
     outbound->accept_routes = ui->accept_route->isChecked();
-    outbound->exit_node = ui->exit_node->text();
+    outbound->exit_node = ui->exit_node->text().trimmed();
     outbound->exit_node_allow_lan_access = ui->exit_node_lan_access->isChecked();
     outbound->advertise_routes = ui->advertise_routes->text().replace(" ", "").split(",");
     outbound->advertise_exit_node = ui->advertise_exit_node->isChecked();

@@ -14,4 +14,6 @@ namespace Icon {
     };
 
     QPixmap GetTrayIcon(TrayIconStatus status);
+
+    QPixmap GetTaskbarIcon(TrayIconStatus status);
 }

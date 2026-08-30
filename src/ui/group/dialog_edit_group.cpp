@@ -212,9 +212,9 @@ void DialogEditGroup::accept() {
             return;
         }
     }
-    ent->name = ui->name->text();
+    ent->name = ui->name->text().trimmed();
     ent->auto_clear_unavailable = ui->auto_clear_unavailable->isChecked();
-    ent->url = ui->url->text();
+    ent->url = ui->url->text().trimmed();
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
     ent->front_proxy_id = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy);
     ent->landing_proxy_id = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy);

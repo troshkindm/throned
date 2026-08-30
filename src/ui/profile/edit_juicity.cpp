@@ -22,7 +22,7 @@ void EditJuicity::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditJuicity::onEnd() {
     auto outbound = ent->Juicity();
 
-    outbound->uuid = ui->uuid->text();
+    outbound->uuid = ui->uuid->text().trimmed();
     outbound->password = ui->password->text();
     return true;
 }

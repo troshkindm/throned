@@ -71,6 +71,7 @@ namespace Configs {
             {"profiles_search_all_groups",    &profiles_search_all_groups},
             {"stats_panel_open",              &stats_panel_open},
             {"use_custom_icons",              &use_custom_icons},
+            {"follow_status_in_taskbar",           &follow_status_in_taskbar},
             {"xray_mux_default_on",           &xray_mux_default_on},
             {"use_dns_object",                &use_dns_object},
             {"skip_delete_confirmation",      &skip_delete_confirmation},

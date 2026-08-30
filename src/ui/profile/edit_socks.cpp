@@ -23,8 +23,8 @@ void EditSocks::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditSocks::onEnd() {
     auto outbound = this->ent->Socks();
 
-    outbound->version = ui->version->currentText().toInt();
-    outbound->username = ui->username->text();
+    outbound->version = ui->version->currentText().trimmed().toInt();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
     return true;
 }

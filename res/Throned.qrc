@@ -36,4 +36,11 @@
     <qresource prefix="/schema">
         <file alias="sing-box.json">schema/sing-box.json</file>
     </qresource>
+    <qresource prefix="/skins">
+        <file alias="retro-2009-pink/skin.json">../skins/retro-2009-pink/skin.json</file>
+        <file alias="retro-2009-pink/skin.qss">../skins/retro-2009-pink/skin.qss</file>
+        <file alias="retro-2009-teal/skin.json">../skins/retro-2009-teal/skin.json</file>
+        <file alias="retro-2009-teal/skin.qss">../skins/retro-2009-teal/skin.qss</file>
+        <file alias="retro-2009-teal/icons/star.svg">../skins/retro-2009-teal/icons/star.svg</file>
+    </qresource>
 </RCC>

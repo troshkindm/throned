@@ -169,6 +169,8 @@ public:
 
     bool StopVPNProcess();
 
+    void RestartCore();
+
     void UpdateConnectionList(const QMap<QString, Stats::ConnectionMetadata>& toUpdate, const QMap<QString, Stats::ConnectionMetadata>& toAdd);
 
     void UpdateConnectionListWithRecreate(const QList<Stats::ConnectionMetadata>& connections);

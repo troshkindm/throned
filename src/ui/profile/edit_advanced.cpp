@@ -147,10 +147,10 @@ void EditAdvanced::accept() {
     dialFieldsObj->tcp_fast_open = ui->tcp_fast_open->isChecked();
     dialFieldsObj->udp_fragment = ui->udp_fragment->isChecked();
     dialFieldsObj->tcp_multi_path = ui->tcp_multipath->isChecked();
-    dialFieldsObj->connect_timeout = ui->connect_timeout->text();
-    dialFieldsObj->bind_interface = ui->bind_interface->currentText();
-    dialFieldsObj->inet4_bind_address = ui->inet4_bind_address->currentText();
-    dialFieldsObj->inet6_bind_address = ui->inet6_bind_address->currentText();
+    dialFieldsObj->connect_timeout = ui->connect_timeout->text().trimmed();
+    dialFieldsObj->bind_interface = ui->bind_interface->currentText().trimmed();
+    dialFieldsObj->inet4_bind_address = ui->inet4_bind_address->currentText().trimmed();
+    dialFieldsObj->inet6_bind_address = ui->inet6_bind_address->currentText().trimmed();
 
     auto updateHistory = [](QStringList& history, const QStringList& systemItems, const QString& value) {
         if (value.isEmpty() || systemItems.contains(value)) return;
@@ -168,13 +168,13 @@ void EditAdvanced::accept() {
     if (ent->outbound->HasTLS()) {
         auto tlsObj = ent->outbound->GetTLS();
         tlsObj->disable_sni = ui->disable_sni->isChecked();
-        tlsObj->min_version = ui->min_version->text();
-        tlsObj->max_version = ui->max_version->text();
+        tlsObj->min_version = ui->min_version->text().trimmed();
+        tlsObj->max_version = ui->max_version->text().trimmed();
         tlsObj->saveSpoofState(ui->tls_spoof_state->currentIndex());
-        tlsObj->spoof = ui->tls_spoof->text();
-        tlsObj->spoof_method = ui->tls_spoof_method->currentText();
+        tlsObj->spoof = ui->tls_spoof->text().trimmed();
+        tlsObj->spoof_method = ui->tls_spoof_method->currentText().trimmed();
         tlsObj->ech->enabled = ui->enable_ech->isChecked();
-        tlsObj->ech->serverName = ui->ech_server_name->text();
+        tlsObj->ech->serverName = ui->ech_server_name->text().trimmed();
         tlsObj->ech->config = CACHE.echConfig;
         tlsObj->client_certificate = CACHE.clientCert;
         tlsObj->client_key = CACHE.clientKey;
@@ -183,12 +183,12 @@ void EditAdvanced::accept() {
 
     if (ent->outbound->HasQUIC()) {
         auto quicObj = ent->outbound->GetQUIC();
-        quicObj->idle_timeout = ui->quic_idle_timeout->text();
-        quicObj->keep_alive_period = ui->quic_keep_alive_period->text();
-        quicObj->stream_receive_window = ui->quic_stream_receive_window->text();
-        quicObj->connection_receive_window = ui->quic_connection_receive_window->text();
-        quicObj->max_concurrent_streams = ui->quic_max_concurrent_streams->text().toInt();
-        quicObj->initial_packet_size = ui->quic_initial_packet_size->text().toInt();
+        quicObj->idle_timeout = ui->quic_idle_timeout->text().trimmed();
+        quicObj->keep_alive_period = ui->quic_keep_alive_period->text().trimmed();
+        quicObj->stream_receive_window = ui->quic_stream_receive_window->text().trimmed();
+        quicObj->connection_receive_window = ui->quic_connection_receive_window->text().trimmed();
+        quicObj->max_concurrent_streams = ui->quic_max_concurrent_streams->text().trimmed().toInt();
+        quicObj->initial_packet_size = ui->quic_initial_packet_size->text().trimmed().toInt();
         quicObj->savePathMtuState(ui->quic_disable_path_mtu_discovery->currentIndex());
     }
 
@@ -196,9 +196,9 @@ void EditAdvanced::accept() {
         *fields.system = ui->system->isChecked();
         *fields.interface_name = ui->interface_name->text().trimmed();
         *fields.udp_timeout = ui->udp_timeout->text().trimmed();
-        *fields.udp_mapping = ui->udp_mapping->currentText();
-        *fields.udp_filtering = ui->udp_filtering->currentText();
-        *fields.udp_nat_max = ui->udp_nat_max->text().toInt();
+        *fields.udp_mapping = ui->udp_mapping->currentText().trimmed();
+        *fields.udp_filtering = ui->udp_filtering->currentText().trimmed();
+        *fields.udp_nat_max = ui->udp_nat_max->text().trimmed().toInt();
     }
     QDialog::accept();
 }

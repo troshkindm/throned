@@ -318,7 +318,7 @@ void MainWindow::profile_start(int _id) {
 
                     msg.exec();
                     if (msg.clickedButton() == reset) {
-                        StopVPNProcess();
+                        RestartCore();
                     }
                 });
                 return false;

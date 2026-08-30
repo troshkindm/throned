@@ -182,9 +182,9 @@ void EditOpenVPNAdvanced::addPullFilterRow(const QString &action, const QString 
 void EditOpenVPNAdvanced::accept() {
     auto outbound = ent->OpenVPN();
 
-    outbound->mode = ui->mode->currentText();
-    outbound->topology = ui->topology->currentText();
-    outbound->auth_retry = ui->auth_retry->currentText();
+    outbound->mode = ui->mode->currentText().trimmed();
+    outbound->topology = ui->topology->currentText().trimmed();
+    outbound->auth_retry = ui->auth_retry->currentText().trimmed();
     outbound->remote_random = ui->remote_random->isChecked();
     outbound->address = SplitAndTrim(ui->address->text(), ",", false);
     outbound->peer_address = ui->peer_address->text().trimmed();
@@ -203,12 +203,12 @@ void EditOpenVPNAdvanced::accept() {
 
     outbound->static_key = CACHE.staticKey;
     outbound->static_key_path = ui->static_key_path->text().trimmed();
-    outbound->key_direction = ui->key_direction->currentText();
+    outbound->key_direction = ui->key_direction->currentText().trimmed();
     outbound->cipher = ui->cipher->text().trimmed();
 
     auto tls = outbound->tls;
     tls->server_name = ui->tls_server_name->text().trimmed();
-    tls->server_name_type = ui->tls_server_name_type->currentText();
+    tls->server_name_type = ui->tls_server_name_type->currentText().trimmed();
     tls->certificate_path = ui->tls_certificate_path->text().trimmed();
     tls->client_certificate_path = ui->tls_client_certificate_path->text().trimmed();
     tls->client_key_path = ui->tls_client_key_path->text().trimmed();
@@ -217,32 +217,32 @@ void EditOpenVPNAdvanced::accept() {
     tls->crl_path = ui->tls_crl_path->text().trimmed();
     tls->remote_certificate_ku = SplitAndTrim(ui->tls_remote_certificate_ku->text(), ",", false);
     tls->remote_certificate_eku = ui->tls_remote_certificate_eku->text().trimmed();
-    tls->remote_certificate_tls = ui->tls_remote_certificate_tls->currentText();
-    tls->certificate_profile = ui->tls_certificate_profile->currentText();
-    tls->ns_certificate_type = ui->tls_ns_certificate_type->currentText();
-    tls->version_min = ui->tls_version_min->currentText();
-    tls->version_max = ui->tls_version_max->currentText();
+    tls->remote_certificate_tls = ui->tls_remote_certificate_tls->currentText().trimmed();
+    tls->certificate_profile = ui->tls_certificate_profile->currentText().trimmed();
+    tls->ns_certificate_type = ui->tls_ns_certificate_type->currentText().trimmed();
+    tls->version_min = ui->tls_version_min->currentText().trimmed();
+    tls->version_max = ui->tls_version_max->currentText().trimmed();
     tls->cipher = ui->tls_cipher->text().trimmed();
     tls->groups = ui->tls_groups->text().trimmed();
 
     outbound->data_ciphers = SplitAndTrim(ui->data_ciphers->text(), ",", false);
     outbound->data_ciphers_fallback = ui->data_ciphers_fallback->text().trimmed();
     outbound->auth = ui->auth->text().trimmed();
-    outbound->mss_fix = ui->mss_fix->text().toInt();
+    outbound->mss_fix = ui->mss_fix->text().trimmed().toInt();
     outbound->mss_fix_disabled = ui->mss_fix_disabled->isChecked();
-    outbound->mss_fix_mode = ui->mss_fix_mode->currentText();
-    outbound->fragment = ui->fragment->text().toInt();
-    outbound->replay_window = ui->replay_window->text().toInt();
+    outbound->mss_fix_mode = ui->mss_fix_mode->currentText().trimmed();
+    outbound->fragment = ui->fragment->text().trimmed().toInt();
+    outbound->replay_window = ui->replay_window->text().trimmed().toInt();
     outbound->replay_window_time = ui->replay_window_time->text().trimmed();
 
-    outbound->compression = ui->compression->currentText();
-    outbound->compression_lzo = ui->compression_lzo->currentText();
-    outbound->allow_compression = ui->allow_compression->currentText();
+    outbound->compression = ui->compression->currentText().trimmed();
+    outbound->compression_lzo = ui->compression_lzo->currentText().trimmed();
+    outbound->allow_compression = ui->allow_compression->currentText().trimmed();
 
     outbound->route_no_pull = ui->route_no_pull->isChecked();
     outbound->routes = SplitAndTrim(ui->routes->text(), ",", false);
     outbound->route_gateway = ui->route_gateway->text().trimmed();
-    outbound->route_metric = ui->route_metric->text().toInt();
+    outbound->route_metric = ui->route_metric->text().trimmed().toInt();
     outbound->redirect_gateway = ui->redirect_gateway->isChecked();
     outbound->redirect_gateway_flags = SplitAndTrim(ui->redirect_gateway_flags->text(), ",", false);
     outbound->redirect_private = ui->redirect_private->isChecked();
@@ -263,11 +263,11 @@ void EditOpenVPNAdvanced::accept() {
     outbound->ping_restart_disabled = ui->ping_restart_disabled->isChecked();
     outbound->renegotiate_interval = ui->renegotiate_interval->text().trimmed();
     outbound->renegotiate_disabled = ui->renegotiate_disabled->isChecked();
-    outbound->renegotiate_bytes = ui->renegotiate_bytes->text().toLongLong();
-    outbound->renegotiate_packets = ui->renegotiate_packets->text().toLongLong();
+    outbound->renegotiate_bytes = ui->renegotiate_bytes->text().trimmed().toLongLong();
+    outbound->renegotiate_packets = ui->renegotiate_packets->text().trimmed().toLongLong();
     outbound->tls_timeout = ui->tls_timeout->text().trimmed();
     outbound->handshake_window = ui->handshake_window->text().trimmed();
-    outbound->explicit_exit_notify = ui->explicit_exit_notify->text().toInt();
+    outbound->explicit_exit_notify = ui->explicit_exit_notify->text().trimmed().toInt();
 
     QDialog::accept();
 }

@@ -28,8 +28,8 @@ void EditVless::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditVless::onEnd() {
     auto outbound = this->ent->VLESS();
 
-    outbound->uuid = ui->uuid->text();
-    outbound->flow = ui->flow->currentText();
-    outbound->packet_encoding = ui->packet_encoding->currentText();
+    outbound->uuid = ui->uuid->text().trimmed();
+    outbound->flow = ui->flow->currentText().trimmed();
+    outbound->packet_encoding = ui->packet_encoding->currentText().trimmed();
     return true;
 }

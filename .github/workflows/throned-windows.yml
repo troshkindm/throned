@@ -37,11 +37,11 @@ jobs:
         id: core-cache
         with:
           path: artifacts.tgz
-          key: throned-core-windows-amd64-go-1.26.5-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
+          key: throned-core-windows-amd64-go-1.26.7-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
       - uses: actions/setup-go@v6.5.0
         if: steps.core-cache.outputs.cache-hit != 'true'
         with:
-          go-version: "1.26.5"
+          go-version: "1.26.7"
           cache-dependency-path: core/server/go.sum
       - uses: arduino/setup-protoc@v3
         if: steps.core-cache.outputs.cache-hit != 'true'
@@ -79,11 +79,11 @@ jobs:
         id: core-cache
         with:
           path: artifacts.tgz
-          key: throned-core-linux-${{ matrix.arch }}-go-1.26.5-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
+          key: throned-core-linux-${{ matrix.arch }}-go-1.26.7-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
       - uses: actions/setup-go@v6.5.0
         if: steps.core-cache.outputs.cache-hit != 'true'
         with:
-          go-version: "1.26.5"
+          go-version: "1.26.7"
           cache-dependency-path: core/server/go.sum
       - uses: arduino/setup-protoc@v3
         if: steps.core-cache.outputs.cache-hit != 'true'
@@ -149,7 +149,7 @@ jobs:
           arch: x64
       - uses: hendrikmuhs/ccache-action@v1.2.23
         with:
-          key: windows-amd64-qt-6.11.1
+          key: windows-amd64-qt-6.11.2
           variant: sccache
           max-size: 500M
       - uses: actions/download-artifact@v8.0.1
@@ -158,7 +158,7 @@ jobs:
           path: download-artifact
       - uses: actions/setup-go@v6.5.0
         with:
-          go-version: "1.26.5"
+          go-version: "1.26.7"
           cache-dependency-path: core/server/go.sum
       - uses: arduino/setup-protoc@v3
         with:
@@ -184,12 +184,12 @@ jobs:
           path: |
             qt.7z
             openssl.7z
-          key: throned-windows-deps-qt-6.11.1-x64
+          key: throned-windows-deps-qt-6.11.2-x64
       - name: Download Qt and OpenSSL
         if: steps.windows-deps.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          curl -fLso qt.7z https://github.com/throneproj/buildqt/releases/download/Qt_6.11.1/Qt_6.11.1_x64.7z
+          curl -fLso qt.7z https://github.com/throneproj/buildqt/releases/download/Qt_6.11.2/Qt_6.11.2_x64.7z
           curl -fLso openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl_x64.7z
       - name: Build portable application
         shell: bash
@@ -210,6 +210,58 @@ jobs:
         with:
           name: throned-${{ github.sha }}-windows-amd64
           path: deployment/windows-amd64
+
+  windows-installer:
+    if: github.ref_type != 'tag'
+    needs: windows
+    runs-on: ubuntu-22.04
+    env:
+      INPUT_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.version || 'dev' }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: throned-${{ github.sha }}-windows-amd64
+          path: deployment/windows-amd64
+      - name: Build Windows installer artifact
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y nsis
+
+          safe_version="${INPUT_VERSION//[^[:alnum:]._-]/-}"
+          numeric_version="${INPUT_VERSION#v}"
+          numeric_version="${numeric_version#V}"
+          numeric_version="${numeric_version%%-*}"
+          IFS='.' read -r raw_major raw_minor raw_patch raw_build <<< "$numeric_version"
+
+          version_component() {
+            local value="${1:-0}"
+            if [[ "$value" =~ ^[0-9]+$ ]] && (( 10#$value <= 65535 )); then
+              echo "$((10#$value))"
+            else
+              echo 0
+            fi
+          }
+
+          major="$(version_component "${raw_major:-}")"
+          minor="$(version_component "${raw_minor:-}")"
+          patch="$(version_component "${raw_patch:-}")"
+          build="$(version_component "${raw_build:-}")"
+
+          makensis -NOCD \
+            -DTHRONED_X64_ONLY \
+            -DAPP_VERSION="$INPUT_VERSION" \
+            -DAPP_VERSION_MAJOR="$major" \
+            -DAPP_VERSION_MINOR="$minor" \
+            -DAPP_VERSION_PATCH="$patch" \
+            -DAPP_VERSION_BUILD="$build" \
+            -DOUTPUT_FILE="Throned-${safe_version}-windows64-installer.exe" \
+            script/windows_installer.nsi
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: throned-${{ github.sha }}-windows-installer
+          path: Throned-*-windows64-installer.exe
 
   linux:
     needs: core-linux

@@ -25,10 +25,10 @@ void EditTrustTunnel::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditTrustTunnel::onEnd() {
     auto outbound = ent->TrustTunnel();
 
-    outbound->username = ui->username->text();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
     outbound->health_check = ui->health_check->isChecked();
     outbound->quic = ui->quic->isChecked();
-    outbound->congestion_control = ui->congestion_control->currentText();
+    outbound->congestion_control = ui->congestion_control->currentText().trimmed();
     return true;
 }

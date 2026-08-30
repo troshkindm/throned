@@ -362,6 +362,14 @@ bool MainWindow::StopVPNProcess() {
     return true;
 }
 
+void MainWindow::RestartCore() {
+    runOnThread([=, this]
+    {
+        profile_stop(true, true, true);
+        core_process->Kill();
+    }, DS_cores);
+}
+
 namespace {
 
 bool isNewer(QString assetName) {

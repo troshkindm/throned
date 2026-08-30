@@ -798,33 +798,33 @@ bool DialogEditProfile::onEnd() {
     if (!validateHeaders()) return false;
     if (!validateXrayXHTTPSettings()) return false;
 
-    ent->outbound->name = ui->name->text();
+    ent->outbound->name = ui->name->text().trimmed();
     ent->outbound->SetAddress(ui->address->text().remove(' '));
-    ent->outbound->SetPort(ui->port->text().toInt());
+    ent->outbound->SetPort(ui->port->text().trimmed().toInt());
 
     if (ent->outbound->HasTLS() || ent->outbound->HasTransport()) {
         auto tls = ent->outbound->GetTLS();
         auto transport = ent->outbound->GetTransport();
-        transport->type = ui->network->currentText();
+        transport->type = ui->network->currentText().trimmed();
         tls->enabled = ui->security->currentText() == "tls";
-        transport->path = ui->path->text();
-        transport->host = ui->host->text();
-        tls->server_name = ui->sni->text();
+        transport->path = ui->path->text().trimmed();
+        transport->host = ui->host->text().trimmed();
+        tls->server_name = ui->sni->text().trimmed();
         tls->alpn = SplitAndTrim(ui->alpn->text(), ",", false);
-        tls->utls->fingerPrint = ui->utlsFingerprint->currentText();
+        tls->utls->fingerPrint = ui->utlsFingerprint->currentText().trimmed();
         tls->utls->enabled = !tls->utls->fingerPrint.isEmpty();
         tls->saveFragmentState(ui->fragment->currentIndex());
-        tls->fragment_fallback_delay = ui->tls_frag_fall_delay->text();
+        tls->fragment_fallback_delay = ui->tls_frag_fall_delay->text().trimmed();
         tls->record_fragment = ui->tls_rec_frag->isChecked();
         tls->saveTlsTricksState(ui->tls_tricks->currentIndex());
         tls->insecure = ui->insecure->isChecked();
         transport->headers = Configs::parseHeaderPairs(ui->headers->text());
-        transport->method = ui->method->text();
-        transport->service_name = ui->service_name->text();
-        transport->early_data_header_name = ui->ws_early_data_name->text();
-        transport->max_early_data = ui->ws_early_data_length->text().toInt();
-        tls->reality->public_key = ui->reality_pbk->text();
-        tls->reality->short_id = ui->reality_sid->text();
+        transport->method = ui->method->text().trimmed();
+        transport->service_name = ui->service_name->text().trimmed();
+        transport->early_data_header_name = ui->ws_early_data_name->text().trimmed();
+        transport->max_early_data = ui->ws_early_data_length->text().trimmed().toInt();
+        tls->reality->public_key = ui->reality_pbk->text().trimmed();
+        tls->reality->short_id = ui->reality_sid->text().trimmed();
         tls->reality->enabled = !tls->reality->public_key.isEmpty();
         tls->certificate = CACHE.certificate;
     }
@@ -832,80 +832,80 @@ bool DialogEditProfile::onEnd() {
         auto mux = ent->outbound->GetMux();
         mux->saveMuxState(ui->multiplex->currentIndex());
         mux->brutal->enabled = ui->brutal_enable->isChecked();
-        mux->brutal->down_mbps = ui->brutal_d_speed->text().toInt();
-        mux->brutal->up_mbps = ui->brutal_u_speed->text().toInt();
+        mux->brutal->down_mbps = ui->brutal_d_speed->text().trimmed().toInt();
+        mux->brutal->up_mbps = ui->brutal_u_speed->text().trimmed().toInt();
     }
     if (ent->outbound->IsXray()) {
         auto xrayStream = ent->outbound->GetXrayStream();
         auto xrayMux = ent->outbound->GetXrayMultiplex();
 
-        xrayStream->network = ui->xray_network->currentText();
-        xrayStream->security = ui->xray_security->currentText();
+        xrayStream->network = ui->xray_network->currentText().trimmed();
+        xrayStream->security = ui->xray_security->currentText().trimmed();
         xrayMux->saveMuxState(ui->xray_mux->currentIndex());
 
-        auto sni = ui->xray_sni->text();
+        auto sni = ui->xray_sni->text().trimmed();
         if (xrayStream->security == "tls") xrayStream->TLS->serverName = sni;
         else if (xrayStream->security == "reality") xrayStream->reality->serverName = sni;
 
-        auto fp = ui->xray_fp->currentText();
+        auto fp = ui->xray_fp->currentText().trimmed();
         if (xrayStream->security == "tls") xrayStream->TLS->fingerprint = fp;
         else if (xrayStream->security == "reality") xrayStream->reality->fingerprint = fp;
 
         xrayStream->TLS->alpn = SplitAndTrim(ui->xray_alpn->text(), ",", false);;
-        xrayStream->TLS->pinnedPeerCertSha256 = ui->xray_pinned_peer_cert_sha256->text();
-        xrayStream->TLS->verifyPeerCertByName = ui->xray_verify_peer_cert_by_name->text();
-        xrayStream->reality->password = ui->xray_reality_pbk->text();
-        xrayStream->reality->shortId = ui->xray_reality_sid->text();
-        xrayStream->reality->spiderX = ui->xray_reality_spiderx->text();
+        xrayStream->TLS->pinnedPeerCertSha256 = ui->xray_pinned_peer_cert_sha256->text().trimmed();
+        xrayStream->TLS->verifyPeerCertByName = ui->xray_verify_peer_cert_by_name->text().trimmed();
+        xrayStream->reality->password = ui->xray_reality_pbk->text().trimmed();
+        xrayStream->reality->shortId = ui->xray_reality_sid->text().trimmed();
+        xrayStream->reality->spiderX = ui->xray_reality_spiderx->text().trimmed();
 
         if (xrayStream->network == "xhttp") {
-            xrayStream->xhttp->host = ui->xray_host->text();
-            xrayStream->xhttp->path = ui->xray_path->text();
-            xrayStream->xhttp->mode = ui->xray_mode->currentText();
+            xrayStream->xhttp->host = ui->xray_host->text().trimmed();
+            xrayStream->xhttp->path = ui->xray_path->text().trimmed();
+            xrayStream->xhttp->mode = ui->xray_mode->currentText().trimmed();
             xrayStream->xhttp->headers = Configs::parseHeaderPairs(ui->xray_headers->text());
-            xrayStream->xhttp->xPaddingBytes = ui->xray_xpaddingbytes->text();
+            xrayStream->xhttp->xPaddingBytes = ui->xray_xpaddingbytes->text().trimmed();
             xrayStream->xhttp->xPaddingObfsMode = ui->xray_xpadding_obfs_mode->isChecked();
-            xrayStream->xhttp->xPaddingKey = ui->xray_xpadding_key->text();
-            xrayStream->xhttp->xPaddingHeader = ui->xray_xpadding_header->text();
-            xrayStream->xhttp->xPaddingPlacement = ui->xray_xpadding_placement->currentText();
-            xrayStream->xhttp->xPaddingMethod = ui->xray_xpadding_method->currentText();
-            xrayStream->xhttp->uplinkHTTPMethod = ui->xray_uplink_http_method->currentText();
-            xrayStream->xhttp->sessionIDPlacement = ui->xray_session_placement->currentText();
-            xrayStream->xhttp->sessionIDKey = ui->xray_session_key->text();
-            xrayStream->xhttp->sessionIDTable = ui->xray_session_id_table->text();
-            xrayStream->xhttp->sessionIDLength = ui->xray_session_id_length->text();
-            xrayStream->xhttp->seqPlacement = ui->xray_seq_placement->currentText();
-            xrayStream->xhttp->seqKey = ui->xray_seq_key->text();
-            xrayStream->xhttp->uplinkDataPlacement = ui->xray_uplink_data_placement->currentText();
-            xrayStream->xhttp->uplinkDataKey = ui->xray_uplink_data_key->text();
-            xrayStream->xhttp->uplinkChunkSize = ui->xray_uplink_chunk_size->text();
+            xrayStream->xhttp->xPaddingKey = ui->xray_xpadding_key->text().trimmed();
+            xrayStream->xhttp->xPaddingHeader = ui->xray_xpadding_header->text().trimmed();
+            xrayStream->xhttp->xPaddingPlacement = ui->xray_xpadding_placement->currentText().trimmed();
+            xrayStream->xhttp->xPaddingMethod = ui->xray_xpadding_method->currentText().trimmed();
+            xrayStream->xhttp->uplinkHTTPMethod = ui->xray_uplink_http_method->currentText().trimmed();
+            xrayStream->xhttp->sessionIDPlacement = ui->xray_session_placement->currentText().trimmed();
+            xrayStream->xhttp->sessionIDKey = ui->xray_session_key->text().trimmed();
+            xrayStream->xhttp->sessionIDTable = ui->xray_session_id_table->text().trimmed();
+            xrayStream->xhttp->sessionIDLength = ui->xray_session_id_length->text().trimmed();
+            xrayStream->xhttp->seqPlacement = ui->xray_seq_placement->currentText().trimmed();
+            xrayStream->xhttp->seqKey = ui->xray_seq_key->text().trimmed();
+            xrayStream->xhttp->uplinkDataPlacement = ui->xray_uplink_data_placement->currentText().trimmed();
+            xrayStream->xhttp->uplinkDataKey = ui->xray_uplink_data_key->text().trimmed();
+            xrayStream->xhttp->uplinkChunkSize = ui->xray_uplink_chunk_size->text().trimmed();
             xrayStream->xhttp->noGRPCHeader = ui->xray_no_grpc->isChecked();
             xrayStream->xhttp->noSSEHeader = ui->xray_no_sse->isChecked();
-            xrayStream->xhttp->scMaxEachPostBytes = ui->xray_scMaxEachPostBytes->text();
-            xrayStream->xhttp->scMinPostsIntervalMs = ui->xray_scMinPostsIntervalMs->text();
-            xrayStream->xhttp->scMaxBufferedPosts = ui->xray_scMaxBufferedPosts->text().toLongLong();
-            xrayStream->xhttp->scStreamUpServerSecs = ui->xray_scStreamUpServerSecs->text();
-            xrayStream->xhttp->serverMaxHeaderBytes = ui->xray_serverMaxHeaderBytes->text().toInt();
-            xrayStream->xhttp->maxConcurrency = ui->xray_max_concurrency->text();
-            xrayStream->xhttp->maxConnections = ui->xray_max_connections->text();
-            xrayStream->xhttp->hMaxRequestTimes = ui->xray_hMaxRequestTimes->text();
-            xrayStream->xhttp->hMaxReusableSecs = ui->xray_hMaxReusableSecs->text();
-            xrayStream->xhttp->cMaxReuseTimes = ui->xray_max_reuse_times->text();
-            xrayStream->xhttp->hKeepAlivePeriod = ui->xray_keep_alive_period->text().toLongLong();
+            xrayStream->xhttp->scMaxEachPostBytes = ui->xray_scMaxEachPostBytes->text().trimmed();
+            xrayStream->xhttp->scMinPostsIntervalMs = ui->xray_scMinPostsIntervalMs->text().trimmed();
+            xrayStream->xhttp->scMaxBufferedPosts = ui->xray_scMaxBufferedPosts->text().trimmed().toLongLong();
+            xrayStream->xhttp->scStreamUpServerSecs = ui->xray_scStreamUpServerSecs->text().trimmed();
+            xrayStream->xhttp->serverMaxHeaderBytes = ui->xray_serverMaxHeaderBytes->text().trimmed().toInt();
+            xrayStream->xhttp->maxConcurrency = ui->xray_max_concurrency->text().trimmed();
+            xrayStream->xhttp->maxConnections = ui->xray_max_connections->text().trimmed();
+            xrayStream->xhttp->hMaxRequestTimes = ui->xray_hMaxRequestTimes->text().trimmed();
+            xrayStream->xhttp->hMaxReusableSecs = ui->xray_hMaxReusableSecs->text().trimmed();
+            xrayStream->xhttp->cMaxReuseTimes = ui->xray_max_reuse_times->text().trimmed();
+            xrayStream->xhttp->hKeepAlivePeriod = ui->xray_keep_alive_period->text().trimmed().toLongLong();
             xrayStream->xhttp->downloadSettings = xrayStream->xhttp->mode == "stream-one" ? QString() : CACHE.XrayDownloadSettings;
         } else if (xrayStream->network == "grpc") {
-            xrayStream->grpc->authority = ui->xray_host->text();
-            xrayStream->grpc->serviceName = ui->xray_path->text();
+            xrayStream->grpc->authority = ui->xray_host->text().trimmed();
+            xrayStream->grpc->serviceName = ui->xray_path->text().trimmed();
             xrayStream->grpc->multiMode = ui->xray_multi_mode->isChecked();
         } else if (xrayStream->network == "ws") {
-            xrayStream->ws->host = ui->xray_host->text();
-            xrayStream->ws->path = ui->xray_path->text();
-            xrayStream->ws->ed = ui->xray_ed_length->text().toInt();
+            xrayStream->ws->host = ui->xray_host->text().trimmed();
+            xrayStream->ws->path = ui->xray_path->text().trimmed();
+            xrayStream->ws->ed = ui->xray_ed_length->text().trimmed().toInt();
             xrayStream->ws->headers = Configs::parseHeaderPairs(ui->xray_headers->text());
         } else if (xrayStream->network == "httpupgrade") {
-            xrayStream->httpupgrade->host = ui->xray_host->text();
-            xrayStream->httpupgrade->path = ui->xray_path->text();
-            xrayStream->httpupgrade->ed = ui->xray_ed_length->text().toInt();
+            xrayStream->httpupgrade->host = ui->xray_host->text().trimmed();
+            xrayStream->httpupgrade->path = ui->xray_path->text().trimmed();
+            xrayStream->httpupgrade->ed = ui->xray_ed_length->text().trimmed().toInt();
             xrayStream->httpupgrade->headers = Configs::parseHeaderPairs(ui->xray_headers->text());
         }
     }

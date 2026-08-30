@@ -1,7 +1,8 @@
 # Skins
 
-A skin is a folder. Throned reads `skins/` next to the binary and `skins/` in the
-config directory, so a skin can ship with a build or be dropped in by hand.
+Bundled skins are compiled into Throned, so release and installed folders do not
+contain theme assets. To add a custom skin without rebuilding, create `skins/`
+next to the binary or in Throned's app-data directory and drop a skin folder in it.
 
 ```
 skins/<id>/

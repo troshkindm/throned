@@ -26,7 +26,7 @@ public:
     [[nodiscard]] QIcon PreviewIcon(const QString &theme) const;
     [[nodiscard]] QString ResolveStyleSheet(const QString &styleSheetTemplate) const;
 
-    // Skins live in <base>/skins/<id>/ and are read once at startup.
+    // Bundled skins are resources; optional user skins live in <base>/skins/<id>/.
     void LoadSkins();
     [[nodiscard]] const ThronedSkin *Skin(const QString &theme = {}) const;
     void RegisterStyle(QWidget *widget, const QString &styleSheetTemplate) const;

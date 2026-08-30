@@ -13,7 +13,10 @@ namespace Configs {
     {
         QJsonArray result;
 
-        for (const QString& item : str) {
+        // Last gate before the core: heals values already stored with stray whitespace.
+        for (const QString& raw : str) {
+            const QString item = raw.trimmed();
+            if (item.isEmpty()) continue;
             const QString converted = [&] {
                 if constexpr (std::is_same_v<Converter, std::nullptr_t>)
                     return item;
@@ -98,9 +101,9 @@ namespace Configs {
             };
         }
 
-        if (!ip_version.isEmpty()) obj["ip_version"] = ip_version.toInt();
-        if (!network.isEmpty()) obj["network"] = network;
-        if (!protocol.isEmpty()) obj["protocol"] = protocol;
+        if (!ip_version.trimmed().isEmpty()) obj["ip_version"] = ip_version.trimmed().toInt();
+        if (!network.trimmed().isEmpty()) obj["network"] = network.trimmed();
+        if (!protocol.trimmed().isEmpty()) obj["protocol"] = protocol.trimmed();
         if (isValidStrArray(inbound)) obj["inbound"] = get_as_array(inbound);
         if (isValidStrArray(domain)) obj["domain"] = get_as_array(domain);
         if (isValidStrArray(domain_suffix)) obj["domain_suffix"] = get_as_array(domain_suffix);
@@ -134,13 +137,13 @@ namespace Configs {
 
         if (action == "reject")
         {
-            if (!rejectMethod.isEmpty()) obj["method"] = rejectMethod;
+            if (!rejectMethod.trimmed().isEmpty()) obj["method"] = rejectMethod.trimmed();
             if (no_drop) obj["no_drop"] = no_drop;
         }
         if (action == "route" || action == "route-options" || action == "bypass")
         {
-            if (!override_address.isEmpty()) obj["override_address"] = override_address;
-            if (override_port.toInt() > 0) obj["override_port"] = override_port.toInt();
+            if (!override_address.trimmed().isEmpty()) obj["override_address"] = override_address.trimmed();
+            if (override_port.trimmed().toInt() > 0) obj["override_port"] = override_port.trimmed().toInt();
 
             if (action == "route-options")
             {
@@ -152,7 +155,9 @@ namespace Configs {
                 if (!tls_spoof.trimmed().isEmpty())
                 {
                     obj["tls_spoof"] = tls_spoof.trimmed();
-                    if (!tls_spoof_method.isEmpty()) obj["tls_spoof_method"] = tls_spoof_method;
+                    // The method only qualifies a spoof; the core rejects it standalone.
+                    if (!tls_spoof_method.trimmed().isEmpty())
+                        obj["tls_spoof_method"] = tls_spoof_method.trimmed();
                 }
             }
 
@@ -187,7 +192,7 @@ namespace Configs {
         }
         if (action == "resolve")
         {
-            if (!strategy.isEmpty()) obj["strategy"] = strategy;
+            if (!strategy.trimmed().isEmpty()) obj["strategy"] = strategy.trimmed();
         }
 
         return obj;
@@ -501,14 +506,16 @@ namespace Configs {
     }
 
     void RouteRule::set_field_value(const QString& fieldName, const QStringList& value) {
+        // Imported rules can carry an empty array for a scalar field, so never index blindly.
+        const QString scalar = value.isEmpty() ? QString() : value[0].trimmed();
         if (fieldName == "ip_version") {
-            ip_version = value[0];
+            ip_version = scalar;
         }
         if (fieldName == "network") {
-            network = value[0];
+            network = scalar;
         }
         if (fieldName == "protocol") {
-            protocol = value[0];
+            protocol = scalar;
         }
         if (fieldName == "inbound") {
             inbound = filterEmpty(value);
@@ -529,13 +536,13 @@ namespace Configs {
             source_ip_cidr = filterEmpty(value);
         }
         if (fieldName == "source_ip_is_private") {
-            source_ip_is_private = value[0]=="true";
+            source_ip_is_private = scalar=="true";
         }
         if (fieldName == "ip_cidr") {
             ip_cidr = filterEmpty(value);
         }
         if (fieldName == "ip_is_private") {
-            ip_is_private = value[0]=="true";
+            ip_is_private = scalar=="true";
         }
         if (fieldName == "source_port") {
             source_port = filterEmpty(value);
@@ -568,59 +575,59 @@ namespace Configs {
             rule_set = filterEmpty(value);
         }
         if (fieldName == "invert") {
-            invert = value[0]=="true";
+            invert = scalar=="true";
         }
         if (fieldName == "action")
         {
-            action = value[0];
+            action = scalar;
         }
         if (fieldName == "method")
         {
-            rejectMethod = value[0];
+            rejectMethod = scalar;
         }
         if (fieldName == "no_drop")
         {
-            no_drop = value[0]=="true";
+            no_drop = scalar=="true";
         }
         if (fieldName == "override_address")
         {
-            override_address = value[0];
+            override_address = scalar;
         }
         if (fieldName == "override_port")
         {
-            override_port = value[0];
+            override_port = scalar;
         }
         if (fieldName == "tls_fragment")
         {
-            tls_fragment = value[0]=="true";
+            tls_fragment = scalar=="true";
         }
         if (fieldName == "tls_fragment_fallback_delay")
         {
-            tls_fragment_fallback_delay = value[0];
+            tls_fragment_fallback_delay = scalar;
         }
         if (fieldName == "tls_record_fragment")
         {
-            tls_record_fragment = value[0]=="true";
+            tls_record_fragment = scalar=="true";
         }
         if (fieldName == "tls_spoof")
         {
-            tls_spoof = value[0];
+            tls_spoof = scalar;
         }
         if (fieldName == "tls_spoof_method")
         {
-            tls_spoof_method = value[0];
+            tls_spoof_method = scalar;
         }
         if (fieldName == "override_destination")
         {
-            sniffOverrideDest = value[0]=="true";
+            sniffOverrideDest = scalar=="true";
         }
         if (fieldName == "strategy")
         {
-            strategy = value[0];
+            strategy = scalar;
         }
         if (fieldName == "outbound")
         {
-            outboundID = value[0].toInt();
+            outboundID = scalar.toInt();
         }
     }
 

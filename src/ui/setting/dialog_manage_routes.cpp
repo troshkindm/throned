@@ -191,7 +191,7 @@ void DialogManageRoutes::show_dns_advanced_editor() {
                                   tr("\nUse a number followed by ns, us, ms, s, m, h or d."));
             return;
         }
-        dns_advanced.cache_capacity = cacheCap->text().toInt();
+        dns_advanced.cache_capacity = cacheCap->text().trimmed().toInt();
         dns_advanced.query_timeout = queryTimeout->text().trimmed();
         dns_advanced.optimistic = optimistic->isChecked();
         dns_advanced.optimistic_timeout = optimisticTimeout->text().trimmed();
@@ -252,8 +252,9 @@ void DialogManageRoutes::show_dns_object_editor() {
 
 bool DialogManageRoutes::validate_dns_rules(const QString &rawString) {
     auto rules = rawString.split("\n");
-    for (const auto& rule : rules) {
-        if (!rule.trimmed().isEmpty() && !rule.startsWith("ruleset:") && !rule.startsWith("domain:") && !rule.startsWith("suffix:") && !rule.startsWith("regex:")) return false;
+    for (const auto& rawRule : rules) {
+        const QString rule = rawRule.trimmed();
+        if (!rule.isEmpty() && !rule.startsWith("ruleset:") && !rule.startsWith("domain:") && !rule.startsWith("suffix:") && !rule.startsWith("regex:")) return false;
     }
     return true;
 }
@@ -704,7 +705,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
     Configs::dataManager->settingsRepo->apply_dns_to_full_config = ui->apply_dns_to_full_config->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;
-    Configs::dataManager->settingsRepo->remote_dns = ui->remote_dns->currentText();
+    Configs::dataManager->settingsRepo->remote_dns = ui->remote_dns->currentText().trimmed();
     Configs::dataManager->settingsRepo->remote_dns_strategy = ui->remote_dns_strategy->currentText();
     Configs::dataManager->settingsRepo->dns_cache_capacity = dns_advanced.cache_capacity;
     Configs::dataManager->settingsRepo->dns_disable_cache = dns_advanced.disable_cache;
@@ -713,7 +714,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->dns_optimistic = dns_advanced.optimistic;
     Configs::dataManager->settingsRepo->dns_optimistic_timeout = dns_advanced.optimistic_timeout;
     Configs::dataManager->settingsRepo->dns_query_timeout = dns_advanced.query_timeout;
-    Configs::dataManager->settingsRepo->direct_dns = ui->direct_dns->currentText();
+    Configs::dataManager->settingsRepo->direct_dns = ui->direct_dns->currentText().trimmed();
     Configs::dataManager->settingsRepo->direct_dns_strategy = ui->direct_dns_strategy->currentText();
     Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
     Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
@@ -731,9 +732,9 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
 
     Configs::dataManager->settingsRepo->enable_dns_server = ui->dnshijack_enable->isChecked();
-    Configs::dataManager->settingsRepo->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
-    Configs::dataManager->settingsRepo->dns_v4_resp = ui->dnshijack_v4resp->text();
-    Configs::dataManager->settingsRepo->dns_v6_resp = ui->dnshijack_v6resp->text();
+    Configs::dataManager->settingsRepo->dns_server_listen_port = ui->dnshijack_listenport->text().trimmed().toInt();
+    Configs::dataManager->settingsRepo->dns_v4_resp = ui->dnshijack_v4resp->text().trimmed();
+    Configs::dataManager->settingsRepo->dns_v6_resp = ui->dnshijack_v6resp->text().trimmed();
     auto rawRules = rule_editor->toPlainText().split("\n");
     QStringList dnsRules;
     for (const auto& rawRule : rawRules) {
@@ -744,14 +745,14 @@ void DialogManageRoutes::accept() {
 
     Configs::dataManager->settingsRepo->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
     Configs::dataManager->settingsRepo->enable_redirect = ui->redirect_enable->isChecked();
-    Configs::dataManager->settingsRepo->redirect_listen_address = ui->redirect_listenaddr->text();
-    Configs::dataManager->settingsRepo->redirect_listen_port = ui->redirect_listenport->text().toInt();
+    Configs::dataManager->settingsRepo->redirect_listen_address = ui->redirect_listenaddr->text().trimmed();
+    Configs::dataManager->settingsRepo->redirect_listen_port = ui->redirect_listenport->text().trimmed().toInt();
 
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
-    Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text();
+    Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text().trimmed();
     Configs::dataManager->settingsRepo->warp_ifc_addrs = SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false);
-    Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text();
-    Configs::dataManager->settingsRepo->warp_public_key = ui->warp_public_key->text();
+    Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text().trimmed();
+    Configs::dataManager->settingsRepo->warp_public_key = ui->warp_public_key->text().trimmed();
     Configs::dataManager->settingsRepo->warp_reserved = SplitAndTrim(ui->warp_reserved->text(), ",", false);
 
     MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});

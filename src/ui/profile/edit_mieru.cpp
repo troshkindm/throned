@@ -27,12 +27,12 @@ void EditMieru::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditMieru::onEnd() {
     auto outbound = this->ent->Mieru();
 
-    outbound->username = ui->username->text();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
-    outbound->transport = ui->transport->currentText();
-    outbound->multiplexing = ui->multiplexing->currentText();
-    outbound->traffic_pattern = ui->traffic_pattern->text();
-    outbound->server_ports = ui->server_ports->text();
+    outbound->transport = ui->transport->currentText().trimmed();
+    outbound->multiplexing = ui->multiplexing->currentText().trimmed();
+    outbound->traffic_pattern = ui->traffic_pattern->text().trimmed();
+    outbound->server_ports = ui->server_ports->text().trimmed();
 
     return true;
 }

@@ -893,8 +893,8 @@ namespace Configs {
         for (auto t : types) {
             ResetSimpleRule(t, outbound);
         }
-        for (const auto& item : items) {
-            const QString raw = item.trimmed();
+        for (const auto& rawLine : items) {
+            const QString raw = rawLine.trimmed();
             if (raw.isEmpty()) continue;
             auto type = get_rule_type(raw, action);
             if (type == custom) {

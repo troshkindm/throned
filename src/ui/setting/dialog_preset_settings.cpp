@@ -85,7 +85,7 @@ void DialogPresetSettings::accept() {
     D_SAVE_INT(mux_concurrency)
     D_SAVE_BOOL(mux_padding)
     D_SAVE_BOOL(mux_default_on)
-    Configs::dataManager->settingsRepo->xray_mux_concurrency = ui->xray_mux_concurrency->text().toInt();
+    Configs::dataManager->settingsRepo->xray_mux_concurrency = ui->xray_mux_concurrency->text().trimmed().toInt();
     Configs::dataManager->settingsRepo->xray_mux_default_on = ui->xray_default_mux->isChecked();
 
     D_SAVE_COMBO_STRING(fragment_implementation)
@@ -93,7 +93,7 @@ void DialogPresetSettings::accept() {
     D_SAVE_STRING(fragment_sleep)
     D_SAVE_BOOL(fragment_default_on)
     D_SAVE_BOOL(tls_tricks_default_on)
-    Configs::dataManager->settingsRepo->utlsFingerprint = ui->utlsFingerprint->currentText();
+    Configs::dataManager->settingsRepo->utlsFingerprint = ui->utlsFingerprint->currentText().trimmed();
     D_SAVE_STRING(tls_spoof)
     D_SAVE_COMBO_STRING(tls_spoof_method)
     D_SAVE_BOOL(tls_spoof_default_on)

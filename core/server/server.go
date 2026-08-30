@@ -466,7 +466,7 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 			return
 		}
 
-		tunDNS := tunPrefix.Addr().Next()
+		tunDNS := tunPrefix.Addr()
 		if !tunDNS.IsValid() || !tunDNS.Is4() {
 			err = fmt.Errorf("got invalid DNS IP from tun_ipv4_cidr: %s", tunDNS)
 			stopAllCores()

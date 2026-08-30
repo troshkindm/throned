@@ -27,12 +27,12 @@ void EditTuic::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditTuic::onEnd() {
     auto outbound = ent->TUIC();
 
-    outbound->uuid = ui->uuid->text();
+    outbound->uuid = ui->uuid->text().trimmed();
     outbound->password = ui->password->text();
-    outbound->congestion_control = ui->congestion_control->currentText();
-    outbound->udp_relay_mode = ui->udp_relay_mode->currentText();
+    outbound->congestion_control = ui->congestion_control->currentText().trimmed();
+    outbound->udp_relay_mode = ui->udp_relay_mode->currentText().trimmed();
     outbound->udp_over_stream = ui->udp_over_stream->isChecked();
     outbound->zero_rtt_handshake = ui->zero_rtt->isChecked();
-    outbound->heartbeat = ui->heartbeat->text();
+    outbound->heartbeat = ui->heartbeat->text().trimmed();
     return true;
 }

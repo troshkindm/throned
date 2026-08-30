@@ -25,10 +25,10 @@ void EditNaive::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditNaive::onEnd() {
     auto outbound = ent->Naive();
 
-    outbound->username = ui->username->text();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
     outbound->uot = ui->uot->isChecked();
     outbound->quic = ui->quic->isChecked();
-    outbound->congestion_control = ui->congestion_control->currentText();
+    outbound->congestion_control = ui->congestion_control->currentText().trimmed();
     return true;
 }

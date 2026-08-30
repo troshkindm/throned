@@ -22,7 +22,7 @@ void EditShadowTLS::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditShadowTLS::onEnd() {
     auto outbound = ent->ShadowTLS();
 
-    outbound->version = ui->version->currentText().toInt();
+    outbound->version = ui->version->currentText().trimmed().toInt();
     outbound->password = ui->password->text();
     return true;
 }

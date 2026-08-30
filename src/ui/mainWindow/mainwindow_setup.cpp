@@ -1840,7 +1840,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     tray = new QSystemTrayIcon(nullptr);
     tray->setIcon(GetTrayIcon(Icon::NONE));
-    QApplication::setWindowIcon(Icon::GetTrayIcon(Icon::NONE));
+    QApplication::setWindowIcon(Icon::GetTaskbarIcon(Icon::NONE));
     trayMenu = new QMenu();
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();
@@ -1892,12 +1892,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->actionHide_window, &QAction::triggered, this, [=, this](){ HideWindow(this); });
     connect(ui->menu_open_config_folder, &QAction::triggered, this, [=,this] { QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::currentPath())); });
     connect(ui->menu_open_dashboard, &QAction::triggered, this, [=,this] { OpenDashboard(); });
-    connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
-        runOnThread([=, this] {
-            profile_stop(true, true, true);
-            core_process->Kill();
-        }, DS_cores);
-    });
+    connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] { RestartCore(); });
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=,this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=,this] { ActivateWindow(this); });
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=,this](bool checked) {

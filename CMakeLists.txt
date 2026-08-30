@@ -743,15 +743,6 @@ endif ()
 
 qt_finalize_executable(Throned)
 
-# Skins are intentionally data-only, but ThemeManager loads them beside the
-# executable.  Keep local preview builds honest and make the deploy scripts'
-# source/output layout identical.
-add_custom_command(TARGET Throned POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_SOURCE_DIR}/skins"
-                "$<TARGET_FILE_DIR:Throned>/skins"
-        COMMENT "Copying Throned skins beside the executable")
-
 # Tests
 # Only the dependency-free pieces are covered here: the checker links against
 # QtCore alone, so `ctest` stays runnable without a display or a built app.

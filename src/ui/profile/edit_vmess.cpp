@@ -25,10 +25,10 @@ void EditVMess::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditVMess::onEnd() {
     auto outbound = this->ent->VMess();
 
-    outbound->uuid = ui->uuid->text();
-    outbound->alter_id = ui->aid->text().toInt();
-    outbound->packet_encoding = ui->packet_encoding->currentText();
-    outbound->security = ui->security->currentText();
+    outbound->uuid = ui->uuid->text().trimmed();
+    outbound->alter_id = ui->aid->text().trimmed().toInt();
+    outbound->packet_encoding = ui->packet_encoding->currentText().trimmed();
+    outbound->security = ui->security->currentText().trimmed();
 
     return true;
 }

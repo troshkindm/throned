@@ -121,10 +121,12 @@ namespace Configs {
                 {QLatin1String("regex:"), sink.regexes},
                 {QLatin1String("ip:"), sink.ipCIDRs},
             };
-            for (const auto &item : items) {
+            for (const auto &rawItem : items) {
+                const QString item = rawItem.trimmed();
                 for (const auto &[prefix, target] : kinds) {
                     if (!item.startsWith(prefix)) continue;
-                    if (target != nullptr) *target << item.mid(prefix.size());
+                    const QString value = item.mid(prefix.size()).trimmed();
+                    if (target != nullptr && !value.isEmpty()) *target << value;
                     break;
                 }
             }

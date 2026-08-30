@@ -46,15 +46,15 @@ struct ThronedThemeColors {
 };
 
 // A skin is a palette plus the things a palette cannot say: its own stylesheet
-// fragment, a font, and a folder of icons. Loaded from disk, so adding one is a
-// matter of dropping a folder in rather than rebuilding.
+// fragment, a font, and a folder of icons. Bundled skins use Qt resources while
+// optional user skins can still be dropped on disk without rebuilding.
 struct ThronedSkin {
     QString id;             // folder name
     QString name;           // shown in the theme list
     ThronedThemeColors colors;
     QString styleOverlay;   // appended after the resolved base sheet, so it wins
     QString fontFamily;     // empty leaves the application font alone
-    QString iconDir;        // absolute; empty falls back to the built-in glyphs
+    QString iconDir;        // disk or :/ resource path; empty uses built-in glyphs
 };
 
 namespace ThronedPalette {

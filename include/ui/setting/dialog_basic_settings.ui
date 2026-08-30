@@ -689,6 +689,16 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="follow_status_in_taskbar">
+              <property name="toolTip">
+               <string>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throned icon</string>
+              </property>
+              <property name="text">
+               <string>Follow Status Icon in Taskbar</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

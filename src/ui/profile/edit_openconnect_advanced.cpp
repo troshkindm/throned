@@ -194,18 +194,18 @@ void EditOpenConnectAdvanced::accept() {
 
     outbound->cookie = ui->cookie->text().trimmed();
     outbound->reported_os = ui->reported_os->text().trimmed();
-    outbound->user_agent = ui->user_agent->text();
+    outbound->user_agent = ui->user_agent->text().trimmed();
     outbound->version = ui->version->text().trimmed();
     outbound->local_hostname = ui->local_hostname->text().trimmed();
 
     auto token = outbound->token;
-    token->mode = ui->token_mode->currentText();
+    token->mode = ui->token_mode->currentText().trimmed();
     token->secret = ui->token_secret->text().trimmed();
     token->secret_path = ui->token_secret_path->text().trimmed();
     token->pin = ui->token_pin->text();
     token->password = ui->token_password->text();
     token->device_id = ui->token_device_id->text().trimmed();
-    token->counter = ui->token_counter->text().toLongLong();
+    token->counter = ui->token_counter->text().trimmed().toLongLong();
 
     auto tls = outbound->tls;
     tls->peer_fingerprint = CACHE.peerFingerprint;
@@ -230,7 +230,7 @@ void EditOpenConnectAdvanced::accept() {
 
     outbound->tncc->wrapper_path = ui->tncc_wrapper_path->text().trimmed();
     outbound->tncc->device_id = ui->tncc_device_id->text().trimmed();
-    outbound->tncc->user_agent = ui->tncc_user_agent->text();
+    outbound->tncc->user_agent = ui->tncc_user_agent->text().trimmed();
     outbound->tncc->machine_identification_enabled = ui->tncc_machine_identification_enabled->isChecked();
     outbound->tncc->certificates = {};
     for (int row = 0; row < ui->tncc_certificates_table->rowCount(); ++row) {
@@ -261,9 +261,9 @@ void EditOpenConnectAdvanced::accept() {
     }
 
     outbound->no_udp = ui->no_udp->isChecked();
-    outbound->dtls_local_port = ui->dtls_local_port->text().toInt();
+    outbound->dtls_local_port = ui->dtls_local_port->text().trimmed().toInt();
     outbound->compression_disabled = ui->compression_disabled->isChecked();
-    outbound->compression_mode = ui->compression_mode->currentText();
+    outbound->compression_mode = ui->compression_mode->currentText().trimmed();
     outbound->ipv6_disabled = ui->ipv6_disabled->isChecked();
     outbound->http_keepalive_disabled = ui->http_keepalive_disabled->isChecked();
     outbound->xml_post_disabled = ui->xml_post_disabled->isChecked();
@@ -272,11 +272,11 @@ void EditOpenConnectAdvanced::accept() {
     outbound->tcp_keep_alive_enabled = ui->tcp_keep_alive_enabled->isChecked();
     outbound->pfs = ui->pfs->isChecked();
     outbound->allow_insecure_crypto = ui->allow_insecure_crypto->isChecked();
-    outbound->base_mtu = ui->base_mtu->text().toInt();
+    outbound->base_mtu = ui->base_mtu->text().trimmed().toInt();
     outbound->dpd_interval = ui->dpd_interval->text().trimmed();
     outbound->reconnect_timeout = ui->reconnect_timeout->text().trimmed();
     outbound->trojan_interval = ui->trojan_interval->text().trimmed();
-    outbound->queue_length = ui->queue_length->text().toInt();
+    outbound->queue_length = ui->queue_length->text().trimmed().toInt();
 
     QDialog::accept();
 }

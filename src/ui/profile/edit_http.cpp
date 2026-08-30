@@ -19,7 +19,7 @@ void EditHttp::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
 bool EditHttp::onEnd() {
     auto outbound = this->ent->Http();
-    outbound->username = ui->username->text();
+    outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
     return true;
 }

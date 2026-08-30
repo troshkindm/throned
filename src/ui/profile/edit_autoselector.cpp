@@ -165,8 +165,8 @@ bool EditAutoSelector::onEnd() {
     }
 
     outbound->gid = gid;
-    outbound->nameFilter = ui->name_filter->text();
-    outbound->countryFilter = ui->country_filter->text();
+    outbound->nameFilter = ui->name_filter->text().trimmed();
+    outbound->countryFilter = ui->country_filter->text().trimmed();
     outbound->excludeUnavailable = ui->exclude_unavailable->isChecked();
     outbound->poolCap = ui->pool_cap->value();
     outbound->buildLimit = ui->build_limit->value();
@@ -251,8 +251,8 @@ void EditAutoSelector::refreshPlanSummary() {
     probe->gid = this->ent->gid;
     auto *preview = probe->AutoSelector();
     preview->gid = ui->group->currentData().toInt();
-    preview->nameFilter = ui->name_filter->text();
-    preview->countryFilter = ui->country_filter->text();
+    preview->nameFilter = ui->name_filter->text().trimmed();
+    preview->countryFilter = ui->country_filter->text().trimmed();
     preview->excludeUnavailable = ui->exclude_unavailable->isChecked();
     preview->poolCap = ui->pool_cap->value();
     preview->buildLimit = ui->build_limit->value();

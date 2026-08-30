@@ -27,9 +27,9 @@ bool EditAnyTLS::onEnd() {
     auto outbound = this->ent->AnyTLS();
 
     outbound->password = ui->password->text();
-    outbound->idle_session_check_interval = ui->interval->text();
-    outbound->idle_session_timeout = ui->timeout->text();
-    outbound->min_idle_session = ui->min->text().toInt();
+    outbound->idle_session_check_interval = ui->interval->text().trimmed();
+    outbound->idle_session_timeout = ui->timeout->text().trimmed();
+    outbound->min_idle_session = ui->min->text().trimmed().toInt();
 
     return true;
 }

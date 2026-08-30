@@ -244,9 +244,10 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
 
 void ThemeManager::LoadSkins() {
     skins.clear();
-    // Beside the binary for skins that ship with a build, and in the config
-    // directory for ones the user drops in; in appdata mode those differ.
-    QStringList roots{qApp->applicationDirPath() + QStringLiteral("/skins")};
+    // Shipped skins are resources, so an ordinary install stays tidy. Disk
+    // roots remain optional extension points for skins the user drops in.
+    QStringList roots{QStringLiteral(":/skins"),
+                      qApp->applicationDirPath() + QStringLiteral("/skins")};
     if (const QString base = Configs::GetBasePath() + QStringLiteral("/skins"); !roots.contains(base)) {
         roots << base;
     }

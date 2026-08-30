@@ -61,23 +61,23 @@ bool EditHysteria::onEnd() {
         return false;
     }
 
-    outbound->protocol_version = ui->protocol_version->currentText();
+    outbound->protocol_version = ui->protocol_version->currentText().trimmed();
     outbound->server_ports = SplitAndTrim(ui->server_ports->text(), ",", false);
-    outbound->hop_interval = ui->hop_interval->text();
-    outbound->hop_interval_max = ui->hop_interval_max->text();
-    outbound->up_mbps = ui->up_mbps->text().toInt();
-    outbound->down_mbps = ui->down_mbps->text().toInt();
+    outbound->hop_interval = ui->hop_interval->text().trimmed();
+    outbound->hop_interval_max = ui->hop_interval_max->text().trimmed();
+    outbound->up_mbps = ui->up_mbps->text().trimmed().toInt();
+    outbound->down_mbps = ui->down_mbps->text().trimmed().toInt();
     outbound->obfs = ui->obfs->text();
-    outbound->auth_type = ui->auth_type->currentText();
+    outbound->auth_type = ui->auth_type->currentText().trimmed();
     outbound->auth = ui->auth->text();
-    outbound->recv_window = ui->recv_window->text().toInt();
-    outbound->recv_window_conn = ui->recv_window_conn->text().toInt();
+    outbound->recv_window = ui->recv_window->text().trimmed().toInt();
+    outbound->recv_window_conn = ui->recv_window_conn->text().trimmed().toInt();
     outbound->disable_mtu_discovery = ui->disable_mtu_discovery->isChecked();
     outbound->password = ui->password->text();
-    outbound->min_packet_size = ui->min_packet_size->text().toInt();
-    outbound->max_packet_size = ui->max_packet_size->text().toInt();
-    outbound->obfs_type = ui->obfuscation_type->currentText();
-    outbound->bbr_profile = ui->bbr_profile->currentText();
+    outbound->min_packet_size = ui->min_packet_size->text().trimmed().toInt();
+    outbound->max_packet_size = ui->max_packet_size->text().trimmed().toInt();
+    outbound->obfs_type = ui->obfuscation_type->currentText().trimmed();
+    outbound->bbr_profile = ui->bbr_profile->currentText().trimmed();
     outbound->disable_chrome_parrot = ui->disable_chrome_parrot->isChecked();
     outbound->realm_enabled = ui->realm_enabled->isChecked();
     if (outbound->RealmActive()) {

@@ -58,7 +58,7 @@ void EditHysteriaRealm::accept() {
     outbound->realm_id = ui->realm_id->text().trimmed();
     outbound->realm_token = ui->realm_token->text();
     outbound->realm_stun_servers = SplitAndTrim(ui->realm_stun_servers->text(), ",", false);
-    outbound->realm_ip_version = ui->realm_ip_version->currentText().toInt();
+    outbound->realm_ip_version = ui->realm_ip_version->currentText().trimmed().toInt();
     outbound->realm_port_mapping = ui->realm_port_mapping->isChecked();
     outbound->realm_port_mapping_timeout = ui->realm_port_mapping_timeout->text().trimmed();
     outbound->realm_port_mapping_lifetime = ui->realm_port_mapping_lifetime->text().trimmed();

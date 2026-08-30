@@ -294,7 +294,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     }
 
     setWindowTitle(make_title(false));
-    if (icon_status_new != icon_status) QApplication::setWindowIcon(GetTrayIcon(icon_status_new));
+    if (icon_status_new != icon_status) QApplication::setWindowIcon(GetTaskbarIcon(icon_status_new));
 
     if (tray != nullptr) {
         tray->setToolTip(make_title(true));
