@@ -28,6 +28,7 @@ import (
 	"github.com/google/shlex"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
+	boxLog "github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
@@ -691,7 +692,8 @@ func (s *server) UDPTest(ctx context.Context, in *gen.UDPTestRequest) (*gen.UDPT
 	}
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
-	results := test_utils.BatchUDPTest(test_utils.TestContext(), env.box, tags,
+	testCtx := udpTestLogContext(test_utils.TestContext(), in.GetQuiet())
+	results := test_utils.BatchUDPTest(testCtx, env.box, tags,
 		in.GetTarget(), int(in.GetProbeCount()), int(in.GetMaxConcurrency()), timeout)
 
 	res := make([]*gen.UDPTestRes, 0, len(results))
@@ -699,6 +701,16 @@ func (s *server) UDPTest(ctx context.Context, in *gen.UDPTestRequest) (*gen.UDPT
 		res = append(res, udpResultToProto(data))
 	}
 	return &gen.UDPTestResp{Results: res}, nil
+}
+
+func udpTestLogContext(ctx context.Context, quiet bool) context.Context {
+	if !quiet {
+		return ctx
+	}
+	// The UI monitor emits its own state transitions (spike/loss/recovery).
+	// Keep the dial generated every two seconds available at debug level without
+	// flooding the normal user-facing console. Explicit user-run tests pass false.
+	return boxLog.ContextWithOverrideLevel(ctx, boxLog.LevelDebug)
 }
 
 func (s *server) QueryUDPTest(ctx context.Context, in *gen.EmptyReq) (out *gen.QueryUDPTestResponse, _ error) {

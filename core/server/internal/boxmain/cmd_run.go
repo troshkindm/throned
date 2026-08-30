@@ -64,8 +64,9 @@ func Create(configContent []byte) (*boxbox.Box, context.CancelFunc, error) {
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	instance, err := boxbox.New(boxbox.Options{
-		Context: ctx,
-		Options: *options,
+		Context:          ctx,
+		Options:          *options,
+		DefaultLogWriter: newConnectionLogWriter(ctx, os.Stderr),
 	})
 	if err != nil {
 		cancel()

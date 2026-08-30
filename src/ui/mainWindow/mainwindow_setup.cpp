@@ -155,6 +155,9 @@ void MainWindow::updatePingLegend(const QStringList &targets, const QList<int> &
 
     QStringList items;
     const auto &colors = pingTargetColors();
+    const auto latencyText = [](const int value) {
+        return value == 0 ? QStringLiteral("<1 ms") : QStringLiteral("%1 ms").arg(value);
+    };
     const bool allProxyMissing = !proxyMs.isEmpty()
         && std::all_of(proxyMs.cbegin(), proxyMs.cend(), [](const int value) { return value < 0; });
     if (allProxyMissing && directMs >= 0) {
@@ -163,7 +166,7 @@ void MainWindow::updatePingLegend(const QStringList &targets, const QList<int> &
     }
     for (int i = 0; i < targets.size(); ++i) {
         const auto latest = i < proxyMs.size()
-            ? (proxyMs.at(i) < 0 ? tr("no reply") : QStringLiteral("%1 ms").arg(proxyMs.at(i)))
+            ? (proxyMs.at(i) < 0 ? tr("no reply") : latencyText(proxyMs.at(i)))
             : QString{};
         items << QStringLiteral("<span style='color:%1'>●</span> %2%3")
                      .arg(colors.at(i).name(), targets.at(i).toHtmlEscaped(),
@@ -171,7 +174,7 @@ void MainWindow::updatePingLegend(const QStringList &targets, const QList<int> &
     }
     if (!targets.isEmpty()) {
         const auto latest = directMs == -2 ? QString{}
-            : directMs < 0 ? tr("no reply") : QStringLiteral("%1 ms").arg(directMs);
+            : directMs < 0 ? tr("no reply") : latencyText(directMs);
         items << QStringLiteral("<span style='color:#8295A6'>┄</span> %1%2")
                      .arg(tr("direct (%1)").arg(targets.first()).toHtmlEscaped(),
                           latest.isEmpty() ? QString{} : QStringLiteral(" <b>%1</b>").arg(latest));

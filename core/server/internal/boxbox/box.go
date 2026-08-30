@@ -65,6 +65,7 @@ type Box struct {
 type Options struct {
 	option.Options
 	Context                    context.Context
+	DefaultLogWriter           io.Writer
 	PlatformLogWriter          log.PlatformWriter
 	NetworkNamespaceHolderArgs []string
 }
@@ -163,7 +164,7 @@ func New(options Options) (*Box, error) {
 		ctx = service.ContextWithPtr(ctx, urltest.NewHistoryStorage())
 	}
 	platformInterface := service.FromContext[adapter.PlatformInterface](ctx)
-	var defaultLogWriter io.Writer
+	defaultLogWriter := options.DefaultLogWriter
 	if platformInterface != nil {
 		defaultLogWriter = io.Discard
 	}

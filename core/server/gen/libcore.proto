@@ -358,6 +358,9 @@ message UDPTestRequest {
   // Measure the direct outbound instead of the proxy one. Pairing the two
   // answers "is the proxy at fault or the connection", which neither alone can.
   optional bool via_direct = 12 [default = false];
+  // Background health monitors report state changes themselves. Their successful
+  // per-probe dials are debug noise, while an explicit user-run UDP test is not.
+  optional bool quiet = 13 [default = false];
 }
 
 message UDPTestResp {

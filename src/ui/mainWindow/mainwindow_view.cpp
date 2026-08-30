@@ -816,7 +816,10 @@ void MainWindow::recordPingSample(const QStringList &targets, const QList<int> &
         if (directMs < 0 || directMs > baseline * kPingSpikeFactor) {
             verdict = tr("the direct path is just as bad, so this is your connection rather than the proxy");
         } else {
-            verdict = tr("the direct path is fine (%1 ms), so this is the proxy or the route to it").arg(directMs);
+            // time.Duration.Milliseconds() intentionally truncates. A loopback
+            // DNS round trip below one millisecond is healthy, not a bogus 0 ms.
+            const auto directValue = directMs == 0 ? QStringLiteral("<1") : QString::number(directMs);
+            verdict = tr("the direct path is fine (%1 ms), so this is the proxy or the route to it").arg(directValue);
         }
         MW_show_log(tr("UDP latency to %1 spiked: %2 against a %3 ms baseline - %4")
                         .arg(targets.first(), proxyText).arg(baseline).arg(verdict));
@@ -880,6 +883,7 @@ void MainWindow::pollPingMonitor() {
             req.probe_count = kPingProbeCount;
             req.test_timeout_ms = kPingTimeoutMs;
             req.target = target.toStdString();
+            req.quiet = true;
 
             bool rpcOK = false;
             const auto response = API::defaultClient->UDPTest(&rpcOK, req);
