@@ -1,0 +1,38 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "windows-ninja",
+      "displayName": "Windows / Ninja / MSVC",
+      "description": "Pins the compiler language for configure and build alike, so the /showIncludes prefix ninja recorded still matches what cl.exe prints and header dependencies keep working.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/buildnu",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "THRONED_PRECOMPILE_HEADERS": "OFF",
+        "THRONED_UNITY_BUILD": "OFF"
+      },
+      "environment": { "VSLANG": "1033" },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-ninja",
+      "configurePreset": "windows-ninja",
+      "description": "VSLANG has to match the configure step, or the recorded /showIncludes prefix stops matching what cl.exe prints.",
+      "environment": { "VSLANG": "1033" }
+    },
+    {
+      "name": "throned",
+      "configurePreset": "windows-ninja",
+      "targets": [ "Throned" ],
+      "environment": { "VSLANG": "1033" }
+    }
+  ]
+}

@@ -2,6 +2,29 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Throned VERSION 0.1)
 
+# Ninja learns header dependencies by matching the prefix of cl.exe's /showIncludes
+# lines against the one CMake recorded here at configure time. A localised toolchain
+# prints that prefix in the console codepage, so when the configure and the build run
+# in different environments the match silently fails: ninja then rebuilds nothing when
+# a header changes, and a header that alters a class layout leaves half the objects on
+# the old one. That links, runs, and crashes on a wild pointer with no bad code in
+# sight. CI never sees it because CI always builds from an empty directory.
+#
+# What matters is that both phases agree, not that the prefix is English: a toolchain
+# without the English pack keeps printing its own language under VSLANG=1033, and that
+# is fine as long as the configure saw the same thing. Deliberately only a warning,
+# because setting VSLANG here would fix the configure and not the build - the same
+# mismatch pointing the other way. It has to be in the environment of both, which is
+# what CMakePresets.json does.
+if (CMAKE_GENERATOR MATCHES "Ninja" AND MSVC AND NOT "$ENV{VSLANG}" STREQUAL "1033")
+    message(WARNING
+        "VSLANG is not 1033, so ninja may silently stop tracking header "
+        "dependencies and produce a binary built from a mix of old and new headers. "
+        "Configure and build with VSLANG=1033 in the environment (cmake --preset "
+        "windows-ninja), or verify by touching include/ui/mainwindow.h and checking "
+        "that a rebuild does far more than a handful of edges.")
+endif()
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 20)
