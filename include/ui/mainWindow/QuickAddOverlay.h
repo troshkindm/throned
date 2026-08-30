@@ -52,9 +52,10 @@ private:
     QLabel *headingIcon = nullptr;
     QLabel *title = nullptr;
     QLabel *subtitle = nullptr;
+    QToolButton *closeButton = nullptr;
     QWidget *quickPage = nullptr;
     QLineEdit *linkInput = nullptr;
-    QAction *linkAction = nullptr;
+    QAction *linkClearAction = nullptr;
     QFrame *detectedFrame = nullptr;
     QLabel *detectedIcon = nullptr;
     QLabel *detectedTitle = nullptr;

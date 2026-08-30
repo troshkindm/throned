@@ -7179,6 +7179,8 @@ goes to the default above.</source>
 </context>
 <context>
     <name>QuickAddOverlay</name>
+    <message><source>Close</source><translation>Закрыть</translation></message>
+    <message><source>Clear</source><translation>Очистить</translation></message>
     <message><source>Paste a subscription or profile link…</source><translation>Вставьте ссылку подписки или профиля…</translation></message>
     <message><source>Link recognized</source><translation>Ссылка распознана</translation></message>
     <message><source>New profile</source><translation>Новый профиль</translation></message>

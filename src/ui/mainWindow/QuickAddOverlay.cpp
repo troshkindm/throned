@@ -15,6 +15,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QToolButton>
@@ -106,10 +107,14 @@ QuickAddOverlay::QuickAddOverlay(QWidget *parent, Callbacks callbacks)
     headingCopyLayout->addWidget(subtitle);
     headingLayout->addWidget(headingCopy, 1, Qt::AlignTop);
 
-    auto *escape = new QLabel(QStringLiteral("Esc"), heading);
-    escape->setObjectName(QStringLiteral("quickAddEscape"));
-    escape->setAlignment(Qt::AlignCenter);
-    headingLayout->addWidget(escape, 0, Qt::AlignTop);
+    closeButton = new QToolButton(heading);
+    closeButton->setObjectName(QStringLiteral("quickAddCloseButton"));
+    closeButton->setCursor(Qt::PointingHandCursor);
+    closeButton->setFocusPolicy(Qt::NoFocus);
+    closeButton->setIconSize(QSize(18, 18));
+    closeButton->setFixedSize(30, 30);
+    closeButton->setToolTip(qaTr("Close"));
+    headingLayout->addWidget(closeButton, 0, Qt::AlignTop);
     cardLayout->addWidget(heading);
 
     auto *body = new QWidget(card);
@@ -125,9 +130,11 @@ QuickAddOverlay::QuickAddOverlay(QWidget *parent, Callbacks callbacks)
     linkInput = new QLineEdit(quickPage);
     linkInput->setObjectName(QStringLiteral("quickAddLinkInput"));
     linkInput->setPlaceholderText(qaTr("Paste a subscription or profile link…"));
-    linkInput->setClearButtonEnabled(true);
+    linkInput->setClearButtonEnabled(false);
     linkInput->setFixedHeight(54);
-    linkAction = linkInput->addAction(QIcon(), QLineEdit::LeadingPosition);
+    linkClearAction = linkInput->addAction(QIcon(), QLineEdit::TrailingPosition);
+    linkClearAction->setToolTip(qaTr("Clear"));
+    linkClearAction->setVisible(false);
     quickLayout->addWidget(linkInput);
 
     detectedFrame = new QFrame(quickPage);
@@ -311,16 +318,18 @@ QWidget#quickAddManualStack, QWidget#quickAddManualStack > QWidget {
 QLabel#quickAddHeadingIcon { background: #182530; border: none; border-radius: 8px; }
 QLabel#quickAddTitle { color: #F1F3F5; font-size: 16px; font-weight: 600; background: transparent; }
 QLabel#quickAddSubtitle { color: #747C86; font-size: 12px; background: transparent; }
-QLabel#quickAddEscape {
-    color: #747C86; background: #171B21; border: 1px solid #2F3136;
-    border-radius: 5px; padding: 3px 6px; font-size: 11px;
+QToolButton#quickAddCloseButton {
+    background: transparent; border: 1px solid transparent; border-radius: 7px;
+    padding: 5px;
 }
+QToolButton#quickAddCloseButton:hover { background: #292D33; border-color: #3E454F; }
+QToolButton#quickAddCloseButton:pressed { background: #182530; border-color: #237AE9; }
 QLineEdit#quickAddLinkInput {
     min-height: 34px; color: #F1F3F5; background: #171B21;
-    border: 1px solid #4A4F57; border-radius: 9px; padding: 9px 12px 9px 7px;
+    border: 1px solid #4A4F57; border-radius: 9px; padding: 9px 10px 9px 14px;
     font-size: 15px;
 }
-QLineEdit#quickAddLinkInput:focus { border: 2px solid #237AE9; padding: 8px 11px 8px 6px; }
+QLineEdit#quickAddLinkInput:focus { border: 2px solid #237AE9; padding: 8px 9px 8px 13px; }
 QFrame#quickAddDetected { background: #182530; border: none; border-radius: 8px; }
 QLabel#quickAddDetectedTitle { color: #F1F3F5; font-weight: 600; background: transparent; }
 QLabel#quickAddDetectedMeta { color: #A4ABB4; font-size: 12px; background: transparent; }
@@ -363,7 +372,12 @@ QPushButton#quickAddPrimaryButton:disabled {
 )");
     themeManager->RegisterStyle(this, styleTemplate);
 
-    connect(linkInput, &QLineEdit::textChanged, this, [this] { updateLinkValidation(); });
+    connect(closeButton, &QToolButton::clicked, this, [this] { closeOverlay(); });
+    connect(linkClearAction, &QAction::triggered, linkInput, &QLineEdit::clear);
+    connect(linkInput, &QLineEdit::textChanged, this, [this](const QString &text) {
+        linkClearAction->setVisible(!text.isEmpty());
+        updateLinkValidation();
+    });
     connect(linkInput, &QLineEdit::returnPressed, this, [this] { submit(); });
     connect(manualButton, &QPushButton::clicked, this, [this] { setManualMode(!manualMode); });
     connect(primaryButton, &QPushButton::clicked, this, [this] { submit(); });
@@ -590,7 +604,15 @@ void QuickAddOverlay::closeOverlay() {
 void QuickAddOverlay::retintIcons() {
     const auto colors = themeManager->Colors();
     headingIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Add, colors.accent, 19));
-    linkAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Public, colors.textSubtle, 18));
+    closeButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textMuted, 18));
+    // QLineEdit places trailing actions against its edge. Keep a little blank
+    // canvas after the glyph so the visible X has deliberate right breathing room.
+    QPixmap clearGlyph(23, 18);
+    clearGlyph.fill(Qt::transparent);
+    QPainter clearPainter(&clearGlyph);
+    clearPainter.drawPixmap(1, 1, MaterialIcon::pixmap(MaterialIcon::Glyph::Close, colors.textSubtle, 16));
+    clearPainter.end();
+    linkClearAction->setIcon(QIcon(clearGlyph));
     detectedIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Check, colors.success, 19));
     profileTab->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Apps, colors.textMuted, 16));
     groupTab->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Folder, colors.textMuted, 16));

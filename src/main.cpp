@@ -974,7 +974,10 @@ briefly interrupts traffic.
         QTimer::singleShot(220, window, [window, prefix] {
             auto *overlay = window->findChild<QWidget *>(QStringLiteral("quickAddOverlay"));
             auto *link = window->findChild<QLineEdit *>(QStringLiteral("quickAddLinkInput"));
-            if (overlay == nullptr || !overlay->isVisible() || link == nullptr) {
+            auto *close = window->findChild<QToolButton *>(QStringLiteral("quickAddCloseButton"));
+            if (overlay == nullptr || !overlay->isVisible() || link == nullptr
+                || close == nullptr || !close->isVisible()
+                || window->findChild<QLabel *>(QStringLiteral("quickAddEscape")) != nullptr) {
                 qWarning() << "Quick-add overlay did not open";
                 qApp->exit(2);
                 return;
@@ -1080,9 +1083,11 @@ briefly interrupts traffic.
             }
             window->refresh_groups();
             window->refresh_proxy_list({}, true);
-            if (!emptyPreview)
-                if (auto *profiles = window->findChild<QTableView *>(QStringLiteral("profilesTableView")))
-                profiles->selectRow(1);
+            if (!emptyPreview) {
+                if (auto *profiles = window->findChild<QTableView *>(QStringLiteral("profilesTableView"))) {
+                    profiles->selectRow(arguments.contains(QStringLiteral("-ui-preview-running-unselected")) ? 0 : 1);
+                }
+            }
         }
 
         QList<Stats::ConnectionMetadata> connections;

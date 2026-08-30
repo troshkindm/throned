@@ -163,17 +163,19 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     const auto colors = themeManager->Colors();
     const bool selected = opt.state & QStyle::State_Selected;
 
+    // A running profile is persistent application state, not transient table
+    // selection. Give the whole row the same semantic treatment as a selected
+    // row so it remains obvious after focus moves to logs or another control.
+    if (visual.running && !selected) {
+        painter->fillRect(opt.rect, colors.accentSoft);
+        painter->setPen(colors.selectionBorder);
+        painter->drawLine(opt.rect.topLeft(), opt.rect.topRight());
+        painter->drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight());
+    }
     if (index.row() == m_flashRow && m_flashStrength > 0.0) {
         QColor flash = colors.accent;
         flash.setAlphaF(0.28 * m_flashStrength);
         painter->fillRect(opt.rect, flash);
-    }
-    // The tick in the number gutter is easy to lose in a long list. A selected row
-    // already reads, and the header draws its own accent divider there, so the two
-    // together looked like one fat border between the number and the name.
-    if (visual.running && !selected && index.column() == ProfilesTableModel::ColcServer) {
-        painter->fillRect(QRect(opt.rect.left(), opt.rect.top() + 1, 3, opt.rect.height() - 2),
-                          colors.accent);
     }
 
     const QColor ink = selected ? opt.palette.color(QPalette::HighlightedText) : colors.text;

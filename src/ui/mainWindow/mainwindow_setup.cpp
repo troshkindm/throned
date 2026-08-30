@@ -858,7 +858,7 @@ QTabWidget#groupsCard QTabBar::tab {
     color: #C2C7CE; font-weight: 500;
 }
 QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
-QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #24282D; border-color: #3D444D; }
+QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #182530; border-color: #237AE9; }
 /* Same pill as a group tab, square: the fixed height carries the bottom margin
    so the painted box comes out square and lines up with the tabs. */
 QToolButton#favoritesTabButton {
@@ -931,12 +931,15 @@ ProfilesTableVerticalHeader {
     qproperty-sectionBackground: #171B21;
     qproperty-sectionForeground: #8295A6;
     qproperty-sectionBorder: #2F3136;
+    qproperty-sectionRunningBackground: #182530;
+    qproperty-sectionRunningBorder: #1D7585;
+    qproperty-sectionOuterBorder: #3E454F;
 }
 /* Opaque, so it hides the card border underneath: it has to draw that edge itself. */
 QTableCornerButton::section {
     background: #171B21; border: none; border-top: 1px solid #3E454F;
     border-right: 1px solid #2F3136; border-bottom: 1px solid #2F3136;
-    border-left: 1px solid #3E454F; border-top-left-radius: 8px;
+    border-top-left-radius: 8px;
 }
 QTableView::item, QTableWidget::item { border-bottom: 1px solid #2F3136; padding: 3px 7px; }
 QTableView::item:selected, QTableWidget::item:selected {
@@ -1205,7 +1208,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     groupAddButton->setCursor(Qt::PointingHandCursor);
     groupAddButton->setFocusPolicy(Qt::NoFocus);
     groupAddButton->setIconSize(QSize(18, 18));
-    groupAddButton->setFixedSize(38, 38);
+    // QSS reserves five pixels below the painted control, matching the search
+    // row gap. A 33x38 widget therefore produces a visible 33x33 square.
+    groupAddButton->setFixedSize(33, 38);
     groupAddButton->setToolTip(tr("Add group or profile"));
     connect(groupAddButton, &QToolButton::clicked, this, &MainWindow::showQuickAddOverlay);
     tableToolsLayout->addWidget(groupAddButton);

@@ -1,6 +1,7 @@
 #include "include/ui/utils/ProfilesTableVerticalHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/MaterialIcon.h"
 #include <QPainter>
 #include <QTableView>
 #include <QFontMetrics>
@@ -53,7 +54,7 @@ void ProfilesTableVerticalHeader::updateWidthFromRowCount() {
     int rows = m_model ? m_model->rowCount() : 0;
     const QString maxNum = rows <= 0 ? QStringLiteral("1") : QString::number(rows);
     int wNum = fm.horizontalAdvance(maxNum);
-    int wCheck = fm.horizontalAdvance(QStringLiteral("✓"));
+    constexpr int wCheck = 16;
     // Keep a real, stable index column instead of manufacturing its width with
     // trailing spaces in the label. Three digits can still grow it naturally.
     const int w = qMax(30, qMax(wNum, wCheck) + 14);
@@ -66,27 +67,49 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     const auto *view = qobject_cast<const QTableView *>(parentWidget());
     const bool selected = view != nullptr && view->selectionModel() != nullptr
         && view->selectionModel()->isRowSelected(logicalIndex, QModelIndex());
+    // logicalIndex counts visible rows; the model is indexed by source row.
+    const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
+    const bool running = m_model != nullptr && sourceRow >= 0
+        && m_model->index(sourceRow, 0).data(ProfilesTableModel::RowVisualRole)
+               .value<ProfilesTableModel::RowVisual>().running;
     const QColor background = selected
         ? view->palette().color(QPalette::Highlight)
-        : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base));
+        : (running && m_sectionRunningBackground.isValid()
+               ? m_sectionRunningBackground
+               : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base)));
     const QColor separator = m_sectionBorder.isValid() ? m_sectionBorder : palette().color(QPalette::Mid);
+    const QColor stateBorder = m_sectionRunningBorder.isValid()
+        ? m_sectionRunningBorder : (view != nullptr ? view->palette().color(QPalette::Link) : separator);
+    const QColor outerBorder = m_sectionOuterBorder.isValid() ? m_sectionOuterBorder : separator;
     painter->fillRect(rect, background);
 
-    painter->setPen(selected ? view->palette().color(QPalette::Link) : separator);
+    // The opaque gutter covers the card edge. Repaint that outer edge for every
+    // populated row, while keeping the inner divider neutral instead of turning
+    // it into the old oversized "running" stripe.
+    painter->setPen(outerBorder);
+    painter->drawLine(rect.topLeft(), rect.bottomLeft());
+    painter->setPen(separator);
     if (rect.width() > 1) painter->drawLine(rect.topRight(), rect.bottomRight());
-    painter->drawLine(rect.bottomLeft(), rect.bottomRight());
-    if (selected) painter->drawLine(rect.topLeft(), rect.topRight());
-    QString text;
-    if (m_model) {
-        // logicalIndex counts visible rows; the model is indexed by source row.
-        const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
-        text = m_model->rowLabel(sourceRow, logicalIndex);
-    } else {
-        text = QString::number(logicalIndex + 1);
-    }
-    painter->setPen(selected
+    painter->setPen((selected || running) ? stateBorder : separator);
+    painter->drawLine(rect.bottomLeft() + QPoint(1, 0), rect.bottomRight());
+    if (selected || running)
+        painter->drawLine(rect.topLeft() + QPoint(1, 0), rect.topRight());
+    const QColor foreground = selected && view != nullptr
         ? view->palette().color(QPalette::HighlightedText)
-        : (m_sectionForeground.isValid() ? m_sectionForeground : palette().color(QPalette::Text)));
-    painter->drawText(rect, Qt::AlignCenter, text);
+        : (running && view != nullptr
+               ? view->palette().color(QPalette::Link)
+               : (m_sectionForeground.isValid() ? m_sectionForeground : palette().color(QPalette::Text)));
+    if (running) {
+        constexpr int iconSize = 18;
+        const QPixmap check = MaterialIcon::pixmap(MaterialIcon::Glyph::Check, foreground, iconSize);
+        painter->drawPixmap(QPoint(rect.center().x() - iconSize / 2,
+                                   rect.center().y() - iconSize / 2), check);
+    } else {
+        const QString text = m_model
+            ? m_model->rowLabel(sourceRow, logicalIndex)
+            : QString::number(logicalIndex + 1);
+        painter->setPen(foreground);
+        painter->drawText(rect, Qt::AlignCenter, text);
+    }
     painter->restore();
 }
