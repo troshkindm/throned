@@ -1017,6 +1017,10 @@ briefly interrupts traffic.
         }
         QSize previewSize(1180, 780);
         const QStringList arguments = QApplication::arguments();
+        // Documentation screenshots should not age merely because the local
+        // preview binary carries a development build stamp.
+        if (arguments.contains(QStringLiteral("-ui-preview-docs")))
+            if (auto *version = window->findChild<QLabel *>(QStringLiteral("titleVersion"))) version->hide();
         if (const int sizeAt = arguments.indexOf(QStringLiteral("-ui-preview-size"));
             sizeAt >= 0 && sizeAt + 1 < arguments.size()) {
             const QStringList parts = arguments.at(sizeAt + 1).toLower().split(QLatin1Char('x'));
@@ -1336,23 +1340,54 @@ int main(int argc, char* argv[]) {
     QApplication a(argc, argv);
 
     if (a.arguments().contains(QStringLiteral("--update-prompt-preview"))) {
+        if (const int langAt = a.arguments().indexOf(QStringLiteral("-lang"));
+            langAt >= 0 && langAt + 1 < a.arguments().size()) {
+            static const QMap<QString, QString> locales{
+                {"en", "en_US"}, {"zh", "zh_CN"}, {"fa", "fa_IR"}, {"ru", "ru_RU"}};
+            if (const QString locale = locales.value(a.arguments().at(langAt + 1).toLower());
+                !locale.isEmpty())
+                loadTranslate(locale);
+        }
         ApplyPreviewTheme(a);
         QString note;
         if (const int at = a.arguments().indexOf(QStringLiteral("--notes"));
             at >= 0 && at + 1 < a.arguments().size())
             note = ReadFileText(a.arguments().at(at + 1));
         if (note.isEmpty()) {
-            QStringList lines{QStringLiteral("Synthetic release note for layout checking.")};
-            for (int section = 1; section <= 8; ++section) {
-                lines << QString() << QStringLiteral("## Section %1").arg(section) << QString();
-                for (int item = 1; item <= 6; ++item)
-                    lines << QStringLiteral("- Item %1.%2 — a line of about the length a real release "
-                                            "note entry runs to, so the wrapping is realistic.").arg(section).arg(item);
-            }
-            note = lines.join(QChar('\n'));
+            note = QStringLiteral(
+                "<!-- throned:lang=en -->\n"
+                "## What's new\n\n"
+                "- A redesigned main window with clearer profile states and a collapsible activity panel.\n"
+                "- Quick Add accepts a subscription or profile link and also opens manual creation.\n"
+                "- Update downloads now show unobtrusive progress.\n\n"
+                "## Fixed\n\n"
+                "- Existing groups survive an empty or invalid subscription response.\n"
+                "<!-- throned:lang=end -->\n\n"
+                "<details>\n<summary>Русский</summary>\n\n"
+                "<!-- throned:lang=ru -->\n"
+                "## Что нового\n\n"
+                "- Обновлённое главное окно с понятным состоянием профилей и сворачиваемой нижней панелью.\n"
+                "- Быстрое добавление принимает ссылку подписки или профиля и открывает ручное создание.\n"
+                "- Загрузка обновления теперь показывает ненавязчивый прогресс.\n\n"
+                "## Исправлено\n\n"
+                "- Пустой или некорректный ответ подписки больше не удаляет существующую группу.\n"
+                "<!-- throned:lang=end -->\n"
+                "</details>");
         }
-        ShowUpdatePrompt(nullptr, QObject::tr("Update"), QStringLiteral("Throned-1.3.1-windows64.zip"), note, true);
-        return 0;
+        bool previewSaved = true;
+        if (const int outputAt = a.arguments().indexOf(QStringLiteral("--output"));
+            outputAt >= 0 && outputAt + 1 < a.arguments().size()) {
+            const QString output = a.arguments().at(outputAt + 1);
+            previewSaved = false;
+            QTimer::singleShot(500, &a, [&a, &previewSaved, output] {
+                QWidget *prompt = QApplication::activeModalWidget();
+                previewSaved = prompt != nullptr && prompt->grab().save(output, "PNG");
+                if (prompt != nullptr) prompt->close();
+                else a.exit(2);
+            });
+        }
+        ShowUpdatePrompt(nullptr, QObject::tr("Update"), QStringLiteral("Throned-preview-windows64.zip"), note, true);
+        return previewSaved ? 0 : 2;
     }
 
     if (a.arguments().contains(QStringLiteral("--route-editor-preview"))) {
@@ -1537,6 +1572,9 @@ int main(int argc, char* argv[]) {
     QString locale;
     switch (Configs::dataManager->settingsRepo->language) {
         case 1: // English
+            // Keep locale-sensitive UI (including release notes) on English
+            // even when the operating-system locale is Russian or another language.
+            locale = "en_US";
             break;
         case 2:
             locale = "zh_CN";

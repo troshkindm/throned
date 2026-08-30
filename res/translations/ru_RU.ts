@@ -5899,19 +5899,19 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>Throned update available</source>
-        <translation type="unfinished"></translation>
+        <translation>Доступно обновление Throned</translation>
     </message>
     <message>
         <source>%1 is ready to download. Click to see the release notes.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 готово к загрузке. Нажмите, чтобы прочитать описание выпуска.</translation>
     </message>
     <message>
         <source>Update found: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Найдено обновление: %1</translation>
     </message>
     <message>
         <source>No release note.</source>
-        <translation type="unfinished"></translation>
+        <translation>Описание выпуска отсутствует.</translation>
     </message>
     <message>
         <source>Open in browser</source>

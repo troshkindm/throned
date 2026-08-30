@@ -152,6 +152,8 @@ set(PROJECT_SOURCES
 
         src/main.cpp
         src/global/Configs.cpp
+        include/global/ReleaseNotes.hpp
+        src/global/ReleaseNotes.cpp
         src/global/Utils.cpp
         include/global/Logger.hpp
         src/global/Logger.cpp
@@ -786,4 +788,12 @@ if (Qt6Test_FOUND)
     set_target_properties(throned_log_level_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
     target_link_libraries(throned_log_level_tests PRIVATE Qt6::Test)
     add_test(NAME throned_log_level_tests COMMAND throned_log_level_tests)
+
+    qt_add_executable(throned_release_notes_tests
+            tests/test_release_notes.cpp
+            src/global/ReleaseNotes.cpp
+    )
+    set_target_properties(throned_release_notes_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
+    target_link_libraries(throned_release_notes_tests PRIVATE Qt6::Test)
+    add_test(NAME throned_release_notes_tests COMMAND throned_release_notes_tests)
 endif ()

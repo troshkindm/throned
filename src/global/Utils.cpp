@@ -1,4 +1,5 @@
 #include "include/global/Utils.hpp"
+#include "include/global/ReleaseNotes.hpp"
 
 #include "3rdparty/QThreadCreateThread.hpp"
 
@@ -340,8 +341,9 @@ UpdatePromptChoice ShowUpdatePrompt(QWidget *parent, const QString &title, const
 
     auto *notes = new QTextBrowser(&box);
     notes->setOpenExternalLinks(true);
-    if (releaseNote.trimmed().isEmpty()) notes->setPlainText(QObject::tr("No release note."));
-    else notes->setMarkdown(releaseNote);
+    const QString visibleReleaseNote = ReleaseNotes::LocalizedMarkdown(releaseNote, QLocale().name());
+    if (visibleReleaseNote.trimmed().isEmpty()) notes->setPlainText(QObject::tr("No release note."));
+    else notes->setMarkdown(visibleReleaseNote);
     layout->addWidget(notes, 1);
 
     auto *buttons = new QDialogButtonBox(&box);
