@@ -18,16 +18,12 @@ public:
     Q_ENUM(State)
 
     // Mirrors the tray-icon modes computed in MainWindow::refresh_status.
-    enum class Mode { Off, Core, SystemProxy, Tun, Dns, SystemProxyDns };
-    Q_ENUM(Mode)
 
     explicit StartStopButton(QWidget *parent = nullptr);
 
     void setState(State s);
     State state() const { return m_state; }
 
-    void setMode(Mode m);
-    Mode mode() const { return m_mode; }
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override { return sizeHint(); }
@@ -60,7 +56,6 @@ private:
     QColor targetRingColor() const;
 
     State m_state = State::Idle; // forced to Disabled in the constructor
-    Mode m_mode = Mode::Off;
 
     qreal m_morph = 0.0; // 0 = play triangle, 1 = stop square
     qreal m_spin = 0.0;

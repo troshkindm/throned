@@ -225,16 +225,27 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     return {};
 }
 
+void ProfilesTableModel::setSortIndicator(int column, bool descending) {
+    if (m_sortColumn == column && m_sortDescending == descending) return;
+    m_sortColumn = column;
+    m_sortDescending = descending;
+    emit headerDataChanged(Qt::Horizontal, 0, qMax(0, columnCount() - 1));
+}
+
 QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    const auto marked = [this, section](const QString &label) {
+        if (section != m_sortColumn) return label;
+        return label + (m_sortDescending ? QStringLiteral("  ↓") : QStringLiteral("  ↑"));
+    };
     if (m_rowStyle == RowStyle::Comfortable && orientation == Qt::Horizontal) {
         if (role == Qt::TextAlignmentRole)
             return static_cast<int>((section == ColcServer ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignVCenter);
         if (role != Qt::DisplayRole) return {};
         switch (section) {
-        case ColcServer: return tr("Server");
-        case ColcPing: return tr("Ping · UDP");
+        case ColcServer: return marked(tr("Server"));
+        case ColcPing: return marked(tr("Ping · UDP"));
         case ColcSpeed: return tr("Speed");
-        case ColcTraffic: return tr("Traffic");
+        case ColcTraffic: return marked(tr("Traffic"));
         default: return {};
         }
     }
@@ -247,11 +258,11 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
     if (role != Qt::DisplayRole) return {};
     if (orientation == Qt::Horizontal) {
         switch (section) {
-        case ColType: return tr("Type");
-        case ColAddress: return tr("Address");
-        case ColName: return tr("Name");
-        case ColTestResult: return tr("Test Result");
-        case ColTraffic: return tr("Traffic");
+        case ColType: return marked(tr("Type"));
+        case ColAddress: return marked(tr("Address"));
+        case ColName: return marked(tr("Name"));
+        case ColTestResult: return marked(tr("Test Result"));
+        case ColTraffic: return marked(tr("Traffic"));
         case ColUDP: return tr("UDP");
         default: return {};
         }

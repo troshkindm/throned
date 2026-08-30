@@ -37,6 +37,10 @@ public:
 
     enum class RowStyle { Compact, Comfortable };
 
+    // The arrow is part of the header label: a QSS header with transparent
+    // sections swallows the style's own sort indicator.
+    void setSortIndicator(int column, bool descending);
+
     // Everything a comfortable row paints, resolved once per row.
     struct RowVisual {
         QString name;
@@ -112,6 +116,8 @@ private:
     mutable QHash<int, FilterKey> m_filterKeys;
     bool m_udpColumnVisible = false;
     RowStyle m_rowStyle = RowStyle::Compact;
+    int m_sortColumn = -1;
+    bool m_sortDescending = false;
     mutable bool m_filterIndexBuilt = false;
 };
 

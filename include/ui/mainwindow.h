@@ -269,6 +269,7 @@ private:
     class ProfileRowDelegate *profileRowDelegate = nullptr;
     class QStyledItemDelegate *compactRowDelegate = nullptr;
     class QToolButton *statsPanelToggle = nullptr;
+    int statsStripHeight = 39;
     class QToolButton *statsStripToggle = nullptr;
     class QFrame *statsStrip = nullptr;
     class QVariantAnimation *statsPanelAnimation = nullptr;
@@ -279,6 +280,7 @@ private:
     class QWidget *statsPanelHost = nullptr;
     QList<class QToolButton *> statsStripTabs;
     class QLabel *statsConnectionTabCount = nullptr;
+    // The Connections strip tab: it carries the live count in its own label.
     class QToolButton *statsConnectionStripCount = nullptr;
     class QActionGroup *logLevelActions = nullptr;
     QList<QWidget *> statsPanelTools;

@@ -287,16 +287,6 @@ void MainWindow::refresh_startstop_button() {
 
     const auto &settings = Configs::dataManager->settingsRepo;
 
-    auto mode = StartStopButton::Mode::Off;
-    if (running != nullptr) {
-        if (settings->spmode_vpn) mode = StartStopButton::Mode::Tun;
-        else if (settings->system_dns_set && settings->spmode_system_proxy) mode = StartStopButton::Mode::SystemProxyDns;
-        else if (settings->system_dns_set) mode = StartStopButton::Mode::Dns;
-        else if (settings->spmode_system_proxy) mode = StartStopButton::Mode::SystemProxy;
-        else mode = StartStopButton::Mode::Core;
-    }
-    btn->setMode(mode);
-
     StartStopButton::State state;
     if (m_profileConnecting) state = StartStopButton::State::Connecting;
     else if (m_profileDisconnecting) state = StartStopButton::State::Disconnecting;
@@ -660,14 +650,19 @@ void MainWindow::updateStatsPanelChevron(qreal openProgress) {
     const auto colors = themeManager->Colors();
     const QPixmap glyph = MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronUp,
                                                colors.textMuted, 16);
-    QPixmap canvas(20, 20);
+    // The canvas has to carry the same ratio as the glyph, or rotating it here
+    // resamples an already-scaled bitmap a second time.
+    const qreal ratio = glyph.devicePixelRatio();
+    const QSizeF glyphSize = glyph.deviceIndependentSize();
+    QPixmap canvas(QSize(20, 20) * ratio);
+    canvas.setDevicePixelRatio(ratio);
     canvas.fill(Qt::transparent);
     QPainter painter(&canvas);
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-    painter.translate(canvas.width() / 2.0, canvas.height() / 2.0);
+    painter.translate(10.0, 10.0);
     painter.rotate(180.0 * statsPanelOpenProgress);
-    painter.drawPixmap(-glyph.width() / 2, -glyph.height() / 2, glyph);
+    painter.drawPixmap(QPointF(-glyphSize.width() / 2.0, -glyphSize.height() / 2.0), glyph);
     painter.end();
     const QIcon icon(canvas);
     if (statsStripToggle != nullptr) statsStripToggle->setIcon(icon);
@@ -722,7 +717,7 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
     if (!animate) {
         panel->setMinimumHeight(0);
         panel->setMaximumHeight(QWIDGETSIZE_MAX);
-        statsStrip->setFixedHeight(39);
+        statsStrip->setFixedHeight(statsStripHeight);
         if (open) {
             ui->stats_widget->show();
             panel->show();
@@ -744,7 +739,7 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
     int panelStart = panel->isVisible() && startSizes.size() == 2 ? startSizes[1] : 0;
     int stripStart = statsStrip->isVisible() ? statsStrip->height() : 0;
     const int panelEnd = open ? targetPanel : 0;
-    const int stripEnd = open ? 0 : 39;
+    const int stripEnd = open ? 0 : statsStripHeight;
     const qreal progressStart = statsPanelOpenProgress;
     const qreal progressEnd = open ? 1.0 : 0.0;
 
@@ -781,7 +776,7 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
         statsPanelAnimation = nullptr;
         panel->setMinimumHeight(0);
         panel->setMaximumHeight(QWIDGETSIZE_MAX);
-        statsStrip->setFixedHeight(39);
+        statsStrip->setFixedHeight(statsStripHeight);
         if (open) {
             panel->show();
             statsStrip->hide();

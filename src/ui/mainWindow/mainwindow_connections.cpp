@@ -549,5 +549,9 @@ void MainWindow::refreshStatsPanelLabels()
     // hierarchy, fixed-width badges stop the tabs jumping on every polling tick.
     ui->stats_widget->setTabText(tab, tr("Connections"));
     if (statsConnectionTabCount != nullptr) statsConnectionTabCount->setText(countText);
-    if (statsConnectionStripCount != nullptr) statsConnectionStripCount->setText(countText);
+    // The closed strip has no room for a badge widget, so the number joins the label.
+    if (statsConnectionStripCount != nullptr)
+        statsConnectionStripCount->setText(countText.isEmpty()
+            ? tr("Connections")
+            : tr("Connections") + QStringLiteral("   ") + countText);
 }

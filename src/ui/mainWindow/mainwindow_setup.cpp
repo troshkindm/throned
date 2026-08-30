@@ -524,7 +524,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     auto *stripLayout = new QHBoxLayout(statsStrip);
     stripLayout->setContentsMargins(9, 4, 7, 4);
     stripLayout->setSpacing(2);
-    statsStrip->setFixedHeight(39);
+    // The strip has to clear its own tab buttons at whatever font size is set.
+    statsStripHeight = qMax(39, statsStrip->sizeHint().height());
+    statsStrip->setFixedHeight(statsStripHeight);
     for (int tab = 0; tab < ui->stats_widget->count(); tab++) {
         auto *tabButton = new QToolButton(statsStrip);
         tabButton->setObjectName(QStringLiteral("stripTab"));
@@ -539,19 +541,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         });
         stripLayout->addWidget(tabButton);
         statsStripTabs.append(tabButton);
-        if (page == ui->connections_tab) {
-            statsConnectionStripCount = new QToolButton(statsStrip);
-            statsConnectionStripCount->setObjectName(QStringLiteral("stripCountBadge"));
-            statsConnectionStripCount->setCursor(Qt::PointingHandCursor);
-            statsConnectionStripCount->setFocusPolicy(Qt::NoFocus);
-            statsConnectionStripCount->setFixedWidth(31);
-            statsConnectionStripCount->setToolTip(tr("Connections"));
-            connect(statsConnectionStripCount, &QToolButton::clicked, this, [this, page] {
-                ui->stats_widget->setCurrentWidget(page);
-                setStatsPanelOpen(true);
-            });
-            stripLayout->addWidget(statsConnectionStripCount);
-        }
+        // The count rides in the tab's own label. As a second widget it was a
+        // separate hover target that opened the very thing the tab beside it did.
+        if (page == ui->connections_tab) statsConnectionStripCount = tabButton;
     }
     const int connectionsTab = ui->stats_widget->indexOf(ui->connections_tab);
     if (connectionsTab >= 0) {
@@ -559,7 +551,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         statsConnectionTabCount = new QLabel(QStringLiteral("0"), ui->stats_widget->tabBar());
         statsConnectionTabCount->setObjectName(QStringLiteral("tabCountBadge"));
         statsConnectionTabCount->setAlignment(Qt::AlignCenter);
-        statsConnectionTabCount->setFixedWidth(31);
+        // Three digits plus padding: a busy machine outgrows a fixed 31px.
+        statsConnectionTabCount->setFixedWidth(
+            qMax(31, statsConnectionTabCount->fontMetrics().horizontalAdvance(QStringLiteral("999")) + 14));
         statsConnectionTabCount->setAttribute(Qt::WA_TransparentForMouseEvents);
         ui->stats_widget->tabBar()->setTabButton(connectionsTab, QTabBar::RightSide,
                                                  statsConnectionTabCount);
@@ -775,14 +769,14 @@ QFrame#commandBar QToolButton::menu-indicator { image: none; width: 0px; }
 QLabel#controlLabel { font-weight: 550; }
 QWidget#logTools { background: transparent; }
 QFrame#tableTools {
-    background: #171B21; border: 1px solid #343A42; border-radius: 7px;
+    background: #171B21; border: 1px solid #3E454F; border-radius: 7px;
 }
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
 }
 QPushButton#logToolButton:hover { background: #292D33; border-color: #4A4F57; }
 QToolButton#tableFilterButton {
-    background: transparent; border: none; border-right: 1px solid #343A42;
+    background: transparent; border: none; border-right: 1px solid #3E454F;
     border-radius: 6px;
 }
 QToolButton#tableFilterButton:hover { background: #292D33; }
@@ -798,11 +792,6 @@ QFrame#logsStrip QToolButton#stripTab {
     padding: 4px 11px; border-radius: 5px; font-weight: 500;
 }
 QFrame#logsStrip QToolButton#stripTab:hover { color: #F1F3F5; background: #222529; }
-QFrame#logsStrip QToolButton#stripCountBadge {
-    background: transparent; border: none; color: #747C86; padding: 4px 2px;
-    border-radius: 5px; font-weight: 550;
-}
-QFrame#logsStrip QToolButton#stripCountBadge:hover { color: #A4ABB4; background: #222529; }
 QFrame#logsStrip QLabel#stripHint { color: #747C86; background: transparent; font-size: 11px; }
 QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; padding: 3px; }
 QToolButton#panelIconButton:hover { background: #222529; }
@@ -815,14 +804,14 @@ QTabWidget#groupsCard::pane { background: transparent; border: none; top: 0px; }
 QTabWidget#groupsCard::tab-bar { left: 6px; }
 QTabWidget#groupsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
 QTabWidget#groupsCard QTabBar::tab {
-    background: #222529; border: 1px solid #343A42; border-radius: 5px;
+    background: #222529; border: 1px solid #3E454F; border-radius: 5px;
     padding: 6px 11px; margin-right: 6px; margin-bottom: 6px;
     color: #C2C7CE; font-weight: 500;
 }
 QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
 QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #24282D; border-color: #3D444D; }
 QWidget#statsPanelHost {
-    background: #171B21; border: 1px solid #343A42; border-radius: 8px;
+    background: #171B21; border: 1px solid #3E454F; border-radius: 8px;
 }
 QTabWidget#logsCard::pane { background: transparent; border: none; top: 0px; }
 QTabWidget#logsCard::tab-bar { left: 5px; }
@@ -832,7 +821,7 @@ QTabWidget#logsCard QTabBar::tab {
     padding: 5px 11px; margin: 4px 2px 4px 0; color: #A4ABB4; font-weight: 500;
 }
 QTabWidget#logsCard QTabBar::tab:hover { color: #F1F3F5; background: #222529; }
-QTabWidget#logsCard QTabBar::tab:selected { color: #F1F3F5; background: #292D33; border-color: #343A42; }
+QTabWidget#logsCard QTabBar::tab:selected { color: #F1F3F5; background: #292D33; border-color: #3E454F; }
 QTabWidget#logsCard QTabBar QLabel#tabCountBadge {
     color: #747C86; background: transparent; border: none; font-weight: 550;
 }
@@ -844,7 +833,7 @@ QMenu#logToolsMenu::item:selected { background: #2D333B; }
 QMenu#logToolsMenu::item:disabled { color: #747C86; }
 QMenu#logToolsMenu::separator { height: 1px; background: #3A414A; margin: 4px 7px; }
 QWidget[thronedCard="true"] {
-    background: #171B21; border: 1px solid #343A42; border-radius: 8px;
+    background: #171B21; border: 1px solid #3E454F; border-radius: 8px;
 }
 QWidget[thronedPanelPage="true"] { background: transparent; border: none; }
 /* The group page paints the card; the table and its headers stay transparent so
@@ -904,8 +893,14 @@ QTextBrowser#selectionStatus {
     color: #E5E8EB; background: #1B1E23; border: none;
     border-top: 1px solid #2F3136; padding: 8px 15px;
 }
-QScrollBar:vertical { background: transparent; width: 11px; margin: 3px; }
-QScrollBar::handle:vertical { background: #344759; border-radius: 4px; min-height: 34px; }
+QScrollBar:vertical { background: transparent; width: 12px; margin: 7px 3px 7px 0; }
+QScrollBar::handle:vertical { background: #3B4C5E; border-radius: 6px; min-height: 36px; }
+QScrollBar::handle:vertical:hover { background: #4B6076; }
+QScrollBar:horizontal { background: transparent; height: 12px; margin: 0 7px 3px 7px; }
+QScrollBar::handle:horizontal { background: #3B4C5E; border-radius: 6px; min-width: 36px; }
+QScrollBar::handle:horizontal:hover { background: #4B6076; }
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
 )");
@@ -1074,7 +1069,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     auto *tableTools = new QFrame(ui->tabWidget);
     tableTools->setObjectName(QStringLiteral("tableTools"));
     auto *tableToolsLayout = new QHBoxLayout(tableTools);
-    tableToolsLayout->setContentsMargins(0, 0, 0, 0);
+    // Breathing room between the search row and the table card below it.
+    tableToolsLayout->setContentsMargins(0, 0, 0, 7);
     tableToolsLayout->setSpacing(0);
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     btnFilter->setFixedSize(35, 32);
@@ -1325,7 +1321,20 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         } else {
             proxy_last_order = logicalIndex;
         }
-        if (logicalIndex == ProfilesTableModel::ColType) {
+        // Comfortable rows are a different column set that happens to share the
+        // compact indices, so the mapping below would sort Server by protocol and
+        // Traffic by latency.
+        const bool comfortable = profilesTableModel != nullptr
+            && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable;
+        if (comfortable) {
+            switch (logicalIndex) {
+            case ProfilesTableModel::ColcServer: action.method = GroupSortMethod::ByName; break;
+            case ProfilesTableModel::ColcPing: action.method = GroupSortMethod::ByTestResult; break;
+            case ProfilesTableModel::ColcTraffic: action.method = GroupSortMethod::ByTraffic; break;
+            // Speed has no sort of its own, so the column stays inert.
+            default: proxy_last_order = -1; return;
+            }
+        } else if (logicalIndex == ProfilesTableModel::ColType) {
             auto group = Configs::dataManager->groupsRepo->CurrentGroup();
             action.method = (Configs::dataManager->settingsRepo->show_config_security && group
                              && group->type_sort_by == Configs::typeBy::bySecurity)
@@ -1342,6 +1351,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         } else {
             return;
         }
+        profilesTableModel->setSortIndicator(logicalIndex, action.descending);
         runOnNewThread([=, this] {
             auto currGroup = Configs::dataManager->groupsRepo->CurrentGroup();
             if (currGroup == nullptr) return;

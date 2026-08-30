@@ -1,6 +1,7 @@
 #include "include/ui/widget/MaterialIcon.h"
 
 #include <QPainter>
+#include <QGuiApplication>
 #include <QSvgRenderer>
 
 namespace {
@@ -88,7 +89,11 @@ QPixmap pixmap(Glyph glyph, const QColor &color, int pixels) {
     const QByteArray svg = QByteArray("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='")
         + color.name(QColor::HexRgb).toUtf8() + "' d='" + pathFor(glyph) + "'/></svg>";
     QSvgRenderer renderer(svg);
-    QPixmap result(pixels, pixels);
+    // Rasterise at the screen's ratio. A 1x pixmap upscaled by the compositor is
+    // the difference between a crisp glyph and a smeared one at 125% and up.
+    const qreal ratio = qGuiApp != nullptr ? qGuiApp->devicePixelRatio() : 1.0;
+    QPixmap result(QSize(pixels, pixels) * ratio);
+    result.setDevicePixelRatio(ratio);
     result.fill(Qt::transparent);
     QPainter painter(&result);
     painter.setRenderHint(QPainter::Antialiasing);

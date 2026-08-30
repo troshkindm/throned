@@ -39,10 +39,6 @@ void StartStopButton::setState(State s) {
     applyState(true);
 }
 
-void StartStopButton::setMode(Mode m) {
-    if (m == m_mode) return;
-    m_mode = m;
-}
 
 void StartStopButton::applyState(bool animated) {
     const bool interactive = (m_state == State::Idle || m_state == State::Running);
@@ -165,13 +161,13 @@ void StartStopButton::paintEvent(QPaintEvent *) {
     // Throne. Colour is now semantic and stable: green starts, red stops, amber
     // means a transition. A short hover halo gives feedback without pulsing.
     const QRectF shell(c.x() - D * 0.41, c.y() - D * 0.41, D * 0.82, D * 0.82);
-    const qreal radius = D * 0.22;
+    // The spinner and the shell are both circles, so the command reads as one disc.
     if (underMouse() && isEnabled()) {
         QColor halo = m_ringColor;
         halo.setAlpha(36);
         p.setPen(Qt::NoPen);
         p.setBrush(halo);
-        p.drawRoundedRect(shell.adjusted(-2.0, -2.0, 2.0, 2.0), radius + 2.0, radius + 2.0);
+        p.drawEllipse(shell.adjusted(-2.0, -2.0, 2.0, 2.0));
     }
     QColor fill = m_ringColor;
     fill.setAlpha(m_state == State::Disabled ? 18 : (underMouse() ? 48 : 34));
@@ -179,7 +175,7 @@ void StartStopButton::paintEvent(QPaintEvent *) {
     border.setAlpha(m_state == State::Disabled ? 75 : 175);
     p.setPen(QPen(border, 1.25));
     p.setBrush(fill);
-    p.drawRoundedRect(shell.adjusted(0.65, 0.65, -0.65, -0.65), radius, radius);
+    p.drawEllipse(shell.adjusted(0.65, 0.65, -0.65, -0.65));
 
     if (m_state == State::Connecting || m_state == State::Disconnecting) {
         const qreal spinnerR = D * 0.27;
