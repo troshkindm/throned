@@ -769,8 +769,11 @@ QFrame#commandBar QToolButton:hover { background: #292D33; }
 QFrame#commandBar QToolButton::menu-indicator { image: none; width: 0px; }
 QLabel#controlLabel { font-weight: 550; }
 QWidget#logTools { background: transparent; }
+/* The frame is the visible box. Its bottom margin is what lifts it onto the
+   same baseline as the tabs; the widget grows by that margin on its own. */
 QFrame#tableTools {
     background: #171B21; border: 1px solid #3E454F; border-radius: 7px;
+    margin-bottom: 5px;
 }
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
@@ -802,7 +805,7 @@ QTabWidget#groupsCard::tab-bar { left: 6px; }
 QTabWidget#groupsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
 QTabWidget#groupsCard QTabBar::tab {
     background: #222529; border: 1px solid #3E454F; border-radius: 5px;
-    padding: 6px 11px; margin-right: 6px; margin-bottom: 6px;
+    padding: 6px 11px; margin: 1px 6px 5px 0;
     color: #C2C7CE; font-weight: 500;
 }
 QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
@@ -811,7 +814,7 @@ QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #24282
    so the painted box comes out square and lines up with the tabs. */
 QToolButton#favoritesTabButton {
     background: #222529; border: 1px solid #3E454F; border-radius: 5px;
-    margin: 0 6px 17px 0;
+    margin: 0 10px 19px 0;
 }
 QToolButton#favoritesTabButton:hover { background: #292D33; border-color: #4A4F57; }
 QToolButton#favoritesTabButton:checked { background: #182530; border-color: #237AE9; }
@@ -1117,7 +1120,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     favoritesButton->setIconSize(QSize(18, 18));
     // Painted box is the widget minus the QSS margins, so add them back here to
     // land on a 33x33 square matching a group tab.
-    favoritesButton->setFixedSize(39, 50);
+    favoritesButton->setFixedSize(43, 52);
     connect(favoritesButton, &QToolButton::clicked, this, [this](bool on) { setFavoritesView(on); });
     refreshFavoritesButtonIcon();
     ui->tabWidget->setCornerWidget(favoritesButton, Qt::TopLeftCorner);
@@ -1135,7 +1138,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     serverSearch->setObjectName(QStringLiteral("serverSearch"));
     serverSearch->setPlaceholderText(tr("Search servers..."));
     serverSearch->setClearButtonEnabled(true);
-    serverSearch->setFixedSize(268, 32);
+    serverSearch->setFixedSize(268, 33);
     // The per-column filter row is gone: this field already searches every one of
     // them, so Find belongs here rather than on a second control beside it.
     auto *findShortcut = new QShortcut(QKeySequence::Find, this);
