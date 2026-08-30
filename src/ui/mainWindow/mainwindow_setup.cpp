@@ -795,7 +795,9 @@ QToolButton#panelIconButton::menu-indicator { image: none; width: 0px; }
 QToolButton#connectionRowCloseButton { background: transparent; border: none; border-radius: 4px; padding: 2px; }
 QToolButton#connectionRowCloseButton:hover { background: #3A2227; }
 QTabWidget#groupsCard, QTabWidget#logsCard { background: transparent; }
-QTabWidget#groupsCard::pane { background: transparent; border: none; top: 0px; }
+/* The corner widget ignores layout margins, so the breathing room between the
+   search row and the table card comes from where the pane starts. */
+QTabWidget#groupsCard::pane { background: transparent; border: none; top: 7px; }
 QTabWidget#groupsCard::tab-bar { left: 6px; }
 QTabWidget#groupsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
 QTabWidget#groupsCard QTabBar::tab {
@@ -1065,7 +1067,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     tableTools->setObjectName(QStringLiteral("tableTools"));
     auto *tableToolsLayout = new QHBoxLayout(tableTools);
     // Breathing room between the search row and the table card below it.
-    tableToolsLayout->setContentsMargins(0, 0, 0, 7);
+    tableToolsLayout->setContentsMargins(0, 0, 0, 0);
     tableToolsLayout->setSpacing(0);
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     auto *serverSearch = new QLineEdit(tableTools);

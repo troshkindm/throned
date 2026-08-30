@@ -166,9 +166,10 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         flash.setAlphaF(0.28 * m_flashStrength);
         painter->fillRect(opt.rect, flash);
     }
-    // The tick in the number gutter is easy to lose in a long list; the stripe
-    // gives the running row an edge that survives scrolling past it.
-    if (visual.running && index.column() == ProfilesTableModel::ColcServer) {
+    // The tick in the number gutter is easy to lose in a long list. A selected row
+    // already reads, and the header draws its own accent divider there, so the two
+    // together looked like one fat border between the number and the name.
+    if (visual.running && !selected && index.column() == ProfilesTableModel::ColcServer) {
         painter->fillRect(QRect(opt.rect.left(), opt.rect.top() + 1, 3, opt.rect.height() - 2),
                           colors.accent);
     }
