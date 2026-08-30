@@ -32,6 +32,8 @@ struct ThronedThemeColors {
     QColor selection;
     QColor selectionBorder;
     QColor success;
+    QColor danger;          // destructive: close the window, drop a connection
+    QColor dangerSoft;      // its tinted hover ground
     QColor controlInactive;
     QColor scrollBar;
     QColor scrollBarHover;
@@ -52,6 +54,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F2F3F5", .textMuted = "#ADB1B8", .textSubtle = "#7C8089",
             .accent = "#3B82F6", .accentHover = "#5C99FF", .accentSoft = "#16243A",
             .selection = "#1B3253", .selectionBorder = "#3D6DA8", .success = "#3ECF8E",
+            .danger = "#D2434E", .dangerSoft = "#3A2227",
             .controlInactive = "#3B3F47", .scrollBar = "#454951", .scrollBarHover = "#5A5F69",
             .dark = true,
         }},
@@ -62,6 +65,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F3F3F4", .textMuted = "#B0B1B5", .textSubtle = "#7F8085",
             .accent = "#6366F1", .accentHover = "#7E80F6", .accentSoft = "#22233C",
             .selection = "#292A46", .selectionBorder = "#4F51B8", .success = "#3ECF8E",
+            .danger = "#D2434E", .dangerSoft = "#3B2326",
             .controlInactive = "#3C3D42", .scrollBar = "#47484E", .scrollBarHover = "#5C5D64",
             .dark = true,
         }},
@@ -72,6 +76,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F1F4F5", .textMuted = "#ACB3B6", .textSubtle = "#7B8386",
             .accent = "#12B5CB", .accentHover = "#2FCBE0", .accentSoft = "#0E2E36",
             .selection = "#113B47", .selectionBorder = "#1E7E93", .success = "#3ECF8E",
+            .danger = "#D14550", .dangerSoft = "#382225",
             .controlInactive = "#394144", .scrollBar = "#444C50", .scrollBarHover = "#596266",
             .dark = true,
         }},
@@ -82,6 +87,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F4F2F6", .textMuted = "#B2AEB9", .textSubtle = "#817D89",
             .accent = "#A277FF", .accentHover = "#B593FF", .accentSoft = "#2A2140",
             .selection = "#332954", .selectionBorder = "#6E56B8", .success = "#3ECF8E",
+            .danger = "#D6444F", .dangerSoft = "#3D242C",
             .controlInactive = "#3F3A47", .scrollBar = "#4A4553", .scrollBarHover = "#5F5A69",
             .dark = true,
         }},
@@ -92,6 +98,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F6F3F2", .textMuted = "#B7B0AE", .textSubtle = "#86807D",
             .accent = "#F2555F", .accentHover = "#FF7480", .accentSoft = "#3B1F22",
             .selection = "#45242A", .selectionBorder = "#A34450", .success = "#3ECF8E",
+            .danger = "#E04B4B", .dangerSoft = "#452627",
             .controlInactive = "#443C3A", .scrollBar = "#504846", .scrollBarHover = "#665D5A",
             .dark = true,
         }},
@@ -118,24 +125,29 @@ inline QString Resolve(const QString &styleSheetTemplate, const ThronedThemeColo
 
     static const QStringList windowTokens{"#1B1E23"};
     static const QStringList surfaceTokens{"#171B21", "#14181E"};
-    static const QStringList surfaceRaisedTokens{"#222529", "#22272E", "#252B33", "#272C33", "#2B3037"};
-    static const QStringList surfaceHoverTokens{"#292D33", "#292E35"};
-    static const QStringList borderTokens{"#2F3136", "#25292F", "#343C46", "#3A4048", "#343941"};
-    static const QStringList borderStrongTokens{"#4A4F57", "#4A535E", "#45505C"};
+    static const QStringList surfaceRaisedTokens{"#222529", "#22272E", "#252B33", "#272C33", "#2B3037",
+                                                 "#1B222A", "#20252B", "#22262C"};
+    static const QStringList surfaceHoverTokens{"#292D33", "#292E35", "#24282D", "#2D333B"};
+    static const QStringList borderTokens{"#2F3136", "#25292F", "#343C46", "#3A4048", "#343941",
+                                          "#3A414A", "#3A424C"};
+    static const QStringList borderStrongTokens{"#4A4F57", "#4A535E", "#45505C",
+                                                "#3D444D", "#3E454F", "#525C68"};
     static const QStringList textTokens{"#F1F3F5", "#DDE2E7", "#D8DCE1", "#EDF4FA", "#F2FFF9",
-                                        "#DDE7F0", "#E5E8EB", "#E1E4E8", "#F7F9FA"};
+                                        "#DDE7F0", "#E5E8EB", "#E1E4E8", "#F7F9FA", "#E7EAED"};
     static const QStringList textMutedTokens{"#A4ABB4", "#AEB7C2", "#9FB2C3", "#C2C7CE", "#B8BEC7"};
-    static const QStringList textSubtleTokens{"#8295A6", "#747C86", "#617181"};
+    static const QStringList textSubtleTokens{"#8295A6", "#747C86", "#617181", "#747B85"};
     static const QStringList accentTokens{"#237AE9", "#2F91FF", "#3187F3"};
     static const QStringList accentHoverTokens{"#3B8BF0", "#4193F4", "#2F86F1", "#4DA3FF", "#7BBAFF"};
     static const QStringList accentSoftTokens{"#193452", "#263B55", "#193E69", "#182530", "#182631",
-                                              "#14242D", "#1B2634", "#263C55"};
+                                              "#14242D", "#1B2634", "#263C55", "#182B38", "#222A33"};
     static const QStringList selectionTokens{"#143C48"};
-    static const QStringList selectionBorderTokens{"#1D7585"};
+    static const QStringList selectionBorderTokens{"#1D7585", "#2E749A"};
     static const QStringList successTokens{"#2EBC75"};
     static const QStringList controlInactiveTokens{"#34414D"};
-    static const QStringList scrollBarTokens{"#344759", "#3A424D"};
-    static const QStringList scrollBarHoverTokens{"#4B5663"};
+    static const QStringList scrollBarTokens{"#344759", "#3A424D", "#3B4C5E"};
+    static const QStringList scrollBarHoverTokens{"#4B5663", "#4B6076"};
+    static const QStringList dangerTokens{"#C42B35"};
+    static const QStringList dangerSoftTokens{"#3A2227"};
 
     const QList<QPair<const QStringList *, const QColor *>> groups{
         {&windowTokens, &colors.window},
@@ -153,6 +165,8 @@ inline QString Resolve(const QString &styleSheetTemplate, const ThronedThemeColo
         {&selectionTokens, &colors.selection},
         {&selectionBorderTokens, &colors.selectionBorder},
         {&successTokens, &colors.success},
+        {&dangerTokens, &colors.danger},
+        {&dangerSoftTokens, &colors.dangerSoft},
         {&controlInactiveTokens, &colors.controlInactive},
         {&scrollBarTokens, &colors.scrollBar},
         {&scrollBarHoverTokens, &colors.scrollBarHover},
