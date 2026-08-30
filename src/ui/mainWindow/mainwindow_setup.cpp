@@ -462,7 +462,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     levelMenu->setObjectName(QStringLiteral("logToolsMenu"));
     levelMenu->setToolTipsVisible(true);
     levelMenu->setToolTip(tr("Hides log lines below this level, and sets the core's own log level for the next start"));
-    levelMenu->setTitle(tr("Level") + QStringLiteral("        ")
+    // A run of spaces faked a value column and drifted with the font; a real
+    // separator says the same thing and survives any width.
+    levelMenu->setTitle(tr("Level") + QStringLiteral(": ")
                         + Configs::SingBox::NormalizeLogLevel(
                               Configs::dataManager->settingsRepo->log_level).toUpper());
     logLevelActions = new QActionGroup(this);
@@ -510,7 +512,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(logLevelActions, &QActionGroup::triggered, this, [this, levelMenu](QAction *action) {
         Configs::dataManager->settingsRepo->log_level = action->data().toString();
         Configs::dataManager->settingsRepo->Save();
-        levelMenu->setTitle(tr("Level") + QStringLiteral("        ")
+        levelMenu->setTitle(tr("Level") + QStringLiteral(": ")
                             + action->data().toString().toUpper());
         updateLogFilterFields();
     });
@@ -892,7 +894,9 @@ QTabWidget#logsCard QTabBar QLabel#tabCountBadge {
 QMenu#logToolsMenu {
     background: #22262C; border: 1px solid #3A414A; border-radius: 7px; padding: 6px;
 }
-QMenu#logToolsMenu::item { padding: 7px 30px 7px 28px; border-radius: 4px; }
+/* The icon column is the leading area Qt reserves; padding-left is added on top
+   of it, so 28px left the glyph against the border and the label adrift. */
+QMenu#logToolsMenu::item { padding: 7px 24px 7px 8px; border-radius: 4px; }
 QMenu#logToolsMenu::item:selected { background: #2D333B; }
 QMenu#logToolsMenu::item:disabled { color: #747C86; }
 QMenu#logToolsMenu::separator { height: 1px; background: #3A414A; margin: 4px 7px; }
