@@ -1,6 +1,8 @@
 #include "include/ui/utils/ProfilesTableVerticalHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/global/Configs.hpp"
+#include "include/database/SettingsRepo.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
 #include <QPainter>
@@ -70,9 +72,11 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
         && view->selectionModel()->isRowSelected(logicalIndex, QModelIndex());
     // logicalIndex counts visible rows; the model is indexed by source row.
     const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
+    // The id, not the whole RowVisual: building one costs a group lookup and half
+    // a dozen strings, and this runs for every visible row on every repaint.
     const bool running = m_model != nullptr && sourceRow >= 0
-        && m_model->index(sourceRow, 0).data(ProfilesTableModel::RowVisualRole)
-               .value<ProfilesTableModel::RowVisual>().running;
+        && m_model->index(sourceRow, 0).data(ProfilesTableModel::ProfileIdRole).toInt()
+               == Configs::dataManager->settingsRepo->started_id;
     const auto colors = themeManager->Colors();
     const QColor background = selected
         ? colors.selection
