@@ -271,6 +271,7 @@ private:
     class QStyledItemDelegate *compactRowDelegate = nullptr;
     class QToolButton *statsPanelToggle = nullptr;
     int statsStripHeight = 39;
+    bool m_searchedEveryGroup = false;
     class QVariantAnimation *rowFlashAnimation = nullptr;
     class QToolButton *favoritesButton = nullptr;
     class QToolButton *groupAddButton = nullptr;
@@ -625,6 +626,8 @@ private:
     // and its own UDP toggle, so it stays fixed.
     void addProfileColumnsMenu(class QMenu &menu);
     void applyProfileColumnVisibility();
+    // True while a search should reach past the group the tab is showing.
+    [[nodiscard]] bool searchesEveryGroup() const;
 
     static std::shared_ptr<Configs::Profile> vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent);
 

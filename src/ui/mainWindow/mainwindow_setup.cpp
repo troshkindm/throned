@@ -1552,6 +1552,16 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             QMenu menu(this);
             addRowStyleAction(menu);
             addProfileColumnsMenu(menu);
+            {
+                auto* wide = menu.addAction(tr("Search every group"));
+                wide->setCheckable(true);
+                wide->setChecked(Configs::dataManager->settingsRepo->profiles_search_all_groups);
+                connect(wide, &QAction::triggered, this, [this](bool on) {
+                    Configs::dataManager->settingsRepo->profiles_search_all_groups = on;
+                    Configs::dataManager->settingsRepo->Save();
+                    applyProfileFilters();
+                });
+            }
             addFavoritesButtonAction(menu);
             menu.exec(header->mapToGlobal(pos));
             return;

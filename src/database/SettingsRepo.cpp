@@ -68,6 +68,7 @@ namespace Configs {
             {"profiles_show_ping",            &profiles_show_ping},
             {"profiles_show_speed",           &profiles_show_speed},
             {"profiles_show_traffic",         &profiles_show_traffic},
+            {"profiles_search_all_groups",    &profiles_search_all_groups},
             {"stats_panel_open",              &stats_panel_open},
             {"use_custom_icons",              &use_custom_icons},
             {"xray_mux_default_on",           &xray_mux_default_on},

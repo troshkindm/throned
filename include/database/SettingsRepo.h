@@ -257,6 +257,7 @@ namespace Configs {
         bool profiles_show_ping = true;
         bool profiles_show_speed = true;
         bool profiles_show_traffic = true;
+        bool profiles_search_all_groups = false;
         bool dpi_bypass_block_quic = true;
         QString dpi_bypass_method = "spoof";
         QString dpi_bypass_spoof_sni = "api-maps.yandex.ru";

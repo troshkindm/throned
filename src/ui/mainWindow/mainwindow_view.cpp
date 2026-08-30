@@ -136,11 +136,24 @@ void MainWindow::updateLogFilterFields() {
     }
 }
 
+bool MainWindow::searchesEveryGroup() const {
+    return Configs::dataManager->settingsRepo->profiles_search_all_groups
+        && !globalFilterString.isEmpty();
+}
+
 void MainWindow::applyProfileFilters()
 {
     if (!profilesFilterModel) return;
     profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, countryFilterString);
     profilesFilterModel->setSearch(globalFilterString);
+    // Clearing the last character has to put the group back, and typing the first
+    // one has to widen: both change which rows the model holds, not just which of
+    // them the proxy lets through.
+    if (const bool wide = searchesEveryGroup(); wide != m_searchedEveryGroup) {
+        m_searchedEveryGroup = wide;
+        refresh_proxy_list({}, true);
+        return;
+    }
     refresh_proxy_list_column_size();
 }
 
@@ -414,6 +427,11 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
     } else if (Configs::dataManager->settingsRepo->profiles_favorites_view) {
         profilesTableModel->refreshTable(
             Configs::dataManager->profilesRepo->GetFavoriteProfileIds(), mayNeedReset);
+    } else if (searchesEveryGroup()) {
+        // The proxy narrows by text; widening the model is what lets the search
+        // reach past the group the tab is showing.
+        profilesTableModel->refreshTable(
+            Configs::dataManager->profilesRepo->GetAllProfileIds(), mayNeedReset);
     } else {
         profilesTableModel->refreshTable(currentGroup->profiles, mayNeedReset);
     }
