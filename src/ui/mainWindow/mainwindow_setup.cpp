@@ -6,6 +6,7 @@
 
 #include <QActionGroup>
 #include <QMenu>
+#include <QShortcut>
 #include <QAction>
 #include <QSignalBlocker>
 #include <QStyle>
@@ -775,12 +776,6 @@ QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
 }
 QPushButton#logToolButton:hover { background: #292D33; border-color: #4A4F57; }
-QToolButton#tableFilterButton {
-    background: transparent; border: none; border-right: 1px solid #3E454F;
-    border-radius: 6px;
-}
-QToolButton#tableFilterButton:hover { background: #292D33; }
-QToolButton#tableFilterButton:checked { background: #182B38; }
 QLineEdit#serverSearch {
     background: transparent; border: none; border-radius: 6px;
     padding: 6px 9px 6px 4px;
@@ -1053,19 +1048,19 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         on_tabWidget_currentChanged(ui->tabWidget->tabBar()->currentIndex());
     });
     ui->label_running->installEventFilter(this);
+    ui->label_running->setCursor(Qt::PointingHandCursor);
+    // Left click now jumps to the row, so the test this label used to trigger
+    // moves here rather than disappearing.
+    ui->label_running->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->label_running, &QWidget::customContextMenuRequested, this, [this](const QPoint &pos) {
+        if (running == nullptr) return;
+        QMenu menu(this);
+        menu.addAction(tr("Test this connection"), this, &MainWindow::url_test_current);
+        menu.exec(ui->label_running->mapToGlobal(pos));
+    });
     ui->label_inbound->installEventFilter(this);
     ui->splitter->installEventFilter(this);
     ui->tabWidget->installEventFilter(this);
-    auto btnFilter = new QToolButton(this);
-    btnFilter->setObjectName(QStringLiteral("tableFilterButton"));
-    btnFilter->setToolTip(QString("%1\n%2").arg(tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
-    btnFilter->setShortcut(QKeySequence::Find);
-    btnFilter->setCheckable(true);
-    btnFilter->setIconSize(QSize(17, 17));
-    btnFilter->setFixedSize(32, 32);
-    connect(btnFilter, &QToolButton::toggled, static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::setFiltersVisible);
-    connect(static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::closeRequested,
-            btnFilter, [btnFilter] { btnFilter->setChecked(false); });
     auto *tableTools = new QFrame(ui->tabWidget);
     tableTools->setObjectName(QStringLiteral("tableTools"));
     auto *tableToolsLayout = new QHBoxLayout(tableTools);
@@ -1073,13 +1068,18 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     tableToolsLayout->setContentsMargins(0, 0, 0, 7);
     tableToolsLayout->setSpacing(0);
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    btnFilter->setFixedSize(35, 32);
-    tableToolsLayout->addWidget(btnFilter);
     auto *serverSearch = new QLineEdit(tableTools);
     serverSearch->setObjectName(QStringLiteral("serverSearch"));
     serverSearch->setPlaceholderText(tr("Search servers..."));
     serverSearch->setClearButtonEnabled(true);
-    serverSearch->setFixedSize(236, 32);
+    serverSearch->setFixedSize(268, 32);
+    // The per-column filter row is gone: this field already searches every one of
+    // them, so Find belongs here rather than on a second control beside it.
+    auto *findShortcut = new QShortcut(QKeySequence::Find, this);
+    connect(findShortcut, &QShortcut::activated, serverSearch, [serverSearch] {
+        serverSearch->setFocus(Qt::ShortcutFocusReason);
+        serverSearch->selectAll();
+    });
     auto *searchAction = serverSearch->addAction(QIcon(), QLineEdit::LeadingPosition);
     tableToolsLayout->addWidget(serverSearch);
     connect(serverSearch, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -1087,10 +1087,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (m_filterRefreshDebounce) m_filterRefreshDebounce->start();
     });
     ui->tabWidget->setCornerWidget(tableTools, Qt::TopRightCorner);
-    const auto retintTableTools = [btnFilter, searchAction] {
+    const auto retintTableTools = [searchAction] {
         const auto colors = themeManager->Colors();
-        btnFilter->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune,
-                                              btnFilter->isChecked() ? colors.accent : colors.textMuted, 17));
         // Qt centres a line-edit action on the frame, which puts the glyph above
         // the text's optical centre. Drawing it one pixel down inside a slightly
         // larger square lands it on the same line as the placeholder.
@@ -1102,7 +1100,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         searchAction->setIcon(QIcon(glyph));
     };
     retintTableTools();
-    connect(btnFilter, &QToolButton::toggled, this, retintTableTools);
     connect(themeManager, &ThemeManager::themeChanged, this, retintTableTools);
     //
     RegisterHotkey(false);

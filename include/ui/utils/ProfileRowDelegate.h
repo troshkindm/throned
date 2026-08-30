@@ -15,6 +15,14 @@ public:
     // uses, because ResizeToContents does not agree with them.
     static int metricColumnWidth(int column, const QFont &font);
 
+    // A short tint over one row, so a jump from the status bar lands somewhere
+    // the eye can follow. strength 0 clears it.
+    void setFlash(int row, qreal strength);
+
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+private:
+    int m_flashRow = -1;
+    qreal m_flashStrength = 0.0;
 };

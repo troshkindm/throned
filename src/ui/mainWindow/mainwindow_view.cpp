@@ -6,6 +6,8 @@
 #include <QFrame>
 #include <QSignalBlocker>
 #include <QHeaderView>
+#include <QAbstractItemView>
+#include <QLineEdit>
 #include <QScrollBar>
 #include <QTimer>
 #include <QActionGroup>
@@ -25,10 +27,12 @@
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
+#include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/stats/dialog_auto_selector.h"
 #include <QStyledItemDelegate>
 
 #include "include/ui/utils/ProfileRowDelegate.h"
+#include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/StartStopButton.hpp"
@@ -458,6 +462,67 @@ QString MainWindow::liveVpnConnectOkText() {
     bool connected = false;
     const auto text = liveVpnStateText(&connected);
     return connected ? text : QString();
+}
+
+void MainWindow::revealRunningProfile() {
+    const int id = Configs::dataManager->settingsRepo->started_id;
+    if (id < 0 || profilesTableModel == nullptr || profilesFilterModel == nullptr) return;
+    const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+    if (profile == nullptr) return;
+
+    // It may be running out of a group the table is not showing.
+    if (profile->gid != Configs::dataManager->settingsRepo->current_group) {
+        const int tab = groupId2TabIndex(profile->gid);
+        if (tab < 0) return;
+        ui->tabWidget->setCurrentIndex(tab);
+    }
+    // ...and a search may be hiding it, in which case scrolling to nothing reads
+    // as the click having missed.
+    if (profilesFilterModel->toProxyRow(profilesTableModel->indexOfProfile(id)) < 0) {
+        if (auto *search = findChild<QLineEdit *>(QStringLiteral("serverSearch"))) search->clear();
+        globalFilterString.clear();
+        applyProfileFilters();
+    }
+
+    const int sourceRow = profilesTableModel->indexOfProfile(id);
+    if (sourceRow < 0) return;
+    const int proxyRow = profilesFilterModel->toProxyRow(sourceRow);
+    if (proxyRow < 0) return;
+
+    auto *view = ui->profilesTableView;
+    const QModelIndex target = profilesFilterModel->index(proxyRow, ProfilesTableModel::ColcServer);
+    view->setCurrentIndex(target);
+    view->selectRow(proxyRow);
+    view->scrollTo(target, QAbstractItemView::PositionAtCenter);
+    view->setFocus();
+    flashProfileRow(proxyRow);
+}
+
+void MainWindow::flashProfileRow(int proxyRow) {
+    if (profileRowDelegate == nullptr) return;
+    if (rowFlashAnimation != nullptr) {
+        rowFlashAnimation->stop();
+        rowFlashAnimation->deleteLater();
+        rowFlashAnimation = nullptr;
+    }
+    auto *animation = new QVariantAnimation(this);
+    rowFlashAnimation = animation;
+    animation->setStartValue(1.0);
+    animation->setEndValue(0.0);
+    animation->setDuration(900);
+    animation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(animation, &QVariantAnimation::valueChanged, this, [this, proxyRow](const QVariant &value) {
+        Q_UNUSED(proxyRow); Q_UNUSED(value);
+        ui->profilesTableView->viewport()->update();
+    });
+    connect(animation, &QVariantAnimation::finished, this, [this, animation] {
+        if (rowFlashAnimation != animation) return;
+        rowFlashAnimation = nullptr;
+
+        ui->profilesTableView->viewport()->update();
+        animation->deleteLater();
+    });
+    animation->start();
 }
 
 void MainWindow::url_test_current() {

@@ -846,14 +846,13 @@ briefly interrupts traffic.
     void VerifyProfileFiltersThenCapture(MainWindow *window, const QString &prefix) {
         auto *table = window->findChild<QTableView *>(QStringLiteral("profilesTableView"));
         auto *search = window->findChild<QLineEdit *>(QStringLiteral("serverSearch"));
-        auto *filterButton = window->findChild<QToolButton *>(QStringLiteral("tableFilterButton"));
-        if (table == nullptr || table->model() == nullptr || search == nullptr || filterButton == nullptr) {
+        if (table == nullptr || table->model() == nullptr || search == nullptr) {
             qApp->exit(2);
             return;
         }
         const int unfilteredRows = table->model()->rowCount();
         search->setText(QStringLiteral("Demo North"));
-        QTimer::singleShot(140, window, [window, prefix, table, search, filterButton, unfilteredRows] {
+        QTimer::singleShot(140, window, [window, prefix, table, search, unfilteredRows] {
             if (table->model()->rowCount() != 1) {
                 qWarning() << "Global profile search preview check failed" << table->model()->rowCount();
                 qApp->exit(2);
@@ -861,44 +860,12 @@ briefly interrupts traffic.
             }
             window->grab().save(prefix + QStringLiteral("-search-filtered.png"), "PNG");
             search->clear();
-            QTimer::singleShot(120, window, [window, prefix, table, filterButton, unfilteredRows] {
+            QTimer::singleShot(120, window, [window, prefix, table, unfilteredRows] {
                 if (table->model()->rowCount() != unfilteredRows) {
                     qApp->exit(2);
                     return;
                 }
-                filterButton->setChecked(true);
-                QTimer::singleShot(80, window, [window, prefix, table, filterButton, unfilteredRows] {
-                    QLineEdit *columnFilter = nullptr;
-                    for (auto *edit : table->horizontalHeader()->findChildren<QLineEdit *>())
-                        if (edit->isVisible()) {
-                            columnFilter = edit;
-                            break;
-                        }
-                    if (columnFilter == nullptr) {
-                        qApp->exit(2);
-                        return;
-                    }
-                    columnFilter->setText(QStringLiteral("Demo East"));
-                    QTimer::singleShot(140, window,
-                        [window, prefix, table, filterButton, columnFilter, unfilteredRows] {
-                        if (table->model()->rowCount() != 1) {
-                            qWarning() << "Column profile filter preview check failed"
-                                       << table->model()->rowCount();
-                            qApp->exit(2);
-                            return;
-                        }
-                        window->grab().save(prefix + QStringLiteral("-column-filtered.png"), "PNG");
-                        columnFilter->clear();
-                        filterButton->setChecked(false);
-                        QTimer::singleShot(120, window, [window, prefix, table, unfilteredRows] {
-                            if (table->model()->rowCount() != unfilteredRows) {
-                                qApp->exit(2);
-                                return;
-                            }
-                            BeginMainWindowCapture(window, prefix);
-                        });
-                    });
-                });
+                BeginMainWindowCapture(window, prefix);
             });
         });
     }

@@ -143,6 +143,11 @@ int ProfileRowDelegate::metricColumnWidth(int column, const QFont &font) {
     }
 }
 
+void ProfileRowDelegate::setFlash(int row, qreal strength) {
+    m_flashRow = row;
+    m_flashStrength = qBound(0.0, strength, 1.0);
+}
+
 void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                const QModelIndex &index) const {
     QStyleOptionViewItem opt(option);
@@ -155,6 +160,18 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     const auto visual = index.data(ProfilesTableModel::RowVisualRole).value<ProfilesTableModel::RowVisual>();
     const auto colors = themeManager->Colors();
     const bool selected = opt.state & QStyle::State_Selected;
+
+    if (index.row() == m_flashRow && m_flashStrength > 0.0) {
+        QColor flash = colors.accent;
+        flash.setAlphaF(0.28 * m_flashStrength);
+        painter->fillRect(opt.rect, flash);
+    }
+    // The tick in the number gutter is easy to lose in a long list; the stripe
+    // gives the running row an edge that survives scrolling past it.
+    if (visual.running && index.column() == ProfilesTableModel::ColcServer) {
+        painter->fillRect(QRect(opt.rect.left(), opt.rect.top() + 1, 3, opt.rect.height() - 2),
+                          colors.accent);
+    }
 
     const QColor ink = selected ? opt.palette.color(QPalette::HighlightedText) : colors.text;
     const QColor muted = selected ? opt.palette.color(QPalette::HighlightedText).darker(125) : colors.textMuted;

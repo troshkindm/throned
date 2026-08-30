@@ -270,6 +270,7 @@ private:
     class QStyledItemDelegate *compactRowDelegate = nullptr;
     class QToolButton *statsPanelToggle = nullptr;
     int statsStripHeight = 39;
+    class QVariantAnimation *rowFlashAnimation = nullptr;
     class QToolButton *statsStripToggle = nullptr;
     class QFrame *statsStrip = nullptr;
     class QVariantAnimation *statsPanelAnimation = nullptr;
@@ -586,6 +587,10 @@ private:
     bool handleXrayGeoAssetError(const QString& error, const QString& contextName);
 
     void url_test_current();
+    // Jumps the table to the running profile and flashes it: a status bar that
+    // names a server people then cannot find is the complaint this answers.
+    void revealRunningProfile();
+    void flashProfileRow(int proxyRow);
 
     static std::shared_ptr<Configs::Profile> vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent);
 
