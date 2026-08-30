@@ -2,6 +2,7 @@ package boxmain
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -69,5 +70,50 @@ func TestConnectionLogWriterHonoursWriterContract(t *testing.T) {
 	}
 	if !bytes.Contains(target.Bytes(), []byte("[PID 9]")) {
 		t.Fatalf("enriched output missing PID: %q", target.String())
+	}
+}
+
+func TestConnectionLogWriterCorrelatesTunErrorByContextID(t *testing.T) {
+	var target bytes.Buffer
+	writer := &connectionLogWriter{
+		target: &target,
+		resolve: func(endpoints []string) trackedProcess {
+			if len(endpoints) == 1 && endpoints[0] == "172.19.0.1:63094" {
+				return trackedProcess{
+					source: endpoints[0], name: "python.exe", pid: 31337, matched: true,
+				}
+			}
+			return trackedProcess{}
+		},
+	}
+
+	lines := []string{
+		"INFO[0010] [1408276967 0ms] inbound/tun[tun-in]: inbound connection from 172.19.0.1:63094\n",
+		`INFO[0010] [1408276967 0ms] router: found process path: C:\Users\demo\python.exe` + "\n",
+		"ERROR[0010] [1408276967 1.15s] connection: connection upload closed: raw-read tcp4 172.19.0.1:52684->172.19.0.2:10051: An existing connection was forcibly closed by the remote host.\n",
+	}
+	for _, line := range lines {
+		if _, err := writer.Write([]byte(line)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	got := target.String()
+	want := "ERROR[0010] [1408276967 1.15s] connection: connection upload closed: raw-read tcp4 172.19.0.1:52684->172.19.0.2:10051: An existing connection was forcibly closed by the remote host. [process: python.exe, PID 31337]\n"
+	if !strings.Contains(got, want) {
+		t.Fatalf("TUN error was not correlated:\n%s", got)
+	}
+}
+
+func TestConnectionLogWriterFallsBackToContextProcessPath(t *testing.T) {
+	var target bytes.Buffer
+	writer := &connectionLogWriter{
+		target:  &target,
+		resolve: func([]string) trackedProcess { return trackedProcess{} },
+	}
+	_, _ = writer.Write([]byte(`INFO[0009] [123456789 0ms] router: found process path: C:\Apps\Fallback.exe` + "\n"))
+	_, _ = writer.Write([]byte("ERROR[0010] [123456789 1.15s] connection: connection upload closed: raw-read tcp4 172.19.0.1:52684->172.19.0.2:10051: An existing connection was forcibly closed by the remote host.\n"))
+	if !strings.Contains(target.String(), "[process: Fallback.exe]") {
+		t.Fatalf("context path fallback missing: %q", target.String())
 	}
 }

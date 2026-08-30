@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/sagernet/sing-box/common/trafficcontrol"
 	"github.com/sagernet/sing/service"
@@ -26,10 +27,28 @@ type processResolver func(endpoints []string) trackedProcess
 type connectionLogWriter struct {
 	target  io.Writer
 	resolve processResolver
+
+	mu          sync.Mutex
+	contexts    map[string]connectionContext
+	contextRing [contextCacheSize]string
+	contextNext int
 }
 
+type connectionContext struct {
+	source      string
+	processPath string
+}
+
+const contextCacheSize = 2048
+
 var connectionEndpointsPattern = regexp.MustCompile(
-	`(?i)\b(?:raw-read|raw-write) tcp\s+(\[[^\]]+\]:\d+|[^\s:]+:\d+)\s*->\s*(\[[^\]]+\]:\d+|[^\s:]+:\d+)`,
+	`(?i)\b(?:raw-read|raw-write) tcp(?:4|6)?\s+(\[[^\]]+\]:\d+|[^\s:]+:\d+)\s*->\s*(\[[^\]]+\]:\d+|[^\s:]+:\d+)`,
+)
+
+var connectionContextPattern = regexp.MustCompile(`\[(\d+)\s+[^\]]+\]`)
+
+var inboundSourcePattern = regexp.MustCompile(
+	`(?i)\binbound/[^:]+:\s+inbound (?:packet )?connection from\s+(\[[^\]]+\]:\d+|[^\s:]+:\d+)`,
 )
 
 func newConnectionLogWriter(ctx context.Context, target io.Writer) io.Writer {
@@ -42,8 +61,11 @@ func newConnectionLogWriter(ctx context.Context, target io.Writer) io.Writer {
 }
 
 func (w *connectionLogWriter) Write(data []byte) (int, error) {
-	output := enrichConnectionLog(string(data), w.resolve)
+	w.mu.Lock()
+	hint := w.observeConnectionContext(string(data))
+	output := enrichConnectionLogWithContext(string(data), w.resolve, hint)
 	written, err := io.WriteString(w.target, output)
+	w.mu.Unlock()
 	if err != nil {
 		return 0, err
 	}
@@ -55,6 +77,10 @@ func (w *connectionLogWriter) Write(data []byte) (int, error) {
 }
 
 func enrichConnectionLog(input string, resolve processResolver) string {
+	return enrichConnectionLogWithContext(input, resolve, connectionContext{})
+}
+
+func enrichConnectionLogWithContext(input string, resolve processResolver, hint connectionContext) string {
 	lineEnding := ""
 	line := input
 	if strings.HasSuffix(line, "\n") {
@@ -79,6 +105,16 @@ func enrichConnectionLog(input string, resolve processResolver) string {
 	// The peer is normally the second endpoint. Trying it first also keeps a
 	// loopback listener (127.0.0.1:2080) from winning over the app's ephemeral port.
 	process := resolve([]string{match[2], match[1]})
+	if !process.matched && hint.source != "" {
+		process = resolve([]string{hint.source})
+	}
+	if !process.matched && hint.processPath != "" {
+		process = trackedProcess{
+			source:  hint.source,
+			path:    hint.processPath,
+			matched: true,
+		}
+	}
 	if !process.matched {
 		return input
 	}
@@ -99,6 +135,34 @@ func enrichConnectionLog(input string, resolve processResolver) string {
 	}
 
 	return line + annotation + lineEnding
+}
+
+func (w *connectionLogWriter) observeConnectionContext(line string) connectionContext {
+	match := connectionContextPattern.FindStringSubmatch(line)
+	if len(match) != 2 {
+		return connectionContext{}
+	}
+	id := match[1]
+	if w.contexts == nil {
+		w.contexts = make(map[string]connectionContext, contextCacheSize)
+	}
+	hint, exists := w.contexts[id]
+	if !exists {
+		if evicted := w.contextRing[w.contextNext]; evicted != "" {
+			delete(w.contexts, evicted)
+		}
+		w.contextRing[w.contextNext] = id
+		w.contextNext = (w.contextNext + 1) % contextCacheSize
+	}
+
+	if source := inboundSourcePattern.FindStringSubmatch(line); len(source) == 2 {
+		hint.source = source[1]
+	}
+	if at := strings.Index(line, "router: found process path:"); at >= 0 {
+		hint.processPath = strings.TrimSpace(line[at+len("router: found process path:"):])
+	}
+	w.contexts[id] = hint
+	return hint
 }
 
 func demoteErrorLevel(line string) string {
