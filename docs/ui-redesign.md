@@ -105,14 +105,15 @@ throned --route-editor-preview [--advanced] [--detail] [--paste] \
         [-lang ru] [-theme graphite] --output routes.png
 
 # main window on an isolated configuration, with sample connections
-throned -lang en -theme graphite -ui-preview <prefix>
+throned -lang en -theme midnight -ui-preview-docs -ui-preview <prefix>
 ```
 
-`-ui-preview` writes `<prefix>-window.png`, `<prefix>-menu.png`,
-`<prefix>-menu-in-place.png` and `<prefix>-submenu.png`. It always runs against
-an automatically created temporary database containing only reserved example
-domains and RFC 5737 documentation addresses; persisted profiles and
-subscriptions are never opened or copied.
+`-ui-preview` writes the collapsed main window plus focused captures for the
+activity-panel animation, search, logs, connections, graph, menus, start/stop
+states and updater progress. `-ui-preview-docs` hides the local development
+build stamp. The preview always runs against an automatically created temporary
+database containing only reserved example domains and RFC 5737 documentation
+addresses; persisted profiles and subscriptions are never opened or copied.
 
 `-lang` and `-theme` also work on a normal launch and override the stored
 choices for that run only.

@@ -46,16 +46,22 @@ Everything Throne does, plus:
 - UDP latency and jitter probe, with its own column.
 - Ping monitor on the graph: up to three targets, direct path measured beside the proxy.
 - URL test, speed test and IP resolution over a multi-row selection.
+- Search, sort and close live connections; filters and ordering survive restarts.
+- Themed proxy/direct throughput graph in the collapsible activity panel.
 
 **Interface**
-- Frameless native window, five themes.
+- Redesigned two-line server list with exit endpoint, live metrics and configurable columns.
+- Favourites across every group, plus optional search across every group.
+- Quick Add accepts subscription and profile links or opens manual group/profile creation.
+- Frameless native window, five core palettes and self-contained custom skins.
 - Log filtered by level, on a hanging timestamp gutter.
 - Subscription usage and expiry on the group tab.
 - Status strip that no longer reflows as numbers change.
 
 **Operating it**
 - **Copy Diagnostics** — one paste for a bug report, secrets masked.
-- Update check announced in the tray; nothing installs itself.
+- Update checks and downloads follow the running profile, with in-window progress and explicit restart-to-install.
+- Release notes follow the interface language when the release provides a translation.
 - Control CLI over a local socket.
 
 <details>
@@ -214,11 +220,11 @@ problem.
 
 | Component | Version |
 | --- | --- |
-| sing-box | v1.13.20 (throneproj fork) |
+| sing-box | v1.14.0-rc.5 (throneproj fork) |
 | Xray-core | throneproj fork |
-| sing-tun | v0.9.0-beta.2 |
-| Qt | 6.11.1 |
-| Go | 1.26.5 |
+| sing-tun | v0.9.0-beta.4 |
+| Qt | 6.11.1–6.11.2 (target-dependent) |
+| Go | 1.26.7 |
 
 Exact build stamps are printed in the log at startup. Protocols come from
 sing-box and Xray: VLESS, VMess, Trojan, Shadowsocks, SOCKS, HTTP(S), TUIC,
