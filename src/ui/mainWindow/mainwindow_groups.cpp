@@ -48,6 +48,13 @@ void MainWindow::show_group(int gid) {
     auto *page = ui->tabWidget->widget(groupId2TabIndex(gid));
     page->setProperty("thronedCard", true);
     page->setAttribute(Qt::WA_StyledBackground, true);
+    // The card paints its border inside its own rect, so the table has to sit one
+    // pixel in or it covers that border with its own opaque background. The .ui
+    // page carries this inset; pages built for the other groups did not, which is
+    // why the left edge existed on the first tab and nowhere else.
+    if (auto *pageLayout = page->layout(); pageLayout != nullptr) {
+        pageLayout->setContentsMargins(1, 0, 1, 1);
+    }
     page->style()->unpolish(page);
     page->style()->polish(page);
     page->layout()->addWidget(ui->profilesTableView);
