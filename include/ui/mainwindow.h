@@ -613,6 +613,9 @@ private:
     // Favourites are a view over every group, not a group of their own: the tab
     // order stays a pure list of real groups.
     void setFavoritesView(bool on);
+    // The current group remains the backing page while favourites are open, but
+    // its tab must not look active beside the checked favourites button.
+    void syncGroupTabSelection();
     void toggleFavorite(const QList<int> &ids);
     void refreshFavoritesButtonIcon();
     // An empty table has to say which of the three reasons it is empty for.

@@ -113,6 +113,9 @@ void MainWindow::refresh_groups() {
     }
 
     Configs::dataManager->settingsRepo->refreshing_group_list = false;
+    // Rebuilding tabs can repaint the backing group. Favourites are an external
+    // view, so restore the strip's deliberately suppressed group emphasis.
+    syncGroupTabSelection();
 }
 
 void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {

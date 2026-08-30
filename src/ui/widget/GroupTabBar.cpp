@@ -3,6 +3,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <QPainter>
+#include <QStylePainter>
 #include <QStyleOptionTab>
 
 namespace {
@@ -36,8 +37,27 @@ void GroupTabBar::clearUsage() {
     update();
 }
 
+void GroupTabBar::setSelectionVisible(bool visible) {
+    if (selectionVisible_ == visible) return;
+    selectionVisible_ = visible;
+    update();
+}
+
 void GroupTabBar::paintEvent(QPaintEvent *event) {
     QTabBar::paintEvent(event);
+
+    // QTabWidget requires a current page, but Favourites is a view layered over
+    // that page rather than another tab. Repaint only the current tab with its
+    // ordinary state so every theme (including skin-provided gradients) supplies
+    // the right inactive appearance without duplicating its colours here.
+    if (!selectionVisible_ && currentIndex() >= 0) {
+        QStyleOptionTab option;
+        initStyleOption(&option, currentIndex());
+        option.state &= ~(QStyle::State_Selected | QStyle::State_HasFocus);
+        QStylePainter painter(this);
+        painter.drawControl(QStyle::CE_TabBarTab, option);
+    }
+
     if (usage_.isEmpty()) return;
 
     QPainter painter(this);

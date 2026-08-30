@@ -56,6 +56,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/ui/widget/StartStopButton.hpp"
+#include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/control/ThronedControl.h"
 
@@ -1163,6 +1164,39 @@ briefly interrupts traffic.
         QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
             if (arguments.contains(QStringLiteral("-ui-preview-quick-add"))) {
                 CaptureQuickAddPreviews(window, prefix, emptyPreview);
+                return;
+            }
+            if (arguments.contains(QStringLiteral("-ui-preview-favorites"))) {
+                auto *favorites = window->findChild<QToolButton *>(QStringLiteral("favoritesTabButton"));
+                auto *groups = window->findChild<QTabWidget *>(QStringLiteral("groupsCard"));
+                if (favorites == nullptr || groups == nullptr) {
+                    qWarning() << "Favourites preview controls are missing";
+                    qApp->exit(2);
+                    return;
+                }
+                favorites->click();
+                QTimer::singleShot(120, window, [window, favorites, groups, prefix] {
+                    auto *groupBar = qobject_cast<GroupTabBar *>(groups->tabBar());
+                    const bool opened = favorites->isChecked()
+                        && groupBar != nullptr && !groupBar->isSelectionVisible();
+                    if (!opened) {
+                        qWarning() << "Favourites kept a group tab visually selected"
+                                   << favorites->isChecked()
+                                   << (groupBar != nullptr ? groupBar->isSelectionVisible() : true);
+                        qApp->exit(2);
+                        return;
+                    }
+                    window->grab().save(prefix + QStringLiteral("-favorites.png"), "PNG");
+                    favorites->click();
+                    QTimer::singleShot(80, window, [favorites, groupBar] {
+                        const bool restored = !favorites->isChecked()
+                            && groupBar->isSelectionVisible();
+                        if (!restored)
+                            qWarning() << "Leaving favourites did not restore the group tab"
+                                       << favorites->isChecked() << groupBar->isSelectionVisible();
+                        qApp->exit(restored ? 0 : 2);
+                    });
+                });
                 return;
             }
             VerifyStatsPanelAnimationThenCapture(window, prefix);

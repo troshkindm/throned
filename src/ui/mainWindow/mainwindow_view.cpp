@@ -446,8 +446,12 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
 
 void MainWindow::setFavoritesView(bool on) {
     auto *settings = Configs::dataManager->settingsRepo.get();
+    // A hidden button must never leave an invisible cross-group view behind,
+    // including after restoring an older or interrupted settings write.
+    if (on && !settings->profiles_favorites_button) on = false;
     if (settings->profiles_favorites_view == on && favoritesButton != nullptr
-        && favoritesButton->isChecked() == on) {
+        && favoritesButton->isChecked() == on
+        && ui->tabWidget->groupTabBar()->isSelectionVisible() == !on) {
         return;
     }
     settings->profiles_favorites_view = on;
@@ -457,11 +461,19 @@ void MainWindow::setFavoritesView(bool on) {
         favoritesButton->setChecked(on);
         favoritesButton->setToolTip(on ? tr("Back to the group") : tr("Show favourites"));
     }
+    syncGroupTabSelection();
     // Rows here come from several groups, so dragging one would rewrite the order
     // of a group the user cannot even see.
     ui->profilesTableView->setDragEnabled(!on && !searchesEveryGroup());
     refreshFavoritesButtonIcon();
     refresh_proxy_list({}, true);
+}
+
+void MainWindow::syncGroupTabSelection() {
+    auto *bar = ui->tabWidget->groupTabBar();
+    if (bar == nullptr) return;
+    bar->setSelectionVisible(
+        !Configs::dataManager->settingsRepo->profiles_favorites_view);
 }
 
 void MainWindow::refreshProfilesEmptyState() {

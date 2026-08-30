@@ -18,11 +18,17 @@ public:
 
     void clearUsage();
 
+    // An external view such as Favourites can own the visible selection while
+    // QTabWidget keeps a real group page current underneath it.
+    void setSelectionVisible(bool visible);
+    [[nodiscard]] bool isSelectionVisible() const { return selectionVisible_; }
+
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
     QHash<int, double> usage_;
+    bool selectionVisible_ = true;
 };
 
 // Exists only to install GroupTabBar: QTabWidget::setTabBar is protected.
