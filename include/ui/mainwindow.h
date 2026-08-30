@@ -273,11 +273,14 @@ private:
     int statsStripHeight = 39;
     class QVariantAnimation *rowFlashAnimation = nullptr;
     class QToolButton *favoritesButton = nullptr;
+    class QToolButton *groupAddButton = nullptr;
     class QAction *favoriteAction = nullptr;
     class QWidget *profilesEmptyState = nullptr;
     class QLabel *profilesEmptyIcon = nullptr;
     class QLabel *profilesEmptyTitle = nullptr;
     class QLabel *profilesEmptySub = nullptr;
+    class QPushButton *profilesEmptyAction = nullptr;
+    class QuickAddOverlay *quickAddOverlay = nullptr;
     class QToolButton *statsStripToggle = nullptr;
     class QFrame *statsStrip = nullptr;
     class QVariantAnimation *statsPanelAnimation = nullptr;
@@ -611,6 +614,9 @@ private:
     void refreshFavoritesButtonIcon();
     // An empty table has to say which of the three reasons it is empty for.
     void refreshProfilesEmptyState();
+
+    // Shared by the group-strip plus and the empty-group call to action.
+    void showQuickAddOverlay();
     void setFavoritesButtonVisible(bool on);
     // Shared by the tab strip and the table header menus, so hiding the button
     // never leaves the user without a way to bring it back.

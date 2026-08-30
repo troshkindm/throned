@@ -19,11 +19,13 @@
 #include <QScrollBar>
 #include <QThread>
 #include <QThreadPool>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include <algorithm>
 #include <atomic>
 #include <ranges>
+#include <utility>
 
 #include "3rdparty/QrDecoder.h"
 #include "3rdparty/qrcodegen.hpp"
@@ -35,6 +37,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
+#include "include/ui/mainWindow/QuickAddOverlay.h"
 #include "include/ui/profile/dialog_edit_profile.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 
@@ -63,6 +66,64 @@ void MainWindow::on_menu_add_from_input_triggered() {
 void MainWindow::on_menu_add_from_clipboard_triggered() {
     auto clipboard = QApplication::clipboard()->text();
     import_or_handle_deeplink(clipboard);
+}
+
+void MainWindow::showQuickAddOverlay() {
+    if (quickAddOverlay == nullptr) {
+        QuickAddOverlay::Callbacks callbacks;
+        callbacks.addLink = [this](QuickAddOverlay::LinkKind kind, const QString &value) {
+            if (kind == QuickAddOverlay::LinkKind::Profile) {
+                import_or_handle_deeplink(value);
+                return;
+            }
+
+            QUrl url(value);
+            QString name = url.host();
+            if (name.startsWith(QStringLiteral("www."), Qt::CaseInsensitive)) name.remove(0, 4);
+            if (name.isEmpty()) name = tr("Subscription");
+
+            auto group = Configs::GroupsRepo::NewGroup();
+            group->name = name;
+            group->url = value;
+            if (!Configs::dataManager->groupsRepo->AddGroup(group)) {
+                MessageBoxWarning(tr("Error"), tr("Could not create the group."));
+                return;
+            }
+            Configs::dataManager->settingsRepo->current_group = group->id;
+            Configs::dataManager->settingsRepo->Save();
+            MW_dialog_message(MwMessage::GroupsChanged, {});
+            Subscription::groupUpdater->AsyncUpdate(value, group->id);
+        };
+        callbacks.addProfile = [this](const QString &type, int groupId, const QString &name,
+                                      const QString &address, const QString &port) {
+            if (Configs::dataManager->groupsRepo->GetGroup(groupId) == nullptr)
+                groupId = Configs::dataManager->settingsRepo->current_group;
+            auto *dialog = new DialogEditProfile(type, groupId, this);
+            dialog->setInitialCommonFields(name, address, port);
+            connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
+        };
+        callbacks.addGroup = [this](const QString &name, const QString &subscriptionUrl) {
+            auto group = Configs::GroupsRepo::NewGroup();
+            group->name = name;
+            group->url = subscriptionUrl;
+            if (!Configs::dataManager->groupsRepo->AddGroup(group)) {
+                MessageBoxWarning(tr("Error"), tr("Could not create the group."));
+                return;
+            }
+            Configs::dataManager->settingsRepo->current_group = group->id;
+            Configs::dataManager->settingsRepo->Save();
+            MW_dialog_message(MwMessage::GroupsChanged, {});
+            if (!subscriptionUrl.isEmpty())
+                Subscription::groupUpdater->AsyncUpdate(subscriptionUrl, group->id);
+        };
+        quickAddOverlay = new QuickAddOverlay(this, std::move(callbacks));
+    }
+
+    QList<QPair<int, QString>> groups;
+    for (const int id : Configs::dataManager->groupsRepo->GetGroupsTabOrder())
+        if (const auto group = Configs::dataManager->groupsRepo->GetGroup(id); group != nullptr)
+            groups.append({id, group->name});
+    quickAddOverlay->open(groups, Configs::dataManager->settingsRepo->current_group);
 }
 
 void MainWindow::on_menu_clone_triggered() {

@@ -812,10 +812,16 @@ QLabel#controlLabel { font-weight: 550; }
 QWidget#logTools { background: transparent; }
 /* The frame is the visible box. Its bottom margin is what lifts it onto the
    same baseline as the tabs; the widget grows by that margin on its own. */
-QFrame#tableTools {
+QFrame#serverSearchFrame {
     background: #171B21; border: 1px solid #3E454F; border-radius: 7px;
     margin-bottom: 5px;
 }
+QToolButton#groupAddButton {
+    background: #222529; border: 1px solid #3E454F; border-radius: 7px;
+    margin-bottom: 5px;
+}
+QToolButton#groupAddButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#groupAddButton:pressed { background: #182530; border-color: #237AE9; }
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
 }
@@ -862,6 +868,12 @@ QToolButton#favoritesTabButton:checked { background: #182530; border-color: #237
 QWidget#profilesEmptyState { background: transparent; }
 QLabel#emptyStateTitle { color: #F1F3F5; font-size: 15px; font-weight: 600; background: transparent; }
 QLabel#emptyStateSub { color: #A4ABB4; font-size: 13px; background: transparent; }
+QPushButton#emptyStateAction {
+    color: #F1F3F5; background: #222529; border: 1px solid #3E454F;
+    border-radius: 7px; padding: 7px 13px; font-weight: 550;
+}
+QPushButton#emptyStateAction:hover { background: #292D33; border-color: #4A4F57; }
+QPushButton#emptyStateAction:pressed { background: #182530; border-color: #237AE9; }
 QWidget#statsPanelHost {
     background: #171B21; border: 1px solid #3E454F; border-radius: 8px;
 }
@@ -1127,7 +1139,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     // usable while there is nothing to show under them.
     profilesEmptyState = new QWidget(ui->profilesTableView->viewport());
     profilesEmptyState->setObjectName(QStringLiteral("profilesEmptyState"));
-    profilesEmptyState->setAttribute(Qt::WA_TransparentForMouseEvents);
     auto *emptyLayout = new QVBoxLayout(profilesEmptyState);
     emptyLayout->setContentsMargins(24, 24, 24, 24);
     emptyLayout->setSpacing(0);
@@ -1145,8 +1156,17 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     profilesEmptySub->setObjectName(QStringLiteral("emptyStateSub"));
     profilesEmptySub->setAlignment(Qt::AlignCenter);
     profilesEmptySub->setWordWrap(true);
-    profilesEmptySub->setMaximumWidth(390);
+    // QLabel's word-wrapped size hint can collapse to the first phrase when it
+    // starts empty; a stable width keeps the full guidance visible.
+    profilesEmptySub->setFixedWidth(390);
     emptyLayout->addWidget(profilesEmptySub, 0, Qt::AlignHCenter);
+    emptyLayout->addSpacing(16);
+    profilesEmptyAction = new QPushButton(tr("Add server"), profilesEmptyState);
+    profilesEmptyAction->setObjectName(QStringLiteral("emptyStateAction"));
+    profilesEmptyAction->setCursor(Qt::PointingHandCursor);
+    profilesEmptyAction->setIconSize(QSize(17, 17));
+    emptyLayout->addWidget(profilesEmptyAction, 0, Qt::AlignHCenter);
+    connect(profilesEmptyAction, &QPushButton::clicked, this, &MainWindow::showQuickAddOverlay);
     emptyLayout->addStretch(1);
     profilesEmptyState->hide();
     ui->profilesTableView->viewport()->installEventFilter(this);
@@ -1168,14 +1188,30 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     favoritesButton->setVisible(Configs::dataManager->settingsRepo->profiles_favorites_button);
     connect(themeManager, &ThemeManager::themeChanged, this, [this] { refreshFavoritesButtonIcon(); });
 
-    auto *tableTools = new QFrame(ui->tabWidget);
+    auto *tableTools = new QWidget(ui->tabWidget);
     tableTools->setObjectName(QStringLiteral("tableTools"));
     auto *tableToolsLayout = new QHBoxLayout(tableTools);
     // Breathing room between the search row and the table card below it.
     tableToolsLayout->setContentsMargins(0, 0, 0, 0);
-    tableToolsLayout->setSpacing(0);
+    tableToolsLayout->setSpacing(7);
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    auto *serverSearch = new QLineEdit(tableTools);
+
+    groupAddButton = new QToolButton(tableTools);
+    groupAddButton->setObjectName(QStringLiteral("groupAddButton"));
+    groupAddButton->setCursor(Qt::PointingHandCursor);
+    groupAddButton->setFocusPolicy(Qt::NoFocus);
+    groupAddButton->setIconSize(QSize(18, 18));
+    groupAddButton->setFixedSize(38, 38);
+    groupAddButton->setToolTip(tr("Add group or profile"));
+    connect(groupAddButton, &QToolButton::clicked, this, &MainWindow::showQuickAddOverlay);
+    tableToolsLayout->addWidget(groupAddButton);
+
+    auto *searchFrame = new QFrame(tableTools);
+    searchFrame->setObjectName(QStringLiteral("serverSearchFrame"));
+    auto *searchLayout = new QHBoxLayout(searchFrame);
+    searchLayout->setContentsMargins(0, 0, 0, 0);
+    searchLayout->setSpacing(0);
+    auto *serverSearch = new QLineEdit(searchFrame);
     serverSearch->setObjectName(QStringLiteral("serverSearch"));
     serverSearch->setPlaceholderText(tr("Search servers..."));
     serverSearch->setClearButtonEnabled(true);
@@ -1188,13 +1224,14 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         serverSearch->selectAll();
     });
     auto *searchAction = serverSearch->addAction(QIcon(), QLineEdit::LeadingPosition);
-    tableToolsLayout->addWidget(serverSearch);
+    searchLayout->addWidget(serverSearch);
+    tableToolsLayout->addWidget(searchFrame);
     connect(serverSearch, &QLineEdit::textChanged, this, [this](const QString &text) {
         globalFilterString = text;
         if (m_filterRefreshDebounce) m_filterRefreshDebounce->start();
     });
     ui->tabWidget->setCornerWidget(tableTools, Qt::TopRightCorner);
-    const auto retintTableTools = [searchAction] {
+    const auto retintTableTools = [this, searchAction] {
         const auto colors = themeManager->Colors();
         // Qt centres a line-edit action on the frame, which puts the glyph above
         // the text's optical centre. Drawing it one pixel down inside a slightly
@@ -1205,6 +1242,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         painter.drawPixmap(0, 1, MaterialIcon::pixmap(MaterialIcon::Glyph::Search, colors.textSubtle, 17));
         painter.end();
         searchAction->setIcon(QIcon(glyph));
+        if (groupAddButton != nullptr)
+            groupAddButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Add, colors.textMuted, 18));
+        if (profilesEmptyAction != nullptr)
+            profilesEmptyAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Add, colors.text, 17));
     };
     retintTableTools();
     connect(themeManager, &ThemeManager::themeChanged, this, retintTableTools);

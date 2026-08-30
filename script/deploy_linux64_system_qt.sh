@@ -9,6 +9,7 @@ cp $GITHUB_WORKSPACE/build/Throned $DEST
 
 #### copy Throned.png ####
 cp $GITHUB_WORKSPACE/res/public/Throned.png $DEST/Throned.png
+cp -a $GITHUB_WORKSPACE/skins $DEST/skins
 
 #### copy Core ####
 source "$(dirname "$0")/extract_core_artifact.sh"

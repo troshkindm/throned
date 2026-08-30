@@ -344,6 +344,12 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         ui->type->addItem(tr("Extra Core"), "extracore");
         LOAD_TYPE("chain")
 
+        // A caller may already know the protocol (the quick-add popup does).
+        // Select it before wiring the change handler so construction still
+        // creates exactly one protocol editor.
+        if (const int requested = ui->type->findData(this->type); requested >= 0)
+            ui->type->setCurrentIndex(requested);
+
         connect(ui->type, &QComboBox::currentIndexChanged, this, [=,this](int index) {
             typeSelected(ui->type->itemData(index).toString());
         });
@@ -360,6 +366,14 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
 
 DialogEditProfile::~DialogEditProfile() {
     delete ui;
+}
+
+void DialogEditProfile::setInitialCommonFields(const QString &name, const QString &address,
+                                               const QString &port) {
+    if (!newEnt) return;
+    ui->name->setText(name);
+    ui->address->setText(address);
+    ui->port->setText(port);
 }
 
 void DialogEditProfile::typeSelected(const QString &newType) {

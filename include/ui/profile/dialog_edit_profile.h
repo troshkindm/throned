@@ -18,6 +18,10 @@ public:
 
     ~DialogEditProfile() override;
 
+    // Used by the quick-add shell before the full protocol editor is shown.
+    // Protocol-specific fields remain owned by the normal editor.
+    void setInitialCommonFields(const QString &name, const QString &address, const QString &port);
+
     void toggleSingboxWidgets(bool show);
 
     void toggleXrayWidgets(bool show);

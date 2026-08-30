@@ -15,17 +15,27 @@ QFrame#statusCard {
 }
 
 /* Tabs and the star as physical, lit buttons rather than flat pills. */
-QTabWidget#groupsCard QTabBar::tab, QToolButton#favoritesTabButton {
+QTabWidget#groupsCard QTabBar::tab, QToolButton#favoritesTabButton, QToolButton#groupAddButton {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #173036, stop:1 #102429);
     border: 1px solid #295454;
 }
-QTabWidget#groupsCard QTabBar::tab:selected, QToolButton#favoritesTabButton:checked {
+QTabWidget#groupsCard QTabBar::tab:selected, QToolButton#favoritesTabButton:checked,
+QToolButton#groupAddButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #177D7B, stop:1 #125D61);
     border: 1px solid #177D7B;
 }
 
 QWidget[thronedCard="true"], QTabWidget#logsCard::pane, QWidget#statsPanelHost {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #102429, stop:1 #101C20);
+}
+
+QFrame#quickAddCard {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #102429, stop:1 #0A1417);
+    border: 1px solid #49938F;
+}
+QPushButton#quickAddPrimaryButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #52E0D5, stop:1 #177D7B);
+    border-color: #92FFF3;
 }
 
 QTableView::item:selected, QTableWidget::item:selected {

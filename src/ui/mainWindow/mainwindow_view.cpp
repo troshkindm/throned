@@ -454,6 +454,7 @@ void MainWindow::refreshProfilesEmptyState() {
     const bool favorites = Configs::dataManager->settingsRepo->profiles_favorites_view;
     const bool searching = !globalFilterString.isEmpty();
     const int hidden = profilesTableModel != nullptr ? profilesTableModel->rowCount() : 0;
+    if (profilesEmptyAction != nullptr) profilesEmptyAction->setVisible(!searching && !favorites);
 
     MaterialIcon::Glyph glyph = MaterialIcon::Glyph::Apps;
     QString title;
@@ -472,6 +473,8 @@ void MainWindow::refreshProfilesEmptyState() {
         sub = tr("Paste a subscription link to fetch them, or add one server by hand.");
     }
     profilesEmptyIcon->setPixmap(MaterialIcon::pixmap(glyph, colors.textSubtle, 40));
+    if (profilesEmptyAction != nullptr)
+        profilesEmptyAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Add, colors.text, 17));
     profilesEmptyTitle->setText(title);
     profilesEmptySub->setText(sub);
     profilesEmptyState->show();

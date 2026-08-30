@@ -958,6 +958,54 @@ briefly interrupts traffic.
         });
     }
 
+    void CaptureQuickAddPreviews(MainWindow *window, const QString &prefix, bool fromEmptyState) {
+        if (fromEmptyState)
+            window->grab().save(prefix + QStringLiteral("-empty-group.png"), "PNG");
+
+        QAbstractButton *trigger = fromEmptyState
+            ? static_cast<QAbstractButton *>(window->findChild<QPushButton *>(QStringLiteral("emptyStateAction")))
+            : static_cast<QAbstractButton *>(window->findChild<QToolButton *>(QStringLiteral("groupAddButton")));
+        if (trigger == nullptr) {
+            qWarning() << "Quick-add preview trigger is missing" << fromEmptyState;
+            qApp->exit(2);
+            return;
+        }
+        trigger->click();
+        QTimer::singleShot(220, window, [window, prefix] {
+            auto *overlay = window->findChild<QWidget *>(QStringLiteral("quickAddOverlay"));
+            auto *link = window->findChild<QLineEdit *>(QStringLiteral("quickAddLinkInput"));
+            if (overlay == nullptr || !overlay->isVisible() || link == nullptr) {
+                qWarning() << "Quick-add overlay did not open";
+                qApp->exit(2);
+                return;
+            }
+            window->grab().save(prefix + QStringLiteral("-quick-add.png"), "PNG");
+            link->setText(QStringLiteral("https://subscription.example/profiles"));
+            QTimer::singleShot(120, window, [window, prefix] {
+                window->grab().save(prefix + QStringLiteral("-quick-add-detected.png"), "PNG");
+                auto *manual = window->findChild<QPushButton *>(QStringLiteral("quickAddManualButton"));
+                if (manual == nullptr) {
+                    qApp->exit(2);
+                    return;
+                }
+                manual->click();
+                QTimer::singleShot(140, window, [window, prefix] {
+                    window->grab().save(prefix + QStringLiteral("-quick-add-manual-profile.png"), "PNG");
+                    const auto tabs = window->findChildren<QToolButton *>(QStringLiteral("quickAddManualTab"));
+                    if (tabs.size() < 2) {
+                        qApp->exit(2);
+                        return;
+                    }
+                    tabs.at(1)->click();
+                    QTimer::singleShot(140, window, [window, prefix] {
+                        window->grab().save(prefix + QStringLiteral("-quick-add-manual-group.png"), "PNG");
+                        qApp->exit(0);
+                    });
+                });
+            });
+        });
+    }
+
     void RunMainWindowPreview(const QString &prefix) {
         auto *window = GetMainWindow();
         if (window == nullptr) {
@@ -983,6 +1031,7 @@ briefly interrupts traffic.
         // `-ui-preview` is forced onto a temporary database in main(), so it is
         // safe to seed the real widgets here. Keep every value visibly synthetic:
         // RFC 5737 addresses, reserved example domains, and invented programs.
+        const bool emptyPreview = arguments.contains(QStringLiteral("-ui-preview-empty"));
         if (auto group = Configs::dataManager->groupsRepo->CurrentGroup()) {
             group->name = QStringLiteral("Demo subscription");
             group->url = QStringLiteral("https://subscription.example/profiles");
@@ -1007,29 +1056,32 @@ briefly interrupts traffic.
                 {"hysteria", "203.0.113.42", 443, "Demo East", "JP", 83, "74 Mbps", "19 Mbps", 2097152, 39845888},
                 {"shadowsocks", "192.0.2.71", 2087, "Demo Backup", "NL", 109, "51 Mbps", "14 Mbps", 1048576, 18874368},
             };
-            int profileIndex = 0;
-            for (const auto &sample : profileSamples) {
-                auto profile = Configs::ProfilesRepo::NewProfile(QString::fromLatin1(sample.type));
-                if (!profile || !profile->outbound) continue;
-                profile->outbound->SetAddress(QString::fromLatin1(sample.address));
-                profile->outbound->server_port = sample.port;
-                profile->outbound->name = QString::fromLatin1(sample.name);
-                profile->test_country = QString::fromLatin1(sample.country);
-                profile->SetLatency(sample.latency);
-                profile->dl_speed = QString::fromLatin1(sample.downSpeed);
-                profile->ul_speed = QString::fromLatin1(sample.upSpeed);
-                profile->ip_out = QString::fromLatin1(sample.address);
-                profile->traffic_uplink = sample.up;
-                profile->traffic_downlink = sample.down;
-                // One starred row, so the favourites view and the row mark are visible.
-                profile->favorite = QString::fromLatin1(sample.name) == QStringLiteral("Demo East");
-                Configs::dataManager->profilesRepo->AddProfile(profile, group->id);
-                if (profileIndex++ == 1)
-                    Configs::dataManager->settingsRepo->started_id = profile->id;
+            if (!emptyPreview) {
+                int profileIndex = 0;
+                for (const auto &sample : profileSamples) {
+                    auto profile = Configs::ProfilesRepo::NewProfile(QString::fromLatin1(sample.type));
+                    if (!profile || !profile->outbound) continue;
+                    profile->outbound->SetAddress(QString::fromLatin1(sample.address));
+                    profile->outbound->server_port = sample.port;
+                    profile->outbound->name = QString::fromLatin1(sample.name);
+                    profile->test_country = QString::fromLatin1(sample.country);
+                    profile->SetLatency(sample.latency);
+                    profile->dl_speed = QString::fromLatin1(sample.downSpeed);
+                    profile->ul_speed = QString::fromLatin1(sample.upSpeed);
+                    profile->ip_out = QString::fromLatin1(sample.address);
+                    profile->traffic_uplink = sample.up;
+                    profile->traffic_downlink = sample.down;
+                    // One starred row, so the favourites view and the row mark are visible.
+                    profile->favorite = QString::fromLatin1(sample.name) == QStringLiteral("Demo East");
+                    Configs::dataManager->profilesRepo->AddProfile(profile, group->id);
+                    if (profileIndex++ == 1)
+                        Configs::dataManager->settingsRepo->started_id = profile->id;
+                }
             }
             window->refresh_groups();
             window->refresh_proxy_list({}, true);
-            if (auto *profiles = window->findChild<QTableView *>(QStringLiteral("profilesTableView")))
+            if (!emptyPreview)
+                if (auto *profiles = window->findChild<QTableView *>(QStringLiteral("profilesTableView")))
                 profiles->selectRow(1);
         }
 
@@ -1099,7 +1151,11 @@ briefly interrupts traffic.
 
         // refresh_proxy_list() completes its model reset on the UI queue. Wait
         // for that reset before treating rowCount as the search baseline.
-        QTimer::singleShot(350, window, [window, prefix] {
+        QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
+            if (arguments.contains(QStringLiteral("-ui-preview-quick-add"))) {
+                CaptureQuickAddPreviews(window, prefix, emptyPreview);
+                return;
+            }
             VerifyStatsPanelAnimationThenCapture(window, prefix);
         });
     }

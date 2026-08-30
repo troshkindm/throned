@@ -14,6 +14,8 @@ pushd $GITHUB_WORKSPACE/build
 macdeployqt Throned.app -verbose=3
 popd
 
+cp -a $GITHUB_WORKSPACE/skins $GITHUB_WORKSPACE/build/Throned.app/Contents/MacOS/skins
+
 codesign --force --deep --sign - $GITHUB_WORKSPACE/build/Throned.app
 
 dsymutil $GITHUB_WORKSPACE/build/Throned.app/Contents/MacOS/Throned

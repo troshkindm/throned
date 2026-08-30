@@ -5443,7 +5443,31 @@ Please try again.</source>
     </message>
     <message>
         <source>Search servers...</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск серверов...</translation>
+    </message>
+    <message>
+        <source>Add server</source>
+        <translation>Добавить сервер</translation>
+    </message>
+    <message>
+        <source>Add group or profile</source>
+        <translation>Добавить группу или профиль</translation>
+    </message>
+    <message>
+        <source>No servers in this group</source>
+        <translation>В этой группе нет серверов</translation>
+    </message>
+    <message>
+        <source>Paste a subscription link to fetch them, or add one server by hand.</source>
+        <translation>Вставьте ссылку подписки или добавьте сервер вручную.</translation>
+    </message>
+    <message>
+        <source>Could not create the group.</source>
+        <translation>Не удалось создать группу.</translation>
+    </message>
+    <message>
+        <source>Subscription</source>
+        <translation>Подписка</translation>
     </message>
     <message numerus="yes">
         <source>%n profiles selected</source>
@@ -7152,5 +7176,39 @@ goes to the default above.</source>
         <source>Page %1/%2</source>
         <translation>Страница %1/%2</translation>
     </message>
+</context>
+<context>
+    <name>QuickAddOverlay</name>
+    <message><source>Paste a subscription or profile link…</source><translation>Вставьте ссылку подписки или профиля…</translation></message>
+    <message><source>Link recognized</source><translation>Ссылка распознана</translation></message>
+    <message><source>New profile</source><translation>Новый профиль</translation></message>
+    <message><source>New group</source><translation>Новая группа</translation></message>
+    <message><source>Type</source><translation>Тип</translation></message>
+    <message><source>Add to group</source><translation>Добавить в группу</translation></message>
+    <message><source>Custom</source><translation>Произвольный</translation></message>
+    <message><source>For example, Frankfurt · VLESS</source><translation>Например, Frankfurt · VLESS</translation></message>
+    <message><source>Profile name</source><translation>Название профиля</translation></message>
+    <message><source>Address</source><translation>Адрес</translation></message>
+    <message><source>Port</source><translation>Порт</translation></message>
+    <message><source>→  The regular settings for the selected protocol open next</source><translation>→  Далее откроются обычные настройки выбранного протокола</translation></message>
+    <message><source>For example, Work</source><translation>Например, Работа</translation></message>
+    <message><source>Local</source><translation>Локальная</translation></message>
+    <message><source>Subscription</source><translation>Подписка</translation></message>
+    <message><source>Group name</source><translation>Название группы</translation></message>
+    <message><source>Group type</source><translation>Тип группы</translation></message>
+    <message><source>Subscription link</source><translation>Ссылка подписки</translation></message>
+    <message><source>Profiles can be added to a local group immediately after it is created</source><translation>Профили можно добавить в локальную группу сразу после её создания</translation></message>
+    <message><source>Add manually</source><translation>Добавить вручную</translation></message>
+    <message><source>Enter</source><translation>Enter</translation></message>
+    <message><source>Add</source><translation>Добавить</translation></message>
+    <message><source>Back to link</source><translation>Назад к ссылке</translation></message>
+    <message><source>Continue</source><translation>Продолжить</translation></message>
+    <message><source>Create</source><translation>Создать</translation></message>
+    <message><source>Create a profile or a separate group</source><translation>Создайте профиль или отдельную группу</translation></message>
+    <message><source>Add a group or profile</source><translation>Добавить группу или профиль</translation></message>
+    <message><source>Throned will detect the link format</source><translation>Throned сам определит формат ссылки</translation></message>
+    <message><source>Paste the complete subscription or profile link</source><translation>Вставьте ссылку подписки или профиля целиком</translation></message>
+    <message><source>profile link</source><translation>ссылка профиля</translation></message>
+    <message><source>Profile</source><translation>Профиль</translation></message>
 </context>
 </TS>
