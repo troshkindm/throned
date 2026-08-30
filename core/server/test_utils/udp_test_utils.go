@@ -22,9 +22,9 @@ const (
 	UDPTestTarget       = "1.1.1.1:53"
 )
 
-// A UDP round trip through the outbound. TCP latency says nothing about this:
-// carriers throttle or drop UDP wholesale, which is what kills QUIC-based
-// protocols while every HTTP probe still reports green.
+// A DNS-over-UDP round trip through the outbound. TCP latency says nothing about
+// this path, but neither does this probe claim to cover every possible UDP
+// service or port: it measures reachability of the selected DNS target.
 type UDPTestResult struct {
 	Tag      string
 	Sent     int
@@ -94,7 +94,12 @@ func udpRoundTrip(conn net.Conn, timeout time.Duration) (time.Duration, error) {
 	id := uint16(rand.Uint32())
 	query := buildDNSQuery(id)
 	deadline := time.Now().Add(timeout)
-	if err := conn.SetDeadline(deadline); err != nil {
+	// Hysteria2's packet connection deliberately does not implement the combined
+	// SetDeadline method (or write deadlines), but it does implement read
+	// deadlines. The only blocking operation after the datagram write is Read, so
+	// using the narrower deadline also works for regular UDP sockets and avoids
+	// reporting every healthy Hysteria2 outbound as packet loss.
+	if err := conn.SetReadDeadline(deadline); err != nil {
 		return 0, err
 	}
 	begin := time.Now()
@@ -166,8 +171,8 @@ func buildDNSQuery(id uint16) []byte {
 		query = append(query, byte(len(label)))
 		query = append(query, label...)
 	}
-	query = append(query, 0)             // root label
-	query = append(query, 0x00, 0x01)    // type A
-	query = append(query, 0x00, 0x01)    // class IN
+	query = append(query, 0)          // root label
+	query = append(query, 0x00, 0x01) // type A
+	query = append(query, 0x00, 0x01) // class IN
 	return query
 }
