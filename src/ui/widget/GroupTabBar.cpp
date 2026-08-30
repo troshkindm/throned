@@ -1,14 +1,12 @@
 #include "include/ui/widget/GroupTabBar.h"
 
+#include "include/ui/setting/ThemeManager.hpp"
+
 #include <QPainter>
 #include <QStyleOptionTab>
 
 namespace {
-    // The app has no shared warning/danger tokens yet, so these match the hexes
-    // the routing editor already uses for the same three states.
-    constexpr auto kHealthy = "#2EBC75";
-    constexpr auto kLow = "#E8A33D";
-    constexpr auto kCritical = "#FF4D56";
+    // Same three states the start button and the latency column use, from the theme.
 
     constexpr double kLowFrom = 0.75;
     constexpr double kCriticalFrom = 0.90;
@@ -18,9 +16,10 @@ namespace {
     constexpr int kBottomInset = 8;
 
     QColor usageColor(double fraction) {
-        if (fraction >= kCriticalFrom) return QColor(kCritical);
-        if (fraction >= kLowFrom) return QColor(kLow);
-        return QColor(kHealthy);
+        const auto colors = themeManager->Colors();
+        if (fraction >= kCriticalFrom) return colors.danger;
+        if (fraction >= kLowFrom) return colors.warning;
+        return colors.success;
     }
 }
 

@@ -1,5 +1,7 @@
 #include "include/ui/widget/StartStopButton.hpp"
 
+#include "include/ui/setting/ThemeManager.hpp"
+
 #include <QEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -7,6 +9,10 @@
 
 StartStopButton::StartStopButton(QWidget *parent) : QToolButton(parent) {
     setFocusPolicy(Qt::NoFocus);
+    connect(themeManager, &ThemeManager::themeChanged, this, [this] {
+        m_ringColor = targetRingColor();
+        update();
+    });
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_ringColor = idleRingColor();
 
@@ -116,27 +122,28 @@ void StartStopButton::changeEvent(QEvent *e) {
     update();
 }
 
+// Semantic, and taken from the theme rather than the three ad-hoc greens and reds
+// this button used to carry: green starts, red stops, amber is a transition.
 QColor StartStopButton::idleRingColor() const {
-    return QColor(QStringLiteral("#35D07F"));
+    return themeManager->Colors().success;
 }
 
 QColor StartStopButton::glyphColor() const {
+    // The glyph is the ring lifted off its own colour, so a new theme only has to
+    // supply the ring and this follows.
     switch (m_state) {
-    case State::Running:
-    case State::Disconnecting: return QColor(QStringLiteral("#FF9AA5"));
-    case State::Connecting: return QColor(QStringLiteral("#FFD37A"));
     case State::Disabled: return palette().color(QPalette::Disabled, QPalette::WindowText);
-    case State::Idle: return QColor(QStringLiteral("#78E7AA"));
+    default: return targetRingColor().lighter(themeManager->Colors().dark ? 140 : 115);
     }
-    return QColor(QStringLiteral("#78E7AA"));
 }
 
 QColor StartStopButton::targetRingColor() const {
+    const auto colors = themeManager->Colors();
     switch (m_state) {
         case State::Connecting:
-        case State::Disconnecting: return QColor(QStringLiteral("#F2B84B"));
-        case State::Running: return QColor(QStringLiteral("#F05B67"));
-        case State::Disabled: return QColor(QStringLiteral("#59616C"));
+        case State::Disconnecting: return colors.warning;
+        case State::Running: return colors.danger;
+        case State::Disabled: return colors.controlInactive;
         case State::Idle: return idleRingColor();
     }
     return idleRingColor();

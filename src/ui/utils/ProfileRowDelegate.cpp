@@ -50,11 +50,11 @@ namespace {
 
     QColor latencyColor(int latencyMs, const ThronedThemeColors &colors) {
         if (latencyMs == Configs::kLatencyConnectOnly) return colors.accent;
-        if (latencyMs < 0) return QColor(QStringLiteral("#E06C6C"));
+        if (latencyMs < 0) return colors.danger;
         if (latencyMs == 0) return colors.textSubtle;
         if (latencyMs <= 100) return colors.success;
-        if (latencyMs <= 300) return QColor(QStringLiteral("#D9A441"));
-        return QColor(QStringLiteral("#E06C6C"));
+        if (latencyMs <= 300) return colors.warning;
+        return colors.danger;
     }
 
     // Two stacked baselines inside one cell, both vertically centred as a pair.
@@ -291,7 +291,7 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
                                         : latencyColor(visual.latencyMs, colors);
         drawStack(painter, cell, visual.latency, pingInk, bold,
                   visual.udp.isEmpty() ? QString() : tr("UDP %1").arg(visual.udp),
-                  visual.udpDegraded && !selected ? QColor(QStringLiteral("#D9A441")) : subtle,
+                  visual.udpDegraded && !selected ? colors.warning : subtle,
                   small, subtle);
         break;
     }

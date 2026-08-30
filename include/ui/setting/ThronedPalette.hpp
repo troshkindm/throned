@@ -32,6 +32,7 @@ struct ThronedThemeColors {
     QColor selection;
     QColor selectionBorder;
     QColor success;
+    QColor warning;         // degraded but working: connecting, slow latency, quota low
     QColor danger;          // destructive: close the window, drop a connection
     QColor dangerSoft;      // its tinted hover ground
     QColor controlInactive;
@@ -54,7 +55,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F2F3F5", .textMuted = "#ADB1B8", .textSubtle = "#7C8089",
             .accent = "#3B82F6", .accentHover = "#5C99FF", .accentSoft = "#16243A",
             .selection = "#1B3253", .selectionBorder = "#3D6DA8", .success = "#3ECF8E",
-            .danger = "#D2434E", .dangerSoft = "#3A2227",
+            .warning = "#D9A441", .danger = "#D2434E", .dangerSoft = "#3A2227",
             .controlInactive = "#3B3F47", .scrollBar = "#454951", .scrollBarHover = "#5A5F69",
             .dark = true,
         }},
@@ -65,7 +66,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F3F3F4", .textMuted = "#B0B1B5", .textSubtle = "#7F8085",
             .accent = "#6366F1", .accentHover = "#7E80F6", .accentSoft = "#22233C",
             .selection = "#292A46", .selectionBorder = "#4F51B8", .success = "#3ECF8E",
-            .danger = "#D2434E", .dangerSoft = "#3B2326",
+            .warning = "#D9A441", .danger = "#D2434E", .dangerSoft = "#3B2326",
             .controlInactive = "#3C3D42", .scrollBar = "#47484E", .scrollBarHover = "#5C5D64",
             .dark = true,
         }},
@@ -76,7 +77,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F1F4F5", .textMuted = "#ACB3B6", .textSubtle = "#7B8386",
             .accent = "#12B5CB", .accentHover = "#2FCBE0", .accentSoft = "#0E2E36",
             .selection = "#113B47", .selectionBorder = "#1E7E93", .success = "#3ECF8E",
-            .danger = "#D14550", .dangerSoft = "#382225",
+            .warning = "#D6A63F", .danger = "#D14550", .dangerSoft = "#382225",
             .controlInactive = "#394144", .scrollBar = "#444C50", .scrollBarHover = "#596266",
             .dark = true,
         }},
@@ -87,7 +88,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F4F2F6", .textMuted = "#B2AEB9", .textSubtle = "#817D89",
             .accent = "#A277FF", .accentHover = "#B593FF", .accentSoft = "#2A2140",
             .selection = "#332954", .selectionBorder = "#6E56B8", .success = "#3ECF8E",
-            .danger = "#D6444F", .dangerSoft = "#3D242C",
+            .warning = "#DCA84A", .danger = "#D6444F", .dangerSoft = "#3D242C",
             .controlInactive = "#3F3A47", .scrollBar = "#4A4553", .scrollBarHover = "#5F5A69",
             .dark = true,
         }},
@@ -98,7 +99,7 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
             .text = "#F6F3F2", .textMuted = "#B7B0AE", .textSubtle = "#86807D",
             .accent = "#F2555F", .accentHover = "#FF7480", .accentSoft = "#3B1F22",
             .selection = "#45242A", .selectionBorder = "#A34450", .success = "#3ECF8E",
-            .danger = "#E04B4B", .dangerSoft = "#452627",
+            .warning = "#E3A83C", .danger = "#E04B4B", .dangerSoft = "#452627",
             .controlInactive = "#443C3A", .scrollBar = "#504846", .scrollBarHover = "#665D5A",
             .dark = true,
         }},
@@ -146,6 +147,7 @@ inline QString Resolve(const QString &styleSheetTemplate, const ThronedThemeColo
     static const QStringList controlInactiveTokens{"#34414D"};
     static const QStringList scrollBarTokens{"#344759", "#3A424D", "#3B4C5E"};
     static const QStringList scrollBarHoverTokens{"#4B5663", "#4B6076"};
+    static const QStringList warningTokens{"#D9A441", "#E8A33D"};
     static const QStringList dangerTokens{"#C42B35"};
     static const QStringList dangerSoftTokens{"#3A2227"};
 
@@ -165,6 +167,7 @@ inline QString Resolve(const QString &styleSheetTemplate, const ThronedThemeColo
         {&selectionTokens, &colors.selection},
         {&selectionBorderTokens, &colors.selectionBorder},
         {&successTokens, &colors.success},
+        {&warningTokens, &colors.warning},
         {&dangerTokens, &colors.danger},
         {&dangerSoftTokens, &colors.dangerSoft},
         {&controlInactiveTokens, &colors.controlInactive},

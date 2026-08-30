@@ -261,6 +261,7 @@ ThronedThemeColors ThemeManager::Colors(const QString &theme) const {
         .selection = mixColors(surface, accent, dark ? 0.35 : 0.24),
         .selectionBorder = dark ? accent.darker(115) : accent.darker(125),
         .success = QColor(QStringLiteral("#32C982")),
+        .warning = QColor(QStringLiteral("#D9A441")),
         .danger = QColor(QStringLiteral("#D2434E")),
         .dangerSoft = mixColors(surface, QColor(QStringLiteral("#D2434E")), dark ? 0.22 : 0.14),
         .controlInactive = dark ? raised.lighter(112) : raised.darker(112),
