@@ -1,6 +1,7 @@
 #include "include/ui/utils/ProfilesTableVerticalHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
 #include <QPainter>
 #include <QTableView>
@@ -72,28 +73,32 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     const bool running = m_model != nullptr && sourceRow >= 0
         && m_model->index(sourceRow, 0).data(ProfilesTableModel::RowVisualRole)
                .value<ProfilesTableModel::RowVisual>().running;
+    const auto colors = themeManager->Colors();
     const QColor background = selected
-        ? view->palette().color(QPalette::Highlight)
-        : (running && m_sectionRunningBackground.isValid()
-               ? m_sectionRunningBackground
-               : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base)));
+        ? colors.selection
+        : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base));
     const QColor separator = m_sectionBorder.isValid() ? m_sectionBorder : palette().color(QPalette::Mid);
-    const QColor stateBorder = m_sectionRunningBorder.isValid()
-        ? m_sectionRunningBorder : (view != nullptr ? view->palette().color(QPalette::Link) : separator);
     painter->fillRect(rect, background);
+    if (running && !selected) {
+        QColor runningTint = colors.success;
+        runningTint.setAlphaF(colors.dark ? 0.10F : 0.07F);
+        painter->fillRect(rect, runningTint);
+    }
 
     // The card already owns the outer edge. Painting another line at the gutter's
     // left edge lands one pixel beside it and reads as a double border.
     painter->setPen(separator);
     if (rect.width() > 1) painter->drawLine(rect.topRight(), rect.bottomRight());
+    QColor stateBorder = selected ? colors.selectionBorder : colors.success;
+    if (running && !selected) stateBorder.setAlphaF(0.55F);
     painter->setPen((selected || running) ? stateBorder : separator);
     painter->drawLine(rect.bottomLeft() + QPoint(1, 0), rect.bottomRight());
     if (selected || running)
         painter->drawLine(rect.topLeft() + QPoint(1, 0), rect.topRight());
     const QColor foreground = selected && view != nullptr
         ? view->palette().color(QPalette::HighlightedText)
-        : (running && view != nullptr
-               ? view->palette().color(QPalette::Link)
+        : (running
+               ? colors.success
                : (m_sectionForeground.isValid() ? m_sectionForeground : palette().color(QPalette::Text)));
     if (running) {
         constexpr int iconSize = 18;

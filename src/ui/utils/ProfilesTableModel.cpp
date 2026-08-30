@@ -1,12 +1,12 @@
 #include "include/ui/utils/ProfilesTableModel.h"
+
 #include "include/global/Configs.hpp"
 #include "include/global/Utils.hpp"
 #include "include/database/entities/Group.h"
 #include "include/database/entities/Profile.h"
 #include "include/configs/common/Outbound.h"
-#include <QApplication>
+#include "include/ui/setting/ThemeManager.hpp"
 #include <QMimeData>
-#include <QPalette>
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -155,7 +155,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 
     const int startedId = Configs::dataManager->settingsRepo->started_id;
     const bool isRunning = (profile->id == startedId);
-    QColor linkColor = isRunning ? QApplication::palette().link().color() : QColor();
+    const QColor runningColor = isRunning ? themeManager->Colors().success : QColor();
 
     if (m_rowStyle == RowStyle::Comfortable) {
         if (role == RowVisualRole) return QVariant::fromValue(buildRowVisual(profile, isRunning));
@@ -220,7 +220,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             QColor latencyColor = profile->DisplayLatencyColor();
             if (latencyColor.isValid()) return latencyColor;
         }
-        if (isRunning && linkColor.isValid()) return linkColor;
+        if (isRunning && runningColor.isValid()) return runningColor;
         return {};
     }
     return {};

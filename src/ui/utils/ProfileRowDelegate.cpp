@@ -164,11 +164,15 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     const bool selected = opt.state & QStyle::State_Selected;
 
     // A running profile is persistent application state, not transient table
-    // selection. Give the whole row the same semantic treatment as a selected
-    // row so it remains obvious after focus moves to logs or another control.
+    // selection. A low success tint keeps it visible without making a second
+    // row look selected when the user clicks elsewhere.
     if (visual.running && !selected) {
-        painter->fillRect(opt.rect, colors.accentSoft);
-        painter->setPen(colors.selectionBorder);
+        QColor runningTint = colors.success;
+        runningTint.setAlphaF(colors.dark ? 0.10F : 0.07F);
+        painter->fillRect(opt.rect, runningTint);
+        QColor runningBorder = colors.success;
+        runningBorder.setAlphaF(0.55F);
+        painter->setPen(runningBorder);
         painter->drawLine(opt.rect.topLeft(), opt.rect.topRight());
         painter->drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight());
     }
@@ -239,7 +243,7 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 
         const int chipSpace = visual.chip.isEmpty() ? 0 : chipWidth(smallMetrics, visual.chip) + kChipGap;
         painter->setFont(bold);
-        painter->setPen(visual.running && !selected ? colors.accent : ink);
+        painter->setPen(visual.running && !selected ? colors.success : ink);
         const QString name = boldMetrics.elidedText(visual.name, Qt::ElideRight,
                                                     qMax(0, leftNameRect.width() - chipSpace));
         painter->drawText(leftNameRect, Qt::AlignLeft | Qt::AlignVCenter, name);

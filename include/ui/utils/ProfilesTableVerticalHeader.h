@@ -15,8 +15,6 @@ class ProfilesTableVerticalHeader : public QHeaderView {
     Q_PROPERTY(QColor sectionBackground MEMBER m_sectionBackground)
     Q_PROPERTY(QColor sectionForeground MEMBER m_sectionForeground)
     Q_PROPERTY(QColor sectionBorder MEMBER m_sectionBorder)
-    Q_PROPERTY(QColor sectionRunningBackground MEMBER m_sectionRunningBackground)
-    Q_PROPERTY(QColor sectionRunningBorder MEMBER m_sectionRunningBorder)
 public:
     explicit ProfilesTableVerticalHeader(QWidget *parent = nullptr);
 
@@ -36,6 +34,4 @@ private:
     QColor m_sectionBackground;
     QColor m_sectionForeground;
     QColor m_sectionBorder;
-    QColor m_sectionRunningBackground;
-    QColor m_sectionRunningBorder;
 };
