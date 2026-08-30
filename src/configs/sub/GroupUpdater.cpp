@@ -972,6 +972,9 @@ namespace Subscription {
                 MW_show_log("<<<<<<<< " + QObject::tr(
                     "Subscription \"%1\" returned nothing usable, so the servers already in the "
                     "group were kept. Use Clear servers if it really is empty now.").arg(group->name));
+                // The data stays untouched, but callers still need the normal finish
+                // notification to refresh their readouts and leave the updating state.
+                MW_dialog_message(MwMessage::SubscriptionFinished, {MwArg::Quiet});
                 return;
             }
         }

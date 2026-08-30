@@ -146,10 +146,16 @@ void MainWindow::applyProfileFilters()
     if (!profilesFilterModel) return;
     profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, countryFilterString);
     profilesFilterModel->setSearch(globalFilterString);
+    const bool wide = searchesEveryGroup();
+    // A cross-group result set has no single meaningful order.  The drop handler
+    // already refuses filtered moves, but disabling the gesture keeps the UI from
+    // promising a reorder that can only be ignored.
+    ui->profilesTableView->setDragEnabled(
+        !Configs::dataManager->settingsRepo->profiles_favorites_view && !wide);
     // Clearing the last character has to put the group back, and typing the first
     // one has to widen: both change which rows the model holds, not just which of
     // them the proxy lets through.
-    if (const bool wide = searchesEveryGroup(); wide != m_searchedEveryGroup) {
+    if (wide != m_searchedEveryGroup) {
         m_searchedEveryGroup = wide;
         refresh_proxy_list({}, true);
         return;
@@ -452,7 +458,7 @@ void MainWindow::setFavoritesView(bool on) {
     }
     // Rows here come from several groups, so dragging one would rewrite the order
     // of a group the user cannot even see.
-    ui->profilesTableView->setDragEnabled(!on);
+    ui->profilesTableView->setDragEnabled(!on && !searchesEveryGroup());
     refreshFavoritesButtonIcon();
     refresh_proxy_list({}, true);
 }
