@@ -1149,6 +1149,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     emptyLayout->addStretch(1);
     profilesEmptyIcon = new QLabel(profilesEmptyState);
     profilesEmptyIcon->setAlignment(Qt::AlignCenter);
+    profilesEmptyIcon->setFixedHeight(40);
     emptyLayout->addWidget(profilesEmptyIcon);
     emptyLayout->addSpacing(14);
     profilesEmptyTitle = new QLabel(profilesEmptyState);
@@ -1169,6 +1170,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     profilesEmptyAction->setObjectName(QStringLiteral("emptyStateAction"));
     profilesEmptyAction->setCursor(Qt::PointingHandCursor);
     profilesEmptyAction->setIconSize(QSize(17, 17));
+    profilesEmptyAction->setFixedHeight(32);
     emptyLayout->addWidget(profilesEmptyAction, 0, Qt::AlignHCenter);
     connect(profilesEmptyAction, &QPushButton::clicked, this, &MainWindow::showQuickAddOverlay);
     emptyLayout->addStretch(1);

@@ -9,6 +9,7 @@
 #include <QAbstractItemView>
 #include <QLineEdit>
 #include <QMenu>
+#include <QVBoxLayout>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTimer>
@@ -470,6 +471,28 @@ void MainWindow::refreshProfilesEmptyState() {
         profilesEmptyState->hide();
         return;
     }
+
+    // A short panel used to squeeze every part instead of dropping any, which
+    // flattened the icon into a smear and the button into a sliver. Shed the
+    // decorative parts first and keep the sentence that says what to do.
+    const int room = ui->profilesTableView->viewport()->height();
+    const bool showIcon = room >= 200;
+    const bool showSub = room >= 132;
+    profilesEmptyIcon->setVisible(showIcon);
+    profilesEmptySub->setVisible(showSub);
+    if (profilesEmptyAction != nullptr) profilesEmptyAction->setVisible(room >= 96);
+    if (auto *column = qobject_cast<QVBoxLayout *>(profilesEmptyState->layout())) {
+        // Indices follow the order the layout was built in: the spacers only earn
+        // their height while the widget they follow is on screen.
+        const auto setSpacer = [column](int index, int height) {
+            if (QSpacerItem *spacer = column->itemAt(index) ? column->itemAt(index)->spacerItem() : nullptr)
+                spacer->changeSize(0, height, QSizePolicy::Minimum, QSizePolicy::Fixed);
+        };
+        setSpacer(2, showIcon ? 14 : 0);
+        setSpacer(4, showSub ? 6 : 0);
+        setSpacer(6, showSub ? 16 : 12);
+        column->invalidate();
+    }
     const auto colors = themeManager->Colors();
     const bool favorites = Configs::dataManager->settingsRepo->profiles_favorites_view;
     const bool searching = !globalFilterString.isEmpty();
@@ -497,6 +520,10 @@ void MainWindow::refreshProfilesEmptyState() {
         profilesEmptyAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Add, colors.text, 17));
     profilesEmptyTitle->setText(title);
     profilesEmptySub->setText(sub);
+    // Adding a widget with an alignment flag makes the layout size it from
+    // sizeHint() and skip heightForWidth(), so a wrapped sentence was cut after
+    // its first line. The width is fixed, so the height it needs is knowable.
+    profilesEmptySub->setMinimumHeight(profilesEmptySub->heightForWidth(profilesEmptySub->width()));
     profilesEmptyState->show();
     profilesEmptyState->raise();
 }
