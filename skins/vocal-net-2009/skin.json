@@ -1,0 +1,28 @@
+{
+  "name": "Vocal Net 2009",
+  "dark": true,
+  "font": "Consolas",
+  "colors": {
+    "window": "#04120F",
+    "surface": "#071B18",
+    "surfaceRaised": "#0C2A26",
+    "surfaceHover": "#10382F",
+    "border": "#12463C",
+    "borderStrong": "#1C6B5B",
+    "text": "#D6FFF4",
+    "textMuted": "#63A497",
+    "textSubtle": "#3F7268",
+    "accent": "#25E0C0",
+    "accentHover": "#5BF3DA",
+    "accentSoft": "#08302A",
+    "selection": "#0B4A41",
+    "selectionBorder": "#25E0C0",
+    "success": "#3BE8A0",
+    "warning": "#E8C33D",
+    "danger": "#FF5C8A",
+    "dangerSoft": "#3A1626",
+    "controlInactive": "#1B3A35",
+    "scrollBar": "#1C5148",
+    "scrollBarHover": "#28786A"
+  }
+}

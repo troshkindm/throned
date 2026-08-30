@@ -4,6 +4,7 @@
 #include <QColor>
 #include <QIcon>
 #include <QPalette>
+#include <QMap>
 #include <QStringList>
 
 #include "include/ui/setting/ThronedPalette.hpp"
@@ -24,10 +25,18 @@ public:
     [[nodiscard]] ThronedThemeColors Colors(const QString &theme = {}) const;
     [[nodiscard]] QIcon PreviewIcon(const QString &theme) const;
     [[nodiscard]] QString ResolveStyleSheet(const QString &styleSheetTemplate) const;
+
+    // Skins live in <base>/skins/<id>/ and are read once at startup.
+    void LoadSkins();
+    [[nodiscard]] const ThronedSkin *Skin(const QString &theme = {}) const;
     void RegisterStyle(QWidget *widget, const QString &styleSheetTemplate) const;
     void RefreshRegisteredStyles() const;
 signals:
     void themeChanged(QString themeName);
+
+private:
+    QMap<QString, ThronedSkin> skins;   // keyed by lowercased display name
+    QString base_font_family;
 };
 
 extern ThemeManager *themeManager;

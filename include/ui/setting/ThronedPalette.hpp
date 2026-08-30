@@ -41,7 +41,48 @@ struct ThronedThemeColors {
     bool dark = true;
 };
 
+// A skin is a palette plus the things a palette cannot say: its own stylesheet
+// fragment, a font, and a folder of icons. Loaded from disk, so adding one is a
+// matter of dropping a folder in rather than rebuilding.
+struct ThronedSkin {
+    QString id;             // folder name
+    QString name;           // shown in the theme list
+    ThronedThemeColors colors;
+    QString styleOverlay;   // appended after the resolved base sheet, so it wins
+    QString fontFamily;     // empty leaves the application font alone
+    QString iconDir;        // absolute; empty falls back to the built-in glyphs
+};
+
 namespace ThronedPalette {
+
+// Token name -> member, so a skin file can set any subset and inherit the rest.
+inline const QMap<QString, QColor ThronedThemeColors::*> &ColorFields() {
+    static const QMap<QString, QColor ThronedThemeColors::*> fields{
+        {QStringLiteral("window"), &ThronedThemeColors::window},
+        {QStringLiteral("surface"), &ThronedThemeColors::surface},
+        {QStringLiteral("surfaceRaised"), &ThronedThemeColors::surfaceRaised},
+        {QStringLiteral("surfaceHover"), &ThronedThemeColors::surfaceHover},
+        {QStringLiteral("border"), &ThronedThemeColors::border},
+        {QStringLiteral("borderStrong"), &ThronedThemeColors::borderStrong},
+        {QStringLiteral("text"), &ThronedThemeColors::text},
+        {QStringLiteral("textMuted"), &ThronedThemeColors::textMuted},
+        {QStringLiteral("textSubtle"), &ThronedThemeColors::textSubtle},
+        {QStringLiteral("accent"), &ThronedThemeColors::accent},
+        {QStringLiteral("accentHover"), &ThronedThemeColors::accentHover},
+        {QStringLiteral("accentSoft"), &ThronedThemeColors::accentSoft},
+        {QStringLiteral("selection"), &ThronedThemeColors::selection},
+        {QStringLiteral("selectionBorder"), &ThronedThemeColors::selectionBorder},
+        {QStringLiteral("success"), &ThronedThemeColors::success},
+        {QStringLiteral("warning"), &ThronedThemeColors::warning},
+        {QStringLiteral("danger"), &ThronedThemeColors::danger},
+        {QStringLiteral("dangerSoft"), &ThronedThemeColors::dangerSoft},
+        {QStringLiteral("controlInactive"), &ThronedThemeColors::controlInactive},
+        {QStringLiteral("scrollBar"), &ThronedThemeColors::scrollBar},
+        {QStringLiteral("scrollBarHover"), &ThronedThemeColors::scrollBarHover},
+    };
+    return fields;
+}
+
 
 // Lightness ladder shared by every theme, so panels separate by the same amount
 // whichever theme is active:

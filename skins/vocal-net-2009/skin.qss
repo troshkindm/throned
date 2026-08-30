@@ -1,0 +1,42 @@
+/* Everything here is layered on top of the resolved base sheet, so it only has to
+   say what the palette alone cannot: gradients, glows and a mono face. */
+
+QFrame#titleBar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #0C2A26, stop:0.5 #071B18, stop:1 #04120F);
+    border-bottom: 1px solid #25E0C0;
+}
+QLabel#titleBrand { letter-spacing: 2px; color: #D6FFF4; }
+
+QFrame#commandBar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #071B18, stop:1 #04120F);
+    border-bottom: 1px solid #12463C;
+}
+
+/* Tabs as physical, lit buttons rather than flat pills. */
+QTabWidget#groupsCard QTabBar::tab {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10382F, stop:1 #071B18);
+    border: 1px solid #1C6B5B;
+}
+QTabWidget#groupsCard QTabBar::tab:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0B4A41, stop:1 #08302A);
+    border: 1px solid #25E0C0;
+    color: #D6FFF4;
+}
+
+QToolButton#favoritesTabButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #10382F, stop:1 #071B18);
+    border: 1px solid #1C6B5B;
+}
+QToolButton#favoritesTabButton:checked { border: 1px solid #25E0C0; }
+
+QWidget[thronedCard="true"], QTabWidget#logsCard::pane, QWidget#statsPanelHost {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #071B18, stop:1 #04120F);
+    border: 1px solid #12463C;
+}
+
+QFrame#statusCard {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #04120F, stop:1 #071B18);
+    border-top: 1px solid #25E0C0;
+}
+QFrame#statusCard QLabel#statusCaption { letter-spacing: 1px; }

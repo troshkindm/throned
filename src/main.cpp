@@ -1080,7 +1080,7 @@ briefly interrupts traffic.
         if (const int themeAt = app.arguments().indexOf(QStringLiteral("-theme"));
             themeAt >= 0 && themeAt + 1 < app.arguments().size()) {
             const QString name = app.arguments().at(themeAt + 1);
-            for (const QString &theme : ThronedPalette::ThemeNames())
+            for (const QString &theme : themeManager->ThronedThemes())
                 if (theme.compare(name, Qt::CaseInsensitive) == 0
                     || theme.compare(QStringLiteral("Throned ") + name, Qt::CaseInsensitive) == 0)
                     requested = theme;
@@ -1426,10 +1426,14 @@ int main(int argc, char* argv[]) {
 
     if (Configs::dataManager->settingsRepo->start_minimal) Configs::dataManager->settingsRepo->flag_tray = true;
 
+    // Before any theme is resolved: the stored theme may name a skin, and -theme
+    // below has to be able to find one too.
+    themeManager->LoadSkins();
+
     if (const int themeAt = arguments.indexOf(QStringLiteral("-theme"));
         themeAt >= 0 && themeAt + 1 < arguments.size()) {
         const QString requested = arguments.at(themeAt + 1);
-        for (const QString &theme : ThronedPalette::ThemeNames())
+        for (const QString &theme : themeManager->ThronedThemes())
             if (theme.compare(requested, Qt::CaseInsensitive) == 0
                 || theme.compare(QStringLiteral("Throned ") + requested, Qt::CaseInsensitive) == 0)
                 Configs::dataManager->settingsRepo->theme = theme;

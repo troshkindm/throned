@@ -1,3 +1,9 @@
+#include <QDir>
+#include <QFont>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QStyle>
 #include <QApplication>
 #include <QFile>
@@ -8,6 +14,7 @@
 #include <QStyleFactory>
 #include <QWidget>
 
+#include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "iostream"
 
@@ -162,6 +169,20 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     if (this->system_style_name.isEmpty()) {
         this->system_style_name = qApp->style()->name();
         this->system_palette = qApp->palette();
+        this->base_font_family = qApp->font().family();
+    }
+
+    // A skin may ask for its own face; leaving one behind would follow the user
+    // into every other theme, so this is restored on the way out too.
+    if (qApp != nullptr) {
+        const ThronedSkin *skin = Skin(theme);
+        const QString family = skin != nullptr && !skin->fontFamily.isEmpty()
+            ? skin->fontFamily : base_font_family;
+        if (!family.isEmpty() && qApp->font().family() != family) {
+            QFont font = qApp->font();
+            font.setFamily(family);
+            qApp->setFont(font);
+        }
     }
 
     if (this->current_theme == theme && !force) {
@@ -221,19 +242,90 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     emit themeChanged(theme);
 }
 
+void ThemeManager::LoadSkins() {
+    skins.clear();
+    // Beside the binary for skins that ship with a build, and in the config
+    // directory for ones the user drops in; in appdata mode those differ.
+    QStringList roots{qApp->applicationDirPath() + QStringLiteral("/skins")};
+    if (const QString base = Configs::GetBasePath() + QStringLiteral("/skins"); !roots.contains(base)) {
+        roots << base;
+    }
+    QFileInfoList entries;
+    for (const QString &path : roots) {
+        if (QDir root(path); root.exists())
+            entries << root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+    }
+
+    for (const QFileInfo &entry : entries) {
+        QFile manifest(entry.absoluteFilePath() + QStringLiteral("/skin.json"));
+        if (!manifest.open(QIODevice::ReadOnly)) continue;
+        QJsonParseError error{};
+        const auto document = QJsonDocument::fromJson(manifest.readAll(), &error);
+        if (error.error != QJsonParseError::NoError || !document.isObject()) {
+            std::cerr << "Skin " << entry.fileName().toStdString()
+                      << " ignored: " << error.errorString().toStdString() << std::endl;
+            continue;
+        }
+        const QJsonObject json = document.object();
+
+        ThronedSkin skin;
+        skin.id = entry.fileName();
+        skin.name = json.value(QStringLiteral("name")).toString(skin.id);
+        skin.fontFamily = json.value(QStringLiteral("font")).toString();
+
+        // Every unset token keeps the default theme's value, so a skin can
+        // restyle three things and stay coherent everywhere else.
+        skin.colors = thronedThemes().value(QStringLiteral("throned midnight"));
+        skin.colors.dark = json.value(QStringLiteral("dark")).toBool(true);
+        const QJsonObject colors = json.value(QStringLiteral("colors")).toObject();
+        for (auto it = colors.constBegin(); it != colors.constEnd(); ++it) {
+            const auto field = ThronedPalette::ColorFields().constFind(it.key());
+            if (field == ThronedPalette::ColorFields().constEnd()) {
+                std::cerr << "Skin " << skin.id.toStdString() << ": unknown color '"
+                          << it.key().toStdString() << "'" << std::endl;
+                continue;
+            }
+            if (const QColor parsed(it.value().toString()); parsed.isValid())
+                skin.colors.*(field.value()) = parsed;
+        }
+
+        if (QFile sheet(entry.absoluteFilePath() + QStringLiteral("/skin.qss"));
+            sheet.open(QIODevice::ReadOnly)) {
+            skin.styleOverlay = QString::fromUtf8(sheet.readAll());
+        }
+        if (QDir icons(entry.absoluteFilePath() + QStringLiteral("/icons")); icons.exists()) {
+            skin.iconDir = icons.absolutePath();
+        }
+
+        const QString key = skin.name.trimmed().toLower();
+        // A skin must not shadow a built-in theme, or the name would resolve to two things.
+        if (key.isEmpty() || thronedThemes().contains(key)) continue;
+        skins.insert(key, skin);
+    }
+}
+
+const ThronedSkin *ThemeManager::Skin(const QString &theme) const {
+    const QString requested = (theme.isEmpty() ? current_theme : theme).trimmed().toLower();
+    const auto it = skins.constFind(requested);
+    return it == skins.constEnd() ? nullptr : &it.value();
+}
+
 QStringList ThemeManager::ThronedThemes() const {
     QStringList themes = ThronedPalette::ThemeNames();
+    for (const auto &skin : skins) themes << skin.name;
     themes << QStringLiteral("System");
     return themes;
 }
 
 bool ThemeManager::IsThronedTheme(const QString &theme) const {
-    return thronedThemes().contains(theme.trimmed().toLower());
+    const QString key = theme.trimmed().toLower();
+    return thronedThemes().contains(key) || skins.contains(key);
 }
 
 ThronedThemeColors ThemeManager::Colors(const QString &theme) const {
     const QString requested = (theme.isEmpty() ? current_theme : theme).trimmed().toLower();
     if (const auto it = thronedThemes().constFind(requested); it != thronedThemes().cend()) return it.value();
+    if (const auto it = skins.constFind(requested); it != skins.constEnd()) return it.value().colors;
 
     // System/legacy themes still get a coherent semantic palette derived from
     // their live QPalette, so every redesigned screen follows the selection.
@@ -298,7 +390,16 @@ QIcon ThemeManager::PreviewIcon(const QString &theme) const {
 
 QString ThemeManager::ResolveStyleSheet(const QString &styleSheetTemplate) const {
     const int pointSize = qApp && qApp->font().pointSize() > 0 ? qApp->font().pointSize() : 10;
-    return ThronedPalette::Resolve(styleSheetTemplate, Colors(), qMax(11, (pointSize * 4 + 2) / 3));
+    const int fontPx = qMax(11, (pointSize * 4 + 2) / 3);
+    QString sheet = ThronedPalette::Resolve(styleSheetTemplate, Colors(), fontPx);
+    // Appended rather than merged: a skin overrides by restating the selector, and
+    // gets to reach for gradients, images and fonts that colour substitution alone
+    // can never express. The overlay is resolved too, so it can use tokens itself.
+    if (const ThronedSkin *skin = Skin(); skin != nullptr && !skin->styleOverlay.isEmpty()) {
+        sheet += QLatin1Char('\n');
+        sheet += ThronedPalette::Resolve(skin->styleOverlay, Colors(), fontPx);
+    }
+    return sheet;
 }
 
 void ThemeManager::RegisterStyle(QWidget *widget, const QString &styleSheetTemplate) const {
