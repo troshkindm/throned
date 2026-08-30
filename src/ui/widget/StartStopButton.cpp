@@ -4,6 +4,7 @@
 
 #include <QEvent>
 #include <QPainter>
+#include <QLinearGradient>
 #include <QPainterPath>
 #include <QPropertyAnimation>
 
@@ -176,13 +177,40 @@ void StartStopButton::paintEvent(QPaintEvent *) {
         p.setBrush(halo);
         p.drawEllipse(shell.adjusted(-2.0, -2.0, 2.0, 2.0));
     }
-    QColor fill = m_ringColor;
-    fill.setAlpha(m_state == State::Disabled ? 18 : (underMouse() ? 48 : 34));
+    const qreal gloss = qBound(0.0, themeManager->Colors().gloss, 1.0);
     QColor border = m_ringColor;
     border.setAlpha(m_state == State::Disabled ? 75 : 175);
     p.setPen(QPen(border, 1.25));
-    p.setBrush(fill);
+    if (gloss > 0.0) {
+        // A solid candy disc with a vertical sheen, the way a 2009 skin wants it,
+        // instead of the flat tinted wash the neutral themes use.
+        QLinearGradient sheen(shell.topLeft(), shell.bottomLeft());
+        sheen.setColorAt(0.0, m_ringColor.lighter(static_cast<int>(100 + 55 * gloss)));
+        sheen.setColorAt(0.5, m_ringColor);
+        sheen.setColorAt(1.0, m_ringColor.darker(static_cast<int>(100 + 35 * gloss)));
+        p.setBrush(sheen);
+        p.setOpacity(m_dim * (m_state == State::Disabled ? 0.45 : 1.0));
+    } else {
+        QColor fill = m_ringColor;
+        fill.setAlpha(m_state == State::Disabled ? 18 : (underMouse() ? 48 : 34));
+        p.setBrush(fill);
+    }
     p.drawEllipse(shell.adjusted(0.65, 0.65, -0.65, -0.65));
+    if (gloss > 0.0) {
+        // The highlight sits in the top third, which is what reads as glass.
+        QRectF highlight = shell.adjusted(shell.width() * 0.16, shell.height() * 0.08,
+                                          -shell.width() * 0.16, -shell.height() * 0.55);
+        QLinearGradient glassGradient(highlight.topLeft(), highlight.bottomLeft());
+        QColor glass(255, 255, 255);
+        glass.setAlphaF(0.42 * gloss);
+        glassGradient.setColorAt(0.0, glass);
+        glass.setAlphaF(0.0);
+        glassGradient.setColorAt(1.0, glass);
+        p.setPen(Qt::NoPen);
+        p.setBrush(glassGradient);
+        p.drawEllipse(highlight);
+        p.setOpacity(m_dim);
+    }
 
     if (m_state == State::Connecting || m_state == State::Disconnecting) {
         const qreal spinnerR = D * 0.27;

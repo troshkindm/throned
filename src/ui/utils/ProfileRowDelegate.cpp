@@ -203,10 +203,14 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         const int naturalExitWidth = badgeWidth
             + ((!visual.country.isEmpty() && !visual.exitIp.isEmpty()) ? 7 : 0)
             + metaMetrics.horizontalAdvance(visual.exitIp);
-        const int availableExitWidth = qMax(0, cell.width() - kAddressMinWidth - kExitGap);
+        // Measured, not guessed: a skin is free to set its own font, and a mono
+        // face is wide enough that fixed pixel floors clipped the exit IP.
+        const int addressFloor = metaMetrics.horizontalAdvance(QStringLiteral("255.255.255.255:65535"));
+        const int exitFloor = metaMetrics.horizontalAdvance(QStringLiteral("255.255.255.255"));
+        const int availableExitWidth = qMax(0, cell.width() - addressFloor - kExitGap);
         const int exitWidth = hasExit
-            ? qMin(qMax(kExitMinWidth, naturalExitWidth), availableExitWidth) : 0;
-        const bool showExit = hasExit && exitWidth >= 70;
+            ? qMin(qMax(exitFloor, naturalExitWidth), availableExitWidth) : 0;
+        const bool showExit = hasExit && exitWidth >= exitFloor * 3 / 4;
 
         QRect leftNameRect = nameRect;
         QRect addressRect = metaRect;

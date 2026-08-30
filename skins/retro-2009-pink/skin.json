@@ -1,6 +1,7 @@
 {
   "name": "Retro 2009 Pink",
   "dark": true,
+  "gloss": 1.0,
   "colors": {
     "window": "#9C3567",
     "surface": "#76244E",

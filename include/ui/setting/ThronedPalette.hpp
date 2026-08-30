@@ -38,6 +38,8 @@ struct ThronedThemeColors {
     QColor controlInactive;
     QColor scrollBar;
     QColor scrollBarHover;
+    // 0 flat, 1 full 2009-era gloss: a vertical sheen on the round command button.
+    qreal gloss = 0.0;
     bool dark = true;
 };
 

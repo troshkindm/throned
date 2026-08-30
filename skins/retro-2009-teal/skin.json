@@ -1,6 +1,7 @@
 {
   "name": "Retro 2009 Teal",
   "dark": true,
+  "gloss": 1.0,
   "colors": {
     "window": "#10191D",
     "surface": "#0A1417",

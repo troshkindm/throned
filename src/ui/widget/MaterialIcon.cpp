@@ -1,6 +1,9 @@
 #include "include/ui/widget/MaterialIcon.h"
 
+#include "include/ui/setting/ThemeManager.hpp"
+
 #include <QPainter>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QSvgRenderer>
 
@@ -85,17 +88,89 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
     return "";
 }
 
+// A skin overrides a glyph by dropping <name>.svg or <name>.png into its icons/
+// folder; the names are the enum spelled in kebab case.
+const char *glyphName(MaterialIcon::Glyph glyph) {
+    using MaterialIcon::Glyph;
+    switch (glyph) {
+    case Glyph::Add: return "add";
+    case Glyph::ArrowDown: return "arrow-down";
+    case Glyph::ArrowUp: return "arrow-up";
+    case Glyph::Apps: return "apps";
+    case Glyph::Block: return "block";
+    case Glyph::Bolt: return "bolt";
+    case Glyph::Check: return "check";
+    case Glyph::ChevronDown: return "chevron-down";
+    case Glyph::ChevronUp: return "chevron-up";
+    case Glyph::ChevronRight: return "chevron-right";
+    case Glyph::Close: return "close";
+    case Glyph::Code: return "code";
+    case Glyph::Copy: return "copy";
+    case Glyph::Delete: return "delete";
+    case Glyph::Desktop: return "desktop";
+    case Glyph::Direct: return "direct";
+    case Glyph::File: return "file";
+    case Glyph::Filter: return "filter";
+    case Glyph::Folder: return "folder";
+    case Glyph::List: return "list";
+    case Glyph::Menu: return "menu";
+    case Glyph::More: return "more";
+    case Glyph::Process: return "process";
+    case Glyph::Public: return "public";
+    case Glyph::Reload: return "reload";
+    case Glyph::Routes: return "routes";
+    case Glyph::Search: return "search";
+    case Glyph::Settings: return "settings";
+    case Glyph::Star: return "star";
+    case Glyph::StarOutline: return "star-outline";
+    case Glyph::Shield: return "shield";
+    case Glyph::SwapVertical: return "swap-vertical";
+    case Glyph::Tools: return "tools";
+    case Glyph::Tune: return "tune";
+    case Glyph::Users: return "users";
+    }
+    return "";
+}
 } // namespace
 
 namespace MaterialIcon {
 
 QPixmap pixmap(Glyph glyph, const QColor &color, int pixels) {
-    const QByteArray svg = QByteArray("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='")
-        + color.name(QColor::HexRgb).toUtf8() + "' d='" + pathFor(glyph) + "'/></svg>";
-    QSvgRenderer renderer(svg);
     // Rasterise at the screen's ratio. A 1x pixmap upscaled by the compositor is
     // the difference between a crisp glyph and a smeared one at 125% and up.
     const qreal ratio = qGuiApp != nullptr ? qGuiApp->devicePixelRatio() : 1.0;
+
+    // A skin's own art is used as authored: it carries its own colour, which is
+    // the whole point of shipping a glossy icon set rather than a tinted path.
+    if (const ThronedSkin *skin = themeManager != nullptr ? themeManager->Skin() : nullptr;
+        skin != nullptr && !skin->iconDir.isEmpty()) {
+        const QString stem = skin->iconDir + QLatin1Char('/') + QLatin1String(glyphName(glyph));
+        for (const QString &suffix : {QStringLiteral(".svg"), QStringLiteral(".png")}) {
+            const QString path = stem + suffix;
+            if (!QFileInfo::exists(path)) continue;
+            QPixmap art(QSize(pixels, pixels) * ratio);
+            art.setDevicePixelRatio(ratio);
+            art.fill(Qt::transparent);
+            QPainter painter(&art);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+            if (suffix == QStringLiteral(".svg")) {
+                QSvgRenderer skinned(path);
+                if (!skinned.isValid()) continue;
+                skinned.render(&painter, QRectF(0, 0, pixels, pixels));
+            } else {
+                const QPixmap source(path);
+                if (source.isNull()) continue;
+                painter.drawPixmap(QRectF(0, 0, pixels, pixels), source, source.rect());
+            }
+            painter.end();
+            return art;
+        }
+    }
+
+    const QByteArray svg = QByteArray("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='")
+        + color.name(QColor::HexRgb).toUtf8() + "' d='" + pathFor(glyph) + "'/></svg>";
+    QSvgRenderer renderer(svg);
     QPixmap result(QSize(pixels, pixels) * ratio);
     result.setDevicePixelRatio(ratio);
     result.fill(Qt::transparent);
