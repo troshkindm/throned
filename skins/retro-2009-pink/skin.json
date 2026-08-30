@@ -1,0 +1,27 @@
+{
+  "name": "Retro 2009 Pink",
+  "dark": true,
+  "colors": {
+    "window": "#9C3567",
+    "surface": "#76244E",
+    "surfaceRaised": "#A83A70",
+    "surfaceHover": "#B9417C",
+    "border": "#AE6086",
+    "borderStrong": "#CB99B1",
+    "text": "#FFF5FA",
+    "textMuted": "#EFB8D2",
+    "textSubtle": "#D989B0",
+    "accent": "#FF4A9B",
+    "accentHover": "#FF9CC8",
+    "accentSoft": "#8F2E5C",
+    "selection": "#B92770",
+    "selectionBorder": "#D63A82",
+    "success": "#5CF6A9",
+    "warning": "#FFD35C",
+    "danger": "#FF6C81",
+    "dangerSoft": "#7A2B4A",
+    "controlInactive": "#8B2B58",
+    "scrollBar": "#A83A70",
+    "scrollBarHover": "#FF4A9B"
+  }
+}

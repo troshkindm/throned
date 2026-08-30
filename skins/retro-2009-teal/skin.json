@@ -1,0 +1,27 @@
+{
+  "name": "Retro 2009 Teal",
+  "dark": true,
+  "colors": {
+    "window": "#10191D",
+    "surface": "#0A1417",
+    "surfaceRaised": "#183138",
+    "surfaceHover": "#173036",
+    "border": "#295454",
+    "borderStrong": "#49938F",
+    "text": "#E9FFFD",
+    "textMuted": "#9BC6C5",
+    "textSubtle": "#5E9292",
+    "accent": "#39C5BB",
+    "accentHover": "#92FFF3",
+    "accentSoft": "#142A2D",
+    "selection": "#125D61",
+    "selectionBorder": "#177D7B",
+    "success": "#69F5C2",
+    "warning": "#F0DC66",
+    "danger": "#FF6A8F",
+    "dangerSoft": "#3A1C26",
+    "controlInactive": "#0F1D21",
+    "scrollBar": "#183138",
+    "scrollBarHover": "#39C5BB"
+  }
+}

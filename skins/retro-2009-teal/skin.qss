@@ -1,0 +1,33 @@
+/* Layered on top of the resolved base sheet: only the things the palette alone
+   cannot say. Gradient stops are taken from the 2009 mockup verbatim. */
+
+QFrame#titleBar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1E3438, stop:1 #101C20);
+    border-bottom: 1px solid #295454;
+}
+QFrame#commandBar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #173036, stop:1 #102429);
+    border-bottom: 1px solid #295454;
+}
+QFrame#statusCard {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #173036, stop:1 #101C20);
+    border-top: 1px solid #295454;
+}
+
+/* Tabs and the star as physical, lit buttons rather than flat pills. */
+QTabWidget#groupsCard QTabBar::tab, QToolButton#favoritesTabButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #173036, stop:1 #102429);
+    border: 1px solid #295454;
+}
+QTabWidget#groupsCard QTabBar::tab:selected, QToolButton#favoritesTabButton:checked {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #177D7B, stop:1 #125D61);
+    border: 1px solid #177D7B;
+}
+
+QWidget[thronedCard="true"], QTabWidget#logsCard::pane, QWidget#statsPanelHost {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #102429, stop:1 #101C20);
+}
+
+QTableView::item:selected, QTableWidget::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #177D7B, stop:1 #125D61);
+}
