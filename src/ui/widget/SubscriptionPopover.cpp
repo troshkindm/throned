@@ -33,6 +33,27 @@ namespace {
     }
 
 
+
+    // QLabel breaks a wrapped line only where the text already allows it, so an
+    // announcement sent as one long run is silently clipped to a single line.
+    // Zero-width spaces give the layout somewhere to break without changing what is drawn.
+    QString withBreakOpportunities(const QString &text) {
+        constexpr int kLongestRun = 24;
+        QString out;
+        out.reserve(text.size() + text.size() / kLongestRun);
+        int run = 0;
+        for (const QChar ch : text) {
+            // Qt already breaks after these, so a run only counts what it cannot.
+            if (ch.isSpace() || ch == u'/' || ch == u'-' || ch == u'.' || ch == u',') {
+                run = 0;
+            } else if (++run > kLongestRun) {
+                out += QChar(0x200B);
+                run = 1;
+            }
+            out += ch;
+        }
+        return out;
+    }
     // Time of day says nothing about a plan that is measured in days.
     QString shortDate(qint64 seconds) {
         return QLocale().toString(QDateTime::fromSecsSinceEpoch(seconds).date(), QLocale::ShortFormat);
@@ -166,7 +187,7 @@ void SubscriptionPopover::fill(const std::shared_ptr<Configs::Group> &group) {
     const auto &provider = group->provider;
     const auto announce = provider.announce.trimmed();
     m_announceBox->setVisible(!announce.isEmpty());
-    m_announce->setText(announce);
+    m_announce->setText(withBreakOpportunities(announce));
 
     const auto setLink = [](QPushButton *button, const QString &url) {
         button->setVisible(!url.isEmpty());
@@ -222,7 +243,9 @@ void SubscriptionPopover::fill(const std::shared_ptr<Configs::Group> &group) {
     }
     const QString line = footer.join(QStringLiteral(" · "));
     m_updated->setToolTip(provider.intervalFromProvider ? tr("The provider sets this cycle.") : QString());
-    m_updated->setText(m_updated->fontMetrics().elidedText(line, Qt::ElideRight, 200));
+    // Budget from the card, not a constant: a translated cycle is wider than the English one.
+    const int budget = kCardWidth - 14 * 2 - m_refresh->sizeHint().width() - 6;
+    m_updated->setText(m_updated->fontMetrics().elidedText(line, Qt::ElideRight, budget));
     m_refresh->setVisible(!group->url.isEmpty());
 }
 

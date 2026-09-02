@@ -1049,8 +1049,14 @@ briefly interrupts traffic.
             group->info = QStringLiteral("upload=8589934592; download=25769803776; total=107374182400; expire=%1")
                               .arg(QDateTime::currentSecsSinceEpoch() + 23 * 86400);
             group->sub_last_update = 1788037200;
-            group->provider.announce = QStringLiteral(
-                "Maintenance on the DE nodes until 3 September, use the NL exits meanwhile.");
+            group->provider.announce = arguments.contains(QStringLiteral("-ui-preview-long-announce"))
+                ? QStringLiteral(
+                      // Both wrap hazards at once: a long URL Qt can break, and a run it cannot.
+                      "Scheduled maintenance on every DE and FR node until 3 September 06:00 UTC, see "
+                      "https://status.example/incidents/2026-09-02-maintenance ref "
+                      "a7f3c19e4b82d05f6617ac93be24d8710fe5b3629a4c8d17")
+                : QStringLiteral(
+                      "Maintenance on the DE nodes until 3 September, use the NL exits meanwhile.");
             group->provider.supportUrl = QStringLiteral("https://support.example/throned");
             group->provider.webPageUrl = QStringLiteral("https://subscription.example");
             group->provider.updateIntervalMinutes = 360;
