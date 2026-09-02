@@ -7370,5 +7370,13 @@ goes to the default above.</source>
             <numerusform>каждые %n мин</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Warn me before this subscription runs out</source>
+        <translation>Предупреждать, когда подписка заканчивается</translation>
+    </message>
+    <message>
+        <source>No warnings for this subscription</source>
+        <translation>Не предупреждать про эту подписку</translation>
+    </message>
 </context>
 </TS>

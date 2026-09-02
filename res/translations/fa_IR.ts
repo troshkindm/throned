@@ -135,6 +135,10 @@ Release note:
         <source>Select</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Subscription %1 did not answer, trying the fallback address.</source>
+        <translation>اشتراک %1 پاسخ نداد، نشانی جایگزین امتحان می‌شود.</translation>
+    </message>
 </context>
 <context>
     <name>DialogBasicSettings</name>
@@ -491,6 +495,46 @@ Release note:
         <source>Image Files (*.png)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>URL scheme</source>
+        <translation>طرح نشانی</translation>
+    </message>
+    <message>
+        <source>Handler registration for throne:// links and config files.</source>
+        <translation>ثبت پردازشگر پیوندهای throne:// و فایل‌های پیکربندی.</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>ثبت</translation>
+    </message>
+    <message>
+        <source>URL Scheme</source>
+        <translation>طرح نشانی</translation>
+    </message>
+    <message>
+        <source>Could not register the handler for throne:// links.</source>
+        <translation>ثبت پردازشگر پیوندهای throne:// ممکن نشد.</translation>
+    </message>
+    <message>
+        <source>Not available for this installation</source>
+        <translation>برای این نصب در دسترس نیست</translation>
+    </message>
+    <message>
+        <source>Installed</source>
+        <translation>ثبت شده</translation>
+    </message>
+    <message>
+        <source>Not installed</source>
+        <translation>ثبت نشده</translation>
+    </message>
+    <message>
+        <source>Not installed — a portable copy does not claim it on its own</source>
+        <translation>ثبت نشده — نسخه قابل حمل خودش آن را نمی‌گیرد</translation>
+    </message>
+    <message>
+        <source>A portable copy leaves the system handler alone. Use Install when you want it.</source>
+        <translation>نسخه قابل حمل پردازشگر سیستم را تغییر نمی‌دهد. در صورت نیاز «نصب» را بزنید.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -561,6 +605,30 @@ Release note:
     <message>
         <source>Copy profile share links (Deep Links)</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update every</source>
+        <translation>به‌روزرسانی هر</translation>
+    </message>
+    <message>
+        <source>On the global schedule</source>
+        <translation>طبق زمان‌بندی کلی</translation>
+    </message>
+    <message>
+        <source>As the provider asks</source>
+        <translation>طبق درخواست ارائه‌دهنده</translation>
+    </message>
+    <message>
+        <source> h</source>
+        <translation> ساعت</translation>
+    </message>
+    <message>
+        <source>How often this subscription is refreshed. Zero leaves it on the schedule in Basic Settings.</source>
+        <translation>این اشتراک هر چند وقت تازه می‌شود. صفر یعنی زمان‌بندی تنظیمات پایه.</translation>
+    </message>
+    <message>
+        <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
+        <translation>اشتراک بازه به‌روزرسانی خود را می‌فرستد؛ با برداشتن تیک، عدد بالا استفاده می‌شود.</translation>
     </message>
 </context>
 <context>
@@ -2614,6 +2682,36 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Add profile from File(s)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Subscription details</source>
+        <translation>جزئیات اشتراک</translation>
+    </message>
+    <message>
+        <source>Dismiss until the provider changes it</source>
+        <translation>پنهان کن تا ارائه‌دهنده متن را تغییر دهد</translation>
+    </message>
+    <message>
+        <source>Expires today.</source>
+        <translation>امروز منقضی می‌شود.</translation>
+    </message>
+    <message>
+        <source>Expires tomorrow.</source>
+        <translation>فردا منقضی می‌شود.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n day(s) left.</source>
+        <translation>
+            <numerusform>%n روز باقی مانده.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 of %2 used.</source>
+        <translation>%1 از %2 مصرف شده.</translation>
+    </message>
+    <message>
+        <source>Almost out of traffic.</source>
+        <translation>حجم تقریباً تمام شده است.</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -2839,6 +2937,71 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Direct</source>
         <translation>مستقیم</translation>
+    </message>
+</context>
+<context>
+    <name>SubscriptionPopover</name>
+    <message>
+        <source>Support</source>
+        <translation>پشتیبانی</translation>
+    </message>
+    <message>
+        <source>Website</source>
+        <translation>وب‌سایت</translation>
+    </message>
+    <message>
+        <source>Update now</source>
+        <translation>به‌روزرسانی</translation>
+    </message>
+    <message>
+        <source>Updated %1</source>
+        <translation>به‌روزرسانی %1</translation>
+    </message>
+    <message>
+        <source>Expires today</source>
+        <translation>امروز منقضی می‌شود</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n day(s) left</source>
+        <translation>
+            <numerusform>%n روز باقی مانده</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 of %2 used · %3 left</source>
+        <translation>%1 از %2 مصرف شده · %3 باقی مانده</translation>
+    </message>
+    <message>
+        <source>%1 used of an unlimited plan</source>
+        <translation>%1 مصرف شده از طرح نامحدود</translation>
+    </message>
+    <message>
+        <source>The provider sends no allowance for this subscription.</source>
+        <translation>ارائه‌دهنده حجمی برای این اشتراک اعلام نکرده است.</translation>
+    </message>
+    <message>
+        <source>The provider sets this cycle.</source>
+        <translation>این بازه را ارائه‌دهنده تعیین می‌کند.</translation>
+    </message>
+    <message numerus="yes">
+        <source>every %n h</source>
+        <translation>
+            <numerusform>هر %n ساعت</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>every %n min</source>
+        <translation>
+            <numerusform>هر %n دقیقه</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Warn me before this subscription runs out</source>
+        <translation>پیش از پایان این اشتراک هشدار بده</translation>
+    </message>
+    <message>
+        <source>No warnings for this subscription</source>
+        <translation>برای این اشتراک هشداری نده</translation>
     </message>
 </context>
 </TS>

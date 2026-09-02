@@ -852,6 +852,46 @@ Throne will restart to complete the restore.</source>
         <source>Test Settings</source>
         <translation>测试设置</translation>
     </message>
+    <message>
+        <source>URL scheme</source>
+        <translation>URL 协议</translation>
+    </message>
+    <message>
+        <source>Handler registration for throne:// links and config files.</source>
+        <translation>注册 throne:// 链接和配置文件的处理程序。</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>注册</translation>
+    </message>
+    <message>
+        <source>URL Scheme</source>
+        <translation>URL 协议</translation>
+    </message>
+    <message>
+        <source>Could not register the handler for throne:// links.</source>
+        <translation>无法注册 throne:// 链接的处理程序。</translation>
+    </message>
+    <message>
+        <source>Not available for this installation</source>
+        <translation>此安装方式不可用</translation>
+    </message>
+    <message>
+        <source>Installed</source>
+        <translation>已注册</translation>
+    </message>
+    <message>
+        <source>Not installed</source>
+        <translation>未注册</translation>
+    </message>
+    <message>
+        <source>Not installed — a portable copy does not claim it on its own</source>
+        <translation>未注册 — 便携版不会自行占用</translation>
+    </message>
+    <message>
+        <source>A portable copy leaves the system handler alone. Use Install when you want it.</source>
+        <translation>便携版不会改动系统处理程序。需要时请点击“安装”。</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -926,6 +966,30 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Advanced Settings</source>
         <translation>高级设置</translation>
+    </message>
+    <message>
+        <source>Update every</source>
+        <translation>更新间隔</translation>
+    </message>
+    <message>
+        <source>On the global schedule</source>
+        <translation>使用全局计划</translation>
+    </message>
+    <message>
+        <source>As the provider asks</source>
+        <translation>按服务商要求</translation>
+    </message>
+    <message>
+        <source> h</source>
+        <translation> 小时</translation>
+    </message>
+    <message>
+        <source>How often this subscription is refreshed. Zero leaves it on the schedule in Basic Settings.</source>
+        <translation>此订阅的刷新频率。设为零则使用基本设置中的计划。</translation>
+    </message>
+    <message>
+        <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
+        <translation>订阅会发送自己的刷新周期；取消勾选则使用上面的数值。</translation>
     </message>
 </context>
 <context>
@@ -4574,6 +4638,36 @@ Release note:
         <source>Copied!</source>
         <translation>已复制!</translation>
     </message>
+    <message>
+        <source>Subscription details</source>
+        <translation>订阅详情</translation>
+    </message>
+    <message>
+        <source>Dismiss until the provider changes it</source>
+        <translation>隐藏，直到服务商更改内容</translation>
+    </message>
+    <message>
+        <source>Expires today.</source>
+        <translation>今天到期。</translation>
+    </message>
+    <message>
+        <source>Expires tomorrow.</source>
+        <translation>明天到期。</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n day(s) left.</source>
+        <translation>
+            <numerusform>剩余 %n 天。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 of %2 used.</source>
+        <translation>已用 %1 / %2。</translation>
+    </message>
+    <message>
+        <source>Almost out of traffic.</source>
+        <translation>流量即将用尽。</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -5117,6 +5211,10 @@ Release note:
         <source>%1 of %2 checks failed</source>
         <translation>%1 / %2 个检查失败</translation>
     </message>
+    <message>
+        <source>Subscription %1 did not answer, trying the fallback address.</source>
+        <translation>订阅 %1 无响应，正在尝试备用地址。</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -5588,6 +5686,71 @@ Deleted %3 Profiles:
     <message>
         <source>Failed to get key pair</source>
         <translation>获取钥匙对失败</translation>
+    </message>
+</context>
+<context>
+    <name>SubscriptionPopover</name>
+    <message>
+        <source>Support</source>
+        <translation>支持</translation>
+    </message>
+    <message>
+        <source>Website</source>
+        <translation>网站</translation>
+    </message>
+    <message>
+        <source>Update now</source>
+        <translation>立即更新</translation>
+    </message>
+    <message>
+        <source>Updated %1</source>
+        <translation>更新于 %1</translation>
+    </message>
+    <message>
+        <source>Expires today</source>
+        <translation>今天到期</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n day(s) left</source>
+        <translation>
+            <numerusform>剩余 %n 天</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 of %2 used · %3 left</source>
+        <translation>已用 %1 / %2 · 剩余 %3</translation>
+    </message>
+    <message>
+        <source>%1 used of an unlimited plan</source>
+        <translation>已用 %1，套餐无限制</translation>
+    </message>
+    <message>
+        <source>The provider sends no allowance for this subscription.</source>
+        <translation>此订阅未提供流量信息。</translation>
+    </message>
+    <message>
+        <source>The provider sets this cycle.</source>
+        <translation>此周期由服务商设置。</translation>
+    </message>
+    <message numerus="yes">
+        <source>every %n h</source>
+        <translation>
+            <numerusform>每 %n 小时</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>every %n min</source>
+        <translation>
+            <numerusform>每 %n 分钟</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Warn me before this subscription runs out</source>
+        <translation>订阅即将到期时提醒我</translation>
+    </message>
+    <message>
+        <source>No warnings for this subscription</source>
+        <translation>不提醒此订阅</translation>
     </message>
 </context>
 </TS>
