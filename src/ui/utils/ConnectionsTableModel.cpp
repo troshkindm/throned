@@ -6,7 +6,9 @@
 namespace {
     const QString kEmptyText;
 
-    // These moved out of mainwindow.ui; plain tr() here would orphan every existing .ts entry.
+    // These moved out of mainwindow.ui, so they keep that context to hold on to the
+    // existing .ts entries. The call sites wrap each literal in QT_TRANSLATE_NOOP
+    // because lupdate cannot see a string handed to a helper through a variable.
     QString mwTr(const char *source) {
         return QCoreApplication::translate("MainWindow", source);
     }
@@ -82,7 +84,7 @@ QVariant ConnectionsTableModel::data(const QModelIndex &index, int role) const {
     }
 
     if (role == Qt::ToolTipRole && index.column() == ColClose) {
-        return mwTr("Close this connection");
+        return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Close this connection"));
     }
 
     return {};
@@ -93,12 +95,12 @@ QVariant ConnectionsTableModel::headerData(int section, Qt::Orientation orientat
 
     if (role == Qt::DisplayRole) {
         switch (section) {
-        case ColDest: return mwTr("Destination (Domain)");
-        case ColProcess: return mwTr("Process");
-        case ColProtocol: return mwTr("Protocol");
-        case ColOutbound: return mwTr("Outbound");
-        case ColTraffic: return mwTr("Traffic");
-        case ColSpeed: return mwTr("Speed");
+        case ColDest: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Destination (Domain)"));
+        case ColProcess: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Process"));
+        case ColProtocol: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Protocol"));
+        case ColOutbound: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Outbound"));
+        case ColTraffic: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Traffic"));
+        case ColSpeed: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Speed"));
         default: return {};
         }
     }
@@ -109,12 +111,12 @@ QVariant ConnectionsTableModel::headerData(int section, Qt::Orientation orientat
 
     if (role == Qt::ToolTipRole) {
         switch (section) {
-        case ColDest: return mwTr("Click To Disable Sorting");
-        case ColProcess: return mwTr("Click To Sort By Process");
-        case ColProtocol: return mwTr("Click To Sort By Protocol");
-        case ColOutbound: return mwTr("Click To Sort By Outbound");
-        case ColTraffic: return mwTr("Click to sort by traffic; right-click to choose total/down/up");
-        case ColSpeed: return mwTr("Click to sort by speed; right-click to choose total/down/up");
+        case ColDest: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Disable Sorting"));
+        case ColProcess: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Process"));
+        case ColProtocol: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Protocol"));
+        case ColOutbound: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Outbound"));
+        case ColTraffic: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click to sort by traffic; right-click to choose total/down/up"));
+        case ColSpeed: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click to sort by speed; right-click to choose total/down/up"));
         default: return {};
         }
     }
