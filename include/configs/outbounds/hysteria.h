@@ -58,9 +58,6 @@ namespace Configs
             return realm_enabled && protocol_version == "2";
         }
 
-        // Hosts the realm client reaches outside the tunnel; they need the direct-resolve carve-out.
-        QStringList RealmDirectDomains() const;
-
         bool HasTLS() override {
             return true;
         }

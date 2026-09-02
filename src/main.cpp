@@ -33,7 +33,6 @@
 #include <QContextMenuEvent>
 #include <QTabBar>
 #include <QTableView>
-#include <QTableWidget>
 #include <QTabWidget>
 #include <QTextBrowser>
 #include <QTemporaryDir>
@@ -732,12 +731,12 @@ briefly interrupts traffic.
 
     void CaptureConnectionsPreview(MainWindow *window, const QString &prefix) {
         window->grab().save(prefix + QStringLiteral("-window.png"), "PNG");
-        auto *table = window->findChild<QTableWidget *>(QStringLiteral("connections"));
-        if (table == nullptr || table->rowCount() == 0) {
+        auto *table = window->findChild<QTableView *>(QStringLiteral("connections"));
+        if (table == nullptr || table->model() == nullptr || table->model()->rowCount() == 0) {
             qApp->exit(2);
             return;
         }
-        const QPoint point = table->visualItemRect(table->item(0, 0)).center();
+        const QPoint point = table->visualRect(table->model()->index(0, 0)).center();
         QTimer::singleShot(400, window, [prefix, window] {
             auto *popup = QApplication::activePopupWidget();
             if (popup == nullptr) {
@@ -854,7 +853,7 @@ briefly interrupts traffic.
                 QTabWidget *statsTabs = nullptr;
                 for (auto *tabs : window->findChildren<QTabWidget *>()) {
                     for (int tab = 0; tab < tabs->count(); ++tab)
-                        if (tabs->widget(tab)->findChild<QTableWidget *>(QStringLiteral("connections")) != nullptr) {
+                        if (tabs->widget(tab)->findChild<QTableView *>(QStringLiteral("connections")) != nullptr) {
                             statsTabs = tabs;
                             break;
                         }
@@ -1138,7 +1137,7 @@ briefly interrupts traffic.
             conn.downloadSpeed = sample.down / 8;
             connections.append(conn);
         }
-        window->UpdateConnectionListWithRecreate(connections);
+        window->UpdateConnectionList(connections);
 
         if (auto *log = window->findChild<QTextBrowser *>(QStringLiteral("masterLogBrowser"))) {
             log->setPlainText(QStringLiteral(

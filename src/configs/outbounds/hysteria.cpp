@@ -442,20 +442,6 @@ namespace Configs {
         return {object, ""};
     }
 
-    QStringList hysteria::RealmDirectDomains() const
-    {
-        if (!RealmActive()) return {};
-        QStringList domains{QUrl(realm_server_url).host()};
-        for (const auto &stun : realm_stun_servers) {
-            auto host = stun.trimmed();
-            // "host:port" and "[v6]:port" carry a port; a bare IPv6 literal has several colons.
-            if (host.startsWith('[')) host = SubStrBefore(host, "]").mid(1);
-            else if (host.count(QLatin1Char(':')) == 1) host = SubStrBefore(host, ":");
-            domains << host;
-        }
-        return domains;
-    }
-
     QString hysteria::DisplayAddress()
     {
         if (!RealmActive()) return outbound::DisplayAddress();

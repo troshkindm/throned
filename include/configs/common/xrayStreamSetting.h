@@ -8,6 +8,9 @@ namespace Configs {
     inline QStringList XrayXHTTPUplinkDataPlacements = {"", "auto", "body", "cookie", "header"};
     inline QStringList XrayXHTTPUplinkMethods = {"", "POST", "PUT", "PATCH", "GET"};
 
+    // dns-direct answers every outbound server domain, so its "disable IPv6" caps this.
+    QString getDirectDomainStrategy();
+
     // Passed to the core as LoadConfigReq.xray_outbound_dns_strategy (ThroneWiring), not baked into the config.
     QString getXrayOutboundDomainStrategy();
 

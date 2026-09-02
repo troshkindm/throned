@@ -60,6 +60,7 @@ namespace {
         req.use_default_outbound = target.useDefaultOutbound;
         req.xray_config = target.xrayConfig.toStdString();
         req.need_xray = !target.xrayConfig.isEmpty();
+        req.xray_outbound_dns_strategy = target.xrayDnsStrategy.toStdString();
         for (const auto& xc : target.xrayFullConfigs) req.xray_full_configs.push_back(xc.toStdString());
     }
 
@@ -182,9 +183,12 @@ void TestRunner::runUdpProbe(const Target& target) {
     libcore::UDPTestResp result;
     {
         ResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID] {
-            if (sessionGen_.load() != gen) return;
+            if (staleGen(gen)) return;
             bool ok = false;
             const auto resp = defaultClient->QueryUDPTest(&ok);
+            // Checked again: a poll can sit in this RPC while its batch ends and the next
+            // one zeroes the counter and reuses the positional tags.
+            if (staleGen(gen)) return;
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
@@ -246,9 +250,12 @@ void TestRunner::runUrlProbe(const Target& target) {
     {
         // The core's buffer is global: a poll can take a sibling's results, reclaimed below.
         ResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID] {
-            if (sessionGen_.load() != gen) return;
+            if (staleGen(gen)) return;
             bool ok = false;
             const auto resp = defaultClient->QueryURLTest(&ok);
+            // Checked again: a poll can sit in this RPC while its batch ends and the next
+            // one zeroes the counter and reuses the positional tags.
+            if (staleGen(gen)) return;
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
@@ -312,9 +319,10 @@ void TestRunner::runIpProbe(const Target& target) {
     libcore::IPTestResp result;
     {
         ResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID] {
-            if (sessionGen_.load() != gen) return;
+            if (staleGen(gen)) return;
             bool ok = false;
             const auto resp = defaultClient->QueryIPTest(&ok);
+            if (staleGen(gen)) return;
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
@@ -398,6 +406,11 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         mw_->UpdateDataView(true);
 
         auto runBatch = [this, isUrl, isUdp](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
+            // Per batch, not per probe: the probes of one batch run concurrently and
+            // drain each other's results from the core's global buffer, so they must
+            // share a generation. Outbound tags restart at every batch, so a poll left
+            // over from the previous one must not.
+            sessionGen_.fetch_add(1);
             auto buildObject = Configs::BuildTestConfig(profileSlice);
             if (!buildObject->error.isEmpty()) {
                 MW_show_log(MainWindow::tr("Failed to build test config for batch: ") + buildObject->error);
@@ -432,6 +445,7 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
                 target.xrayFullConfigs = buildObject->xrayFullConfigs;
                 target.outboundTags = buildObject->outboundTags;
                 target.tag2entID = buildObject->tag2entID;
+                target.xrayDnsStrategy = buildObject->xrayDnsStrategy;
                 probe(target);
             }
             batchDone.acquire(testCount);
@@ -523,6 +537,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
                     target.xrayFullConfigs = buildObject->xrayFullConfigs;
                     target.outboundTags = buildObject->outboundTags;
                     target.tag2entID = buildObject->tag2entID;
+                    target.xrayDnsStrategy = buildObject->xrayDnsStrategy;
                     runSpeedProbe(target);
                 }
             };
@@ -594,10 +609,11 @@ void TestRunner::flushTrafficCredits()
     if (!profiles.isEmpty()) Configs::dataManager->profilesRepo->SaveTrafficBatch(profiles);
 }
 
-void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent)
+void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen)
 {
     bool ok = false;
     const auto res = defaultClient->QueryCurrentSpeedTests(&ok);
+    if (staleGen(gen)) return;
     if (!ok || !res.is_running.value())
     {
         return;
@@ -628,10 +644,11 @@ void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCur
     });
 }
 
-void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent)
+void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen)
 {
     bool ok = false;
     const auto res = defaultClient->QueryCountryTestResults(&ok);
+    if (staleGen(gen)) return;
     if (!ok || res.results.empty())
     {
         return;
@@ -667,6 +684,10 @@ void TestRunner::runSpeedProbe(const Target& target)
         return;
     }
 
+    // Per probe, unlike the latency path: speed probes never overlap, so none of them
+    // shares a result buffer with a sibling and each can retire its own late polls.
+    sessionGen_.fetch_add(1);
+
     const auto speedtestConf = Configs::dataManager->settingsRepo->speed_test_mode;
     libcore::SpeedTestRequest req;
     fillCommonTestReq(req, target);
@@ -692,9 +713,9 @@ void TestRunner::runSpeedProbe(const Target& target)
     libcore::SpeedTestResponse result;
     {
         ResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, testCurrent = target.testCurrent, speedtestConf] {
-            if (sessionGen_.load() != gen) return;
-            if (speedtestConf == Configs::TestConfig::COUNTRY) pollCountryTest(tag2entID, testCurrent);
-            else pollSpeedTest(tag2entID, testCurrent);
+            if (staleGen(gen)) return;
+            if (speedtestConf == Configs::TestConfig::COUNTRY) pollCountryTest(tag2entID, testCurrent, gen);
+            else pollSpeedTest(tag2entID, testCurrent, gen);
         }, kSpeedPollIntervalMs);
 
         result = defaultClient->SpeedTest(&rpcOK, req, &coreError);

@@ -531,14 +531,14 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     currentRoute = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
     if (currentRoute == nullptr) currentRoute = chainList[0];
 
-    // All four strategy pickers must stay on one shared item order.
+    // Both strategy pickers must stay on one shared item order.
     ui->default_domain_strategy->addItems(Configs::DomainStrategy::DomainStrategy);
     ui->domainStrategyCombo->addItems(Configs::DomainStrategy::DomainStrategy);
-
-    ui->direct_dns_strategy->addItems(Configs::DomainStrategy::DomainStrategy);
-    ui->remote_dns_strategy->addItems(Configs::DomainStrategy::DomainStrategy);
     ui->local_override->setText(Configs::dataManager->settingsRepo->core_box_underlying_dns);
     ui->enable_fakeip->setChecked(Configs::dataManager->settingsRepo->fake_dns);
+    ui->fakeip_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->fakeip_disable_ipv6);
+    ui->fakeip_disable_ipv6->setEnabled(Configs::dataManager->settingsRepo->fake_dns);
+    connect(ui->enable_fakeip, &QCheckBox::toggled, ui->fakeip_disable_ipv6, &QCheckBox::setEnabled);
 
     dns_advanced = {
         Configs::dataManager->settingsRepo->dns_cache_capacity,
@@ -566,9 +566,9 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     ui->use_dns_object->setChecked(Configs::dataManager->settingsRepo->use_dns_object);
     ui->apply_dns_to_full_config->setChecked(Configs::dataManager->settingsRepo->apply_dns_to_full_config);
     ui->remote_dns->setCurrentText(Configs::dataManager->settingsRepo->remote_dns);
-    ui->remote_dns_strategy->setCurrentText(Configs::dataManager->settingsRepo->remote_dns_strategy);
+    ui->remote_dns_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->remote_dns_disable_ipv6);
     ui->direct_dns->setCurrentText(Configs::dataManager->settingsRepo->direct_dns);
-    ui->direct_dns_strategy->setCurrentText(Configs::dataManager->settingsRepo->direct_dns_strategy);
+    ui->direct_dns_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->direct_dns_disable_ipv6);
     ui->dns_final_out->setCurrentText(Configs::dataManager->settingsRepo->dns_final_out);
     ui->enable_dns_routing->setChecked(Configs::dataManager->settingsRepo->enable_dns_routing);
     ui->respect_hosts->setChecked(Configs::dataManager->settingsRepo->dns_use_hosts);
@@ -679,6 +679,8 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     });
 
     ADD_ASTERISK(this)
+    // Frozen .ui geometry clips this dialog once a translation outgrows it.
+    resize(sizeHint().expandedTo(size()).boundedTo(screen()->availableGeometry().size()));
 }
 
 void DialogManageRoutes::updateCurrentRouteProfile(int idx) {
@@ -706,7 +708,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->apply_dns_to_full_config = ui->apply_dns_to_full_config->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;
     Configs::dataManager->settingsRepo->remote_dns = ui->remote_dns->currentText().trimmed();
-    Configs::dataManager->settingsRepo->remote_dns_strategy = ui->remote_dns_strategy->currentText();
+    Configs::dataManager->settingsRepo->remote_dns_disable_ipv6 = ui->remote_dns_disable_ipv6->isChecked();
     Configs::dataManager->settingsRepo->dns_cache_capacity = dns_advanced.cache_capacity;
     Configs::dataManager->settingsRepo->dns_disable_cache = dns_advanced.disable_cache;
     Configs::dataManager->settingsRepo->dns_disable_expire = dns_advanced.disable_expire;
@@ -715,10 +717,11 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->dns_optimistic_timeout = dns_advanced.optimistic_timeout;
     Configs::dataManager->settingsRepo->dns_query_timeout = dns_advanced.query_timeout;
     Configs::dataManager->settingsRepo->direct_dns = ui->direct_dns->currentText().trimmed();
-    Configs::dataManager->settingsRepo->direct_dns_strategy = ui->direct_dns_strategy->currentText();
+    Configs::dataManager->settingsRepo->direct_dns_disable_ipv6 = ui->direct_dns_disable_ipv6->isChecked();
     Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
     Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
     Configs::dataManager->settingsRepo->fake_dns = ui->enable_fakeip->isChecked();
+    Configs::dataManager->settingsRepo->fakeip_disable_ipv6 = ui->fakeip_disable_ipv6->isChecked();
     Configs::dataManager->settingsRepo->enable_dns_routing = ui->enable_dns_routing->isChecked();
     Configs::dataManager->settingsRepo->dns_use_hosts = ui->respect_hosts->isChecked();
     Configs::dataManager->settingsRepo->dns_predefined_enable = predefined_dns_enabled;

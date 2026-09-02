@@ -46,6 +46,7 @@
 #include <QStackedWidget>
 #include <QTabBar>
 
+#include "include/sys/UrlScheme.hpp"
 #include "include/ui/mainwindow.h"
 
 DialogBasicSettings::DialogBasicSettings(QWidget *parent)
@@ -77,6 +78,31 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(inbound_auth)
     D_LOAD_STRING(inbound_user)
     D_LOAD_STRING(inbound_pass)
+
+    ui->url_scheme_auto_register->setChecked(Configs::dataManager->settingsRepo->url_scheme_auto_register);
+    connect(ui->url_scheme_install, &QPushButton::clicked, this, [=,this] {
+        const bool ok = UrlScheme_Install();
+        refreshUrlSchemeStatus();
+        if (!ok) QMessageBox::warning(this, tr("URL Scheme"), tr("Could not register the handler for throne:// links."));
+    });
+    connect(ui->url_scheme_uninstall, &QPushButton::clicked, this, [=,this] {
+        UrlScheme_Uninstall();
+        // Leaving auto registration on would put everything back on the next start.
+        ui->url_scheme_auto_register->setChecked(false);
+        Configs::dataManager->settingsRepo->url_scheme_auto_register = false;
+        Configs::dataManager->settingsRepo->Save();
+        refreshUrlSchemeStatus();
+    });
+#ifdef Q_OS_MACOS
+    // LaunchServices registers the scheme from the bundle's Info.plist, so there is nothing of ours to add or take back.
+    ui->url_scheme_install->hide();
+    ui->url_scheme_uninstall->hide();
+#endif
+    const bool urlSchemeSupported = UrlScheme_IsSupported();
+    ui->url_scheme_auto_register->setEnabled(urlSchemeSupported);
+    ui->url_scheme_install->setEnabled(urlSchemeSupported);
+    ui->url_scheme_uninstall->setEnabled(urlSchemeSupported);
+    refreshUrlSchemeStatus();
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=,this] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound, JsonEdit::SingBox::Config)
@@ -679,6 +705,21 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 #endif
             pageLayout->addWidget(permissions);
 
+            auto *urlScheme = makeSection(tr("URL scheme"), tr("Handler registration for throne:// links and config files."));
+            layout = qobject_cast<QVBoxLayout *>(urlScheme->layout());
+            addToggleRow(layout, ui->url_scheme_auto_register->text(), ui->url_scheme_auto_register);
+            auto *schemeTools = new QWidget(this);
+            auto *schemeLayout = new QHBoxLayout(schemeTools);
+            schemeLayout->setContentsMargins(0, 0, 0, 0);
+            schemeLayout->setSpacing(6);
+            ui->url_scheme_install->setObjectName(QStringLiteral("settingsSecondaryButton"));
+            ui->url_scheme_uninstall->setObjectName(QStringLiteral("settingsSecondaryButton"));
+            schemeLayout->addWidget(ui->url_scheme_status);
+            schemeLayout->addWidget(ui->url_scheme_install);
+            schemeLayout->addWidget(ui->url_scheme_uninstall);
+            addControlRow(layout, tr("Registration"), schemeTools);
+            pageLayout->addWidget(urlScheme);
+
             auto *certificates = makeSection(tr("Certificates"), tr("Certificate stores and TLS validation defaults."));
             layout = qobject_cast<QVBoxLayout *>(certificates->layout());
             addToggle(layout, tr("Use Mozilla Certificate Store"), settings.use_mozilla_certs);
@@ -901,6 +942,19 @@ static void highlightRegexLines(QTextEdit *edit) {
     edit->blockSignals(false);
 }
 
+void DialogBasicSettings::refreshUrlSchemeStatus() {
+    const auto colors = themeManager->Colors();
+    if (!UrlScheme_IsSupported()) {
+        ui->url_scheme_status->setText(tr("Not available for this installation"));
+        ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg(colors.textMuted.name()));
+        return;
+    }
+
+    const bool installed = UrlScheme_IsCurrent();
+    ui->url_scheme_status->setText(installed ? tr("Installed") : tr("Not installed"));
+    ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg((installed ? colors.success : colors.textMuted).name()));
+}
+
 void DialogBasicSettings::applyRegexHighlighting() {
     highlightRegexLines(ui->log_include_regex);
     highlightRegexLines(ui->log_exclude_regex);
@@ -912,6 +966,7 @@ void DialogBasicSettings::applySelectedTheme() {
     themeManager->ApplyTheme(theme);
     Configs::dataManager->settingsRepo->theme = theme;
     Configs::dataManager->settingsRepo->Save();
+    refreshUrlSchemeStatus();
 }
 
 void DialogBasicSettings::accept() {
@@ -941,6 +996,10 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(inbound_auth)
     D_SAVE_STRING(inbound_user)
     D_SAVE_STRING(inbound_pass)
+
+    const bool urlSchemeWasAuto = Configs::dataManager->settingsRepo->url_scheme_auto_register;
+    Configs::dataManager->settingsRepo->url_scheme_auto_register = ui->url_scheme_auto_register->isChecked();
+    if (!urlSchemeWasAuto && Configs::dataManager->settingsRepo->url_scheme_auto_register) UrlScheme_RegisterIfNeeded();
 
     auto oldMaxLogLines = Configs::dataManager->settingsRepo->max_log_line;
     Configs::dataManager->settingsRepo->max_log_line = ui->max_log_line->text().trimmed().toInt();

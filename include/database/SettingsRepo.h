@@ -147,6 +147,7 @@ namespace Configs {
 
         // Mirror of the throne:// registration we last wrote to the OS; startup re-registers only when it differs.
         QString url_scheme_mirror = "";
+        bool url_scheme_auto_register = true;
 
         // Network
         bool net_use_proxy = false;
@@ -184,9 +185,9 @@ namespace Configs {
         int route_auto_update = -1440;
         qint64 route_auto_update_last = 0;
         QString remote_dns = "https://8.8.8.8/dns-query";
-        QString remote_dns_strategy = "";
+        bool remote_dns_disable_ipv6 = false;
         QString direct_dns = "localhost";
-        QString direct_dns_strategy = "";
+        bool direct_dns_disable_ipv6 = false;
         int dns_cache_capacity = 65536;
         bool dns_disable_cache = false;
         bool dns_disable_expire = false;
@@ -228,6 +229,7 @@ namespace Configs {
 
         // VPN
         bool fake_dns = false;
+        bool fakeip_disable_ipv6 = false;
         bool enable_tun_routing = false;
 #ifdef Q_OS_MACOS
         QString vpn_implementation = "gvisor";

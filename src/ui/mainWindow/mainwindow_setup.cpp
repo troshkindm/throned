@@ -24,6 +24,7 @@
 #include "include/sys/UrlScheme.hpp"
 
 #include "include/ui/utils/ConnectionsFilterHeader.h"
+#include "include/ui/utils/ConnectionsTableModel.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/stats/dialog_traffic_stats.h"
@@ -1141,7 +1142,11 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     });
     ui->label_inbound->installEventFilter(this);
     ui->splitter->installEventFilter(this);
-    ui->tabWidget->installEventFilter(this);
+    // Never from a mouse-press filter: off Windows Qt synthesizes the context-menu event after the press, landing it on whatever is under the cursor by then (#1642).
+    ui->tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->tabWidget->tabBar(), &QWidget::customContextMenuRequested, this,
+            [this](const QPoint& pos) { show_group_tab_menu(pos); });
     // Lives inside the viewport so it never covers the header: the columns stay
     // usable while there is nothing to show under them.
     profilesEmptyState = new QWidget(ui->profilesTableView->viewport());
@@ -1342,17 +1347,17 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->connections->horizontalHeader(), &QHeaderView::sectionClicked, this, [=,this](int index)
     {
             // The close column has no sort of its own; without this it would fall through and reset sorting.
-            if (index == ConnectionsFilterHeader::ColClose) return;
+            if (index == ConnectionsTableModel::ColClose) return;
 
             Stats::ConnectionSort sortType;
 
             switch (index)
             {
-            case 1: sortType = Stats::ByProcess; break;
-            case 2: sortType = Stats::ByProtocol; break;
-            case 3: sortType = Stats::ByOutbound; break;
-            case 4: sortType = Stats::ByTraffic; break;
-            case 5: sortType = Stats::BySpeed; break;
+            case ConnectionsTableModel::ColProcess:  sortType = Stats::ByProcess; break;
+            case ConnectionsTableModel::ColProtocol: sortType = Stats::ByProtocol; break;
+            case ConnectionsTableModel::ColOutbound: sortType = Stats::ByOutbound; break;
+            case ConnectionsTableModel::ColTraffic:  sortType = Stats::ByTraffic; break;
+            case ConnectionsTableModel::ColSpeed:    sortType = Stats::BySpeed; break;
             default: sortType = Stats::Default; break;
             }
 

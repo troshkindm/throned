@@ -7,6 +7,7 @@
 #include <QStyle>
 #include <QApplication>
 #include <QFile>
+#include <QFont>
 #include <QPalette>
 #include <QColor>
 #include <QMap>
@@ -235,6 +236,12 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         qApp->setStyleSheet("");
         qApp->setStyle(theme);
     }
+
+    // setStyle() and setStyleSheet() refill Qt's per-class platform font table, which outranks the
+    // app font; re-asserting the font drops it and the sheet call repolishes what it stamped (#1829).
+    const auto activeSheet = qApp->styleSheet();
+    qApp->setFont(qApp->font());
+    if (!activeSheet.isEmpty()) qApp->setStyleSheet(activeSheet);
 
     current_theme = theme;
 

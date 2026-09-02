@@ -9,14 +9,6 @@
 
 namespace Stats
 {
-    constexpr int IDKEY = 242315;
-
-    constexpr int DESTKEY = 242316;
-    constexpr int DOMAINKEY = 242317;
-    constexpr int PROCESSKEY = 242318;
-    constexpr int PROCESSPATHKEY = 242319;
-    constexpr int OUTBOUNDKEY = 242320;
-
     enum ConnectionSort
     {
         Default,
@@ -53,12 +45,11 @@ namespace Stats
     class ConnectionLister
     {
     public:
-        ConnectionLister();
-
-        bool suspend = true;
+        std::atomic<bool> suspend{true};
 
         void Loop();
 
+        // Only wakes the loop; the caller is the UI thread and must not block on the core's IPC.
         void ForceUpdate();
 
         // Selects the 1 Hz vs relaxed poll cadence; switching to visible wakes the loop at once.
@@ -76,7 +67,8 @@ namespace Stats
         bool isSortAscending() const { return asc; }
 
     private:
-        void update();
+        // Off-view polls still sample the traffic stats; only the sort and the UI push are skipped.
+        void update(bool pushToUi);
 
         // Rebuilt from the active set on every poll, so it self-prunes.
         struct SpeedSample
@@ -91,14 +83,13 @@ namespace Stats
 
         QMutex mu;
 
-        // Interruptible poll sleep: SetInView(true) and stopLoop() wake it early.
+        // Interruptible poll sleep: SetInView(true), ForceUpdate() and stopLoop() wake it early.
         QMutex waitMu_;
         QWaitCondition waitCond_;
         std::atomic<bool> inView_{false};
+        bool forced_ = false; // guarded by waitMu_
 
-        bool stop = false;
-
-        std::shared_ptr<QSet<QString>> state;
+        std::atomic<bool> stop{false};
 
         ConnectionSort sort = Default;
 

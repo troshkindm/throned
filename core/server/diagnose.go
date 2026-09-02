@@ -112,7 +112,8 @@ func (s *server) Diagnose(ctx context.Context, in *gen.TestReq) (*gen.TestResp, 
 	// Stage 3 and 4 need the outbound itself, which is what carries tls, the
 	// transport and the proxy handshake.
 	env, err := prepareTestEnv(in.GetTestCurrent(), in.GetNeedXray(), in.GetXrayConfig(),
-		in.XrayFullConfigs, in.GetConfig(), in.OutboundTags, in.GetUseDefaultOutbound())
+		in.XrayFullConfigs, in.GetConfig(), in.OutboundTags, in.GetUseDefaultOutbound(),
+		in.GetXrayOutboundDnsStrategy())
 	if err != nil {
 		step("start core", time.Now(), err)
 		return &gen.TestResp{Results: steps}, nil

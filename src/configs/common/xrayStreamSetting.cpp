@@ -881,12 +881,22 @@ namespace Configs {
     }
 
 
+    QString getDirectDomainStrategy() {
+        const auto &settings = *Configs::dataManager->settingsRepo;
+        // No DNS rule blanks AAAA for these lookups any more, so the switch caps the strategy instead.
+        if (settings.direct_dns_disable_ipv6 && !settings.use_dns_object) return "ipv4_only";
+        return settings.default_domain_strategy;
+    }
+
     QString getXrayOutboundDomainStrategy() {
-        auto strategy = Configs::dataManager->settingsRepo->direct_dns_strategy;
+        const auto strategy = getDirectDomainStrategy();
         if (strategy == "prefer_ipv4") return "UseIPv4v6";
         if (strategy == "prefer_ipv6") return "UseIPv6v4";
-        if (strategy == "ipv4_only") return "ForceIPv4";
         if (strategy == "ipv6_only") return "ForceIPv6";
+        // The cap narrows the family; it must not also make resolution mandatory.
+        if (strategy == "ipv4_only") {
+            return Configs::dataManager->settingsRepo->default_domain_strategy == "ipv4_only" ? "ForceIPv4" : "UseIPv4";
+        }
         return "UseIP";
     }
 

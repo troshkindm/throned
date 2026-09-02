@@ -888,8 +888,8 @@ QString MainWindow::collectDiagnostics() {
     out << "";
 
     out << "DNS settings:";
-    out << QString("  remote: %1 (%2)").arg(settings.remote_dns, settings.remote_dns_strategy);
-    out << QString("  direct: %1 (%2)").arg(settings.direct_dns, settings.direct_dns_strategy);
+    out << QString("  remote: %1 (ipv6 %2)").arg(settings.remote_dns, onOff(!settings.remote_dns_disable_ipv6));
+    out << QString("  direct: %1 (ipv6 %2)").arg(settings.direct_dns, onOff(!settings.direct_dns_disable_ipv6));
     out << QString("  final out: %1 | fake ip: %2 | dns routing: %3")
                .arg(settings.dns_final_out, onOff(settings.fake_dns), onOff(settings.enable_dns_routing));
     out << QString("  local override: %1").arg(settings.core_box_underlying_dns.isEmpty() ? "(empty)" : settings.core_box_underlying_dns);

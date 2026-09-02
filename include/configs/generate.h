@@ -63,6 +63,7 @@ namespace Configs
         QJsonObject xrayConfig;
         bool isXrayNeeded = false;
         QStringList outboundTags;
+        QString xrayDnsStrategy;
     };
 
     inline QString get_jsdelivr_link(QString link)
