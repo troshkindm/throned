@@ -11,6 +11,8 @@ enum class Glyph {
     ArrowDown,
     ArrowUp,
     Apps,
+    Bell,
+    BellOff,
     Block,
     Bolt,
     Campaign,

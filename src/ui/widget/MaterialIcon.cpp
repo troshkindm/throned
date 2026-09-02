@@ -20,6 +20,10 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z";
     case Glyph::Apps:
         return "M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z";
+    case Glyph::Bell:
+        return "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z";
+    case Glyph::BellOff:
+        return "M20 18.69 7.84 6.14 5.27 3.49 4 4.76l2.8 2.8v.01C6.28 8.56 6 9.73 6 11v5l-2 2v1h13.73l2 2L21 19.72l-1-1.03zM12 22c1.11 0 2-.89 2-2h-4c0 1.11.89 2 2 2zm6-7.32V11c0-3.08-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68c-.15.03-.29.08-.42.12L18 14.68z";
     case Glyph::Block:
         return "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM4 12c0-1.85.63-3.55 1.69-4.9L16.9 18.31A7.96 7.96 0 0 1 4 12zm14.31 4.9L7.1 5.69A7.96 7.96 0 0 1 18.31 16.9z";
     case Glyph::Bolt:
@@ -99,8 +103,11 @@ const char *glyphName(MaterialIcon::Glyph glyph) {
     case Glyph::ArrowDown: return "arrow-down";
     case Glyph::ArrowUp: return "arrow-up";
     case Glyph::Apps: return "apps";
+    case Glyph::Bell: return "bell";
+    case Glyph::BellOff: return "bell-off";
     case Glyph::Block: return "block";
     case Glyph::Bolt: return "bolt";
+    case Glyph::Campaign: return "campaign";
     case Glyph::Check: return "check";
     case Glyph::ChevronDown: return "chevron-down";
     case Glyph::ChevronUp: return "chevron-up";

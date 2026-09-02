@@ -8,6 +8,7 @@
 
 class QLabel;
 class QPushButton;
+class QToolButton;
 
 namespace Configs { class Group; }
 
@@ -32,11 +33,14 @@ protected:
 private:
     void fill(const std::shared_ptr<Configs::Group> &group);
 
+    void applyMuteIcon(bool notify);
+
     std::function<void(int gid)> m_updateNow;
     bool m_armed = false;
     int m_gid = -1;
 
     QLabel *m_name = nullptr;
+    QToolButton *m_mute = nullptr;
     QPushButton *m_support = nullptr;
     QPushButton *m_website = nullptr;
     QFrame *m_announceBox = nullptr;

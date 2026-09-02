@@ -263,7 +263,8 @@ void MainWindow::notifySubscriptionState(const std::shared_ptr<Configs::Group> &
     if (due == group->provider.notifiedMask && fresh == 0) return;
     group->provider.notifiedMask = due;
     Configs::dataManager->groupsRepo->Save(group);
-    if (fresh == 0 || tray == nullptr) return;
+    // Muting still tracks the mask, so unmuting does not replay thresholds already passed.
+    if (fresh == 0 || tray == nullptr || !group->provider.notifyExpiry) return;
 
     // Only the sharpest new threshold speaks; the rest are already implied by it.
     QString body;

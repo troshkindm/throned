@@ -1201,6 +1201,16 @@ briefly interrupts traffic.
                     }
                     popover->grab().save(prefix + QStringLiteral("-subscription.png"), "PNG");
                     SavePopupComposite(window, popover, prefix + QStringLiteral("-subscription-in-place.png"));
+                    // The mute toggle is icon-only, so its off state is worth a render of its own.
+                    auto *mute = popover->findChild<QToolButton *>(QStringLiteral("subPopoverMute"));
+                    if (mute == nullptr) {
+                        qWarning() << "The subscription popover lost its notification toggle";
+                        qApp->exit(2);
+                        return;
+                    }
+                    mute->click();
+                    popover->grab().save(prefix + QStringLiteral("-subscription-muted.png"), "PNG");
+                    mute->click();
                     popover->close();
 
                     // The per-group refresh cycle lives in the group editor, so the

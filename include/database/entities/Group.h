@@ -32,8 +32,9 @@ namespace Configs
         bySecurity
     };
 
-    // What the subscription server says about itself, straight from the response
-    // headers (or the leading "# key: value" comment lines that mirror them).
+    // A subscription's own state: what the server says about itself, straight from the
+    // response headers (or the leading "# key: value" comment lines that mirror them),
+    // plus what we remember about having shown it.
     struct SubProvider {
         QString announce;
         // Hash of the announcement the user dismissed; a new text shows again.
@@ -47,6 +48,8 @@ namespace Configs
         bool intervalFromProvider = false;
         // Expiry/quota thresholds already announced for the current billing period.
         int notifiedMask = 0;
+        // Per subscription, because a trial worth ignoring sits beside a plan worth watching.
+        bool notifyExpiry = true;
 
         [[nodiscard]] bool hasLinks() const { return !supportUrl.isEmpty() || !webPageUrl.isEmpty(); }
     };

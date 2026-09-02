@@ -76,6 +76,7 @@ namespace Configs {
             json["update_interval_minutes"] = provider.updateIntervalMinutes;
             json["interval_from_provider"] = provider.intervalFromProvider;
             json["notified_mask"] = provider.notifiedMask;
+            json["notify_expiry"] = provider.notifyExpiry;
             return json;
         }
 
@@ -89,6 +90,7 @@ namespace Configs {
             provider.updateIntervalMinutes = json["update_interval_minutes"].toInt();
             provider.intervalFromProvider = json["interval_from_provider"].toBool();
             provider.notifiedMask = json["notified_mask"].toInt();
+            provider.notifyExpiry = json["notify_expiry"].toBool(true);
             return provider;
         }
     }

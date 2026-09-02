@@ -1,9 +1,12 @@
 #include "include/ui/widget/SubscriptionPopover.hpp"
 
 #include "include/configs/sub/SubInfo.h"
+#include "include/database/GroupsRepo.h"
 #include "include/database/entities/Group.h"
+#include "include/global/Configs.hpp"
 #include "include/global/Utils.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/MaterialIcon.h"
 
 #include <QDateTime>
 #include <QDesktopServices>
@@ -13,6 +16,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QScreen>
+#include <QSignalBlocker>
+#include <QToolButton>
 #include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -100,6 +105,16 @@ SubscriptionPopover::SubscriptionPopover(std::function<void(int)> updateNow, QWi
     m_name->setObjectName(QStringLiteral("subPopoverName"));
     m_name->setTextFormat(Qt::PlainText);
     header->addWidget(m_name, 1);
+    // Icon-only and in the header with the other per-subscription actions: a whole
+    // labelled row for something you touch once would outweigh what it does.
+    m_mute = new QToolButton(card);
+    m_mute->setObjectName(QStringLiteral("subPopoverMute"));
+    m_mute->setCheckable(true);
+    m_mute->setCursor(Qt::PointingHandCursor);
+    m_mute->setFocusPolicy(Qt::NoFocus);
+    m_mute->setFixedSize(24, 24);
+    m_mute->setIconSize(QSize(15, 15));
+    header->addWidget(m_mute);
     m_support = linkButton(tr("Support"));
     m_website = linkButton(tr("Website"));
     header->addWidget(m_support);
@@ -159,6 +174,14 @@ SubscriptionPopover::SubscriptionPopover(std::function<void(int)> updateNow, QWi
     footer->addWidget(m_refresh);
     root->addLayout(footer);
 
+
+    connect(m_mute, &QToolButton::toggled, this, [this](bool muted) {
+        applyMuteIcon(!muted);
+        const auto group = m_gid < 0 ? nullptr : Configs::dataManager->groupsRepo->GetGroup(m_gid);
+        if (group == nullptr) return;
+        group->provider.notifyExpiry = !muted;
+        Configs::dataManager->groupsRepo->Save(group);
+    });
     connect(m_refresh, &QPushButton::clicked, this, [this] {
         const int gid = m_gid;
         close();
@@ -177,12 +200,27 @@ QPushButton#subPopoverLink {
     color: #A4ABB4; font-size: 12px; padding: 3px 9px;
 }
 QPushButton#subPopoverLink:hover { background: #222529; color: #F1F3F5; border-color: #4A4F57; }
+QToolButton#subPopoverMute { background: transparent; border: 1px solid #2F3136; border-radius: 5px; }
+QToolButton#subPopoverMute:hover { background: #222529; border-color: #4A4F57; }
+QToolButton#subPopoverMute:checked { background: #222529; }
 )"));
 }
 
+
+void SubscriptionPopover::applyMuteIcon(bool notify) {
+    const auto colors = themeManager->Colors();
+    m_mute->setIcon(MaterialIcon::icon(notify ? MaterialIcon::Glyph::Bell : MaterialIcon::Glyph::BellOff,
+                                       notify ? colors.textMuted : colors.textSubtle, 15));
+    m_mute->setToolTip(notify ? tr("Warn me before this subscription runs out")
+                              : tr("No warnings for this subscription"));
+}
 void SubscriptionPopover::fill(const std::shared_ptr<Configs::Group> &group) {
     m_gid = group->id;
     m_name->setText(group->name);
+
+    const QSignalBlocker muteBlock(m_mute);
+    m_mute->setChecked(!group->provider.notifyExpiry);
+    applyMuteIcon(group->provider.notifyExpiry);
 
     const auto &provider = group->provider;
     const auto announce = provider.announce.trimmed();
