@@ -1352,6 +1352,46 @@ This backup may have been created with a newer version of the application.</sour
         <source>Outbound</source>
         <translation>Исходящий маршрут</translation>
     </message>
+    <message>
+        <source>URL scheme</source>
+        <translation>Схема ссылок</translation>
+    </message>
+    <message>
+        <source>Handler registration for throne:// links and config files.</source>
+        <translation>Регистрация обработчика ссылок throne:// и файлов конфигурации.</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>Регистрация</translation>
+    </message>
+    <message>
+        <source>URL Scheme</source>
+        <translation>Схема ссылок</translation>
+    </message>
+    <message>
+        <source>Could not register the handler for throne:// links.</source>
+        <translation>Не удалось зарегистрировать обработчик ссылок throne://.</translation>
+    </message>
+    <message>
+        <source>Not available for this installation</source>
+        <translation>Недоступно для этой установки</translation>
+    </message>
+    <message>
+        <source>Installed</source>
+        <translation>Установлен</translation>
+    </message>
+    <message>
+        <source>Not installed</source>
+        <translation>Не установлен</translation>
+    </message>
+    <message>
+        <source>Not installed — a portable copy does not claim it on its own</source>
+        <translation>Не установлен — переносимая копия не занимает обработчик сама</translation>
+    </message>
+    <message>
+        <source>A portable copy leaves the system handler alone. Use Install when you want it.</source>
+        <translation>Переносимая копия не трогает системный обработчик. Нажмите «Установить», если он нужен.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -1422,6 +1462,30 @@ This backup may have been created with a newer version of the application.</sour
     <message>
         <source>Copy profile share links (Deep Links)</source>
         <translation>Копировать ссылки профилей (Диплинк)</translation>
+    </message>
+    <message>
+        <source>Update every</source>
+        <translation>Обновлять каждые</translation>
+    </message>
+    <message>
+        <source>On the global schedule</source>
+        <translation>По общему расписанию</translation>
+    </message>
+    <message>
+        <source>As the provider asks</source>
+        <translation>Как просит провайдер</translation>
+    </message>
+    <message>
+        <source>How often this subscription is refreshed. Zero leaves it on the schedule in Basic Settings.</source>
+        <translation>Как часто обновляется эта подписка. Ноль оставляет её на расписании из основных настроек.</translation>
+    </message>
+    <message>
+        <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
+        <translation>Подписка присылает свой интервал обновления; если снять галочку, останется число выше.</translation>
+    </message>
+    <message>
+        <source> h</source>
+        <translation> ч</translation>
     </message>
 </context>
 <context>
@@ -5594,6 +5658,38 @@ Name: %1</source>
         <source>Update download failed: %1</source>
         <translation>Не удалось загрузить обновление: %1</translation>
     </message>
+    <message>
+        <source>Subscription details</source>
+        <translation>Сведения о подписке</translation>
+    </message>
+    <message>
+        <source>Dismiss until the provider changes it</source>
+        <translation>Скрыть, пока провайдер не изменит текст</translation>
+    </message>
+    <message>
+        <source>Expires today.</source>
+        <translation>Истекает сегодня.</translation>
+    </message>
+    <message>
+        <source>Expires tomorrow.</source>
+        <translation>Истекает завтра.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n day(s) left.</source>
+        <translation>
+            <numerusform>Остался %n день.</numerusform>
+            <numerusform>Осталось %n дня.</numerusform>
+            <numerusform>Осталось %n дней.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 of %2 used.</source>
+        <translation>Использовано %1 из %2.</translation>
+    </message>
+    <message>
+        <source>Almost out of traffic.</source>
+        <translation>Трафик почти закончился.</translation>
+    </message>
 </context>
 <context>
     <name>UpdateStatusWidget</name>
@@ -6321,6 +6417,10 @@ Deleted %5 Profiles:
     <message>
         <source>Direct</source>
         <translation type="unfinished">Напрямую</translation>
+    </message>
+    <message>
+        <source>Subscription %1 did not answer, trying the fallback address.</source>
+        <translation>Подписка %1 не ответила, пробую запасной адрес.</translation>
     </message>
 </context>
 <context>
@@ -7207,5 +7307,68 @@ goes to the default above.</source>
     <message><source>Paste the complete subscription or profile link</source><translation>Вставьте ссылку подписки или профиля целиком</translation></message>
     <message><source>profile link</source><translation>ссылка профиля</translation></message>
     <message><source>Profile</source><translation>Профиль</translation></message>
+</context>
+<context>
+    <name>SubscriptionPopover</name>
+    <message>
+        <source>Support</source>
+        <translation>Поддержка</translation>
+    </message>
+    <message>
+        <source>Website</source>
+        <translation>Сайт</translation>
+    </message>
+    <message>
+        <source>Update now</source>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <source>Updated %1</source>
+        <translation>Обновлено %1</translation>
+    </message>
+    <message>
+        <source>Expires today</source>
+        <translation>Истекает сегодня</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n day(s) left</source>
+        <translation>
+            <numerusform>остался %n день</numerusform>
+            <numerusform>осталось %n дня</numerusform>
+            <numerusform>осталось %n дней</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 of %2 used · %3 left</source>
+        <translation>%1 из %2 · осталось %3</translation>
+    </message>
+    <message>
+        <source>%1 used of an unlimited plan</source>
+        <translation>Использовано %1, тариф безлимитный</translation>
+    </message>
+    <message>
+        <source>The provider sends no allowance for this subscription.</source>
+        <translation>Провайдер не сообщает лимит для этой подписки.</translation>
+    </message>
+    <message>
+        <source>The provider sets this cycle.</source>
+        <translation>Этот интервал задаёт провайдер.</translation>
+    </message>
+    <message numerus="yes">
+        <source>every %n h</source>
+        <translation>
+            <numerusform>каждый %n ч</numerusform>
+            <numerusform>каждые %n ч</numerusform>
+            <numerusform>каждые %n ч</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>every %n min</source>
+        <translation>
+            <numerusform>каждую %n мин</numerusform>
+            <numerusform>каждые %n мин</numerusform>
+            <numerusform>каждые %n мин</numerusform>
+        </translation>
+    </message>
 </context>
 </TS>
