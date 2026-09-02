@@ -1,5 +1,6 @@
 #include "include/database/entities/Profile.h"
 #include "include/global/HTTPRequestHelper.hpp"
+#include "include/global/ShareLinkB64.hpp"
 
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/clash.hpp"
@@ -269,7 +270,7 @@ namespace Subscription {
         if (str.startsWith("json://")) {
             auto link = QUrl(str);
             if (!link.isValid()) return;
-            auto dataBytes = DecodeB64IfValid(link.fragment().toUtf8(), QByteArray::Base64UrlEncoding);
+            auto dataBytes = DecodeShareLinkB64(link.fragment());
             if (dataBytes.isEmpty()) return;
             auto data = QJsonDocument::fromJson(dataBytes).object();
             if (data.isEmpty()) return;
@@ -285,7 +286,7 @@ namespace Subscription {
         if (str.startsWith("throne://add/", Qt::CaseInsensitive)) {
             auto link = QUrl(str);
             if (!link.isValid()) return;
-            auto dataBytes = DecodeB64IfValid(link.path().mid(1));
+            auto dataBytes = DecodeShareLinkB64(link.path().mid(1));
             if (dataBytes.isEmpty()) return;
             auto data = QJsonDocument::fromJson(dataBytes).object();
             if (data.isEmpty()) return;

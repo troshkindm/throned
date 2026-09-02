@@ -15,6 +15,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/global/PeriodicRunner.hpp"
+#include "include/global/ShareLinkB64.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/utils/ProfilesTableModel.h"
@@ -141,7 +142,7 @@ void MainWindow::handle_deeplink_impl(const QString &url) {
         return;
     }
 
-    const QString data = DecodeB64IfValid(base64);
+    const QString data = DecodeShareLinkB64(base64);
     if (data.isEmpty()) return;
     const QUrl link(data);
     if (!link.isValid()) return;

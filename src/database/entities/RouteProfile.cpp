@@ -12,6 +12,7 @@
 #include "include/configs/common/OutboundFactory.h"
 #include "include/configs/generate.h"
 #include "include/global/Configs.hpp"
+#include "include/global/ShareLinkB64.hpp"
 
 namespace Configs {
     bool isOutboundIDValid(int id) {
@@ -606,7 +607,7 @@ namespace Configs {
             if (error) *error = "Deep link has no data";
             return {};
         }
-        const QString data = DecodeB64IfValid(base64);
+        const QString data = DecodeShareLinkB64(base64);
         if (data.isEmpty()) {
             if (error) *error = "Base64 is invalid.";
             return {};

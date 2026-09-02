@@ -155,6 +155,8 @@ set(PROJECT_SOURCES
         include/global/ReleaseNotes.hpp
         src/global/ReleaseNotes.cpp
         src/global/Utils.cpp
+        include/global/ShareLinkB64.hpp
+        src/global/ShareLinkB64.cpp
         include/global/Logger.hpp
         src/global/Logger.cpp
         include/global/PeriodicRunner.hpp
@@ -785,6 +787,14 @@ if (Qt6Test_FOUND)
     set_target_properties(throned_rule_line_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
     target_link_libraries(throned_rule_line_tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)
     add_test(NAME throned_rule_line_tests COMMAND throned_rule_line_tests)
+
+    qt_add_executable(throned_share_link_tests
+            tests/test_share_link.cpp
+            src/global/ShareLinkB64.cpp
+    )
+    set_target_properties(throned_share_link_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
+    target_link_libraries(throned_share_link_tests PRIVATE Qt6::Test)
+    add_test(NAME throned_share_link_tests COMMAND throned_share_link_tests)
 
     qt_add_executable(throned_sub_info_tests
             tests/test_sub_info.cpp
