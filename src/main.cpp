@@ -180,6 +180,11 @@ void loadTranslate(const QString& locale) {
     if (!loadOK) {
         loadOK = trans->load(qrcPath);
     }
+    // Only the plural forms live in en_US, but every English locale needs them: without
+    // a catalogue Qt hands back the source and the counted strings read "1 day(s) left".
+    if (!loadOK && locale.startsWith(QStringLiteral("en"), Qt::CaseInsensitive)) {
+        loadOK = trans->load(QStringLiteral(":/translations/en_US.qm"));
+    }
     if (loadOK) {
         QCoreApplication::installTranslator(trans);
     }
