@@ -40,6 +40,8 @@ namespace Configs
         QString announceSeen;
         QString supportUrl;
         QString webPageUrl;
+        // Tried once when the subscription URL itself fails to answer.
+        QString fallbackUrl;
         // 0 leaves the group on the global auto-update schedule.
         int updateIntervalMinutes = 0;
         bool intervalFromProvider = false;

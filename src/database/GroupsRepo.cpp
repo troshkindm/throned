@@ -72,6 +72,7 @@ namespace Configs {
             json["announce_seen"] = provider.announceSeen;
             json["support_url"] = provider.supportUrl;
             json["web_page_url"] = provider.webPageUrl;
+            json["fallback_url"] = provider.fallbackUrl;
             json["update_interval_minutes"] = provider.updateIntervalMinutes;
             json["interval_from_provider"] = provider.intervalFromProvider;
             json["notified_mask"] = provider.notifiedMask;
@@ -84,6 +85,7 @@ namespace Configs {
             provider.announceSeen = json["announce_seen"].toString();
             provider.supportUrl = json["support_url"].toString();
             provider.webPageUrl = json["web_page_url"].toString();
+            provider.fallbackUrl = json["fallback_url"].toString();
             provider.updateIntervalMinutes = json["update_interval_minutes"].toInt();
             provider.intervalFromProvider = json["interval_from_provider"].toBool();
             provider.notifiedMask = json["notified_mask"].toInt();

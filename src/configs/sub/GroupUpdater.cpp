@@ -901,6 +901,7 @@ namespace Subscription {
         QString announce;
         QString supportUrl;
         QString webPageUrl;
+        QString fallbackUrl;
         int updateIntervalHours = 0;
 
         void read(const QString &key, const QString &value) {
@@ -908,6 +909,7 @@ namespace Subscription {
             else if (key == "announce") { if (announce.isEmpty()) announce = decodeProviderValue(value); }
             else if (key == "support-url") { if (supportUrl.isEmpty()) supportUrl = sanitizeProviderUrl(value); }
             else if (key == "profile-web-page-url") { if (webPageUrl.isEmpty()) webPageUrl = sanitizeProviderUrl(value); }
+            else if (key == "fallback-url") { if (fallbackUrl.isEmpty()) fallbackUrl = sanitizeProviderUrl(value); }
             else if (key == "profile-update-interval") {
                 if (updateIntervalHours > 0) return;
                 bool ok = false;
@@ -931,6 +933,7 @@ namespace Subscription {
         provider.announce = meta.announce.left(200);
         provider.supportUrl = meta.supportUrl;
         provider.webPageUrl = meta.webPageUrl;
+        provider.fallbackUrl = meta.fallbackUrl;
 
         if (meta.updateIntervalHours > 0) {
             // A manual interval set in the group editor clears the flag and outranks this.
@@ -987,6 +990,13 @@ namespace Subscription {
             MW_show_log(">>>>>>>> " + QObject::tr("Requesting subscription: %1").arg(groupName));
 
             auto resp = NetworkRequestHelper::HttpGet(content, Configs::dataManager->settingsRepo->sub_send_hwid);
+            if (!resp.error.isEmpty() && group != nullptr && !group->provider.fallbackUrl.isEmpty()) {
+                // The provider named a second address for exactly this: the main one is
+                // unreachable often enough that losing the refresh over it is the bug.
+                MW_show_log(QObject::tr("Subscription %1 did not answer, trying the fallback address.").arg(groupName));
+                resp = NetworkRequestHelper::HttpGet(group->provider.fallbackUrl,
+                                                     Configs::dataManager->settingsRepo->sub_send_hwid);
+            }
             if (!resp.error.isEmpty()) {
                 // Error bodies commonly contain the complete subscription payload (plain
                 // or base64). It adds no actionable context and must not enter support logs.
@@ -997,7 +1007,7 @@ namespace Subscription {
             content = resp.data;
             sub_user_info = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
             for (const auto &name : {"Profile-Title", "Announce", "Support-Url",
-                                     "Profile-Web-Page-Url", "Profile-Update-Interval"}) {
+                                     "Profile-Web-Page-Url", "Profile-Update-Interval", "Fallback-Url"}) {
                 const auto value = NetworkRequestHelper::GetHeader(resp.header, name);
                 if (!value.isEmpty()) http_meta.read(QString::fromLatin1(name).toLower(), value);
             }
