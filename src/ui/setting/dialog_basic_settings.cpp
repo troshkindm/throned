@@ -99,7 +99,13 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->url_scheme_uninstall->hide();
 #endif
     const bool urlSchemeSupported = UrlScheme_IsSupported();
-    ui->url_scheme_auto_register->setEnabled(urlSchemeSupported);
+    // Auto registration is deliberately inert for a portable copy, so the switch says so
+    // instead of pretending to be on.
+    const bool portableCopy = !Configs::dataManager->settingsRepo->flag_use_appdata;
+    ui->url_scheme_auto_register->setEnabled(urlSchemeSupported && !portableCopy);
+    if (portableCopy)
+        ui->url_scheme_auto_register->setToolTip(
+            tr("A portable copy leaves the system handler alone. Use Install when you want it."));
     ui->url_scheme_install->setEnabled(urlSchemeSupported);
     ui->url_scheme_uninstall->setEnabled(urlSchemeSupported);
     refreshUrlSchemeStatus();
@@ -951,6 +957,11 @@ void DialogBasicSettings::refreshUrlSchemeStatus() {
     }
 
     const bool installed = UrlScheme_IsCurrent();
+    if (!installed && !Configs::dataManager->settingsRepo->flag_use_appdata) {
+        ui->url_scheme_status->setText(tr("Not installed — a portable copy does not claim it on its own"));
+        ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg(colors.textMuted.name()));
+        return;
+    }
     ui->url_scheme_status->setText(installed ? tr("Installed") : tr("Not installed"));
     ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg((installed ? colors.success : colors.textMuted).name()));
 }

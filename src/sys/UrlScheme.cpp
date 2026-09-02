@@ -10,6 +10,12 @@ bool UrlScheme_IsSupported() {
 void UrlScheme_RegisterIfNeeded() {
     if (!Configs::dataManager->settingsRepo->url_scheme_auto_register) return;
 
+    // A copy that keeps its config beside the exe is portable, and claiming the
+    // system-wide throne:// handler from one is how the wrong instance ends up
+    // opening everybody's config files (throneproj/Throne#1823, #1827). The Install
+    // button in Basic Settings still registers it on demand.
+    if (!Configs::dataManager->settingsRepo->flag_use_appdata) return;
+
     const QString desired = UrlScheme_DesiredState();
     if (desired.isEmpty()) return;
 
