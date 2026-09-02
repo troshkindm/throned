@@ -49,13 +49,20 @@ Everything Throne does, plus:
 - Search, sort and close live connections; filters and ordering survive restarts.
 - Themed proxy/direct throughput graph in the collapsible activity panel.
 
+**Subscriptions**
+- Allowance and expiry as a meter on the group tab, warning colour on the worse of the two.
+- Click that meter for the plan: traffic, days left, refresh cycle, the provider's links.
+- The provider's announcement as a dismissible strip; it returns only when the text changes.
+- Per-group refresh cycle, taken from `profile-update-interval` or set by hand.
+- Tray notice once per threshold: seven days, three, one, and ninety percent of the traffic.
+- Falls back to the provider's `fallback-url` when the subscription address does not answer.
+
 **Interface**
 - Redesigned two-line server list with exit endpoint, live metrics and configurable columns.
 - Favourites across every group, plus optional search across every group.
 - Quick Add accepts subscription and profile links or opens manual group/profile creation.
 - Frameless native window, five core palettes and self-contained custom skins.
 - Log filtered by level, on a hanging timestamp gutter.
-- Subscription usage and expiry on the group tab.
 - Status strip that no longer reflows as numbers change.
 
 **Operating it**
@@ -168,7 +175,8 @@ Stable builds are on the
 TUN mode needs administrator privileges on Windows and elevated network
 capabilities on Linux. On first launch an existing Throne configuration is
 copied in when no Throned database exists yet, and `throne://` links keep
-working.
+working. A portable copy — one that keeps its config beside the exe — does not
+claim the system-wide handler on its own; register it from Basic Settings.
 
 <details>
 <summary><b>Building</b></summary>
