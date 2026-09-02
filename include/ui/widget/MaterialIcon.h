@@ -13,6 +13,7 @@ enum class Glyph {
     Apps,
     Block,
     Bolt,
+    Campaign,
     Check,
     ChevronDown,
     ChevronUp,

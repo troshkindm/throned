@@ -257,6 +257,8 @@ set(PROJECT_SOURCES
         include/ui/widget/ThroughputChart.h
         src/ui/widget/ThroughputChart.cpp
         include/ui/widget/GroupTabBar.h
+        include/ui/widget/SubscriptionPopover.hpp
+        src/ui/widget/SubscriptionPopover.cpp
         src/ui/widget/GroupTabBar.cpp
         include/ui/widget/TrayProfileSelector.hpp
         src/ui/widget/TrayProfileSelector.cpp

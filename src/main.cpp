@@ -32,6 +32,7 @@
 #include <QPushButton>
 #include <QContextMenuEvent>
 #include <QTabBar>
+#include <QSpinBox>
 #include <QTableView>
 #include <QTabWidget>
 #include <QTextBrowser>
@@ -56,6 +57,8 @@
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/GroupTabBar.h"
+#include "include/ui/group/dialog_edit_group.h"
+#include "include/ui/widget/SubscriptionPopover.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/control/ThronedControl.h"
 
@@ -1042,8 +1045,16 @@ briefly interrupts traffic.
         if (auto group = Configs::dataManager->groupsRepo->CurrentGroup()) {
             group->name = QStringLiteral("Demo subscription");
             group->url = QStringLiteral("https://subscription.example/profiles");
-            group->info = QStringLiteral("upload=8589934592; download=25769803776; total=107374182400; expire=4102444800");
+            // Relative so the readouts stay meaningful in every render instead of drifting.
+            group->info = QStringLiteral("upload=8589934592; download=25769803776; total=107374182400; expire=%1")
+                              .arg(QDateTime::currentSecsSinceEpoch() + 23 * 86400);
             group->sub_last_update = 1788037200;
+            group->provider.announce = QStringLiteral(
+                "Maintenance on the DE nodes until 3 September, use the NL exits meanwhile.");
+            group->provider.supportUrl = QStringLiteral("https://support.example/throned");
+            group->provider.webPageUrl = QStringLiteral("https://subscription.example");
+            group->provider.updateIntervalMinutes = 360;
+            group->provider.intervalFromProvider = true;
             Configs::dataManager->groupsRepo->Save(group);
 
             const struct {
@@ -1163,6 +1174,45 @@ briefly interrupts traffic.
         QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
             if (arguments.contains(QStringLiteral("-ui-preview-quick-add"))) {
                 CaptureQuickAddPreviews(window, prefix, emptyPreview);
+                return;
+            }
+            if (arguments.contains(QStringLiteral("-ui-preview-subscription"))) {
+                auto *groups = window->findChild<QTabWidget *>(QStringLiteral("groupsCard"));
+                auto *groupBar = groups == nullptr ? nullptr : qobject_cast<GroupTabBar *>(groups->tabBar());
+                if (groupBar == nullptr) {
+                    qWarning() << "Group tab bar is missing from the subscription preview";
+                    qApp->exit(2);
+                    return;
+                }
+                window->grab().save(prefix + QStringLiteral("-announce.png"), "PNG");
+                emit groupBar->meterClicked(groupBar->currentIndex());
+                QTimer::singleShot(250, window, [window, prefix] {
+                    auto *popover = window->findChild<SubscriptionPopover *>();
+                    if (popover == nullptr || !popover->isVisible()) {
+                        qWarning() << "The subscription popover did not open";
+                        qApp->exit(2);
+                        return;
+                    }
+                    popover->grab().save(prefix + QStringLiteral("-subscription.png"), "PNG");
+                    SavePopupComposite(window, popover, prefix + QStringLiteral("-subscription-in-place.png"));
+                    popover->close();
+
+                    // The per-group refresh cycle lives in the group editor, so the
+                    // same run proves those controls are wired and renders them.
+                    auto *editor = new DialogEditGroup(
+                        Configs::dataManager->groupsRepo->CurrentGroup(), window);
+                    editor->show();
+                    QTimer::singleShot(200, window, [editor, prefix] {
+                        if (editor->findChild<QSpinBox *>(QStringLiteral("update_interval_hours")) == nullptr) {
+                            qWarning() << "The group editor is missing its update-interval control";
+                            qApp->exit(2);
+                            return;
+                        }
+                        editor->grab().save(prefix + QStringLiteral("-group-editor.png"), "PNG");
+                        editor->close();
+                        qApp->exit(0);
+                    });
+                });
                 return;
             }
             if (arguments.contains(QStringLiteral("-ui-preview-favorites"))) {

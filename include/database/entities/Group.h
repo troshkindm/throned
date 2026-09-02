@@ -32,6 +32,23 @@ namespace Configs
         bySecurity
     };
 
+    // What the subscription server says about itself, straight from the response
+    // headers (or the leading "# key: value" comment lines that mirror them).
+    struct SubProvider {
+        QString announce;
+        // Hash of the announcement the user dismissed; a new text shows again.
+        QString announceSeen;
+        QString supportUrl;
+        QString webPageUrl;
+        // 0 leaves the group on the global auto-update schedule.
+        int updateIntervalMinutes = 0;
+        bool intervalFromProvider = false;
+        // Expiry/quota thresholds already announced for the current billing period.
+        int notifiedMask = 0;
+
+        [[nodiscard]] bool hasLinks() const { return !supportUrl.isEmpty() || !webPageUrl.isEmpty(); }
+    };
+
     class Group {
     public:
         QMutex mutex;
@@ -45,6 +62,7 @@ namespace Configs
         qint64 sub_last_update = 0;
         int front_proxy_id = -1;
         int landing_proxy_id = -1;
+        SubProvider provider;
 
         QList<int> column_width;
         QList<int> calculated_column_width; // memory only, no need to save to db

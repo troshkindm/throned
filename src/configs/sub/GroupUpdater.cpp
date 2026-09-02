@@ -875,31 +875,84 @@ namespace Subscription {
         return group->name == QUrl(group->url).host();
     }
 
-    // Servers send the title as a header value that may itself be wrapped, because the
-    // header has to stay ASCII while the name usually is not.
-    static QString decodeTitleValue(const QString &raw) {
+    // Servers send these as header values that may themselves be wrapped, because the
+    // header has to stay ASCII while the text usually is not.
+    static QString decodeProviderValue(const QString &raw) {
         const auto value = raw.trimmed();
         if (!value.startsWith("base64:", Qt::CaseInsensitive)) return value;
-        const auto decoded = DecodeB64IfValid(value.mid(7).trimmed());
-        return decoded.isEmpty() ? QString() : decoded.trimmed();
+        const auto decoded = DecodeShareLinkB64(value.mid(7).trimmed());
+        return decoded.isEmpty() ? QString() : QString::fromUtf8(decoded).trimmed();
     }
 
+    // The provider controls these strings, so a link is only kept when it is one we are
+    // willing to hand to a browser.
+    static QString sanitizeProviderUrl(const QString &raw) {
+        const QUrl url(decodeProviderValue(raw));
+        if (!url.isValid() || url.host().isEmpty()) return {};
+        const auto scheme = url.scheme().toLower();
+        if (scheme != "http" && scheme != "https") return {};
+        return url.toString();
+    }
+
+    // Everything a subscription can say about itself in one refresh. Filled from the
+    // response headers first, then from the leading comment lines that mirror them.
+    struct ProviderMeta {
+        QString title;
+        QString announce;
+        QString supportUrl;
+        QString webPageUrl;
+        int updateIntervalHours = 0;
+
+        void read(const QString &key, const QString &value) {
+            if (key == "profile-title") { if (title.isEmpty()) title = value; }
+            else if (key == "announce") { if (announce.isEmpty()) announce = decodeProviderValue(value); }
+            else if (key == "support-url") { if (supportUrl.isEmpty()) supportUrl = sanitizeProviderUrl(value); }
+            else if (key == "profile-web-page-url") { if (webPageUrl.isEmpty()) webPageUrl = sanitizeProviderUrl(value); }
+            else if (key == "profile-update-interval") {
+                if (updateIntervalHours > 0) return;
+                bool ok = false;
+                if (const int hours = value.toInt(&ok); ok && hours > 0) updateIntervalHours = qMin(hours, 24 * 30);
+            }
+        }
+    };
+
     static void applyGroupTitle(const QString &raw, const std::shared_ptr<Configs::Group> &group) {
-        const auto title = decodeTitleValue(raw);
+        const auto title = decodeProviderValue(raw);
         if (title.isEmpty() || !groupNameIsAutomatic(group)) return;
         group->name = title;
         MW_show_log(QObject::tr("Subscription named itself \"%1\".").arg(title));
     }
 
-    static void applySubscriptionHeaders(const QString &body, const QString &httpTitle,
+    static void applyProviderMeta(const ProviderMeta &meta, const std::shared_ptr<Configs::Group> &group) {
+        if (!meta.title.isEmpty()) applyGroupTitle(meta.title, group);
+
+        auto &provider = group->provider;
+        // Announce is capped like upstream caps it; a provider cannot turn the strip into a wall.
+        provider.announce = meta.announce.left(200);
+        provider.supportUrl = meta.supportUrl;
+        provider.webPageUrl = meta.webPageUrl;
+
+        if (meta.updateIntervalHours > 0) {
+            // A manual interval set in the group editor clears the flag and outranks this.
+            if (provider.intervalFromProvider || provider.updateIntervalMinutes == 0) {
+                provider.updateIntervalMinutes = meta.updateIntervalHours * 60;
+                provider.intervalFromProvider = true;
+            }
+        } else if (provider.intervalFromProvider) {
+            // The provider stopped asking, so the group goes back to the global schedule.
+            provider.updateIntervalMinutes = 0;
+            provider.intervalFromProvider = false;
+        }
+    }
+
+    static void applySubscriptionHeaders(const QString &body, ProviderMeta meta,
                                          const std::shared_ptr<Configs::Group> &group) {
         if (group == nullptr) return;
-        // The header wins: it is the documented channel, the comment line is the fallback.
-        if (!httpTitle.isEmpty()) applyGroupTitle(httpTitle, group);
 
-        const QString decoded = DecodeB64IfValid(body);
+        const QString decoded = QString::fromUtf8(DecodeShareLinkB64(body));
         const QString &text = decoded.isEmpty() ? body : decoded;
 
+        // The header wins: it is the documented channel, the comment line is the fallback.
         for (const auto &rawLine : text.split(QChar(0x0A))) {
             const auto line = rawLine.trimmed();
             if (line.isEmpty()) continue;
@@ -907,17 +960,12 @@ namespace Subscription {
             const auto entry = line.mid(1).trimmed();
             const int separator = entry.indexOf(QChar(0x3A));
             if (separator <= 0) continue;
-            const auto key = entry.left(separator).trimmed().toLower();
             const auto value = entry.mid(separator + 1).trimmed();
             if (value.isEmpty()) continue;
-
-            if (key == "profile-title") {
-                applyGroupTitle(value, group);
-            } else if (key == "profile-update-interval") {
-                // Per-group scheduling does not exist yet, so this is reported rather than applied.
-                MW_show_log(QObject::tr("Subscription asks to be refreshed every %1 h; auto-update is configured globally.").arg(value));
-            }
+            meta.read(entry.left(separator).trimmed().toLower(), value);
         }
+
+        applyProviderMeta(meta, group);
     }
 
     void GroupUpdater::Update(const QString &_str, int _sub_gid, bool _not_sub_as_url, bool showDiff) {
@@ -926,7 +974,7 @@ namespace Subscription {
         rawUpdater->gid_add_to = _sub_gid;
 
         QString sub_user_info;
-        QString sub_profile_title;
+        ProviderMeta http_meta;
         bool asURL = _sub_gid >= 0 || _not_sub_as_url; // 把 _str 当作 url 处理（下载内容）
         auto content = _str.trimmed();
         auto group = Configs::dataManager->groupsRepo->GetGroup(_sub_gid);
@@ -948,7 +996,11 @@ namespace Subscription {
 
             content = resp.data;
             sub_user_info = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
-            sub_profile_title = NetworkRequestHelper::GetHeader(resp.header, "Profile-Title");
+            for (const auto &name : {"Profile-Title", "Announce", "Support-Url",
+                                     "Profile-Web-Page-Url", "Profile-Update-Interval"}) {
+                const auto value = NetworkRequestHelper::GetHeader(resp.header, name);
+                if (!value.isEmpty()) http_meta.read(QString::fromLatin1(name).toLower(), value);
+            }
 
             MW_show_log("<<<<<<<< " + QObject::tr("Subscription request fininshed: %1").arg(groupName));
         }
@@ -996,7 +1048,7 @@ namespace Subscription {
         if (group != nullptr) {
             group->sub_last_update = QDateTime::currentMSecsSinceEpoch() / 1000;
             group->info = sub_user_info;
-            applySubscriptionHeaders(content, sub_profile_title, group);
+            applySubscriptionHeaders(content, http_meta, group);
             Configs::dataManager->groupsRepo->Save(group);
             for (int i = 0; i < group->profiles.size(); i++) {
                 auto ent = Configs::dataManager->profilesRepo->GetProfile(group->profiles[i]);
@@ -1172,7 +1224,20 @@ namespace Subscription {
 
 bool UI_update_all_groups_Updating = false;
 
-#define should_skip_group(g) (g == nullptr || g->url.isEmpty() || g->archive || (onlyAllowed && g->skip_auto_update))
+// The sweep now ticks as often as the shortest interval any group asks for, so each
+// group still has to prove its own is up before it is refreshed.
+static bool subscriptionDue(const std::shared_ptr<Configs::Group> &group) {
+    const int global = Configs::dataManager->settingsRepo->sub_auto_update;
+    const int minutes = group->provider.updateIntervalMinutes > 0
+                            ? group->provider.updateIntervalMinutes
+                            : global;
+    if (minutes <= 0) return false;
+    const qint64 elapsed = QDateTime::currentSecsSinceEpoch() - group->sub_last_update;
+    // Half a minute of slack: the runner fires on a whole-minute grid.
+    return elapsed + 30 >= static_cast<qint64>(minutes) * 60;
+}
+
+#define should_skip_group(g) (g == nullptr || g->url.isEmpty() || g->archive || (onlyAllowed && (g->skip_auto_update || !subscriptionDue(g))))
 
 void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool onlyAllowed) {
     if (_order >= groupsTabOrder.size()) {

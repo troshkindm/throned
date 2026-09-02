@@ -57,6 +57,7 @@ namespace Configs_sys {
 
 namespace Configs {
     class Group;
+    struct SubInfo;
 }
 
 class TrayProfileSelector;
@@ -133,8 +134,18 @@ public:
 
     // Paints the subscription allowance onto its group tab and puts the numbers in the tooltip.
     void applySubscriptionReadout(int index, const std::shared_ptr<Configs::Group> &group);
+    void notifySubscriptionState(const std::shared_ptr<Configs::Group> &group,
+                                 const Configs::SubInfo &sub, int days);
 
     void refreshSubscriptionReadouts();
+
+    void setupAnnounceStrip();
+
+    void refreshAnnounceStrip();
+
+    void dismissAnnounce();
+
+    void showSubscriptionPopover(int tabIndex);
 
     void refresh_status(const QString &traffic_update = "");
 
@@ -307,6 +318,11 @@ private:
     class QToolButton *statsConnectionStripCount = nullptr;
     class QActionGroup *logLevelActions = nullptr;
     QList<QWidget *> statsPanelTools;
+    // The subscription notice rides with the profile table into the current group page.
+    class QWidget *announceHost = nullptr;
+    class QLabel *announceIcon = nullptr;
+    class QLabel *announceText = nullptr;
+    class QToolButton *announceClose = nullptr;
     // What the view is attached to: rows from the view or its selection model are
     // proxy rows, not profilesTableModel rows.
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;

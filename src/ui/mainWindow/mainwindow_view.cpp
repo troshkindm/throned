@@ -173,7 +173,8 @@ void MainWindow::setStatusText(QLabel *label, const QString &text) {
     // Only clear a tooltip we set: label_running has its own in select mode.
     if (elided != text) {
         label->setProperty("statusOwnsToolTip", true);
-        label->setToolTip(text);
+        // Provider-supplied text reaches this label too, and a rich-text tooltip would fetch remote <img>.
+        label->setToolTip(Qt::mightBeRichText(text) ? text.toHtmlEscaped() : text);
     } else if (label->property("statusOwnsToolTip").toBool()) {
         label->setProperty("statusOwnsToolTip", false);
         label->setToolTip({});

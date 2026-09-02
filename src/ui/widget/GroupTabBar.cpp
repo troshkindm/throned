@@ -2,33 +2,33 @@
 
 #include "include/ui/setting/ThemeManager.hpp"
 
+#include <QMouseEvent>
 #include <QPainter>
 #include <QStylePainter>
 #include <QStyleOptionTab>
 
 namespace {
-    // Same three states the start button and the latency column use, from the theme.
-
-    constexpr double kLowFrom = 0.75;
-    constexpr double kCriticalFrom = 0.90;
     constexpr int kLineHeight = 2;
     // The group is now a detached pill. Keep the meter inside that pill rather
     // than letting it fall into the gap above the profile table.
     constexpr int kBottomInset = 8;
 
-    QColor usageColor(double fraction) {
+    // Same three states the start button and the latency column use, from the theme.
+    QColor usageColor(GroupTabBar::Urgency urgency) {
         const auto colors = themeManager->Colors();
-        if (fraction >= kCriticalFrom) return colors.danger;
-        if (fraction >= kLowFrom) return colors.warning;
-        return colors.success;
+        switch (urgency) {
+        case GroupTabBar::Urgency::Critical: return colors.danger;
+        case GroupTabBar::Urgency::Warning: return colors.warning;
+        default: return colors.success;
+        }
     }
 }
 
 GroupTabBar::GroupTabBar(QWidget *parent) : QTabBar(parent) {}
 
-void GroupTabBar::setUsage(int index, double fraction) {
+void GroupTabBar::setUsage(int index, double fraction, Urgency urgency) {
     if (fraction < 0) usage_.remove(index);
-    else usage_[index] = qBound(0.0, fraction, 1.0);
+    else usage_[index] = {qBound(0.0, fraction, 1.0), urgency};
     update();
 }
 
@@ -43,6 +43,21 @@ void GroupTabBar::setSelectionVisible(bool visible) {
     update();
 }
 
+
+void GroupTabBar::mousePressEvent(QMouseEvent *event) {
+    QTabBar::mousePressEvent(event);
+    if (event->button() != Qt::LeftButton) return;
+    for (auto it = usage_.constBegin(); it != usage_.constEnd(); ++it) {
+        const QRect rect = tabRect(it.key());
+        if (rect.isEmpty()) continue;
+        // Generous vertically: the meter is 2px tall, and nobody aims at 2px.
+        const QRect hot(rect.left(), rect.bottom() - kBottomInset - 4, rect.width(), kLineHeight + 8);
+        if (hot.contains(event->position().toPoint())) {
+            emit meterClicked(it.key());
+            return;
+        }
+    }
+}
 void GroupTabBar::paintEvent(QPaintEvent *event) {
     QTabBar::paintEvent(event);
 
@@ -73,14 +88,14 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
         const QRect track(rect.left() + 7, rect.bottom() - kBottomInset, rect.width() - 14, kLineHeight);
         if (track.width() <= 0) continue;
 
-        QColor spent = usageColor(*it);
+        QColor spent = usageColor(it->urgency);
         QColor rest = spent;
         rest.setAlpha(45);
         painter.setBrush(rest);
         painter.drawRect(track);
 
         QRect filled = track;
-        filled.setWidth(qRound(track.width() * *it));
+        filled.setWidth(qRound(track.width() * it->fraction));
         if (filled.width() > 0) {
             painter.setBrush(spent);
             painter.drawRect(filled);

@@ -36,13 +36,16 @@ namespace Configs {
                 traffic_sort_by INTEGER NOT NULL DEFAULT 0,
                 test_items_to_show INTEGER NOT NULL DEFAULT 0,
                 type_sort_by INTEGER NOT NULL DEFAULT 0,
+                provider_json TEXT NOT NULL DEFAULT '',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
         )");
-        // Migrate existing databases created before type_sort_by was added.
+        // Migrate existing databases created before these columns were added.
         if (!groupsColumnExists("type_sort_by"))
             db.exec("ALTER TABLE groups ADD COLUMN type_sort_by INTEGER NOT NULL DEFAULT 0");
+        if (!groupsColumnExists("provider_json"))
+            db.exec("ALTER TABLE groups ADD COLUMN provider_json TEXT NOT NULL DEFAULT ''");
 
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS groups_order (
@@ -61,6 +64,32 @@ namespace Configs {
         return false;
     }
 
+
+    namespace {
+        QJsonObject providerToJson(const SubProvider& provider) {
+            QJsonObject json;
+            json["announce"] = provider.announce;
+            json["announce_seen"] = provider.announceSeen;
+            json["support_url"] = provider.supportUrl;
+            json["web_page_url"] = provider.webPageUrl;
+            json["update_interval_minutes"] = provider.updateIntervalMinutes;
+            json["interval_from_provider"] = provider.intervalFromProvider;
+            json["notified_mask"] = provider.notifiedMask;
+            return json;
+        }
+
+        SubProvider providerFromJson(const QJsonObject& json) {
+            SubProvider provider;
+            provider.announce = json["announce"].toString();
+            provider.announceSeen = json["announce_seen"].toString();
+            provider.supportUrl = json["support_url"].toString();
+            provider.webPageUrl = json["web_page_url"].toString();
+            provider.updateIntervalMinutes = json["update_interval_minutes"].toInt();
+            provider.intervalFromProvider = json["interval_from_provider"].toBool();
+            provider.notifiedMask = json["notified_mask"].toInt();
+            return provider;
+        }
+    }
     QJsonObject GroupsRepo::groupToJson(const Group* group) const {
         QJsonObject json;
         
@@ -81,6 +110,7 @@ namespace Configs {
         json["traffic_sort_by"] = static_cast<int>(group->traffic_sort_by);
         json["type_sort_by"] = static_cast<int>(group->type_sort_by);
         json["test_items_to_show"] = static_cast<int>(group->test_items_to_show);
+        json["provider"] = providerToJson(group->provider);
 
         return json;
     }
@@ -105,6 +135,7 @@ namespace Configs {
         group->traffic_sort_by = static_cast<trafficBy>(json["traffic_sort_by"].toInt(0));
         group->type_sort_by = static_cast<typeBy>(json["type_sort_by"].toInt(0));
         group->test_items_to_show = static_cast<testShowItems>(json["test_items_to_show"].toInt(0));
+        group->provider = providerFromJson(json["provider"].toObject());
         
         return group;
     }
@@ -118,14 +149,16 @@ namespace Configs {
         
         QString columnWidthJson = QString::fromUtf8(columnWidthDoc.toJson(QJsonDocument::Compact));
         QString profilesJson = QString::fromUtf8(profilesDoc.toJson(QJsonDocument::Compact));
+        QString providerJson = QString::fromUtf8(
+            QJsonDocument(providerToJson(group->provider)).toJson(QJsonDocument::Compact));
         
         db.exec(R"(
             INSERT INTO groups
             (id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
-             type_sort_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             type_sort_by, provider_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -134,7 +167,7 @@ namespace Configs {
                 column_width_json = excluded.column_width_json, profiles_json = excluded.profiles_json,
                 scroll_last_profile = excluded.scroll_last_profile, test_sort_by = excluded.test_sort_by,
                 traffic_sort_by = excluded.traffic_sort_by, test_items_to_show = excluded.test_items_to_show,
-                type_sort_by = excluded.type_sort_by,
+                type_sort_by = excluded.type_sort_by, provider_json = excluded.provider_json,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -153,7 +186,8 @@ namespace Configs {
             static_cast<int>(group->test_sort_by),
             static_cast<int>(group->traffic_sort_by),
             static_cast<int>(group->test_items_to_show),
-            static_cast<int>(group->type_sort_by)
+            static_cast<int>(group->type_sort_by),
+            providerJson.toStdString()
         );
     }
 
@@ -162,7 +196,7 @@ namespace Configs {
             SELECT id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
-                   type_sort_by
+                   type_sort_by, provider_json
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -202,6 +236,11 @@ namespace Configs {
         json["traffic_sort_by"] = query->getColumn(14).getInt();
         json["test_items_to_show"] = query->getColumn(15).getInt();
         json["type_sort_by"] = query->getColumn(16).getInt();
+
+        if (const QString providerJsonStr = QString::fromStdString(query->getColumn(17).getText());
+            !providerJsonStr.isEmpty()) {
+            json["provider"] = QJsonDocument::fromJson(providerJsonStr.toUtf8()).object();
+        }
 
         auto group = groupFromJson(json);
         // Refreshes could map several identical servers onto one id, leaving it in the persisted list once per server (#1775).

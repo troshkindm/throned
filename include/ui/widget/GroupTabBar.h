@@ -13,8 +13,12 @@ class GroupTabBar : public QTabBar {
 public:
     explicit GroupTabBar(QWidget *parent = nullptr);
 
+    // Traffic alone cannot say a plan is about to lapse, so the caller decides how
+    // urgent the group is and the meter only draws it.
+    enum class Urgency { Normal, Warning, Critical };
+
     // fraction is 0..1 of the allowance used; anything negative clears the line.
-    void setUsage(int index, double fraction);
+    void setUsage(int index, double fraction, Urgency urgency = Urgency::Normal);
 
     void clearUsage();
 
@@ -23,11 +27,17 @@ public:
     void setSelectionVisible(bool visible);
     [[nodiscard]] bool isSelectionVisible() const { return selectionVisible_; }
 
+signals:
+    // The usage meter under a tab was clicked: the subscription behind it wants explaining.
+    void meterClicked(int index);
+
 protected:
+    void mousePressEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    QHash<int, double> usage_;
+    struct Meter { double fraction = 0; Urgency urgency = Urgency::Normal; };
+    QHash<int, Meter> usage_;
     bool selectionVisible_ = true;
 };
 

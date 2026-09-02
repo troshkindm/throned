@@ -837,6 +837,10 @@ QLineEdit#serverSearch {
     padding: 6px 9px 6px 4px;
 }
 QLineEdit#serverSearch:focus { background: #1B222A; }
+QFrame#subAnnounceStrip { background: #193452; border: 1px solid #193452; border-radius: 7px; }
+QLabel#subAnnounceText { color: #F1F3F5; background: transparent; font-size: 12px; }
+QToolButton#subAnnounceClose { background: transparent; border: none; border-radius: 4px; }
+QToolButton#subAnnounceClose:hover { background: #263B55; }
 QFrame#logsStrip { background: #171B21; border: 1px solid #2F3136; border-radius: 7px; }
 QFrame#logsStrip QToolButton#stripTab {
     background: transparent; border: none; color: #A4ABB4;
@@ -1147,6 +1151,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ui->tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tabWidget->tabBar(), &QWidget::customContextMenuRequested, this,
             [this](const QPoint& pos) { show_group_tab_menu(pos); });
+    connect(ui->tabWidget->groupTabBar(), &GroupTabBar::meterClicked, this,
+            &MainWindow::showSubscriptionPopover);
     // Lives inside the viewport so it never covers the header: the columns stay
     // usable while there is nothing to show under them.
     profilesEmptyState = new QWidget(ui->profilesTableView->viewport());
@@ -1336,6 +1342,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         ui->actionCheck_For_Update->setDisabled(true);
     }
 
+    setupAnnounceStrip();
     setupConnectionList();
     ui->stats_widget->tabBar()->setCurrentIndex(Configs::dataManager->settingsRepo->stats_tab);
     connect(ui->stats_widget->tabBar(), &QTabBar::currentChanged, this, [=,this](int index)
@@ -2271,7 +2278,21 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         const auto minutesOf = [](int v) { return v >= 30 ? v : 0; };
         runner->Add({
             tr("subscriptions"),
-            [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->sub_auto_update); },
+            [minutesOf] {
+                const int global = minutesOf(Configs::dataManager->settingsRepo->sub_auto_update);
+                if (global == 0) return 0;
+                // A provider asking for a shorter cycle speeds the sweep up, but the
+                // global switch stays the master: off means off for every group.
+                int tick = global;
+                for (const int gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+                    const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+                    if (group == nullptr || group->url.isEmpty() || group->archive
+                        || group->skip_auto_update) continue;
+                    if (const int own = group->provider.updateIntervalMinutes; own >= 30)
+                        tick = qMin(tick, own);
+                }
+                return tick;
+            },
             [] { return Configs::dataManager->settingsRepo->sub_auto_update_last; },
             [](qint64 t) {
                 Configs::dataManager->settingsRepo->sub_auto_update_last = t;

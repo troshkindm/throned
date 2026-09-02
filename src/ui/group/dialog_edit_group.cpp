@@ -8,6 +8,8 @@
 #include <QCompleter>
 #include <QTimer>
 #include <QAbstractItemView>
+#include <QCheckBox>
+#include <QSpinBox>
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -28,6 +30,15 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     ui->auto_clear_unavailable->setChecked(ent->auto_clear_unavailable);
     ui->skip_auto_update->setChecked(ent->skip_auto_update);
     ui->url->setText(ent->url);
+
+    // The provider's own cycle wins while the box is ticked; unticking hands the
+    // number back to the user without losing what the provider last asked for.
+    ui->update_interval_hours->setValue(ent->provider.updateIntervalMinutes / 60);
+    ui->update_interval_from_provider->setChecked(ent->provider.intervalFromProvider);
+    ui->update_interval_hours->setDisabled(ent->provider.intervalFromProvider);
+    connect(ui->update_interval_from_provider, &QCheckBox::toggled, this, [this](bool on) {
+        ui->update_interval_hours->setDisabled(on);
+    });
     ui->type->setCurrentIndex(ent->url.isEmpty() ? 0 : 1);
     ui->type->currentIndexChanged(ui->type->currentIndex());
     ui->cat_share->setVisible(false);
@@ -216,6 +227,9 @@ void DialogEditGroup::accept() {
     ent->auto_clear_unavailable = ui->auto_clear_unavailable->isChecked();
     ent->url = ui->url->text().trimmed();
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
+    ent->provider.intervalFromProvider = ui->update_interval_from_provider->isChecked();
+    if (!ent->provider.intervalFromProvider)
+        ent->provider.updateIntervalMinutes = ui->update_interval_hours->value() * 60;
     ent->front_proxy_id = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy);
     ent->landing_proxy_id = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy);
     QDialog::accept();

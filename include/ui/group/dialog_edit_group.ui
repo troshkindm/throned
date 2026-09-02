@@ -128,6 +128,46 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_update_interval">
+        <property name="text">
+         <string>Update every</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_update_interval">
+        <item>
+         <widget class="QSpinBox" name="update_interval_hours">
+          <property name="toolTip">
+           <string>How often this subscription is refreshed. Zero leaves it on the schedule in Basic Settings.</string>
+          </property>
+          <property name="specialValueText">
+           <string>On the global schedule</string>
+          </property>
+          <property name="suffix">
+           <string> h</string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>720</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="update_interval_from_provider">
+          <property name="toolTip">
+           <string>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</string>
+          </property>
+          <property name="text">
+           <string>As the provider asks</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
