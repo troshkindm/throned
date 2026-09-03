@@ -770,8 +770,18 @@ briefly interrupts traffic.
                     return;
                 }
                 startStop->setState(StartStopButton::State::Running);
-                QTimer::singleShot(260, window, [prefix, window, startStop] {
+                // The status strip's test button follows the running profile, which the
+                // preview has none of, so the running shot shows it deliberately.
+                auto *connectionTest = window->findChild<QToolButton *>(QStringLiteral("statusCellButton"));
+                if (connectionTest == nullptr) {
+                    qWarning() << "The connection test button is missing from the status strip";
+                    qApp->exit(2);
+                    return;
+                }
+                connectionTest->show();
+                QTimer::singleShot(260, window, [prefix, window, startStop, connectionTest] {
                     window->grab().save(prefix + QStringLiteral("-stop-button.png"), "PNG");
+                    connectionTest->hide();
                     startStop->setState(StartStopButton::State::Idle);
                     CaptureUpdateStatusPreviews(window, prefix);
                 });
@@ -1375,10 +1385,17 @@ briefly interrupts traffic.
         if (const int themeAt = app.arguments().indexOf(QStringLiteral("-theme"));
             themeAt >= 0 && themeAt + 1 < app.arguments().size()) {
             const QString name = app.arguments().at(themeAt + 1);
+            bool matched = false;
             for (const QString &theme : themeManager->ThronedThemes())
                 if (theme.compare(name, Qt::CaseInsensitive) == 0
-                    || theme.compare(QStringLiteral("Throned ") + name, Qt::CaseInsensitive) == 0)
+                    || theme.compare(QStringLiteral("Throned ") + name, Qt::CaseInsensitive) == 0) {
                     requested = theme;
+                    matched = true;
+                }
+            // "System", a skin or a Qt style name reaches ApplyTheme untouched: the light
+            // themes are exactly where a hardcoded dark colour shows up, so they need
+            // rendering as much as the Throned ones do.
+            if (!matched) requested = name;
         }
         themeManager->ApplyTheme(requested);
     }
@@ -1759,10 +1776,16 @@ int main(int argc, char* argv[]) {
     if (const int themeAt = arguments.indexOf(QStringLiteral("-theme"));
         themeAt >= 0 && themeAt + 1 < arguments.size()) {
         const QString requested = arguments.at(themeAt + 1);
+        bool matched = false;
         for (const QString &theme : themeManager->ThronedThemes())
             if (theme.compare(requested, Qt::CaseInsensitive) == 0
-                || theme.compare(QStringLiteral("Throned ") + requested, Qt::CaseInsensitive) == 0)
+                || theme.compare(QStringLiteral("Throned ") + requested, Qt::CaseInsensitive) == 0) {
                 Configs::dataManager->settingsRepo->theme = theme;
+                matched = true;
+            }
+        // "System", a skin or one of the bundled light sheets goes through untouched:
+        // a light theme is exactly where a hardcoded dark colour shows itself.
+        if (!matched) Configs::dataManager->settingsRepo->theme = requested;
     }
     if (const int langAt = arguments.indexOf(QStringLiteral("-lang"));
         langAt >= 0 && langAt + 1 < arguments.size()) {
