@@ -452,6 +452,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                                           tr("One \"Name|URL\" per line, checked by Site Reachability"),
                                           siteTargetsEdit_));
     siteTimeoutSpin_ = new QSpinBox(this);
+    siteTimeoutSpin_->setObjectName(QStringLiteral("siteTimeoutSpin"));
     siteTimeoutSpin_->setRange(1000, 60000);
     siteTimeoutSpin_->setSingleStep(500);
     siteTimeoutSpin_->setSuffix(tr(" ms"));

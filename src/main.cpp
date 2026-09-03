@@ -33,6 +33,7 @@
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QTabBar>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QTableView>
 #include <QTabWidget>
@@ -59,6 +60,7 @@
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/group/dialog_edit_group.h"
+#include "include/ui/setting/dialog_basic_settings.h"
 #include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
@@ -1187,6 +1189,39 @@ briefly interrupts traffic.
         QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
             if (arguments.contains(QStringLiteral("-ui-preview-quick-add"))) {
                 CaptureQuickAddPreviews(window, prefix, emptyPreview);
+                return;
+            }
+            if (arguments.contains(QStringLiteral("-ui-preview-settings"))) {
+                // The redesign moves Designer controls into code-built cards and then deletes
+                // the page they came from, so a control nobody placed is destroyed with it.
+                // Surviving the constructor is therefore the assertion that it was placed.
+                auto *dialog = new DialogBasicSettings(window);
+                dialog->show();
+                QTimer::singleShot(300, window, [dialog, prefix] {
+                    // Install/Uninstall are excluded on purpose: this dialog restyles reparented
+                    // Designer buttons by overwriting their object name, so they no longer
+                    // answer to it. Their row is proven by url_scheme_status beside them.
+                    for (const auto &name : {"url_scheme_auto_register", "url_scheme_status",
+                                              "siteTargetsEdit", "siteTimeoutSpin"}) {
+                        auto *control = dialog->findChild<QWidget *>(QString::fromLatin1(name));
+                        if (control == nullptr || control->parentWidget() == nullptr) {
+                            qWarning() << "Settings control is missing or unplaced:" << name;
+                            qApp->exit(2);
+                            return;
+                        }
+                    }
+                    // Scrolled to the controls under test rather than to the top of the page.
+                    if (auto *edit = dialog->findChild<QWidget *>(QStringLiteral("siteTargetsEdit"))) {
+                        for (auto *area : dialog->findChildren<QScrollArea *>()) {
+                            if (area->isAncestorOf(edit)) area->ensureWidgetVisible(edit, 0, 40);
+                        }
+                    }
+                    QTimer::singleShot(150, dialog, [dialog, prefix] {
+                        dialog->grab().save(prefix + QStringLiteral("-settings.png"), "PNG");
+                        dialog->close();
+                        qApp->exit(0);
+                    });
+                });
                 return;
             }
             if (arguments.contains(QStringLiteral("-ui-preview-sites"))) {
