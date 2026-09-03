@@ -1392,6 +1392,22 @@ This backup may have been created with a newer version of the application.</sour
         <source>A portable copy leaves the system handler alone. Use Install when you want it.</source>
         <translation>Переносимая копия не трогает системный обработчик. Нажмите «Установить», если он нужен.</translation>
     </message>
+    <message>
+        <source>Sites to check</source>
+        <translation>Проверяемые сайты</translation>
+    </message>
+    <message>
+        <source>One "Name|URL" per line, checked by Site Reachability</source>
+        <translation>По одной строке «Имя|URL»; их проверяет «Доступность сайтов»</translation>
+    </message>
+    <message>
+        <source>Site check timeout</source>
+        <translation>Таймаут проверки сайта</translation>
+    </message>
+    <message>
+        <source>How long one site has to answer</source>
+        <translation>Сколько ждать ответа от одного сайта</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -5706,6 +5722,22 @@ Name: %1</source>
         <source>Any profile at random</source>
         <translation>Случайному профилю</translation>
     </message>
+    <message>
+        <source>Site Reachability Selected</source>
+        <translation>Доступность сайтов для выбранных</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>Сайты</translation>
+    </message>
+    <message>
+        <source>No sites are configured to check. Add some in Basic Settings.</source>
+        <translation>Список сайтов пуст. Добавьте их в основных настройках.</translation>
+    </message>
+    <message>
+        <source>Select the profiles to check first.</source>
+        <translation>Сначала выберите профили для проверки.</translation>
+    </message>
 </context>
 <context>
     <name>UpdateStatusWidget</name>
@@ -7393,6 +7425,53 @@ goes to the default above.</source>
     <message>
         <source>No warnings for this subscription</source>
         <translation>Не предупреждать про эту подписку</translation>
+    </message>
+</context>
+<context>
+    <name>SiteReachabilityDialog</name>
+    <message>
+        <source>Site reachability</source>
+        <translation>Доступность сайтов</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Unknown profile</source>
+        <translation>Неизвестный профиль</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>Answered %1 in %2 ms</source>
+        <translation>Ответил %1 за %2 мс</translation>
+    </message>
+    <message>
+        <source>Reached the site, which answered %1</source>
+        <translation>Сайт доступен и ответил %1</translation>
+    </message>
+    <message>
+        <source>Nothing answered</source>
+        <translation>Ответа не было</translation>
+    </message>
+    <message numerus="yes">
+        <source>Checking %n profile(s)…</source>
+        <translation>
+            <numerusform>Проверяю %n профиль…</numerusform>
+            <numerusform>Проверяю %n профиля…</numerusform>
+            <numerusform>Проверяю %n профилей…</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Green answered, amber refused, dash never answered.</source>
+        <translation>Зелёный — ответил, жёлтый — отказал, прочерк — не ответил.</translation>
+    </message>
+    <message>
+        <source>%1 of %2 profiles answered. Green answered, amber refused, dash never answered.</source>
+        <translation>Ответили %1 из %2 профилей. Зелёный — ответил, жёлтый — отказал, прочерк — не ответил.</translation>
     </message>
 </context>
 </TS>

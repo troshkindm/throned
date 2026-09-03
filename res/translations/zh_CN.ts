@@ -892,6 +892,22 @@ Throne will restart to complete the restore.</source>
         <source>A portable copy leaves the system handler alone. Use Install when you want it.</source>
         <translation>便携版不会改动系统处理程序。需要时请点击“安装”。</translation>
     </message>
+    <message>
+        <source>Sites to check</source>
+        <translation>要检查的网站</translation>
+    </message>
+    <message>
+        <source>One "Name|URL" per line, checked by Site Reachability</source>
+        <translation>每行一条“名称|网址”，由网站可达性检查使用</translation>
+    </message>
+    <message>
+        <source>Site check timeout</source>
+        <translation>网站检查超时</translation>
+    </message>
+    <message>
+        <source>How long one site has to answer</source>
+        <translation>单个网站的等待时间</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -4684,6 +4700,22 @@ Release note:
         <source>Any profile at random</source>
         <translation>随机一个配置档</translation>
     </message>
+    <message>
+        <source>Site Reachability Selected</source>
+        <translation>检查所选配置档的网站可达性</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>网站</translation>
+    </message>
+    <message>
+        <source>No sites are configured to check. Add some in Basic Settings.</source>
+        <translation>尚未配置要检查的网站，请在基本设置中添加。</translation>
+    </message>
+    <message>
+        <source>Select the profiles to check first.</source>
+        <translation>请先选择要检查的配置档。</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -5767,6 +5799,51 @@ Deleted %3 Profiles:
     <message>
         <source>No warnings for this subscription</source>
         <translation>不提醒此订阅</translation>
+    </message>
+</context>
+<context>
+    <name>SiteReachabilityDialog</name>
+    <message>
+        <source>Site reachability</source>
+        <translation>网站可达性</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Unknown profile</source>
+        <translation>未知配置档</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 毫秒</translation>
+    </message>
+    <message>
+        <source>Answered %1 in %2 ms</source>
+        <translation>%2 毫秒内返回 %1</translation>
+    </message>
+    <message>
+        <source>Reached the site, which answered %1</source>
+        <translation>已连通，站点返回 %1</translation>
+    </message>
+    <message>
+        <source>Nothing answered</source>
+        <translation>没有任何响应</translation>
+    </message>
+    <message numerus="yes">
+        <source>Checking %n profile(s)…</source>
+        <translation>
+            <numerusform>正在检查 %n 个配置档…</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Green answered, amber refused, dash never answered.</source>
+        <translation>绿色为已响应，黄色为被拒绝，横线为无响应。</translation>
+    </message>
+    <message>
+        <source>%1 of %2 profiles answered. Green answered, amber refused, dash never answered.</source>
+        <translation>%2 个配置档中有 %1 个响应。绿色为已响应，黄色为被拒绝，横线为无响应。</translation>
     </message>
 </context>
 </TS>

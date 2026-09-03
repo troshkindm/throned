@@ -66,4 +66,14 @@
         </translation>
     </message>
 </context>
+<context>
+    <name>SiteReachabilityDialog</name>
+    <message numerus="yes">
+        <source>Checking %n profile(s)…</source>
+        <translation>
+            <numerusform>Checking %n profile…</numerusform>
+            <numerusform>Checking %n profiles…</numerusform>
+        </translation>
+    </message>
+</context>
 </TS>

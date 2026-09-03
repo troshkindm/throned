@@ -535,6 +535,22 @@ Release note:
         <source>A portable copy leaves the system handler alone. Use Install when you want it.</source>
         <translation>نسخه قابل حمل پردازشگر سیستم را تغییر نمی‌دهد. در صورت نیاز «نصب» را بزنید.</translation>
     </message>
+    <message>
+        <source>Sites to check</source>
+        <translation>سایت‌های موردبررسی</translation>
+    </message>
+    <message>
+        <source>One "Name|URL" per line, checked by Site Reachability</source>
+        <translation>هر خط یک «نام|نشانی»؛ دسترس‌پذیری سایت‌ها از آن استفاده می‌کند</translation>
+    </message>
+    <message>
+        <source>Site check timeout</source>
+        <translation>مهلت بررسی سایت</translation>
+    </message>
+    <message>
+        <source>How long one site has to answer</source>
+        <translation>چقدر برای پاسخ یک سایت صبر شود</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -2728,6 +2744,22 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Any profile at random</source>
         <translation>یک نمایه تصادفی</translation>
     </message>
+    <message>
+        <source>Site Reachability Selected</source>
+        <translation>دسترس‌پذیری سایت‌ها برای انتخاب‌شده‌ها</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>سایت‌ها</translation>
+    </message>
+    <message>
+        <source>No sites are configured to check. Add some in Basic Settings.</source>
+        <translation>هیچ سایتی برای بررسی تنظیم نشده است. در تنظیمات پایه اضافه کنید.</translation>
+    </message>
+    <message>
+        <source>Select the profiles to check first.</source>
+        <translation>ابتدا نمایه‌های موردنظر را انتخاب کنید.</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -3018,6 +3050,51 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>No warnings for this subscription</source>
         <translation>برای این اشتراک هشداری نده</translation>
+    </message>
+</context>
+<context>
+    <name>SiteReachabilityDialog</name>
+    <message>
+        <source>Site reachability</source>
+        <translation>دسترس‌پذیری سایت‌ها</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>نمایه</translation>
+    </message>
+    <message>
+        <source>Unknown profile</source>
+        <translation>نمایه ناشناس</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 میلی‌ثانیه</translation>
+    </message>
+    <message>
+        <source>Answered %1 in %2 ms</source>
+        <translation>در %2 میلی‌ثانیه پاسخ %1 داد</translation>
+    </message>
+    <message>
+        <source>Reached the site, which answered %1</source>
+        <translation>سایت در دسترس بود و پاسخ %1 داد</translation>
+    </message>
+    <message>
+        <source>Nothing answered</source>
+        <translation>پاسخی دریافت نشد</translation>
+    </message>
+    <message numerus="yes">
+        <source>Checking %n profile(s)…</source>
+        <translation>
+            <numerusform>در حال بررسی %n نمایه…</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Green answered, amber refused, dash never answered.</source>
+        <translation>سبز یعنی پاسخ داد، زرد یعنی رد کرد، خط تیره یعنی پاسخی نداد.</translation>
+    </message>
+    <message>
+        <source>%1 of %2 profiles answered. Green answered, amber refused, dash never answered.</source>
+        <translation>%1 از %2 نمایه پاسخ دادند. سبز یعنی پاسخ داد، زرد یعنی رد کرد، خط تیره یعنی پاسخی نداد.</translation>
     </message>
 </context>
 </TS>
