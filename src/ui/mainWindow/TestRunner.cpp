@@ -880,14 +880,17 @@ void TestRunner::runSiteProbe(const Target& target, const QList<SiteTarget>& sit
         if (entid == -1) continue;
         QList<SiteVerdict> row;
         row.reserve(sites.size());
-        // Indexed by the request order, so a core that answers short still lines up.
-        QMap<QString, SiteVerdict> byName;
-        for (const auto& probe : res.probes) {
-            byName.insert(QString::fromStdString(probe.name.value()),
-                          {probe.status.value(), probe.latency_ms.value(),
-                           QString::fromStdString(probe.error.value())});
+        // Positional, not by name: the core fills one slot per requested site, and two
+        // sites the user happened to name the same would collide in a lookup by name.
+        for (int i = 0; i < sites.size(); i++) {
+            if (i >= static_cast<int>(res.probes.size())) {
+                row << SiteVerdict{};
+                continue;
+            }
+            const auto& probe = res.probes[i];
+            row << SiteVerdict{probe.status.value(), probe.latency_ms.value(),
+                               QString::fromStdString(probe.error.value())};
         }
-        for (const auto& site : sites) row << byName.value(site.name);
 
         const QMutexLocker lock(&reportMutex);
         report.rows.insert(entid, row);
