@@ -576,9 +576,30 @@ void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &p
     favoriteAction->setIcon(MaterialIcon::icon(
         allFavorite ? MaterialIcon::Glyph::StarOutline : MaterialIcon::Glyph::Star,
         themeManager->Colors().textMuted, 16));
+    // A full table leaves no empty row area to click, and the selection card that
+    // carries the same button only appears for more than one row.
+    if (clearSelectionAction == nullptr) {
+        clearSelectionAction = new QAction(tr("Clear selection"), this);
+        clearSelectionAction->setShortcut(QKeySequence(Qt::Key_Escape));
+        clearSelectionAction->setShortcutVisibleInContextMenu(true);
+        connect(clearSelectionAction, &QAction::triggered, this, [this] { clearProfileSelection(); });
+        ui->menu_server->addSeparator();
+        ui->menu_server->addAction(clearSelectionAction);
+    }
+    clearSelectionAction->setEnabled(!selected.isEmpty());
     ui->menu_server->popup(ui->profilesTableView->viewport()->mapToGlobal(pos));
 }
 
+
+// Escape does this too; both go through here so the group cannot hand the
+// dismissed selection back on its next rebuild.
+void MainWindow::clearProfileSelection() {
+    ui->profilesTableView->clearSelection();
+    if (auto *selection = ui->profilesTableView->selectionModel(); selection != nullptr)
+        selection->clearCurrentIndex();
+    if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup())
+        group->selectedProfilesIdIdxPairs.clear();
+}
 QList<int> MainWindow::get_now_selected_list() {
     QList<int> list;
     if (!profilesTableModel) return list;

@@ -413,7 +413,14 @@ void MainWindow::refresh_proxy_list_column_size() {
 void MainWindow::refresh_proxy_list(const QList<int>& ids, bool mayNeedReset, RefreshAnchor anchor) {
     // A finished UDP test flips the setting; this is where the column catches up.
     refreshUdpColumnVisibility();
+    // show_group() suppresses the save because it restores the scroll itself, but the
+    // restore below still runs -- so without this the group hands back a selection the
+    // user had already dismissed.
     if (!Configs::dataManager->settingsRepo->refreshing_group) saveProfileFocusState();
+    else if (auto *selection = ui->profilesTableView->selectionModel();
+             selection != nullptr && !selection->hasSelection())
+        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup())
+            group->selectedProfilesIdIdxPairs.clear();
     refresh_proxy_list_impl(ids, mayNeedReset);
     if (mayNeedReset) restoreProfileFocusState(anchor);
 }
