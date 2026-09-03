@@ -2764,6 +2764,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Test this connection</source>
         <translation>این اتصال را آزمایش کن</translation>
     </message>
+    <message>
+        <source>Clear selection</source>
+        <translation>لغو انتخاب</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>

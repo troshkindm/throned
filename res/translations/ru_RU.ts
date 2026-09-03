@@ -5742,6 +5742,10 @@ Name: %1</source>
         <source>Test this connection</source>
         <translation>Проверить это соединение</translation>
     </message>
+    <message>
+        <source>Clear selection</source>
+        <translation>Снять выделение</translation>
+    </message>
 </context>
 <context>
     <name>UpdateStatusWidget</name>

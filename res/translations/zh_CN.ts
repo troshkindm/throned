@@ -4720,6 +4720,10 @@ Release note:
         <source>Test this connection</source>
         <translation>测试此连接</translation>
     </message>
+    <message>
+        <source>Clear selection</source>
+        <translation>取消选择</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

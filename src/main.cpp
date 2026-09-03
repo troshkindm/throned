@@ -1201,6 +1201,46 @@ briefly interrupts traffic.
                 CaptureQuickAddPreviews(window, prefix, emptyPreview);
                 return;
             }
+            if (arguments.contains(QStringLiteral("-ui-preview-selection"))) {
+                auto *table = window->findChild<QTableView *>(QStringLiteral("profilesTableView"));
+                if (table == nullptr || table->model() == nullptr || table->model()->rowCount() == 0) {
+                    qWarning() << "The profile table is missing or empty in the selection preview";
+                    qApp->exit(2);
+                    return;
+                }
+                table->selectRow(0);
+                window->grab().save(prefix + QStringLiteral("-selected.png"), "PNG");
+
+                // Clicking past the last row is the ordinary way out of a selection, and
+                // the group must not hand it back on the next rebuild.
+                const QRect last = table->visualRect(table->model()->index(table->model()->rowCount() - 1, 0));
+                const QPoint empty(last.center().x(), last.bottom() + 40);
+                if (!table->viewport()->rect().contains(empty) || table->indexAt(empty).isValid()) {
+                    qWarning() << "No empty area under the rows to click in the preview";
+                    qApp->exit(2);
+                    return;
+                }
+                QMouseEvent press(QEvent::MouseButtonPress, empty, table->viewport()->mapToGlobal(empty),
+                                  Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+                QApplication::sendEvent(table->viewport(), &press);
+                QMouseEvent release(QEvent::MouseButtonRelease, empty, table->viewport()->mapToGlobal(empty),
+                                    Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+                QApplication::sendEvent(table->viewport(), &release);
+                if (table->selectionModel()->hasSelection()) {
+                    qWarning() << "Clicking the empty area left the selection in place";
+                    qApp->exit(2);
+                    return;
+                }
+                window->refresh_proxy_list({}, true);
+                if (table->selectionModel()->hasSelection()) {
+                    qWarning() << "A refresh handed the dismissed selection back";
+                    qApp->exit(2);
+                    return;
+                }
+                window->grab().save(prefix + QStringLiteral("-cleared.png"), "PNG");
+                qApp->exit(0);
+                return;
+            }
             if (arguments.contains(QStringLiteral("-ui-preview-settings"))) {
                 // The redesign moves Designer controls into code-built cards and then deletes
                 // the page they came from, so a control nobody placed is destroyed with it.
@@ -1263,6 +1303,41 @@ briefly interrupts traffic.
                 QTimer::singleShot(250, window, [dialog, prefix] {
                     dialog->grab().save(prefix + QStringLiteral("-sites.png"), "PNG");
                     dialog->close();
+                    qApp->exit(0);
+                });
+                return;
+            }
+            if (arguments.contains(QStringLiteral("-ui-preview-hover"))) {
+                auto *groups = window->findChild<QTabWidget *>(QStringLiteral("groupsCard"));
+                auto *groupBar = groups == nullptr ? nullptr : qobject_cast<GroupTabBar *>(groups->tabBar());
+                if (groupBar == nullptr) {
+                    qWarning() << "Group tab bar is missing from the hover preview";
+                    qApp->exit(2);
+                    return;
+                }
+                // Hover has to open the card without taking focus, and a click on the
+                // same tab has to promote it into a real popup.
+                emit groupBar->meterHovered(groupBar->currentIndex());
+                QTimer::singleShot(700, window, [window, groupBar, prefix] {
+                    auto *card = window->findChild<SubscriptionPopover *>();
+                    if (card == nullptr || !card->isVisible()) {
+                        qWarning() << "Hovering a subscription tab did not open the card";
+                        qApp->exit(2);
+                        return;
+                    }
+                    if (!card->isHoverCard() || card->isActiveWindow()) {
+                        qWarning() << "The hover card took focus" << card->isHoverCard() << card->isActiveWindow();
+                        qApp->exit(2);
+                        return;
+                    }
+                    SavePopupComposite(window, card, prefix + QStringLiteral("-hover-card.png"));
+                    emit groupBar->meterClicked(groupBar->currentIndex());
+                    if (card->isHoverCard()) {
+                        qWarning() << "Clicking did not promote the hover card into a popup";
+                        qApp->exit(2);
+                        return;
+                    }
+                    card->close();
                     qApp->exit(0);
                 });
                 return;
