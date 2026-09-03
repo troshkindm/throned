@@ -1056,6 +1056,9 @@ QHeaderView::section {
     border-bottom: 1px solid #2F3136; padding: 5px 8px; font-weight: 500;
 }
 QHeaderView { background: transparent; }
+/* Something above the table (the subscription notice) takes the card's top border
+   out of the header's back, so it grows one of its own only while that is true. */
+QHeaderView[thronedTopEdge="true"]::section { border-top: 1px solid #2F3136; }
 QHeaderView QLineEdit {
     background: #20252B; color: #E7EAED; border: 1px solid #3A424C;
     border-radius: 5px; padding: 3px 7px;

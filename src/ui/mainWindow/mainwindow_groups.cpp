@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QTimer>
+#include <QHeaderView>
 #include <QStyle>
 #include <QCryptographicHash>
 #include <QHBoxLayout>
@@ -404,6 +405,13 @@ void MainWindow::refreshAnnounceStrip() {
     const bool unseen = !text.isEmpty()
                      && announceFingerprint(text) != group->provider.announceSeen;
     announceHost->setVisible(unseen);
+    // The header borrows the card's top border; with the notice above it, it needs one.
+    if (auto *header = ui->profilesTableView->horizontalHeader();
+        header->property("thronedTopEdge").toBool() != unseen) {
+        header->setProperty("thronedTopEdge", unseen);
+        header->style()->unpolish(header);
+        header->style()->polish(header);
+    }
     if (!unseen) return;
     setStatusText(announceText, text);
 }
