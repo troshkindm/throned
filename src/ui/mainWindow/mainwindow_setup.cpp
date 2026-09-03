@@ -716,7 +716,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         captionLabel->setObjectName(QStringLiteral("statusCaption"));
         captionLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
         text->addWidget(captionLabel);
-        if (value == ui->label_running) statusConnectionCaption = captionLabel;
+        if (value == ui->label_running) {
+            statusConnectionCaption = captionLabel;
+            // The redesign moved this test onto a right-click menu, which made checking
+            // the live connection a hidden two-step. One glyph in the cell people already
+            // act on is affordable; the other four cells stay text-only on purpose.
+            statusConnectionTest = new QToolButton(cell);
+            statusConnectionTest->setObjectName(QStringLiteral("statusCellButton"));
+            statusConnectionTest->setCursor(Qt::PointingHandCursor);
+            statusConnectionTest->setFocusPolicy(Qt::NoFocus);
+            statusConnectionTest->setFixedSize(22, 22);
+            statusConnectionTest->setIconSize(QSize(15, 15));
+            statusConnectionTest->setToolTip(tr("Test this connection"));
+            statusConnectionTest->hide();
+            connect(statusConnectionTest, &QToolButton::clicked, this, &MainWindow::url_test_current);
+        }
         value->setParent(cell);
         value->setObjectName(QStringLiteral("statusValue"));
         // Ignored: a long value must not widen its cell and shove the neighbours.
@@ -725,6 +739,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         statusElidedLabels.append(value);
         text->addWidget(value);
         cellLayout->addLayout(text, 1);
+        if (value == ui->label_running && statusConnectionTest != nullptr)
+            cellLayout->addWidget(statusConnectionTest, 0, Qt::AlignVCenter);
         statusLayout->addWidget(cell, stretch);
     }
     if (statusConnectionCaption != nullptr) {
@@ -826,7 +842,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Icons are rasterised, so they have to be repainted whenever the theme
     // changes; otherwise a blue glyph survives into a warm palette.
-    const auto retintIcons = [navigation, mutedIcons, selectionIcon, clearAction,
+    const auto retintIcons = [this, navigation, mutedIcons, selectionIcon, clearAction,
                               copyAction, autoScrollAction, filterAction] {
         const auto colors = themeManager->Colors();
         for (const auto &[button, glyph] : navigation)
@@ -839,6 +855,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         autoScrollAction->setIcon(autoScrollAction->isChecked()
             ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17) : QIcon());
         filterAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, colors.textMuted, 17));
+        if (statusConnectionTest != nullptr)
+            statusConnectionTest->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Bolt, colors.textMuted, 15));
     };
     retintIcons();
     connect(themeManager, &ThemeManager::themeChanged, this, retintIcons);
@@ -855,10 +873,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->profilesTableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(34);
     ui->profilesTableView->setCornerButtonEnabled(false);
-    auto tablePalette = ui->profilesTableView->palette();
-    tablePalette.setColor(QPalette::Highlight, QColor(QStringLiteral("#143C48")));
-    tablePalette.setColor(QPalette::HighlightedText, QColor(QStringLiteral("#FFFFFF")));
-    ui->profilesTableView->setPalette(tablePalette);
+    // Both follow the theme and are re-applied on every switch: the delegate paints a
+    // selected row entirely from HighlightedText, so leaving it a dark-theme constant
+    // put white text on a light selection.
+    const auto applyTablePalette = [this] {
+        const auto colors = themeManager->Colors();
+        auto tablePalette = ui->profilesTableView->palette();
+        tablePalette.setColor(QPalette::Highlight, colors.selection);
+        tablePalette.setColor(QPalette::HighlightedText, colors.text);
+        ui->profilesTableView->setPalette(tablePalette);
+    };
+    applyTablePalette();
+    connect(themeManager, &ThemeManager::themeChanged, this, [applyTablePalette] { applyTablePalette(); });
     ui->connections->setShowGrid(false);
     // Every tab page of the bottom panel is a card too, for the same reason the
     // group pages are: the view inside fills its viewport square.
@@ -953,6 +979,8 @@ QFrame#logsStrip QToolButton#stripTab {
 }
 QFrame#logsStrip QToolButton#stripTab:hover { color: #F1F3F5; background: #222529; }
 QFrame#logsStrip QLabel#stripHint { color: #747C86; background: transparent; font-size: 11px; }
+QToolButton#statusCellButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; }
+QToolButton#statusCellButton:hover { background: #222529; border-color: #4A4F57; }
 QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; padding: 3px; }
 QToolButton#panelIconButton:hover { background: #222529; }
 QToolButton#panelIconButton:checked { background: #182B38; border-color: #2E749A; }
@@ -1021,7 +1049,7 @@ QWidget[thronedPanelPage="true"] { background: transparent; border: none; }
    the rounded corners are not filled in square by the view. */
 QTableView, QTableWidget, QTextBrowser {
     background: transparent; border: none; outline: none;
-    selection-color: white; selection-background-color: #143C48;
+    selection-color: #F1F3F5; selection-background-color: #143C48;
 }
 QHeaderView::section {
     background: transparent; color: #C2C7CE; border: none; border-right: 1px solid #2F3136;
