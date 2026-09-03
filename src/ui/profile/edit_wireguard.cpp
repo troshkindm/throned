@@ -1,7 +1,5 @@
 #include "include/ui/profile/edit_wireguard.h"
 
-#include "include/ui/profile/edit_wireguard_amnezia.h"
-
 #include "include/api/RPC.h"
 #include "include/configs/sub/warp.h"
 #include "include/global/Utils.hpp"
@@ -11,8 +9,8 @@ EditWireguard::EditWireguard(QWidget *parent) : QWidget(parent), ui(new Ui::Edit
 
     connect(ui->amnezia_options, &QPushButton::clicked, this, [=, this] {
         if (ent == nullptr) return;
-        auto *amnezia = new EditWireguardAmnezia(this, ent);
-        amnezia->show();
+        EditWireguardAmnezia amnezia(this, &amneziaOptions);
+        amnezia.exec();
     });
 
     connect(ui->warp_autogen, &QPushButton::clicked, this, [=, this] {
@@ -79,6 +77,7 @@ void EditWireguard::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->workers->setText(Int2String(outbound->worker_count));
 
     ui->enable_amnezia->setChecked(outbound->enable_amnezia);
+    amneziaOptions.load(outbound);
 }
 
 bool EditWireguard::onEnd() {
@@ -100,6 +99,7 @@ bool EditWireguard::onEnd() {
     outbound->worker_count = ui->workers->text().trimmed().toInt();
 
     outbound->enable_amnezia = ui->enable_amnezia->isChecked();
+    amneziaOptions.apply(outbound);
 
     return true;
 }

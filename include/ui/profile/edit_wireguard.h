@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include "profile_editor.h"
+#include "include/ui/profile/edit_wireguard_amnezia.h"
 #include "ui_edit_wireguard.h"
 
 QT_BEGIN_NAMESPACE
@@ -25,4 +26,5 @@ public:
 private:
     Ui::EditWireguard *ui;
     std::shared_ptr<Configs::Profile> ent;
+    WireguardAmneziaOptions amneziaOptions;
 };

@@ -74,7 +74,6 @@ namespace {
 SubscriptionPopover::SubscriptionPopover(std::function<void(int)> updateNow, QWidget *parent)
     : QFrame(parent), m_updateNow(std::move(updateNow)) {
     setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_TranslucentBackground);
     setFrameShape(QFrame::NoFrame);
     setFixedWidth(kCardWidth);

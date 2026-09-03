@@ -27,11 +27,10 @@ static QString openCommand() {
 
 // None of these is keyed by install path, so two portable copies write the same three keys and the last launched one wins.
 static QStringList commandKeys() {
-    const QString exeName = QFileInfo(QApplication::applicationFilePath()).fileName();
     return {
         kClasses + "\\throne",
         kClasses + "\\" + kProgId,
-        kClasses + "\\Applications\\" + exeName,
+        kClasses + "\\Applications\\" + kApplicationKey,
     };
 }
 
@@ -132,7 +131,7 @@ void UrlScheme_Remove() {
     QSettings classes(kClasses, QSettings::NativeFormat);
     classes.remove("throne");
     classes.remove(kProgId);
-    classes.remove("Applications/" + QFileInfo(QApplication::applicationFilePath()).fileName());
+    classes.remove("Applications/" + kApplicationKey);
     classes.sync();
 
     // Only our own progid goes; the extension's default was never ours to touch.

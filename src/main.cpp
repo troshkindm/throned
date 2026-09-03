@@ -1338,7 +1338,22 @@ briefly interrupts traffic.
                         return;
                     }
                     card->close();
-                    qApp->exit(0);
+                    // The card is owned and reused by MainWindow. Closing it used to delete
+                    // the object while leaving MainWindow's raw pointer dangling, so the
+                    // second hover crashed or called into freed memory.
+                    QTimer::singleShot(80, window, [window, groupBar, card] {
+                        emit groupBar->meterHovered(groupBar->currentIndex());
+                        QTimer::singleShot(700, window, [window, card] {
+                            auto *reopened = window->findChild<SubscriptionPopover *>();
+                            if (reopened != card || !reopened->isVisible() || !reopened->isHoverCard()) {
+                                qWarning() << "The subscription card was not safely reused after closing";
+                                qApp->exit(2);
+                                return;
+                            }
+                            reopened->close();
+                            qApp->exit(0);
+                        });
+                    });
                 });
                 return;
             }
