@@ -4668,6 +4668,22 @@ Release note:
         <source>Almost out of traffic.</source>
         <translation>流量即将用尽。</translation>
     </message>
+    <message>
+        <source>Start with</source>
+        <translation>启动时连接</translation>
+    </message>
+    <message>
+        <source>The last used profile</source>
+        <translation>上次使用的配置档</translation>
+    </message>
+    <message>
+        <source>The fastest one measured</source>
+        <translation>测速最快的配置档</translation>
+    </message>
+    <message>
+        <source>Any profile at random</source>
+        <translation>随机一个配置档</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

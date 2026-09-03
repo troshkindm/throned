@@ -5690,6 +5690,22 @@ Name: %1</source>
         <source>Almost out of traffic.</source>
         <translation>Трафик почти закончился.</translation>
     </message>
+    <message>
+        <source>Start with</source>
+        <translation>Подключаться к</translation>
+    </message>
+    <message>
+        <source>The last used profile</source>
+        <translation>Последнему профилю</translation>
+    </message>
+    <message>
+        <source>The fastest one measured</source>
+        <translation>Самому быстрому по замерам</translation>
+    </message>
+    <message>
+        <source>Any profile at random</source>
+        <translation>Случайному профилю</translation>
+    </message>
 </context>
 <context>
     <name>UpdateStatusWidget</name>

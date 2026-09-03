@@ -31,6 +31,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QContextMenuEvent>
+#include <QMenu>
 #include <QTabBar>
 #include <QSpinBox>
 #include <QTableView>
@@ -1223,7 +1224,7 @@ briefly interrupts traffic.
                     auto *editor = new DialogEditGroup(
                         Configs::dataManager->groupsRepo->CurrentGroup(), window);
                     editor->show();
-                    QTimer::singleShot(200, window, [editor, prefix] {
+                    QTimer::singleShot(200, window, [editor, window, prefix] {
                         if (editor->findChild<QSpinBox *>(QStringLiteral("update_interval_hours")) == nullptr) {
                             qWarning() << "The group editor is missing its update-interval control";
                             qApp->exit(2);
@@ -1231,7 +1232,34 @@ briefly interrupts traffic.
                         }
                         editor->grab().save(prefix + QStringLiteral("-group-editor.png"), "PNG");
                         editor->close();
-                        qApp->exit(0);
+
+                        // The Program menu had no coverage at all, and it now carries the
+                        // start-with submenu, whose place in the order is easy to get wrong.
+                        auto *program = window->findChild<QMenu *>(QStringLiteral("menu_program"));
+                        if (program == nullptr) {
+                            qWarning() << "The Program menu is missing from the preview";
+                            qApp->exit(2);
+                            return;
+                        }
+                        program->popup(window->mapToGlobal(QPoint(20, 60)));
+                        QTimer::singleShot(200, window, [program, window, prefix] {
+                            // The submenu is parented to the window, not to the menu it hangs off.
+                            auto *sub = window->findChild<QMenu *>(QStringLiteral("startPickMenu"));
+                            if (sub == nullptr) {
+                                qWarning() << "The start-with submenu is missing from the Program menu";
+                                qApp->exit(2);
+                                return;
+                            }
+                            sub->setEnabled(true);
+                            sub->popup(program->mapToGlobal(QPoint(program->width() - 8, 120)));
+                            QTimer::singleShot(200, program, [program, sub, prefix] {
+                                program->grab().save(prefix + QStringLiteral("-program-menu.png"), "PNG");
+                                sub->grab().save(prefix + QStringLiteral("-start-with.png"), "PNG");
+                                sub->close();
+                                program->close();
+                                qApp->exit(0);
+                            });
+                        });
                     });
                 });
                 return;

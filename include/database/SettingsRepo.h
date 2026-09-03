@@ -176,6 +176,10 @@ namespace Configs {
         bool remember_tun = false;
         int remember_id = NoProfileId;
         bool remember_enable = false;
+        // Which profile the remembered start actually picks: 0 last used, 1 lowest
+        // latency, 2 random. Anything but 0 falls back to the last used one when the
+        // pool it needs turns out empty.
+        int start_pick = 0;
         bool windows_set_admin = false;
         QMap<QString, QKeySequence> shortcuts;
 

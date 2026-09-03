@@ -139,6 +139,8 @@ public:
 
     void refreshSubscriptionReadouts();
 
+    void setupStartPickMenu();
+
     void setupAnnounceStrip();
 
     void refreshAnnounceStrip();
@@ -318,6 +320,7 @@ private:
     class QToolButton *statsConnectionStripCount = nullptr;
     class QActionGroup *logLevelActions = nullptr;
     QList<QWidget *> statsPanelTools;
+    class QMenu *startPickMenu = nullptr;
     // The subscription notice rides with the profile table into the current group page.
     class QWidget *announceHost = nullptr;
     class QLabel *announceIcon = nullptr;

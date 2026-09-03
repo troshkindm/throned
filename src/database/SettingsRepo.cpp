@@ -108,6 +108,7 @@ namespace Configs {
             {"mux_concurrency",        &mux_concurrency},
             {"test_concurrent",        &test_concurrent},
             {"remember_id",            &remember_id},
+            {"start_pick",             &start_pick},
             {"language",               &language},
             {"font_size",              &font_size},
             {"max_log_line",           &max_log_line},

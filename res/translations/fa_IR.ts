@@ -2712,6 +2712,22 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Almost out of traffic.</source>
         <translation>حجم تقریباً تمام شده است.</translation>
     </message>
+    <message>
+        <source>Start with</source>
+        <translation>اتصال به</translation>
+    </message>
+    <message>
+        <source>The last used profile</source>
+        <translation>آخرین نمایه استفاده‌شده</translation>
+    </message>
+    <message>
+        <source>The fastest one measured</source>
+        <translation>سریع‌ترین نمایه اندازه‌گیری‌شده</translation>
+    </message>
+    <message>
+        <source>Any profile at random</source>
+        <translation>یک نمایه تصادفی</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>

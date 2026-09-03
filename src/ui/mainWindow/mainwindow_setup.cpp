@@ -77,6 +77,7 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QRandomGenerator>
 #include <QScreen>
 #include <QDesktopServices>
 #include <QTimer>
@@ -299,6 +300,72 @@ static bool themeUsesDarkLog(const QString &theme) {
     return themeManager->IsDarkTheme(theme);
 }
 
+namespace {
+    // Profiles a remembered start is allowed to land on. An archived group is not on
+    // screen, and a chain or selector is a plan over other profiles rather than a
+    // server the strategies can compare.
+    QList<std::shared_ptr<Configs::Profile>> startCandidates() {
+        QList<std::shared_ptr<Configs::Profile>> out;
+        for (const int id : Configs::dataManager->profilesRepo->GetAllProfileIds()) {
+            const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+            if (profile == nullptr || profile->outbound == nullptr) continue;
+            if (profile->type == "chain" || profile->type == "autoselector") continue;
+            const auto group = Configs::dataManager->groupsRepo->GetGroup(profile->gid);
+            if (group == nullptr || group->archive) continue;
+            out << profile;
+        }
+        return out;
+    }
+
+    // The id the core should dial once it is up, or NoProfileId to start nothing.
+    int rememberedStartId() {
+        const auto *settings = Configs::dataManager->settingsRepo.get();
+        const int remembered = settings->remember_id;
+        if (settings->start_pick == 0) return remembered;
+
+        const auto candidates = startCandidates();
+        if (candidates.isEmpty()) return remembered;
+
+        if (settings->start_pick == 2) {
+            return candidates.at(QRandomGenerator::global()->bounded(candidates.size()))->id;
+        }
+
+        // Lowest latency. kLatencyConnectOnly means the probe never came back, so it
+        // says nothing about speed and cannot win the comparison.
+        std::shared_ptr<Configs::Profile> best;
+        for (const auto &profile : candidates) {
+            if (profile->latency <= 0) continue;
+            if (best == nullptr || profile->latency < best->latency) best = profile;
+        }
+        return best != nullptr ? best->id : remembered;
+    }
+}
+
+// One instance hangs off both the Program menu and the tray: QMenu::addMenu takes the
+// menu's own action, so the two entries stay one piece of state.
+void MainWindow::setupStartPickMenu() {
+    startPickMenu = new QMenu(tr("Start with"), this);
+    startPickMenu->setObjectName(QStringLiteral("startPickMenu"));
+    auto *group = new QActionGroup(startPickMenu);
+    const struct { int pick; QString label; } options[] = {
+        {0, tr("The last used profile")},
+        {1, tr("The fastest one measured")},
+        {2, tr("Any profile at random")},
+    };
+    for (const auto &option : options) {
+        auto *action = startPickMenu->addAction(option.label);
+        action->setCheckable(true);
+        action->setActionGroup(group);
+        action->setChecked(Configs::dataManager->settingsRepo->start_pick == option.pick);
+        const int pick = option.pick;
+        connect(action, &QAction::triggered, this, [pick] {
+            Configs::dataManager->settingsRepo->start_pick = pick;
+            Configs::dataManager->settingsRepo->Save();
+        });
+    }
+    // Nothing to choose between while the app is not asked to reconnect at all.
+    startPickMenu->setEnabled(Configs::dataManager->settingsRepo->remember_enable);
+}
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     const bool uiPreviewMode = Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview"));
     mainwindow = this;
@@ -1093,10 +1160,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             [=, this] {
                 QMutexLocker lock(&coreProcessMutex);
                 core_process = new Configs_sys::CoreProcess(core_path, socketFullName, coreDebugMode);
-                if (Configs::dataManager->settingsRepo->remember_enable &&
-                    Configs::dataManager->settingsRepo->remember_id >= 0) {
-                    core_process->start_profile_when_core_is_up =
-                        Configs::dataManager->settingsRepo->remember_id;
+                if (Configs::dataManager->settingsRepo->remember_enable) {
+                    if (const int startId = rememberedStartId(); startId >= 0)
+                        core_process->start_profile_when_core_is_up = startId;
                 }
                 core_process->Start();
             },
@@ -1342,6 +1408,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         ui->actionCheck_For_Update->setDisabled(true);
     }
 
+    setupStartPickMenu();
     setupAnnounceStrip();
     setupConnectionList();
     ui->stats_widget->tabBar()->setCurrentIndex(Configs::dataManager->settingsRepo->stats_tab);
@@ -1865,6 +1932,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionStart_with_system);
     trayMenu->addAction(ui->actionRemember_last_proxy);
+    trayMenu->addMenu(startPickMenu);
     trayMenu->addAction(ui->actionAllow_LAN);
     trayMenu->addSeparator();
 
@@ -1904,6 +1972,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         }
     });
 
+    ui->menu_program->insertMenu(ui->actionAllow_LAN, startPickMenu);
     ui->actionRemember_last_proxy->setChecked(Configs::dataManager->settingsRepo->remember_enable);
     ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
     ui->actionAllow_LAN->setChecked(QStringList{"::", "0.0.0.0"}.contains(Configs::dataManager->settingsRepo->inbound_address));
@@ -1917,6 +1986,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=,this](bool checked) {
         Configs::dataManager->settingsRepo->remember_enable = checked;
         ui->actionRemember_last_proxy->setChecked(checked);
+        if (startPickMenu != nullptr) startPickMenu->setEnabled(checked);
         Configs::dataManager->settingsRepo->Save();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=,this](bool checked) {
