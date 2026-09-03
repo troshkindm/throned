@@ -233,6 +233,8 @@ void MainWindow::refresh_status(const QString &traffic_update) {
             runningLabelText = tr("Not Running");
         }
         setStatusText(ui->label_running, runningLabelText);
+        // Nothing to measure when no profile is up.
+        if (statusConnectionTest != nullptr) statusConnectionTest->setVisible(running != nullptr);
         if (statusConnectionCaption != nullptr) {
             setStatusText(statusConnectionCaption,
                           running && !runningDetail.isEmpty()

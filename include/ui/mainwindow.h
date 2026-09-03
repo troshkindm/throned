@@ -341,6 +341,8 @@ private:
     QPointer<RoutingQuickMenu> routingQuickMenu;
     void openRoutingQuickMenu(const QPoint &globalPos);
     QLabel *statusConnectionCaption = nullptr;
+    // One-click "test this connection"; the right-click menu on the label stays too.
+    class QToolButton *statusConnectionTest = nullptr;
     QLabel *statusDirectSpeed = nullptr;
     QList<QPointer<QLabel>> statusElidedLabels;
     void setStatusText(QLabel *label, const QString &text);

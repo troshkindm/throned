@@ -5738,6 +5738,10 @@ Name: %1</source>
         <source>Select the profiles to check first.</source>
         <translation>Сначала выберите профили для проверки.</translation>
     </message>
+    <message>
+        <source>Test this connection</source>
+        <translation>Проверить это соединение</translation>
+    </message>
 </context>
 <context>
     <name>UpdateStatusWidget</name>

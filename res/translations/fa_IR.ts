@@ -2760,6 +2760,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Select the profiles to check first.</source>
         <translation>ابتدا نمایه‌های موردنظر را انتخاب کنید.</translation>
     </message>
+    <message>
+        <source>Test this connection</source>
+        <translation>این اتصال را آزمایش کن</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>

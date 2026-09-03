@@ -4716,6 +4716,10 @@ Release note:
         <source>Select the profiles to check first.</source>
         <translation>请先选择要检查的配置档。</translation>
     </message>
+    <message>
+        <source>Test this connection</source>
+        <translation>测试此连接</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
