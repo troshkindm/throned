@@ -1298,6 +1298,19 @@ briefly interrupts traffic.
                     mute->click();
                     popover->close();
 
+                    // Dismissing it is also the only way to see the table header with
+                    // nothing above it, which is where its top border comes and goes.
+                    auto *dismiss = window->findChild<QToolButton *>(QStringLiteral("subAnnounceClose"));
+                    if (dismiss == nullptr) {
+                        qWarning() << "The announcement strip lost its dismiss button";
+                        qApp->exit(2);
+                        return;
+                    }
+                    dismiss->click();
+                    QTimer::singleShot(120, window, [window, prefix] {
+                        window->grab().save(prefix + QStringLiteral("-announce-dismissed.png"), "PNG");
+                    });
+
                     // The per-group refresh cycle lives in the group editor, so the
                     // same run proves those controls are wired and renders them.
                     auto *editor = new DialogEditGroup(
