@@ -128,6 +128,7 @@ namespace Configs {
             {"speed_test_mode",        &speed_test_mode},
             {"speed_test_timeout_ms",  &speed_test_timeout_ms},
             {"url_test_timeout_ms",    &url_test_timeout_ms},
+            {"site_test_timeout_ms",   &site_test_timeout_ms},
             {"xray_mux_concurrency",   &xray_mux_concurrency},
             {"current_route_id",       &current_route_id},
             {"ruleset_mirror",         &ruleset_mirror},
@@ -222,6 +223,7 @@ namespace Configs {
             {"warp_reserved", &warp_reserved},
             {"dpi_bypass_rule_sets",     &dpi_bypass_rule_sets},
             {"udp_monitor_targets",      &udp_monitor_targets},
+            {"site_test_targets",        &site_test_targets},
         };
     }
 

@@ -45,6 +45,10 @@ namespace API {
 
         libcore::QueryUDPTestResponse QueryUDPTest(bool *rpcOK);
 
+        libcore::SiteTestResp SiteTest(bool *rpcOK, const libcore::SiteTestRequest &request, QString *coreError = nullptr);
+
+        libcore::QuerySiteTestResponse QuerySiteTest(bool *rpcOK);
+
         QString SetSystemDNS(bool *rpcOK, bool clear) const;
         // WFP block held across a core restart so the gap between Stop and Start
         // does not fall through to the physical interface. Windows only.

@@ -41,7 +41,9 @@
 #include <QButtonGroup>
 #include <QFrame>
 #include <QLabel>
+#include <QPlainTextEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QScrollArea>
 #include <QStackedWidget>
 #include <QTabBar>
@@ -439,6 +441,24 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     testingLayout->addWidget(makeFieldRow(tr("Speed test mode"), {}, ui->speedtest_mode));
     testingLayout->addWidget(makeFieldRow(tr("Speed test timeout"), {}, ui->test_timeout));
     testingLayout->addWidget(makeFieldRow(tr("Download test URL"), {}, ui->simple_down_url));
+    // One "Name|URL" per line: the list is short and personal, so a text box beats a
+    // table nobody wants to click through.
+    siteTargetsEdit_ = new QPlainTextEdit(this);
+    siteTargetsEdit_->setObjectName(QStringLiteral("siteTargetsEdit"));
+    siteTargetsEdit_->setPlainText(Configs::dataManager->settingsRepo->site_test_targets.join('\n'));
+    siteTargetsEdit_->setPlaceholderText(QStringLiteral("ChatGPT|https://chatgpt.com/"));
+    siteTargetsEdit_->setFixedHeight(96);
+    testingLayout->addWidget(makeFieldRow(tr("Sites to check"),
+                                          tr("One \"Name|URL\" per line, checked by Site Reachability"),
+                                          siteTargetsEdit_));
+    siteTimeoutSpin_ = new QSpinBox(this);
+    siteTimeoutSpin_->setRange(1000, 60000);
+    siteTimeoutSpin_->setSingleStep(500);
+    siteTimeoutSpin_->setSuffix(tr(" ms"));
+    siteTimeoutSpin_->setValue(Configs::dataManager->settingsRepo->site_test_timeout_ms);
+    testingLayout->addWidget(makeFieldRow(tr("Site check timeout"),
+                                          tr("How long one site has to answer"),
+                                          siteTimeoutSpin_));
     commonLayout->addWidget(testingSection);
     commonLayout->addStretch(1);
 
@@ -982,6 +1002,12 @@ void DialogBasicSettings::applySelectedTheme() {
 
 void DialogBasicSettings::accept() {
     bool needChoosePort = false;
+    if (siteTargetsEdit_ != nullptr) {
+        Configs::dataManager->settingsRepo->site_test_targets =
+            SplitLines(siteTargetsEdit_->toPlainText());
+    }
+    if (siteTimeoutSpin_ != nullptr)
+        Configs::dataManager->settingsRepo->site_test_timeout_ms = siteTimeoutSpin_->value();
 
     D_SAVE_STRING(inbound_address)
     Configs::dataManager->settingsRepo->custom_inbound = CACHE.custom_inbound;

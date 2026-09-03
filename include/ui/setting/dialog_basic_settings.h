@@ -34,6 +34,8 @@ private:
     SettingsBindings bindings_;
     QCheckBox *alwaysStandardUser_ = nullptr;
     QTimer *themeApplyDebounce_ = nullptr;
+    class QPlainTextEdit *siteTargetsEdit_ = nullptr;
+    class QSpinBox *siteTimeoutSpin_ = nullptr;
     QStackedWidget *settingsStack_ = nullptr;
     QButtonGroup *settingsNavGroup_ = nullptr;
 

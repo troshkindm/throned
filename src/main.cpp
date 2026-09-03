@@ -59,6 +59,7 @@
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/group/dialog_edit_group.h"
+#include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/control/ThronedControl.h"
@@ -1186,6 +1187,39 @@ briefly interrupts traffic.
         QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
             if (arguments.contains(QStringLiteral("-ui-preview-quick-add"))) {
                 CaptureQuickAddPreviews(window, prefix, emptyPreview);
+                return;
+            }
+            if (arguments.contains(QStringLiteral("-ui-preview-sites"))) {
+                // No core runs in preview, so the verdicts are synthetic: this proves the
+                // grid, the colours and the three states, not the probe.
+                auto *dialog = new SiteReachabilityDialog(window);
+                const auto ids = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
+                const QStringList sites{"Google", "YouTube", "ChatGPT", "Telegram", "GitHub", "Netflix"};
+                dialog->beginRun(ids, sites);
+                TestRunner::SiteReport report;
+                report.sites = sites;
+                const QList<QList<int>> sample{
+                    {204, 200, 200, 200, 200, 200},
+                    {204, 200, 403, 200, 200, 403},
+                    {204, 200, 0, 200, 200, 0},
+                    {0, 0, 0, 0, 0, 0},
+                };
+                for (int row = 0; row < ids.size(); row++) {
+                    QList<TestRunner::SiteVerdict> verdicts;
+                    for (const int status : sample.at(row % sample.size())) {
+                        verdicts << TestRunner::SiteVerdict{
+                            status, status > 0 ? 40 + (row * 17 + verdicts.size() * 9) % 180 : 0,
+                            status > 0 ? QString() : QStringLiteral("context deadline exceeded")};
+                    }
+                    report.rows.insert(ids.at(row), verdicts);
+                }
+                dialog->applyReport(report);
+                dialog->show();
+                QTimer::singleShot(250, window, [dialog, prefix] {
+                    dialog->grab().save(prefix + QStringLiteral("-sites.png"), "PNG");
+                    dialog->close();
+                    qApp->exit(0);
+                });
                 return;
             }
             if (arguments.contains(QStringLiteral("-ui-preview-subscription"))) {

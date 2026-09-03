@@ -400,6 +400,36 @@ namespace API {
         return {};
     }
 
+    libcore::SiteTestResp Client::SiteTest(bool *rpcOK, const libcore::SiteTestRequest &request, QString *coreError) {
+        libcore::SiteTestResp reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("SiteTest", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::QuerySiteTestResponse Client::QuerySiteTest(bool *rpcOK) {
+        libcore::EmptyReq request;
+        libcore::QuerySiteTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("QuerySiteTest", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        NOT_OK
+        return {};
+    }
+
     libcore::QueryIPTestResponse Client::QueryIPTest(bool *rpcOK) {
         libcore::EmptyReq request;
         libcore::QueryIPTestResponse reply;

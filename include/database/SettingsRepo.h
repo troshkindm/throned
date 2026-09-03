@@ -71,6 +71,17 @@ namespace Configs {
         // Continuous monitor targets. Kept separate from the one-shot test target
         // so comparing several resolvers does not change batch-test behaviour.
         QStringList udp_monitor_targets = {"1.1.1.1:53"};
+        // "Name|URL" per line: what a node has to reach to be worth keeping. Edited in
+        // Basic Settings, so the defaults are a starting point rather than the answer.
+        QStringList site_test_targets = {
+            "Google|https://www.google.com/generate_204",
+            "YouTube|https://www.youtube.com/",
+            "ChatGPT|https://chatgpt.com/",
+            "Telegram|https://web.telegram.org/",
+            "GitHub|https://github.com/",
+            "Netflix|https://www.netflix.com/",
+        };
+        int site_test_timeout_ms = 5000;
         bool disable_tray = false;
         int test_concurrent = 10;
         bool disable_traffic_stats = false;

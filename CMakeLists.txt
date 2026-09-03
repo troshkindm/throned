@@ -457,6 +457,8 @@ set(PROJECT_SOURCES
         include/ui/stats/dialog_runtime_stats.ui
         src/ui/stats/dialog_endpoint_details.cpp
         include/ui/stats/dialog_endpoint_details.h
+        src/ui/stats/dialog_site_reachability.cpp
+        include/ui/stats/dialog_site_reachability.h
         include/ui/stats/dialog_endpoint_details.ui
         src/ui/stats/MiniChartWidget.cpp
         include/ui/stats/MiniChartWidget.h

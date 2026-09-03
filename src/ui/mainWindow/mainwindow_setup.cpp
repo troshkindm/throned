@@ -27,6 +27,7 @@
 #include "include/ui/utils/ConnectionsTableModel.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
+#include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/stats/dialog_traffic_stats.h"
 #include "include/ui/stats/dialog_runtime_stats.h"
 #include "include/ui/widget/StartStopButton.hpp"
@@ -77,6 +78,7 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QPointer>
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QDesktopServices>
@@ -343,6 +345,35 @@ namespace {
 
 // One instance hangs off both the Program menu and the tray: QMenu::addMenu takes the
 // menu's own action, so the two entries stay one piece of state.
+
+// The dialog owns the wait: rows appear at once and fill in when the batch answers,
+// so a long run is legible instead of a frozen window.
+void MainWindow::runSiteReachability(const QList<int> &profileIDs) {
+    const auto sites = TestRunner::configuredSites();
+    if (sites.isEmpty()) {
+        MessageBoxWarning(software_name, tr("No sites are configured to check. Add some in Basic Settings."));
+        return;
+    }
+    if (profileIDs.isEmpty()) {
+        MessageBoxWarning(software_name, tr("Select the profiles to check first."));
+        return;
+    }
+
+    QStringList names;
+    names.reserve(sites.size());
+    for (const auto &site : sites) names << site.name;
+
+    auto *dialog = new SiteReachabilityDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->beginRun(profileIDs, names);
+    dialog->show();
+
+    // The run outlives a dialog the user closes, so the result is delivered through a guard.
+    const QPointer<SiteReachabilityDialog> guard(dialog);
+    testRunner->runSiteTests(profileIDs, [guard](const TestRunner::SiteReport &report) {
+        if (guard) guard->applyReport(report);
+    });
+}
 void MainWindow::setupStartPickMenu() {
     startPickMenu = new QMenu(tr("Start with"), this);
     startPickMenu->setObjectName(QStringLiteral("startPickMenu"));
@@ -754,11 +785,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         testRunner->runUdpTests(get_now_selected_list());
     });
 
+    auto *siteTestAction = new QAction(tr("Site Reachability Selected"), this);
+    ui->menu_test_item->insertAction(ui->actionSpeedtest_Selected, siteTestAction);
+    connect(siteTestAction, &QAction::triggered, this, [=, this] {
+        runSiteReachability(get_now_selected_list());
+    });
+
     const QList<QPair<QString, QAction *>> selectionActions{
         {tr("TCP latency"), ui->actionUrl_Test_Selected},
         {tr("UDP latency"), udpTestAction},
         {tr("Speed test"), ui->actionSpeedtest_Selected},
         {tr("Resolve IP"), ui->actionResolve_Selected_Out_IP},
+        {tr("Sites"), siteTestAction},
     };
     for (const auto &[text, action] : selectionActions) {
         auto *button = new QPushButton(text, selectionCard);

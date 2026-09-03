@@ -40,6 +40,25 @@ public:
 
     void runSpeedTests(const QList<int>& profileIDs, bool testCurrent = false);
 
+    // One HTTP probe per site through each selected profile. The verdict is what the
+    // site answered, not whether it liked us: a geo-block replies and a filter does not.
+    struct SiteTarget { QString name; QString url; };
+    struct SiteVerdict {
+        int status = 0;     // HTTP code, 0 when nothing answered
+        int latencyMs = 0;
+        QString error;
+        [[nodiscard]] bool reached() const { return status > 0; }
+        [[nodiscard]] bool served() const { return status >= 200 && status < 400; }
+    };
+    struct SiteReport {
+        QStringList sites;                    // column order
+        QMap<int, QList<SiteVerdict>> rows;   // profile id -> one verdict per site
+    };
+
+    static QList<SiteTarget> configuredSites();
+
+    void runSiteTests(const QList<int>& profileIDs, const std::function<void(SiteReport)>& onFinished);
+
     // Walks one profile's path hop by hop and hands back a line per hop, so a
     // failure names the stage that broke instead of collapsing into a timeout.
     void runDiagnostics(int profileID);
@@ -76,6 +95,9 @@ private:
     void runUdpProbe(const Target& target);
 
     void runSpeedProbe(const Target& target);
+
+    void runSiteProbe(const Target& target, const QList<SiteTarget>& sites,
+                      class QMutex& reportMutex, SiteReport& report);
 
     // `vpnConnected` is empty on the progress poll; only the final pass has verdicts.
     void applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::URLTestResp& res,

@@ -766,6 +766,133 @@ void TestRunner::runSpeedProbe(const Target& target)
     }
 }
 
+
+QList<TestRunner::SiteTarget> TestRunner::configuredSites() {
+    QList<SiteTarget> sites;
+    for (const auto& line : Configs::dataManager->settingsRepo->site_test_targets) {
+        const auto entry = line.trimmed();
+        if (entry.isEmpty() || entry.startsWith(QLatin1Char('#'))) continue;
+        const int bar = entry.indexOf(QLatin1Char('|'));
+        // Without a name the host stands in for one, so a bare URL still lists sensibly.
+        const QString url = bar < 0 ? entry : entry.mid(bar + 1).trimmed();
+        if (url.isEmpty()) continue;
+        QString name = bar < 0 ? QUrl(url).host() : entry.left(bar).trimmed();
+        if (name.isEmpty()) name = url;
+        sites.append({name, url});
+    }
+    return sites;
+}
+
+void TestRunner::runSiteTests(const QList<int>& requestedIDs,
+                              const std::function<void(SiteReport)>& onFinished) {
+    const auto sites = configuredSites();
+    const auto profileIDs = withoutAutoSelectors(requestedIDs);
+    if (sites.isEmpty() || profileIDs.isEmpty()) {
+        if (onFinished) onFinished({});
+        return;
+    }
+    if (!session_.tryLock()) {
+        MessageBoxWarning(software_name, MainWindow::tr(
+            "The last test did not exit completely, please wait. If it persists, please restart the program."));
+        if (onFinished) onFinished({});
+        return;
+    }
+    sessionGen_.fetch_add(1);
+
+    runOnNewThread([this, profileIDs, sites, onFinished] {
+        stopRequested_.store(false);
+        SiteReport report;
+        report.sites.reserve(sites.size());
+        for (const auto& site : sites) report.sites << site.name;
+
+        for (int i = 0; i < profileIDs.length(); i += kTestBatchSize) {
+            if (stopRequested_.load()) break;
+            const auto slice = profileIDs.mid(i, kTestBatchSize);
+            const auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(slice);
+            auto buildObject = Configs::BuildTestConfig(profiles);
+            if (!buildObject->error.isEmpty()) {
+                MW_show_log(MainWindow::tr("Failed to build test config for batch: ") + buildObject->error);
+                continue;
+            }
+
+            // Same split the other tests use: a full config is its own box, everything
+            // else shares one and is told apart by outbound tag.
+            QList<Target> targets;
+            for (const auto& entID : buildObject->fullConfigs.keys()) {
+                Target target;
+                target.coreConfig = buildObject->fullConfigs[entID];
+                target.useDefaultOutbound = true;
+                target.entID = entID;
+                targets << target;
+            }
+            if (!buildObject->outboundTags.empty()) {
+                Target target;
+                target.coreConfig = QJsonObject2QString(buildObject->coreConfig, false);
+                target.xrayConfig = buildObject->isXrayNeeded ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
+                target.xrayFullConfigs = buildObject->xrayFullConfigs;
+                target.outboundTags = buildObject->outboundTags;
+                target.tag2entID = buildObject->tag2entID;
+                target.xrayDnsStrategy = buildObject->xrayDnsStrategy;
+                targets << target;
+            }
+
+            QSemaphore batchDone;
+            QMutex reportMutex;
+            for (const auto& target : targets) {
+                mw_->parallelCoreCallPool->start([this, target, sites, &batchDone, &reportMutex, &report] {
+                    const QSemaphoreReleaser releaser(batchDone);
+                    runSiteProbe(target, sites, reportMutex, report);
+                });
+            }
+            batchDone.acquire(targets.size());
+        }
+
+        session_.unlock();
+        runOnUiThread([onFinished, report] { if (onFinished) onFinished(report); });
+    });
+}
+
+void TestRunner::runSiteProbe(const Target& target, const QList<SiteTarget>& sites,
+                              QMutex& reportMutex, SiteReport& report) {
+    if (stopRequested_.load()) return;
+
+    libcore::SiteTestRequest req;
+    fillCommonTestReq(req, target);
+    req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
+    req.test_timeout_ms = Configs::dataManager->settingsRepo->site_test_timeout_ms;
+    for (const auto& site : sites) {
+        libcore::SiteTarget entry;
+        entry.name = site.name.toStdString();
+        entry.url = site.url.toStdString();
+        req.targets.push_back(entry);
+    }
+
+    bool rpcOK = false;
+    QString coreError;
+    const auto result = defaultClient->SiteTest(&rpcOK, req, &coreError);
+    if (!rpcOK) {
+        mw_->handleXrayGeoAssetError(coreError, contextName(target.entID));
+        return;
+    }
+
+    for (const auto& res : result.results) {
+        const int entid = resolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
+        if (entid == -1) continue;
+        QList<SiteVerdict> row;
+        row.reserve(sites.size());
+        // Indexed by the request order, so a core that answers short still lines up.
+        QMap<QString, SiteVerdict> byName;
+        for (const auto& probe : res.probes) {
+            byName.insert(QString::fromStdString(probe.name.value()),
+                          {probe.status.value(), probe.latency_ms.value(),
+                           QString::fromStdString(probe.error.value())});
+        }
+        for (const auto& site : sites) row << byName.value(site.name);
+
+        const QMutexLocker lock(&reportMutex);
+        report.rows.insert(entid, row);
+    }
+}
 void TestRunner::runDiagnostics(int profileID) {
     auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
     if (ent == nullptr) return;

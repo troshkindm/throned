@@ -141,6 +141,8 @@ public:
 
     void setupStartPickMenu();
 
+    void runSiteReachability(const QList<int> &profileIDs);
+
     void setupAnnounceStrip();
 
     void refreshAnnounceStrip();
