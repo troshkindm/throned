@@ -4,10 +4,12 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,40 +23,141 @@ const (
 type progressFunc func(message string, completed, total uint64)
 
 var updaterLanguage = "en"
+var updaterLogger = log.New(io.Discard, "", log.LstdFlags|log.Lmicroseconds)
+
+type updaterOptions struct {
+	language   string
+	parentPID  int
+	executable string
+	launchTray bool
+}
 
 func main() {
-	configureUpdaterLanguage()
+	installDir, logFile, err := initializeUpdaterRuntime()
+	if err != nil {
+		showUpdateError(err)
+		os.Exit(1)
+	}
+	if logFile != nil {
+		defer logFile.Close()
+	}
+	options, err := parseUpdaterOptions(os.Args[1:])
+	if err != nil {
+		failUpdate(err)
+	}
+	updaterLanguage = options.language
+	updaterLogger.Printf("updater started: pid=%d parent=%d executable=%q tray=%t", os.Getpid(), options.parentPID,
+		options.executable, options.launchTray)
 	if previewRequested() {
 		runProgressPreview()
 		return
 	}
 	progress := newInstallProgress(700 * time.Millisecond)
+	if options.parentPID > 0 {
+		progress.Update(localize("Waiting for Throned to close…", "Ожидание завершения Throned…"), 5, 1000)
+		if err := waitForParent(options.parentPID, 30*time.Second); err != nil {
+			progress.Close()
+			failUpdate(err)
+		}
+		updaterLogger.Printf("parent process %d exited", options.parentPID)
+	}
 	if err := updateWithProgress(progress.Update); err != nil {
 		progress.Close()
-		_, _ = fmt.Fprintln(os.Stderr, "Throned update failed:", err)
-		showUpdateError(err)
-		os.Exit(1)
+		failUpdate(err)
 	}
 
 	progress.Update(localize("Starting Throned…", "Запуск Throned…"), 1000, 1000)
 	progress.Close()
-	executable := "./Throned"
-	if runtime.GOOS == "windows" {
-		executable += ".exe"
+	if err := restartThroned(installDir, options); err != nil {
+		failUpdate(err)
 	}
-	if err := exec.Command(executable).Start(); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "could not restart Throned:", err)
-		showUpdateError(fmt.Errorf("could not restart Throned: %w", err))
-		os.Exit(1)
-	}
+	updaterLogger.Print("update completed and Throned stayed alive after restart")
 }
 
-func configureUpdaterLanguage() {
-	for index, arg := range os.Args[1:] {
-		if arg == "--lang" && index+2 <= len(os.Args)-1 {
-			updaterLanguage = strings.ToLower(os.Args[index+2])
-			return
+func initializeUpdaterRuntime() (string, *os.File, error) {
+	executable, err := os.Executable()
+	if err != nil {
+		return "", nil, fmt.Errorf("resolve updater location: %w", err)
+	}
+	installDir := filepath.Dir(executable)
+	if err := os.Chdir(installDir); err != nil {
+		return "", nil, fmt.Errorf("open installation directory: %w", err)
+	}
+	logFile, logErr := os.OpenFile(filepath.Join(installDir, "updater.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if logErr == nil {
+		updaterLogger = log.New(logFile, "", log.LstdFlags|log.Lmicroseconds)
+	}
+	return installDir, logFile, nil
+}
+
+func parseUpdaterOptions(args []string) (updaterOptions, error) {
+	options := updaterOptions{language: "en"}
+	for index := 0; index < len(args); index++ {
+		name := args[index]
+		switch name {
+		case "--lang", "--parent-pid", "--executable":
+			if index+1 >= len(args) {
+				return options, fmt.Errorf("%s requires a value", name)
+			}
+			value := args[index+1]
+			index++
+			switch name {
+			case "--lang":
+				options.language = strings.ToLower(value)
+			case "--parent-pid":
+				pid, err := strconv.Atoi(value)
+				if err != nil || pid <= 0 {
+					return options, fmt.Errorf("invalid parent process id %q", value)
+				}
+				options.parentPID = pid
+			case "--executable":
+				options.executable = value
+			}
+		case "--launch-tray":
+			options.launchTray = true
 		}
+	}
+	return options, nil
+}
+
+func failUpdate(err error) {
+	updaterLogger.Printf("update failed: %v", err)
+	_, _ = fmt.Fprintln(os.Stderr, "Throned update failed:", err)
+	showUpdateError(err)
+	os.Exit(1)
+}
+
+func restartThroned(installDir string, options updaterOptions) error {
+	executable := options.executable
+	if executable == "" {
+		executable = filepath.Join(installDir, "Throned")
+		if runtime.GOOS == "windows" {
+			executable += ".exe"
+		}
+	}
+	if !filepath.IsAbs(executable) {
+		executable = filepath.Join(installDir, executable)
+	}
+	arguments := []string{}
+	if options.launchTray {
+		arguments = append(arguments, "-tray")
+	}
+	command := exec.Command(executable, arguments...)
+	command.Dir = installDir
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("could not restart Throned: %w", err)
+	}
+	updaterLogger.Printf("started Throned: pid=%d executable=%q args=%q", command.Process.Pid, executable, arguments)
+	done := make(chan error, 1)
+	go func() { done <- command.Wait() }()
+	select {
+	case err := <-done:
+		if err == nil {
+			return fmt.Errorf("Throned exited immediately after the update")
+		}
+		return fmt.Errorf("Throned exited immediately after the update: %w", err)
+	case <-time.After(3 * time.Second):
+		return nil
 	}
 }
 

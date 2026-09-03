@@ -178,9 +178,12 @@ void MainWindow::prepare_exit()
 }
 
 void MainWindow::on_menu_exit_triggered() {
-    prepare_exit();
+    QString updaterProgram;
+    QString updaterWorkingDirectory;
+    QStringList updaterArguments;
     if (exit_reason == ExitReason::RunUpdater) {
-        QDir::setCurrent(QApplication::applicationDirPath());
+        updaterWorkingDirectory = QApplication::applicationDirPath();
+        const QDir applicationDir(updaterWorkingDirectory);
         QString updaterLanguage = QStringLiteral("en");
         switch (Configs::dataManager->settingsRepo->language) {
         case 2: updaterLanguage = QStringLiteral("zh"); break;
@@ -189,13 +192,32 @@ void MainWindow::on_menu_exit_triggered() {
         case 0: updaterLanguage = QLocale::system().name().section(QChar('_'), 0, 0); break;
         default: break;
         }
-        const QStringList updaterArguments{QStringLiteral("--lang"), updaterLanguage};
+        updaterArguments = {QStringLiteral("--lang"), updaterLanguage,
+                            QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
+                            QStringLiteral("--executable"), QApplication::applicationFilePath()};
+        if (Configs::dataManager->settingsRepo->flag_tray)
+            updaterArguments << QStringLiteral("--launch-tray");
 #ifdef Q_OS_WIN
-        QFile::copy("./updater.exe", "./updater.old");
-        QProcess::startDetached("./updater.old", updaterArguments);
+        const QString updaterSource = applicationDir.absoluteFilePath(QStringLiteral("updater.exe"));
+        updaterProgram = applicationDir.absoluteFilePath(QStringLiteral("updater.old"));
+        if ((QFile::exists(updaterProgram) && !QFile::remove(updaterProgram)) ||
+            !QFile::copy(updaterSource, updaterProgram)) {
+            LOG_ERROR(QStringLiteral("Could not prepare updater copy: %1 -> %2").arg(updaterSource, updaterProgram));
+            MessageBoxWarning(tr("Update"), tr("Could not prepare the updater. Throned will keep running."));
+            exit_reason = ExitReason::None;
+            return;
+        }
 #else
-        QProcess::startDetached("./updater", updaterArguments);
+        updaterProgram = applicationDir.absoluteFilePath(QStringLiteral("updater"));
 #endif
+    }
+
+    prepare_exit();
+    if (exit_reason == ExitReason::RunUpdater) {
+        if (!QProcess::startDetached(updaterProgram, updaterArguments, updaterWorkingDirectory)) {
+            LOG_ERROR(QStringLiteral("Could not start updater: %1").arg(updaterProgram));
+            MessageBoxWarning(tr("Update"), tr("Could not start the updater. Start Throned again manually."));
+        }
     } else if (exit_reason == ExitReason::Restart || exit_reason == ExitReason::RestartWithTun || exit_reason == ExitReason::RestartWithDns) {
         QDir::setCurrent(QApplication::applicationDirPath());
 

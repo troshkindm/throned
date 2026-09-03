@@ -3,8 +3,10 @@ package main
 import (
 	"archive/zip"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func requireMonotonicProgress(t *testing.T, samples [][2]uint64) {
@@ -100,5 +102,40 @@ func TestExtractAndCopyTree(t *testing.T) {
 	}
 	if string(data) != "new binary" {
 		t.Fatalf("copied contents = %q", data)
+	}
+}
+
+func TestParseUpdaterOptions(t *testing.T) {
+	options, err := parseUpdaterOptions([]string{
+		"--lang", "RU", "--parent-pid", "4123", "--executable", `C:\Throned\Throned.exe`, "--launch-tray",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if options.language != "ru" || options.parentPID != 4123 ||
+		options.executable != `C:\Throned\Throned.exe` || !options.launchTray {
+		t.Fatalf("unexpected options: %+v", options)
+	}
+}
+
+func TestParseUpdaterOptionsRejectsInvalidParent(t *testing.T) {
+	if _, err := parseUpdaterOptions([]string{"--parent-pid", "none"}); err == nil {
+		t.Fatal("expected invalid parent process id to fail")
+	}
+}
+
+func TestWaitForParent(t *testing.T) {
+	if os.Getenv("THRONED_UPDATER_WAIT_HELPER") == "1" {
+		time.Sleep(150 * time.Millisecond)
+		return
+	}
+	command := exec.Command(os.Args[0], "-test.run=TestWaitForParent")
+	command.Env = append(os.Environ(), "THRONED_UPDATER_WAIT_HELPER=1")
+	if err := command.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer command.Process.Kill()
+	if err := waitForParent(command.Process.Pid, 3*time.Second); err != nil {
+		t.Fatal(err)
 	}
 }
