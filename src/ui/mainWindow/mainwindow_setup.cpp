@@ -821,6 +821,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         selectionLayout->addWidget(button);
     }
     selectionCard->setFixedHeight(68);
+    // The card is what tells you a selection exists, so it is also where you end one.
+    // Clicking empty space still works, but a full table leaves no empty space to click.
+    auto *clearSelection = new QToolButton(selectionCard);
+    clearSelection->setObjectName(QStringLiteral("selectionClear"));
+    clearSelection->setCursor(Qt::PointingHandCursor);
+    clearSelection->setFocusPolicy(Qt::NoFocus);
+    clearSelection->setFixedSize(26, 26);
+    clearSelection->setIconSize(QSize(14, 14));
+    clearSelection->setToolTip(tr("Clear selection"));
+    connect(clearSelection, &QToolButton::clicked, this, [this] {
+        ui->profilesTableView->clearSelection();
+        if (auto *model = ui->profilesTableView->selectionModel()) model->clearCurrentIndex();
+        // Otherwise the next group rebuild restores what was just dismissed.
+        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup())
+            group->selectedProfilesIdIdxPairs.clear();
+    });
+    selectionLayout->addWidget(clearSelection);
     selectionCard->hide();
     updateStatusWidget = new UpdateStatusWidget(redesignedCentral);
     connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this] {
@@ -843,7 +860,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Icons are rasterised, so they have to be repainted whenever the theme
     // changes; otherwise a blue glyph survives into a warm palette.
     const auto retintIcons = [this, navigation, mutedIcons, selectionIcon, clearAction,
-                              copyAction, autoScrollAction, filterAction] {
+                              copyAction, autoScrollAction, filterAction, clearSelection] {
         const auto colors = themeManager->Colors();
         for (const auto &[button, glyph] : navigation)
             button->setIcon(MaterialIcon::icon(glyph, colors.textMuted, 19));
@@ -855,6 +872,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         autoScrollAction->setIcon(autoScrollAction->isChecked()
             ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17) : QIcon());
         filterAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, colors.textMuted, 17));
+        clearSelection->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textMuted, 14));
         if (statusConnectionTest != nullptr)
             statusConnectionTest->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Bolt, colors.textMuted, 15));
     };
@@ -979,6 +997,8 @@ QFrame#logsStrip QToolButton#stripTab {
 }
 QFrame#logsStrip QToolButton#stripTab:hover { color: #F1F3F5; background: #222529; }
 QFrame#logsStrip QLabel#stripHint { color: #747C86; background: transparent; font-size: 11px; }
+QToolButton#selectionClear { background: transparent; border: 1px solid #2F3136; border-radius: 6px; }
+QToolButton#selectionClear:hover { background: #222529; border-color: #4A4F57; }
 QToolButton#statusCellButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; }
 QToolButton#statusCellButton:hover { background: #222529; border-color: #4A4F57; }
 QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; padding: 3px; }
@@ -1288,6 +1308,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             [this](const QPoint& pos) { show_group_tab_menu(pos); });
     connect(ui->tabWidget->groupTabBar(), &GroupTabBar::meterClicked, this,
             &MainWindow::showSubscriptionPopover);
+    connect(ui->tabWidget->groupTabBar(), &GroupTabBar::meterHovered, this,
+            &MainWindow::hoverSubscriptionCard);
+    connect(ui->tabWidget->groupTabBar(), &GroupTabBar::meterHoverLeft, this,
+            &MainWindow::endSubscriptionHover);
     // Lives inside the viewport so it never covers the header: the columns stay
     // usable while there is nothing to show under them.
     profilesEmptyState = new QWidget(ui->profilesTableView->viewport());

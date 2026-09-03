@@ -25,18 +25,33 @@ public:
 
     // Show below `globalPos`, kept fully on the containing screen.
     void popupFor(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos);
+    // Opened by hover, so it must not take focus the way a clicked popup does; it
+    // closes when the pointer has left both the tab and the card, not on deactivation.
+    void popupHovered(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos);
+
+    // The pointer left the tab. Closes shortly unless it arrives here instead.
+    void scheduleHoverClose();
+
+    [[nodiscard]] bool isHoverCard() const { return m_hoverCard; }
 
 protected:
     bool event(QEvent *e) override;
     void keyPressEvent(QKeyEvent *e) override;
+    void enterEvent(QEnterEvent *e) override;
+    void leaveEvent(QEvent *e) override;
 
 private:
     void fill(const std::shared_ptr<Configs::Group> &group);
+
+    // Fills and positions without deciding how it was opened.
+    void place(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos);
 
     void applyMuteIcon(bool notify);
 
     std::function<void(int gid)> m_updateNow;
     bool m_armed = false;
+    bool m_hoverCard = false;
+    class QTimer *m_hoverClose = nullptr;
     int m_gid = -1;
 
     QLabel *m_name = nullptr;

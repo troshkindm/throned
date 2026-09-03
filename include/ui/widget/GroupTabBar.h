@@ -31,14 +31,22 @@ signals:
     // The usage meter under a tab was clicked: the subscription behind it wants explaining.
     void meterClicked(int index);
 
+    // Hovering a tab that has one, and leaving every such tab. A 2px meter cannot
+    // advertise that it is clickable, so the pointer resting on the tab does it instead.
+    void meterHovered(int index);
+    void meterHoverLeft();
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
 private:
     struct Meter { double fraction = 0; Urgency urgency = Urgency::Normal; };
     QHash<int, Meter> usage_;
     bool selectionVisible_ = true;
+    int hoveredMeter_ = -1;
 };
 
 // Exists only to install GroupTabBar: QTabWidget::setTabBar is protected.

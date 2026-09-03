@@ -24,7 +24,10 @@ namespace {
     }
 }
 
-GroupTabBar::GroupTabBar(QWidget *parent) : QTabBar(parent) {}
+GroupTabBar::GroupTabBar(QWidget *parent) : QTabBar(parent) {
+    // Without tracking, moves only arrive while a button is held.
+    setMouseTracking(true);
+}
 
 void GroupTabBar::setUsage(int index, double fraction, Urgency urgency) {
     if (fraction < 0) usage_.remove(index);
@@ -57,6 +60,23 @@ void GroupTabBar::mousePressEvent(QMouseEvent *event) {
             return;
         }
     }
+}
+
+void GroupTabBar::mouseMoveEvent(QMouseEvent *event) {
+    QTabBar::mouseMoveEvent(event);
+    const int index = tabAt(event->position().toPoint());
+    const int meterTab = usage_.contains(index) ? index : -1;
+    if (meterTab == hoveredMeter_) return;
+    hoveredMeter_ = meterTab;
+    if (meterTab < 0) emit meterHoverLeft();
+    else emit meterHovered(meterTab);
+}
+
+void GroupTabBar::leaveEvent(QEvent *event) {
+    QTabBar::leaveEvent(event);
+    if (hoveredMeter_ < 0) return;
+    hoveredMeter_ = -1;
+    emit meterHoverLeft();
 }
 void GroupTabBar::paintEvent(QPaintEvent *event) {
     QTabBar::paintEvent(event);

@@ -287,11 +287,7 @@ void SubscriptionPopover::fill(const std::shared_ptr<Configs::Group> &group) {
     m_refresh->setVisible(!group->url.isEmpty());
 }
 
-void SubscriptionPopover::popupFor(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos) {
-    if (group == nullptr) {
-        close();
-        return;
-    }
+void SubscriptionPopover::place(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos) {
     fill(group);
     adjustSize();
 
@@ -306,6 +302,19 @@ void SubscriptionPopover::popupFor(const std::shared_ptr<Configs::Group> &group,
     x = qBound(available.left(), x, available.right() - wanted.width());
     y = qBound(available.top(), y, available.bottom() - wanted.height());
     move(x, y);
+}
+
+void SubscriptionPopover::popupFor(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos) {
+    if (group == nullptr) {
+        close();
+        return;
+    }
+    // A click promotes a hovered card into a real popup: it stops closing itself and
+    // takes focus, so Escape and click-away work the way they do everywhere else.
+    m_hoverCard = false;
+    if (m_hoverClose != nullptr) m_hoverClose->stop();
+    setAttribute(Qt::WA_ShowWithoutActivating, false);
+    place(group, globalPos);
 
     show();
     raise();
@@ -315,6 +324,39 @@ void SubscriptionPopover::popupFor(const std::shared_ptr<Configs::Group> &group,
     QTimer::singleShot(150, this, [this] { m_armed = true; });
 }
 
+void SubscriptionPopover::popupHovered(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos) {
+    m_hoverCard = true;
+    // Shown without activating: taking focus every time the pointer crosses a tab
+    // would pull it off whatever the user was typing in.
+    setAttribute(Qt::WA_ShowWithoutActivating, true);
+    if (m_hoverClose == nullptr) {
+        m_hoverClose = new QTimer(this);
+        m_hoverClose->setSingleShot(true);
+        m_hoverClose->setInterval(220);
+        connect(m_hoverClose, &QTimer::timeout, this, &SubscriptionPopover::close);
+    }
+    m_hoverClose->stop();
+    place(group, globalPos);
+    show();
+    raise();
+}
+
+void SubscriptionPopover::scheduleHoverClose() {
+    // Only a hovered card closes itself: one the user clicked open stays until dismissed.
+    if (!m_hoverCard || m_hoverClose == nullptr) return;
+    m_hoverClose->start();
+}
+
+void SubscriptionPopover::enterEvent(QEnterEvent *e) {
+    // The pointer crossed from the tab into the card, so the card is now the target.
+    if (m_hoverClose != nullptr) m_hoverClose->stop();
+    QFrame::enterEvent(e);
+}
+
+void SubscriptionPopover::leaveEvent(QEvent *e) {
+    scheduleHoverClose();
+    QFrame::leaveEvent(e);
+}
 bool SubscriptionPopover::event(QEvent *e) {
     if (e->type() == QEvent::WindowDeactivate && m_armed) close();
     return QFrame::event(e);

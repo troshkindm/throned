@@ -143,6 +143,8 @@ public:
 
     void runSiteReachability(const QList<int> &profileIDs);
 
+    void clearProfileSelection();
+
     void setupAnnounceStrip();
 
     void refreshAnnounceStrip();
@@ -150,6 +152,12 @@ public:
     void dismissAnnounce();
 
     void showSubscriptionPopover(int tabIndex);
+
+    void hoverSubscriptionCard(int tabIndex);
+
+    void endSubscriptionHover();
+
+    class SubscriptionPopover *subscriptionCard();
 
     void refresh_status(const QString &traffic_update = "");
 
@@ -302,6 +310,7 @@ private:
     class QToolButton *favoritesButton = nullptr;
     class QToolButton *groupAddButton = nullptr;
     class QAction *favoriteAction = nullptr;
+    class QAction *clearSelectionAction = nullptr;
     class QWidget *profilesEmptyState = nullptr;
     class QLabel *profilesEmptyIcon = nullptr;
     class QLabel *profilesEmptyTitle = nullptr;
@@ -328,6 +337,8 @@ private:
     class QLabel *announceIcon = nullptr;
     class QLabel *announceText = nullptr;
     class QToolButton *announceClose = nullptr;
+    class SubscriptionPopover *subscriptionPopover = nullptr;
+    QTimer *subscriptionHoverDelay = nullptr;
     // What the view is attached to: rows from the view or its selection model are
     // proxy rows, not profilesTableModel rows.
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;

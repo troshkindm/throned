@@ -296,39 +296,60 @@ void MainWindow::applySubscriptionReadout(int index, const std::shared_ptr<Confi
     const int days = sub.daysLeft(QDateTime::currentSecsSinceEpoch());
     bar->setUsage(index, sub.usedFraction(), subscriptionUrgency(sub, days));
 
-    QStringList lines;
-    lines << (sub.total == 0
-                  ? tr("Used %1 of an unlimited plan").arg(ReadableSize(sub.used()))
-                  : tr("%1 of %2 used, %3 left")
-                        .arg(ReadableSize(sub.used()), ReadableSize(sub.total), ReadableSize(qMax<qint64>(0, sub.total - sub.used()))));
-
-    if (days >= 0) {
-        lines << (days == 0 ? tr("Expires today (%1)").arg(DisplayTime(sub.expire, QLocale::ShortFormat))
-                            : tr("%n day(s) left (%1)", "", days).arg(DisplayTime(sub.expire, QLocale::ShortFormat)));
-    }
-    if (group->sub_last_update > 0) {
-        lines << tr("Updated %1").arg(DisplayTime(group->sub_last_update, QLocale::ShortFormat));
-    }
-    bar->setTabToolTip(index, lines.join('\n'));
+    // The hover card carries these numbers and more; Qt would raise a tooltip on top of
+    // it a few hundred milliseconds later, so the meter's own tooltip goes away.
+    bar->setTabToolTip(index, {});
 
     notifySubscriptionState(group, sub, days);
 }
 
+
+// One card serves both the hover and the click: reopening a second one over the first
+// is what makes hover popovers flicker.
+SubscriptionPopover *MainWindow::subscriptionCard() {
+    if (subscriptionPopover == nullptr) {
+        subscriptionPopover = new SubscriptionPopover([](int gid) {
+            if (const auto target = Configs::dataManager->groupsRepo->GetGroup(gid);
+                target != nullptr && !target->url.isEmpty()) {
+                Subscription::groupUpdater->AsyncUpdate(target->url, gid);
+            }
+        }, this);
+    }
+    return subscriptionPopover;
+}
 
 void MainWindow::showSubscriptionPopover(int tabIndex) {
     auto *bar = ui->tabWidget->groupTabBar();
     if (bar == nullptr) return;
     const auto group = Configs::dataManager->groupsRepo->GetGroup(bar->tabData(tabIndex).toInt());
     if (group == nullptr) return;
-
-    auto *popover = new SubscriptionPopover([](int gid) {
-        if (const auto target = Configs::dataManager->groupsRepo->GetGroup(gid);
-            target != nullptr && !target->url.isEmpty()) {
-            Subscription::groupUpdater->AsyncUpdate(target->url, gid);
-        }
-    }, this);
     const QRect rect = bar->tabRect(tabIndex);
-    popover->popupFor(group, bar->mapToGlobal(QPoint(rect.left(), rect.bottom())));
+    subscriptionCard()->popupFor(group, bar->mapToGlobal(QPoint(rect.left(), rect.bottom())));
+}
+
+void MainWindow::hoverSubscriptionCard(int tabIndex) {
+    auto *bar = ui->tabWidget->groupTabBar();
+    if (bar == nullptr) return;
+    if (subscriptionHoverDelay == nullptr) {
+        subscriptionHoverDelay = new QTimer(this);
+        subscriptionHoverDelay->setSingleShot(true);
+        // Long enough that crossing the strip on the way to the search field is quiet,
+        // short enough that resting on a tab feels like an answer rather than a wait.
+        subscriptionHoverDelay->setInterval(420);
+    }
+    subscriptionHoverDelay->disconnect();
+    connect(subscriptionHoverDelay, &QTimer::timeout, this, [this, bar, tabIndex] {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(bar->tabData(tabIndex).toInt());
+        if (group == nullptr) return;
+        const QRect rect = bar->tabRect(tabIndex);
+        subscriptionCard()->popupHovered(group, bar->mapToGlobal(QPoint(rect.left(), rect.bottom())));
+    });
+    subscriptionHoverDelay->start();
+}
+
+void MainWindow::endSubscriptionHover() {
+    if (subscriptionHoverDelay != nullptr) subscriptionHoverDelay->stop();
+    if (subscriptionPopover != nullptr) subscriptionPopover->scheduleHoverClose();
 }
 // A subscription refresh rewrites the allowance but leaves the tabs standing, so the
 // readout is repainted on its own rather than through a full rebuild of the strip.
