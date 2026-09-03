@@ -2184,7 +2184,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     connect(ui->actionUpdate_All_Subscriptions, &QAction::triggered, this, [=,this]{
         if (QMessageBox::question(this, tr("Confirmation"), tr("Update all subscriptions?")) == QMessageBox::StandardButton::Yes) {
-            UI_update_all_groups();
+            Subscription::updater()->RefreshAll();
         }
     });
 
@@ -2461,7 +2461,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 Configs::dataManager->settingsRepo->sub_auto_update_last = t;
                 Configs::dataManager->settingsRepo->Save();
             },
-            [] { UI_update_all_groups(true); },
+            [] { Subscription::updater()->RefreshAll(true); },
         });
         runner->Add({
             tr("routing profiles"),
@@ -2498,7 +2498,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ThronedControl::hooks.setTun = [this](bool enabled) { set_spmode_vpn(enabled); };
     ThronedControl::hooks.setSystemProxy = [this](bool enabled) { set_spmode_system_proxy(enabled); };
     ThronedControl::hooks.isElevated = [] { return Configs::IsAdmin(); };
-    ThronedControl::hooks.updateSubscriptions = [] { UI_update_all_groups(false); };
+    ThronedControl::hooks.updateSubscriptions = [] { Subscription::updater()->RefreshAll(false); };
     ThronedControl::hooks.recentLogs = [this](int wanted) {
         // The window's log document is the same text the Logs tab shows, so a
         // caller sees exactly what a person would be reading.

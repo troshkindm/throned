@@ -1,64 +1,61 @@
 #pragma once
 
-#include <include/database/entities/Profile.h>
-
+#include <QByteArray>
+#include <QList>
+#include <QMutex>
+#include <QObject>
+#include <QPair>
+#include <QSet>
 #include <QStringList>
 
+#include <functional>
+
 namespace Subscription {
-    enum class SingBoxSubType {
-        fullConfig,
-        outboundInJson,
-        outboundJsonArray,
-        outboundObject,
-        invalid,
-    };
-    enum class XraySubType {
-        outboundInJson,
-        outboundJsonArray,
-        outboundObject,
-        configJsonArray,
-        invalid,
-    };
-    class RawUpdater {
-    public:
-        void update(const QString &str, bool needParse = true, bool isBase64Decoded = false);
-
-        void updateSingBox(const QJsonDocument &doc, SingBoxSubType type);
-
-        void updateXray(const QJsonDocument &doc, XraySubType type);
-
-        void updateClash(const QString &str);
-
-        void updateWireguardFileConfig(const QString &str);
-
-        void updateOpenVPNFileConfig(const QString &str);
-
-        void updateOpenConnectProfile(const QString &str);
-
-        void updateSIP008(const QString &str);
-
-        int gid_add_to = -1;
-
-        QList<std::shared_ptr<Configs::Profile>> updated_order;
-    };
-
+    // Jobs run one at a time on a background worker, in FIFO order.
     class GroupUpdater : public QObject {
         Q_OBJECT
 
     public:
+        using Finish = std::function<void()>;
+
         // showDiff: a manual refresh pops up the diff; automatic paths leave it false and only log.
-        void AsyncUpdate(const QString &str, int _sub_gid = -1, const std::function<void()> &finish = nullptr, bool showDiff = false);
+        void RefreshGroup(int gid, const Finish &finish = nullptr, bool showDiff = false);
 
-        void AsyncImportBatch(const QStringList &payloads, const std::function<void()> &finish = nullptr);
+        void RefreshAll(bool onlyAllowed = false);
 
-        void Update(const QString &_str, int _sub_gid = -1, bool _not_sub_as_url = false, bool showDiff = false);
+        void SubscribeUrl(const QString &url, const Finish &finish = nullptr);
+
+        void ImportUrl(const QString &url, const Finish &finish = nullptr);
+
+        void ImportText(const QString &text, int gid = -1, const Finish &finish = nullptr);
+
+        void ImportBatch(const QStringList &payloads, const Finish &finish = nullptr);
 
     signals:
-
         void asyncUpdateCallback(int gid);
+
+    private:
+        struct Job {
+            int gid = -1;
+            bool batch = false;
+            std::function<void()> run;
+        };
+
+        void enqueue(Job job);
+        void enqueueLocked(Job job);
+        void drain();
+        void refresh(int gid, bool showDiff);
+        void importDocuments(int gid, QList<QByteArray> documents);
+        bool fetch(const QString &url, const QString &name, QByteArray &body, QString &userInfo,
+                   const QString &fallbackUrl = {},
+                   QList<QPair<QByteArray, QByteArray>> *responseHeaders = nullptr);
+
+        QMutex mutex;
+        QList<Job> queue;
+        QSet<int> pending;
+        int pendingBatch = 0;
+        bool running = false;
     };
 
-    extern GroupUpdater *groupUpdater;
+    GroupUpdater *updater();
 } // namespace Subscription
-
-void UI_update_all_groups(bool onlyAllowed = false);

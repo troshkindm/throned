@@ -9,6 +9,7 @@
 #include <QListWidgetItem>
 #include <QMessageBox>
 
+#include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 
 
@@ -54,6 +55,6 @@ void DialogManageGroups::on_add_clicked() {
 
 void DialogManageGroups::on_update_all_clicked() {
     if (QMessageBox::question(this, tr("Confirmation"), tr("Update all subscriptions?")) == QMessageBox::StandardButton::Yes) {
-        UI_update_all_groups();
+        Subscription::updater()->RefreshAll();
     }
 }

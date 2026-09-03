@@ -53,7 +53,7 @@ namespace Configs_network {
         }
     }
 
-    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool sendHwid, bool useProxy) {
+    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool sendHwid, bool useProxy, qint64 maxBytes) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(10000);
@@ -111,12 +111,33 @@ namespace Configs_network {
             }
             MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataManager->settingsRepo->net_insecure ? "(Ignored)" : ""));
         });
+        QByteArray body;
+        bool tooLarge = false;
+        connect(_reply, &QNetworkReply::readyRead, _reply, [&] {
+            if (body.isEmpty()) {
+                const auto expected = _reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
+                const qint64 reserveCap = maxBytes > 0 ? maxBytes : 256LL * 1024 * 1024;
+                if (expected > 0 && expected <= reserveCap) body.reserve(static_cast<qsizetype>(expected));
+            }
+            body += _reply->readAll();
+            if (maxBytes > 0 && body.size() > maxBytes) {
+                tooLarge = true;
+                _reply->abort();
+            }
+        });
         QEventLoop loop;
         connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
+        body += _reply->readAll();
 
-        auto result = HTTPResponse{_reply->error() == QNetworkReply::NetworkError::NoError ? "" : _reply->errorString(),
-                                       _reply->readAll(), _reply->rawHeaderPairs()};
+        HTTPResponse result;
+        result.header = _reply->rawHeaderPairs();
+        if (tooLarge) {
+            result.error = QObject::tr("Response larger than %1 MB").arg(maxBytes / (1024 * 1024));
+        } else {
+            result.error = _reply->error() == QNetworkReply::NetworkError::NoError ? "" : _reply->errorString();
+            result.data = std::move(body);
+        }
         _reply->deleteLater();
         return result;
     }

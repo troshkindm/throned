@@ -547,6 +547,9 @@ private:
     // rest to the subscription/profile importer.
     void import_or_handle_deeplink(const QString &text);
 
+    // A pasted url asks whether it is a subscription or a proxy link; everything else is imported as is.
+    void import_text(const QString &text);
+
     void refresh_proxy_list_column_size();
 
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);

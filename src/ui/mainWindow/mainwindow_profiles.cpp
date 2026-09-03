@@ -92,7 +92,7 @@ void MainWindow::showQuickAddOverlay() {
             Configs::dataManager->settingsRepo->current_group = group->id;
             Configs::dataManager->settingsRepo->Save();
             MW_dialog_message(MwMessage::GroupsChanged, {});
-            Subscription::groupUpdater->AsyncUpdate(value, group->id);
+            Subscription::updater()->RefreshGroup(group->id);
         };
         callbacks.addProfile = [this](const QString &type, int groupId, const QString &name,
                                       const QString &address, const QString &port) {
@@ -114,7 +114,7 @@ void MainWindow::showQuickAddOverlay() {
             Configs::dataManager->settingsRepo->Save();
             MW_dialog_message(MwMessage::GroupsChanged, {});
             if (!subscriptionUrl.isEmpty())
-                Subscription::groupUpdater->AsyncUpdate(subscriptionUrl, group->id);
+                Subscription::updater()->RefreshGroup(group->id);
         };
         quickAddOverlay = new QuickAddOverlay(this, std::move(callbacks));
     }
@@ -139,7 +139,7 @@ void MainWindow::on_menu_clone_triggered() {
         sls << ent->outbound->ExportJsonLink();
     }
 
-    Subscription::groupUpdater->AsyncUpdate(sls.join("\n"));
+    Subscription::updater()->ImportText(sls.join("\n"));
 }
 
 void MainWindow::on_menu_delete_repeat_triggered() {
@@ -367,7 +367,7 @@ void MainWindow::parseQrImage(const QPixmap *image)
     } else {
         for (const QString &text : texts) {
             MW_show_log("QR Code Result:\n" + text);
-            Subscription::groupUpdater->AsyncUpdate(text);
+            import_text(text);
         }
     }
 }
@@ -386,7 +386,7 @@ void MainWindow::on_menu_scan_qr_triggered() {
     }
     for (const QString &text : texts) {
         MW_show_log("QR Code Result:\n" + text);
-        Subscription::groupUpdater->AsyncUpdate(text);
+        import_text(text);
     }
 }
 
@@ -417,7 +417,7 @@ void MainWindow::on_menu_update_subscription_triggered() {
     if (group->url.isEmpty()) return;
     if (mw_sub_updating) return;
     mw_sub_updating = true;
-    Subscription::groupUpdater->AsyncUpdate(group->url, group->id, [&] { mw_sub_updating = false; }, true);
+    Subscription::updater()->RefreshGroup(group->id, [&] { mw_sub_updating = false; }, true);
 }
 
 void MainWindow::on_menu_remove_unavailable_triggered() {
