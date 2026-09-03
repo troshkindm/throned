@@ -66,6 +66,7 @@ Everything Throne does, plus:
 - Status strip that no longer reflows as numbers change.
 
 **Operating it**
+- Reconnect on start picks the last profile, the fastest measured one, or any at random.
 - **Copy Diagnostics** — one paste for a bug report, secrets masked.
 - Update checks and downloads follow the running profile, with in-window progress and explicit restart-to-install.
 - Release notes follow the interface language when the release provides a translation.
