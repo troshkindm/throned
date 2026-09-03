@@ -44,6 +44,7 @@ Everything Throne does, plus:
 
 **Testing and monitoring**
 - UDP latency and jitter probe, with its own column.
+- **Site reachability** — a grid of your profiles against the sites you actually use, so a node is judged by what it opens rather than by one latency number.
 - Ping monitor on the graph: up to three targets, direct path measured beside the proxy.
 - URL test, speed test and IP resolution over a multi-row selection.
 - Search, sort and close live connections; filters and ordering survive restarts.
