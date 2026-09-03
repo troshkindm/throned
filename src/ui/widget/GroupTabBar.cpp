@@ -35,8 +35,14 @@ void GroupTabBar::setUsage(int index, double fraction, Urgency urgency) {
     update();
 }
 
+void GroupTabBar::setSubscription(int index, bool subscription) {
+    if (subscription) subscriptions_.insert(index);
+    else subscriptions_.remove(index);
+}
+
 void GroupTabBar::clearUsage() {
     usage_.clear();
+    subscriptions_.clear();
     update();
 }
 
@@ -65,17 +71,17 @@ void GroupTabBar::mousePressEvent(QMouseEvent *event) {
 void GroupTabBar::mouseMoveEvent(QMouseEvent *event) {
     QTabBar::mouseMoveEvent(event);
     const int index = tabAt(event->position().toPoint());
-    const int meterTab = usage_.contains(index) ? index : -1;
-    if (meterTab == hoveredMeter_) return;
-    hoveredMeter_ = meterTab;
-    if (meterTab < 0) emit meterHoverLeft();
-    else emit meterHovered(meterTab);
+    const int subscriptionTab = subscriptions_.contains(index) ? index : -1;
+    if (subscriptionTab == hoveredSubscription_) return;
+    hoveredSubscription_ = subscriptionTab;
+    if (subscriptionTab < 0) emit meterHoverLeft();
+    else emit meterHovered(subscriptionTab);
 }
 
 void GroupTabBar::leaveEvent(QEvent *event) {
     QTabBar::leaveEvent(event);
-    if (hoveredMeter_ < 0) return;
-    hoveredMeter_ = -1;
+    if (hoveredSubscription_ < 0) return;
+    hoveredSubscription_ = -1;
     emit meterHoverLeft();
 }
 void GroupTabBar::paintEvent(QPaintEvent *event) {

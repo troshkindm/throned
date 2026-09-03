@@ -1315,9 +1315,20 @@ briefly interrupts traffic.
                     qApp->exit(2);
                     return;
                 }
+                // A provider is allowed to omit subscription-userinfo. The tab then
+                // has no usage line, but its refresh cycle and provider links must
+                // still be reachable from the hover card.
+                if (auto group = Configs::dataManager->groupsRepo->CurrentGroup()) {
+                    group->info.clear();
+                    Configs::dataManager->groupsRepo->Save(group);
+                    window->refreshSubscriptionReadouts();
+                }
                 // Hover has to open the card without taking focus, and a click on the
                 // same tab has to promote it into a real popup.
-                emit groupBar->meterHovered(groupBar->currentIndex());
+                const QPoint hoverPoint = groupBar->tabRect(groupBar->currentIndex()).center();
+                QMouseEvent hover(QEvent::MouseMove, hoverPoint, groupBar->mapToGlobal(hoverPoint),
+                                  Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+                QApplication::sendEvent(groupBar, &hover);
                 QTimer::singleShot(700, window, [window, groupBar, prefix] {
                     auto *card = window->findChild<SubscriptionPopover *>();
                     if (card == nullptr || !card->isVisible()) {

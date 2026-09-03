@@ -201,7 +201,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
             }
         });
     }
-    if (clickedGroup != nullptr && Configs::ParseSubInfo(clickedGroup->info).valid) {
+    if (clickedGroup != nullptr && !clickedGroup->url.trimmed().isEmpty()) {
         connect(menu.addAction(tr("Subscription details")), &QAction::triggered, this,
                 [=, this] { showSubscriptionPopover(clickedIndex); });
         menu.addSeparator();
@@ -286,6 +286,9 @@ void MainWindow::applySubscriptionReadout(int index, const std::shared_ptr<Confi
     auto *bar = ui->tabWidget->groupTabBar();
     if (bar == nullptr || group == nullptr) return;
 
+    // The card also carries refresh cadence, provider links and announcements.
+    // None of those require subscription-userinfo or a traffic allowance.
+    bar->setSubscription(index, !group->url.trimmed().isEmpty());
     const auto sub = Configs::ParseSubInfo(group->info);
     if (!sub.valid) {
         bar->setUsage(index, -1);

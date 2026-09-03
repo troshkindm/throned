@@ -83,21 +83,14 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
         : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base));
     const QColor separator = m_sectionBorder.isValid() ? m_sectionBorder : palette().color(QPalette::Mid);
     painter->fillRect(rect, background);
-    if (running && !selected) {
-        QColor runningTint = colors.success;
-        runningTint.setAlphaF(colors.dark ? 0.10F : 0.07F);
-        painter->fillRect(rect, runningTint);
-    }
 
     // The card already owns the outer edge. Painting another line at the gutter's
     // left edge lands one pixel beside it and reads as a double border.
     painter->setPen(separator);
     if (rect.width() > 1) painter->drawLine(rect.topRight(), rect.bottomRight());
-    QColor stateBorder = selected ? colors.selectionBorder : colors.success;
-    if (running && !selected) stateBorder.setAlphaF(0.55F);
-    painter->setPen((selected || running) ? stateBorder : separator);
+    painter->setPen(selected ? colors.selectionBorder : separator);
     painter->drawLine(rect.bottomLeft() + QPoint(1, 0), rect.bottomRight());
-    if (selected || running)
+    if (selected)
         painter->drawLine(rect.topLeft() + QPoint(1, 0), rect.topRight());
     const QColor foreground = selected && view != nullptr
         ? view->palette().color(QPalette::HighlightedText)

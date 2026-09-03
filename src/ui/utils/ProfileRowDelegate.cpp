@@ -163,19 +163,8 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     const auto colors = themeManager->Colors();
     const bool selected = opt.state & QStyle::State_Selected;
 
-    // A running profile is persistent application state, not transient table
-    // selection. A low success tint keeps it visible without making a second
-    // row look selected when the user clicks elsewhere.
-    if (visual.running && !selected) {
-        QColor runningTint = colors.success;
-        runningTint.setAlphaF(colors.dark ? 0.10F : 0.07F);
-        painter->fillRect(opt.rect, runningTint);
-        QColor runningBorder = colors.success;
-        runningBorder.setAlphaF(0.55F);
-        painter->setPen(runningBorder);
-        painter->drawLine(opt.rect.topLeft(), opt.rect.topRight());
-        painter->drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight());
-    }
+    // Running is persistent state, not table selection. The gutter check and the
+    // green server name identify it without leaving an apparently stuck selection.
     if (index.row() == m_flashRow && m_flashStrength > 0.0) {
         QColor flash = colors.accent;
         flash.setAlphaF(0.28 * m_flashStrength);
