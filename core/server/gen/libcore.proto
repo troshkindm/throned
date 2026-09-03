@@ -29,6 +29,8 @@ service LibcoreService {
 
   rpc UDPTest(UDPTestRequest) returns (UDPTestResp);
   rpc QueryUDPTest(EmptyReq) returns (QueryUDPTestResponse);
+  rpc SiteTest(SiteTestRequest) returns (SiteTestResp);
+  rpc QuerySiteTest(EmptyReq) returns (QuerySiteTestResponse);
   //
   rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
 
@@ -380,6 +382,50 @@ message UDPTestResp {
 
 message QueryUDPTestResponse {
   repeated UDPTestRes results = 1;
+}
+
+// A node is worth keeping only if it reaches what you actually use, so the probe
+// is a small list of sites rather than one connectivity URL.
+message SiteTarget {
+  optional string name = 1 [default = ""];
+  optional string url = 2 [default = ""];
+}
+
+// status is the HTTP code the site answered with, or 0 when nothing answered:
+// a geo-block replies and a filter does not, and the difference is the point.
+message SiteProbeRes {
+  optional string name = 1 [default = ""];
+  optional int32 status = 2 [default = 0];
+  optional int32 latency_ms = 3 [default = 0];
+  optional string error = 4 [default = ""];
+}
+
+message SiteTestRes {
+  optional string outbound_tag = 1 [default = ""];
+  repeated SiteProbeRes probes = 2;
+  optional string error = 3 [default = ""];
+}
+
+message SiteTestRequest {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool use_default_outbound = 3 [default = false];
+  optional int32 max_concurrency = 4 [default = 0];
+  optional int32 test_timeout_ms = 5 [default = 0];
+  optional bool need_xray = 6 [default = false];
+  optional string xray_config = 7 [default = ""];
+  repeated string xray_full_configs = 8;
+  // See TestReq.xray_outbound_dns_strategy.
+  optional string xray_outbound_dns_strategy = 9 [default = ""];
+  repeated SiteTarget targets = 10;
+}
+
+message SiteTestResp {
+  repeated SiteTestRes results = 1;
+}
+
+message QuerySiteTestResponse {
+  repeated SiteTestRes results = 1;
 }
 
 message GenWgKeyPairResponse {

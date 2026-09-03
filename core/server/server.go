@@ -759,6 +759,67 @@ func (s *server) QueryUDPTest(ctx context.Context, in *gen.EmptyReq) (out *gen.Q
 	return
 }
 
+func (s *server) SiteTest(ctx context.Context, in *gen.SiteTestRequest) (*gen.SiteTestResp, error) {
+	targets := make([]test_utils.SiteTarget, 0, len(in.Targets))
+	for _, t := range in.Targets {
+		if t.GetUrl() == "" {
+			continue
+		}
+		targets = append(targets, test_utils.SiteTarget{Name: t.GetName(), URL: t.GetUrl()})
+	}
+	if len(targets) == 0 {
+		return nil, E.New("no sites to check")
+	}
+
+	// Always its own box: the point is what a node reaches, not what the running one does.
+	env, err := prepareTestEnv(false, in.GetNeedXray(), in.GetXrayConfig(),
+		in.XrayFullConfigs, in.GetConfig(), in.OutboundTags, in.GetUseDefaultOutbound(),
+		in.GetXrayOutboundDnsStrategy())
+	if err != nil {
+		return nil, err
+	}
+	defer env.close()
+
+	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
+	results := test_utils.BatchSiteTest(test_utils.TestContext(), env.box, env.tags, targets,
+		int(in.GetMaxConcurrency()), timeout)
+
+	res := make([]*gen.SiteTestRes, 0, len(results))
+	for _, data := range results {
+		res = append(res, siteResultToProto(data))
+	}
+	return &gen.SiteTestResp{Results: res}, nil
+}
+
+func (s *server) QuerySiteTest(ctx context.Context, in *gen.EmptyReq) (out *gen.QuerySiteTestResponse, _ error) {
+	out = &gen.QuerySiteTestResponse{}
+	for _, r := range test_utils.SiteReporter.Results() {
+		out.Results = append(out.Results, siteResultToProto(r))
+	}
+	return
+}
+
+func siteResultToProto(r *test_utils.SiteTestResult) *gen.SiteTestRes {
+	errStr := ""
+	if r.Error != nil {
+		errStr = r.Error.Error()
+	}
+	probes := make([]*gen.SiteProbeRes, 0, len(r.Probes))
+	for _, p := range r.Probes {
+		probeErr := ""
+		if p.Error != nil {
+			probeErr = p.Error.Error()
+		}
+		probes = append(probes, &gen.SiteProbeRes{
+			Name:      To(p.Name),
+			Status:    To(int32(p.Status)),
+			LatencyMs: To(int32(p.Duration.Milliseconds())),
+			Error:     To(probeErr),
+		})
+	}
+	return &gen.SiteTestRes{OutboundTag: To(r.Tag), Probes: probes, Error: To(errStr)}
+}
+
 func udpResultToProto(r *test_utils.UDPTestResult) *gen.UDPTestRes {
 	errStr := ""
 	if r.Error != nil {
