@@ -414,12 +414,12 @@ void MainWindow::setupAnnounceStrip() {
     announceHost->hide();
 
     const auto retint = [this] {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         announceIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Campaign, colors.accent, 16));
         announceClose->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textSubtle, 12));
     };
     retint();
-    connect(themeManager, &ThemeManager::themeChanged, this, retint);
+    connect(themeManager(), &ThemeManager::themeChanged, this, retint);
 }
 
 void MainWindow::refreshAnnounceStrip() {

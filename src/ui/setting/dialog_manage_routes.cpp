@@ -518,7 +518,7 @@ QDialog#routeProfileEditor QListWidget#routeProfilesList::item:selected {
 }
 QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     )");
-    themeManager->RegisterStyle(this, routeSettingsStyleTemplate);
+    themeManager()->RegisterStyle(this, routeSettingsStyleTemplate);
     auto profiles = Configs::dataManager->routesRepo->GetAllRouteProfiles();
     for (const auto &item: profiles) {
         chainList << item;
@@ -581,7 +581,7 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
         on_edit_route_clicked();
     });
 
-    connect(ui->route_prof, SIGNAL(currentIndexChanged(int)), this, SLOT(updateCurrentRouteProfile(int)));
+    connect(ui->route_prof, &QComboBox::currentIndexChanged, this, &DialogManageRoutes::updateCurrentRouteProfile);
 
     deleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
 

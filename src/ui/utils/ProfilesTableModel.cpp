@@ -155,7 +155,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 
     const int startedId = Configs::dataManager->settingsRepo->started_id;
     const bool isRunning = (profile->id == startedId);
-    const QColor runningColor = isRunning ? themeManager->Colors().success : QColor();
+    const QColor runningColor = isRunning ? themeManager()->Colors().success : QColor();
 
     if (m_rowStyle == RowStyle::Comfortable) {
         if (role == RowVisualRole) return QVariant::fromValue(buildRowVisual(profile, isRunning));

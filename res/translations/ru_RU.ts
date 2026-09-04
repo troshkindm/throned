@@ -5746,6 +5746,26 @@ Name: %1</source>
         <source>Clear selection</source>
         <translation>Снять выделение</translation>
     </message>
+    <message>
+        <source>Another test is still running. Wait for it to finish.</source>
+        <translation>Другая проверка ещё выполняется. Дождитесь её завершения.</translation>
+    </message>
+    <message>
+        <source>Test cancelled.</source>
+        <translation>Проверка отменена.</translation>
+    </message>
+    <message>
+        <source>The core did not return site test results.</source>
+        <translation>Ядро не вернуло результаты проверки сайтов.</translation>
+    </message>
+    <message>
+        <source>Site test failed: %1</source>
+        <translation>Не удалось проверить сайты: %1</translation>
+    </message>
+    <message>
+        <source>The core returned an incomplete site test result.</source>
+        <translation>Ядро вернуло неполный результат проверки сайтов.</translation>
+    </message>
 </context>
 <context>
     <name>UpdateStatusWidget</name>
@@ -7286,7 +7306,7 @@ goes to the default above.</source>
     </message>
 </context>
 <context>
-    <name>TrayProfileSelector</name>
+    <name>TrayPopupFrame</name>
     <message>
         <source>Search…</source>
         <translation>Поиск…</translation>
@@ -7295,6 +7315,9 @@ goes to the default above.</source>
         <source>Close</source>
         <translation>Закрыть</translation>
     </message>
+</context>
+<context>
+    <name>TrayProfileSelector</name>
     <message>
         <source>Back to groups</source>
         <translation>Назад к группам</translation>
@@ -7480,6 +7503,30 @@ goes to the default above.</source>
     <message>
         <source>%1 of %2 profiles answered. Green answered, amber refused, dash never answered.</source>
         <translation>Ответили %1 из %2 профилей. Зелёный — ответил, жёлтый — отказал, прочерк — не ответил.</translation>
+    </message>
+    <message>
+        <source>Auto-selectors are skipped. Select their individual profiles to test.</source>
+        <translation>Автоселекторы пропускаются. Для проверки выберите отдельные профили.</translation>
+    </message>
+    <message>
+        <source>No test result was returned for this profile.</source>
+        <translation>Для этого профиля результат проверки не получен.</translation>
+    </message>
+    <message>
+        <source>Skipped</source>
+        <translation>Пропущено</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Ошибка</translation>
+    </message>
+    <message>
+        <source>Checked: %1. Failed to run: %2. Skipped: %3.</source>
+        <translation>Проверено: %1. Ошибок запуска: %2. Пропущено: %3.</translation>
+    </message>
+    <message>
+        <source>Test error: %1</source>
+        <translation>Ошибка проверки: %1</translation>
     </message>
 </context>
 </TS>

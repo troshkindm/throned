@@ -22,7 +22,7 @@ void ThronedToggle::paintEvent(QPaintEvent *) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     painter.setBrush(isChecked() ? colors.success : colors.controlInactive);
     painter.drawRoundedRect(rect(), height() / 2.0, height() / 2.0);
     painter.setBrush(QColor(QStringLiteral("#FFFFFF")));

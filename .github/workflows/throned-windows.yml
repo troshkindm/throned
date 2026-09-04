@@ -37,11 +37,11 @@ jobs:
         id: core-cache
         with:
           path: artifacts.tgz
-          key: throned-core-windows-amd64-go-1.26.7-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
+          key: throned-core-windows-amd64-go-1.27.0-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
       - uses: actions/setup-go@v6.5.0
         if: steps.core-cache.outputs.cache-hit != 'true'
         with:
-          go-version: "1.26.7"
+          go-version: "1.27.0"
           cache-dependency-path: core/server/go.sum
       - uses: arduino/setup-protoc@v3
         if: steps.core-cache.outputs.cache-hit != 'true'
@@ -79,11 +79,11 @@ jobs:
         id: core-cache
         with:
           path: artifacts.tgz
-          key: throned-core-linux-${{ matrix.arch }}-go-1.26.7-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
+          key: throned-core-linux-${{ matrix.arch }}-go-1.27.0-${{ hashFiles('script/build_go.sh', 'core/**', 'updater/**') }}
       - uses: actions/setup-go@v6.5.0
         if: steps.core-cache.outputs.cache-hit != 'true'
         with:
-          go-version: "1.26.7"
+          go-version: "1.27.0"
           cache-dependency-path: core/server/go.sum
       - uses: arduino/setup-protoc@v3
         if: steps.core-cache.outputs.cache-hit != 'true'
@@ -158,7 +158,7 @@ jobs:
           path: download-artifact
       - uses: actions/setup-go@v6.5.0
         with:
-          go-version: "1.26.7"
+          go-version: "1.27.0"
           cache-dependency-path: core/server/go.sum
       - uses: arduino/setup-protoc@v3
         with:

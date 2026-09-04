@@ -1,9 +1,91 @@
 #include "include/database/Database.h"
+#include "include/global/Logger.hpp"
 #include <3rdparty/SQLiteCpp/include/Backup.h>
+#include <3rdparty/SQLiteCpp/include/sqlite3.h>
+#include <QDateTime>
+#include <QObject>
 #include <algorithm>
+#include <mutex>
 #include <set>
+#include <unordered_map>
 
 namespace Configs {
+    namespace {
+        constexpr int DB_ERROR_LOG_FIRST = 3;
+        constexpr qint64 DB_ERROR_LOG_EVERY_MS = 60 * 1000;
+        constexpr qint64 DB_ERROR_NOTICE_EVERY_MS = 10 * 60 * 1000;
+
+        struct DbErrorTally {
+            int count = 0;
+            int suppressed = 0;
+            qint64 lastLogMs = 0;
+            qint64 lastNoticeMs = 0;
+        };
+
+        std::mutex g_dbErrorMu;
+        std::unordered_map<std::string, DbErrorTally> g_dbErrorTallies;
+    }
+
+    DbError DescribeDbError(const std::exception& e) {
+        DbError err;
+        err.what = e.what();
+        if (const auto* s = dynamic_cast<const SQLite::Exception*>(&e)) {
+            err.code = s->getErrorCode();
+            err.extended = s->getExtendedErrorCode();
+        }
+        return err;
+    }
+
+    bool IsFatalDbError(const DbError& err) {
+        const int code = err.extended > 0 ? err.extended : err.code;
+        if (code < 0) return false;
+        const int primary = code & 0xff;
+        return primary == SQLITE_READONLY || primary == SQLITE_CORRUPT || primary == SQLITE_NOTADB;
+    }
+
+    std::string DbRebuildMarkerPath(const std::string& dbPath) {
+        return dbPath + ".rebuild";
+    }
+
+    void NotifyError(const std::string& query, const DbError& err) {
+        const std::string key = query.length() > 200 ? query.substr(0, 200) : query;
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
+        bool logIt = false;
+        bool noticeIt = false;
+        int count = 0;
+        int suppressed = 0;
+        {
+            std::lock_guard<std::mutex> lk(g_dbErrorMu);
+            auto& t = g_dbErrorTallies[key];
+            count = ++t.count;
+            if (t.count <= DB_ERROR_LOG_FIRST || now - t.lastLogMs >= DB_ERROR_LOG_EVERY_MS) {
+                logIt = true;
+                suppressed = t.suppressed;
+                t.suppressed = 0;
+                t.lastLogMs = now;
+            } else {
+                ++t.suppressed;
+            }
+            if (t.lastNoticeMs == 0 || now - t.lastNoticeMs >= DB_ERROR_NOTICE_EVERY_MS) {
+                noticeIt = true;
+                t.lastNoticeMs = now;
+            }
+        }
+
+        QString detail = QString::fromStdString(err.what);
+        if (err.code >= 0) detail += QString(" [sqlite %1/%2]").arg(err.code).arg(err.extended);
+        if (logIt) {
+            QString line = QString("DB error in %1: %2 (occurrence %3").arg(QString::fromStdString(key), detail).arg(count);
+            if (suppressed > 0) line += QString(", %1 suppressed").arg(suppressed);
+            line += ")";
+            LOG_ERROR(line);
+        }
+        if (noticeIt) {
+            PostPassiveWarning(QObject::tr("Database error"),
+                               QObject::tr("%1 failed: %2. Details are in the log file.").arg(QString::fromStdString(key), detail));
+        }
+    }
+
     void Database::maybeCheckpoint(int count) {
         if (writeCount.fetch_add(count) >= WAL_CHECKPOINT_AFTER_WRITES) {
             writeCount = 0;
@@ -15,7 +97,7 @@ namespace Configs {
         try {
             db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
         } catch (std::exception& e) {
-            std::cerr << "DB WAL checkpoint error: " << e.what() << std::endl;
+            LOG_WARN(QString("DB WAL checkpoint skipped: ") + e.what());
         }
     }
 
@@ -44,7 +126,7 @@ namespace Configs {
             checkpointWal();
         } catch (std::exception& e) {
             // A concurrent transaction on this connection fails VACUUM; next launch retries.
-            std::cerr << "DB VACUUM check error: " << e.what() << std::endl;
+            LOG_WARN(QString("DB VACUUM check skipped: ") + e.what());
         }
     }
 
@@ -60,7 +142,7 @@ namespace Configs {
             db.exec(sql);
             maybeCheckpoint(static_cast<int>(ids.size()));
         } catch (std::exception& e) {
-            std::cerr << "DB Error: " << e.what() << std::endl;
+            NotifyError("execDeleteByIdIn for " + table, e);
         }
     }
 
@@ -80,7 +162,7 @@ namespace Configs {
             stmt.exec();
             maybeCheckpoint(1);
         } catch (std::exception& e) {
-            std::cerr << "DB Error: " << e.what() << std::endl;
+            NotifyError("execBatchSettingsReplace", e);
         }
     }
 
@@ -101,7 +183,7 @@ namespace Configs {
             stmt.exec();
             maybeCheckpoint(static_cast<int>(pairs.size() / 2));
         } catch (std::exception& e) {
-            std::cerr << "DB Error: " << e.what() << std::endl;
+            NotifyError("execBatchInsertIntPairs for " + table, e);
         }
     }
 
@@ -135,7 +217,7 @@ namespace Configs {
             stmt.exec();
             maybeCheckpoint(static_cast<int>(rows.size()));
         } catch (std::exception& e) {
-            std::cerr << "DB Error: " << e.what() << std::endl;
+            NotifyError("execBatchInsertProfiles", e);
         }
     }
 
@@ -169,7 +251,7 @@ namespace Configs {
             stmt.exec();
             maybeCheckpoint(static_cast<int>(rows.size()));
         } catch (std::exception& e) {
-            std::cerr << "DB Error: " << e.what() << std::endl;
+            NotifyError("execBatchReplaceProfiles", e);
         }
     }
 

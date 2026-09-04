@@ -39,4 +39,4 @@ private:
     QString base_font_family;
 };
 
-extern ThemeManager *themeManager;
+ThemeManager *themeManager();

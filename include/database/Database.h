@@ -54,17 +54,30 @@ namespace Configs {
     constexpr int INCREMENTAL_VACUUM_PAGES = 1024;
     constexpr unsigned long MAINTENANCE_DELAY_MS = 30000;
 
-    inline void NotifyError(const std::string& query, std::exception& e) {
-        runOnUiThread([=] {
-            std::string shortQ;
-            if (query.length() > 200) shortQ = query.substr(0, 200);
-            else shortQ = query;
-            MessageBoxWarning("DB error occurred", "Failed for " + QString::fromStdString(shortQ) + " with exception: " + e.what() + "\n your database may be corrupted");
-        });
+    struct DbError {
+        std::string what;
+        int code = -1; // primary SQLite result code, -1 when the exception is not SQLite's
+        int extended = -1;
+    };
+
+    DbError DescribeDbError(const std::exception& e);
+
+    // Read-only, corrupt or not a database: the file itself is unusable and retrying cannot help.
+    bool IsFatalDbError(const DbError& err);
+
+    // Logs (rate-limited per query) and shows one passive notice per query per window; never blocks the caller.
+    void NotifyError(const std::string& query, const DbError& err);
+
+    inline void NotifyError(const std::string& query, const std::exception& e) {
+        NotifyError(query, DescribeDbError(e));
     }
+
+    // Sibling marker asking the next start to quarantine and recreate the file.
+    std::string DbRebuildMarkerPath(const std::string& dbPath);
 
     class Database {
         SQLite::Database db;
+        std::string path_;
         std::atomic<int> writeCount{0};
         void maybeCheckpoint(int count);
         void maybeVacuum();
@@ -77,7 +90,7 @@ namespace Configs {
         void execBatchReplaceProfilesChunk(const std::vector<ProfileInsertRow>& rows);
     public:
         explicit Database(const std::string& path, bool incrementalVacuum = false)
-            : db(path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE, BUSY_TIMEOUT_MS) {
+            : db(path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE, BUSY_TIMEOUT_MS), path_(path) {
             // Must precede journal_mode: WAL writes the header, after which auto_vacuum no longer takes.
             if (incrementalVacuum) db.exec("PRAGMA auto_vacuum = INCREMENTAL");
             db.exec("PRAGMA foreign_keys = ON");
@@ -88,6 +101,8 @@ namespace Configs {
 
         // Not safe from the constructor: a VACUUM there stalls startup.
         void RunMaintenance();
+
+        [[nodiscard]] const std::string& Path() const { return path_; }
 
     private:
 

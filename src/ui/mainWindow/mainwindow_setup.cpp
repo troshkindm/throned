@@ -299,7 +299,7 @@ bool MainWindow::verify_core_pid(QLocalSocket *socket) {
 }
 
 static bool themeUsesDarkLog(const QString &theme) {
-    return themeManager->IsDarkTheme(theme);
+    return themeManager()->IsDarkTheme(theme);
 }
 
 namespace {
@@ -365,7 +365,12 @@ void MainWindow::runSiteReachability(const QList<int> &profileIDs) {
 
     auto *dialog = new SiteReachabilityDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->beginRun(profileIDs, names);
+    QList<QPair<int, QString>> profiles;
+    for (const int id : profileIDs) {
+        const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+        profiles.append({id, profile == nullptr ? tr("Unknown profile") : profile->name});
+    }
+    dialog->beginRun(profiles, names);
     dialog->show();
 
     // The run outlives a dialog the user closes, so the result is delivered through a guard.
@@ -430,13 +435,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     Configs::dataManager->settingsRepo->theme.toInt(&isNum);
     if (isNum) {
         Configs::dataManager->settingsRepo->theme = QStringLiteral("Throned Midnight");
-    } else if (!themeManager->ThronedThemes().contains(Configs::dataManager->settingsRepo->theme)) {
+    } else if (!themeManager()->ThronedThemes().contains(Configs::dataManager->settingsRepo->theme)) {
         // Retire the old platform/QSS theme mix in favour of palettes that cover
         // every redesigned screen consistently.
         Configs::dataManager->settingsRepo->theme = themeUsesDarkLog(Configs::dataManager->settingsRepo->theme)
             ? QStringLiteral("Throned Midnight") : QStringLiteral("System");
     }
-    themeManager->ApplyTheme(Configs::dataManager->settingsRepo->theme);
+    themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme);
     ui->setupUi(this);
 
     // MainPreview's exact production shell: the same title bar, block order,
@@ -607,7 +612,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(autoScrollAction, &QAction::toggled, this, [autoScrollAction](bool enabled) {
         Configs::dataManager->settingsRepo->log_auto_scroll = enabled;
         Configs::dataManager->settingsRepo->Save();
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         autoScrollAction->setIcon(enabled
             ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17) : QIcon());
     });
@@ -861,7 +866,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // changes; otherwise a blue glyph survives into a warm palette.
     const auto retintIcons = [this, navigation, mutedIcons, selectionIcon, clearAction,
                               copyAction, autoScrollAction, filterAction, clearSelection] {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         for (const auto &[button, glyph] : navigation)
             button->setIcon(MaterialIcon::icon(glyph, colors.textMuted, 19));
         for (const auto &[label, glyph] : mutedIcons)
@@ -877,7 +882,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             statusConnectionTest->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Bolt, colors.textMuted, 15));
     };
     retintIcons();
-    connect(themeManager, &ThemeManager::themeChanged, this, retintIcons);
+    connect(themeManager(), &ThemeManager::themeChanged, this, retintIcons);
     refreshRoutingStatus();
 
     setMinimumSize(960, 680);
@@ -895,14 +900,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // selected row entirely from HighlightedText, so leaving it a dark-theme constant
     // put white text on a light selection.
     const auto applyTablePalette = [this] {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         auto tablePalette = ui->profilesTableView->palette();
         tablePalette.setColor(QPalette::Highlight, colors.selection);
         tablePalette.setColor(QPalette::HighlightedText, colors.text);
         ui->profilesTableView->setPalette(tablePalette);
     };
     applyTablePalette();
-    connect(themeManager, &ThemeManager::themeChanged, this, [applyTablePalette] { applyTablePalette(); });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [applyTablePalette] { applyTablePalette(); });
     ui->connections->setShowGrid(false);
     // Every tab page of the bottom panel is a card too, for the same reason the
     // group pages are: the view inside fills its viewport square.
@@ -1141,7 +1146,7 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
 )");
-    themeManager->RegisterStyle(this, mainStyleTemplate);
+    themeManager()->RegisterStyle(this, mainStyleTemplate);
 
     // init shortcuts
     setActionsData();
@@ -1188,10 +1193,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=,this](const Qt::ColorScheme& scheme) {
         setLogHighlighter(scheme == Qt::ColorScheme::Dark);
-        themeManager->ApplyTheme(Configs::dataManager->settingsRepo->theme, true);
+        themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme, true);
     });
 #endif
-    connect(themeManager, &ThemeManager::themeChanged, this, [=,this](const QString& theme){
+    connect(themeManager(), &ThemeManager::themeChanged, this, [=,this](const QString& theme){
         setLogHighlighter(themeUsesDarkLog(theme));
         scheduleProxyListRefresh();
     });
@@ -1365,7 +1370,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     refreshFavoritesButtonIcon();
     ui->tabWidget->setCornerWidget(favoritesButton, Qt::TopLeftCorner);
     favoritesButton->setVisible(Configs::dataManager->settingsRepo->profiles_favorites_button);
-    connect(themeManager, &ThemeManager::themeChanged, this, [this] { refreshFavoritesButtonIcon(); });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { refreshFavoritesButtonIcon(); });
 
     auto *tableTools = new QWidget(ui->tabWidget);
     tableTools->setObjectName(QStringLiteral("tableTools"));
@@ -1413,7 +1418,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     });
     ui->tabWidget->setCornerWidget(tableTools, Qt::TopRightCorner);
     const auto retintTableTools = [this, searchAction] {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         // Qt centres a line-edit action on the frame, which puts the glyph above
         // the text's optical centre. Drawing it one pixel down inside a slightly
         // larger square lands it on the same line as the placeholder.
@@ -1429,7 +1434,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             profilesEmptyAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Add, colors.text, 17));
     };
     retintTableTools();
-    connect(themeManager, &ThemeManager::themeChanged, this, retintTableTools);
+    connect(themeManager(), &ThemeManager::themeChanged, this, retintTableTools);
     //
     RegisterHotkey(false);
     auto last_size = Configs::dataManager->settingsRepo->mw_size.split("x");
@@ -1520,6 +1525,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
             switch (index)
             {
+            case ConnectionsTableModel::ColSource:   sortType = Stats::BySource; break;
             case ConnectionsTableModel::ColProcess:  sortType = Stats::ByProcess; break;
             case ConnectionsTableModel::ColProtocol: sortType = Stats::ByProtocol; break;
             case ConnectionsTableModel::ColOutbound: sortType = Stats::ByOutbound; break;
@@ -1961,7 +1967,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     });
     connect(ui->stats_widget, &QTabWidget::currentChanged, this,
             [this](int) { refreshStatsPanelTools(); });
-    connect(themeManager, &ThemeManager::themeChanged, this, [this] {
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] {
         setStatsPanelOpen(Configs::dataManager->settingsRepo->stats_panel_open, false);
     });
     setStatsPanelOpen(Configs::dataManager->settingsRepo->stats_panel_open, false);
@@ -2018,8 +2024,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     setFavoritesView(Configs::dataManager->settingsRepo->profiles_favorites_view);
 
     tray = new QSystemTrayIcon(nullptr);
-    tray->setIcon(GetTrayIcon(Icon::NONE));
-    QApplication::setWindowIcon(Icon::GetTaskbarIcon(Icon::NONE));
+    tray->setIcon(Icon::GetTrayIcon(Icon::TrayIconStatus::None));
+    QApplication::setWindowIcon(Icon::GetTaskbarIcon(Icon::TrayIconStatus::None));
     trayMenu = new QMenu();
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();

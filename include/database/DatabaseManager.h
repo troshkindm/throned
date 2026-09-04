@@ -22,6 +22,10 @@ namespace Configs {
         static void createEntityIdsTable(Database& db);
         static bool entityIdsColumnExists(Database& db, const char* columnName);
         static std::string deriveStatsDbPath(const std::string& dbPath);
+        // Quarantines a stats file the previous session flagged, or one that would open read-only or as garbage.
+        static std::string prepareStatsDb(const std::string& path);
+        static QString statsDbUnusableReason(const std::string& path);
+        static void quarantineDbFile(const std::string& path);
         void initializeRepos();
     public:
         std::unique_ptr<ProfilesRepo> profilesRepo;

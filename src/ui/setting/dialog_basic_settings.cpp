@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QPixmap>
 #include <QTimer>
 #include <QBrush>
 #include <QRegularExpression>
@@ -174,7 +175,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         qApp->setFont(font);
         Configs::dataManager->settingsRepo->font = fontName;
         Configs::dataManager->settingsRepo->Save();
-        themeManager->RefreshRegisteredStyles();
+        themeManager()->RefreshRegisteredStyles();
         updateGeometry();
     });
     for (int i=7;i<=26;i++) {
@@ -187,14 +188,14 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         qApp->setFont(font);
         Configs::dataManager->settingsRepo->font_size = sizeStr.toInt();
         Configs::dataManager->settingsRepo->Save();
-        themeManager->RefreshRegisteredStyles();
+        themeManager()->RefreshRegisteredStyles();
         updateGeometry();
     });
     //
     ui->theme->setIconSize(QSize(64, 22));
     ui->theme->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    for (const QString &theme : themeManager->ThronedThemes())
-        ui->theme->addItem(themeManager->PreviewIcon(theme), theme);
+    for (const QString &theme : themeManager()->ThronedThemes())
+        ui->theme->addItem(themeManager()->PreviewIcon(theme), theme);
     ui->enable_custom_icon->setChecked(Configs::dataManager->settingsRepo->use_custom_icons);
     ui->follow_status_in_taskbar->setChecked(Configs::dataManager->settingsRepo->follow_status_in_taskbar);
     ui->follow_status_in_taskbar->setEnabled(ui->enable_custom_icon->isChecked());
@@ -226,7 +227,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     //
     QString selectedTheme = Configs::dataManager->settingsRepo->theme;
     if (ui->theme->findText(selectedTheme) < 0)
-        selectedTheme = themeManager->IsDarkTheme(selectedTheme) ? QStringLiteral("Throned Midnight")
+        selectedTheme = themeManager()->IsDarkTheme(selectedTheme) ? QStringLiteral("Throned Midnight")
                                                                  : QStringLiteral("System");
     ui->theme->setCurrentText(selectedTheme);
     //
@@ -929,7 +930,7 @@ QDialog#basicSettingsDialog QWidget#settingsLegacyPage QPushButton:hover {
     background: #292E35; border-color: #4A535E;
 }
     )");
-    themeManager->RegisterStyle(this, settingsStyleTemplate);
+    themeManager()->RegisterStyle(this, settingsStyleTemplate);
     setMinimumSize(900, 620);
     FitWindowToScreen(this, QSize(1000, 700));
 }
@@ -970,7 +971,7 @@ static void highlightRegexLines(QTextEdit *edit) {
 }
 
 void DialogBasicSettings::refreshUrlSchemeStatus() {
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     if (!UrlScheme_IsSupported()) {
         ui->url_scheme_status->setText(tr("Not available for this installation"));
         ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg(colors.textMuted.name()));
@@ -995,7 +996,7 @@ void DialogBasicSettings::applyRegexHighlighting() {
 void DialogBasicSettings::applySelectedTheme() {
     const auto theme = ui->theme->currentText().trimmed();
     if (theme.isEmpty()) return;
-    themeManager->ApplyTheme(theme);
+    themeManager()->ApplyTheme(theme);
     Configs::dataManager->settingsRepo->theme = theme;
     Configs::dataManager->settingsRepo->Save();
     refreshUrlSchemeStatus();

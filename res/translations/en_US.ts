@@ -24,6 +24,26 @@
             <numerusform>%n profiles selected</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Another test is still running. Wait for it to finish.</source>
+        <translation>Another test is still running. Wait for it to finish.</translation>
+    </message>
+    <message>
+        <source>Test cancelled.</source>
+        <translation>Test cancelled.</translation>
+    </message>
+    <message>
+        <source>The core did not return site test results.</source>
+        <translation>The core did not return site test results.</translation>
+    </message>
+    <message>
+        <source>Site test failed: %1</source>
+        <translation>Site test failed: %1</translation>
+    </message>
+    <message>
+        <source>The core returned an incomplete site test result.</source>
+        <translation>The core returned an incomplete site test result.</translation>
+    </message>
 </context>
 <context>
     <name>SubscriptionPopover</name>
@@ -74,6 +94,30 @@
             <numerusform>Checking %n profile…</numerusform>
             <numerusform>Checking %n profiles…</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Auto-selectors are skipped. Select their individual profiles to test.</source>
+        <translation>Auto-selectors are skipped. Select their individual profiles to test.</translation>
+    </message>
+    <message>
+        <source>No test result was returned for this profile.</source>
+        <translation>No test result was returned for this profile.</translation>
+    </message>
+    <message>
+        <source>Skipped</source>
+        <translation>Skipped</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Error</translation>
+    </message>
+    <message>
+        <source>Checked: %1. Failed to run: %2. Skipped: %3.</source>
+        <translation>Checked: %1. Failed to run: %2. Skipped: %3.</translation>
+    </message>
+    <message>
+        <source>Test error: %1</source>
+        <translation>Test error: %1</translation>
     </message>
 </context>
 </TS>

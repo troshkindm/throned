@@ -10,6 +10,7 @@
 #include <QTcpServer>
 #include <QTimer>
 #include <QMessageBox>
+#include <QPointer>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonObject>
@@ -277,6 +278,26 @@ QWidget *GetMessageBoxParent() {
 
 int MessageBoxWarning(const QString &title, const QString &text) {
     return QMessageBox::warning(GetMessageBoxParent(), title, text);
+}
+
+void ShowPassiveWarning(const QString &title, const QString &text) {
+    static QPointer<QMessageBox> box;
+    if (box) {
+        box->setWindowTitle(title);
+        box->setText(text);
+        box->raise();
+        return;
+    }
+    box = new QMessageBox(QMessageBox::Warning, title, text, QMessageBox::Ok, GetMessageBoxParent());
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    box->setWindowModality(Qt::NonModal);
+    box->show();
+}
+
+void PostPassiveWarning(const QString &title, const QString &text) {
+    auto *app = QCoreApplication::instance();
+    if (app == nullptr) return;
+    QMetaObject::invokeMethod(app, [title, text] { ShowPassiveWarning(title, text); }, Qt::QueuedConnection);
 }
 
 int MessageBoxInfo(const QString &title, const QString &text) {

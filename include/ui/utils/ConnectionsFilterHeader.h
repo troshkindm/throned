@@ -1,10 +1,11 @@
 #pragma once
 
+#include <array>
+
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QToolButton>
-#include <QVector>
 
 #include "include/ui/utils/ConnectionsTableModel.h"
 
@@ -13,6 +14,7 @@ class ConnectionsFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
     struct Filters {
+        QString source;
         QString dest;
         QString process;
         QString protocol;
@@ -24,6 +26,7 @@ public:
         setSectionsClickable(true);
         setDefaultAlignment(Qt::AlignLeft | Qt::AlignTop);
 
+        source_filter = makeEdit();
         dest_filter = makeEdit();
         process_filter = makeEdit();
         protocol_filter = makeEdit();
@@ -36,9 +39,15 @@ public:
 
     bool filtersVisible() const { return m_filtersVisible; }
 
+    // Hiding a column must clear its field, or the filter comes back with the column.
+    void clearFilterFor(int column) {
+        if (QLineEdit *edit = editForColumn(column)) edit->clear();
+    }
+
     Filters filters() const {
-        return {dest_filter->text(), process_filter->text(),
-                protocol_filter->text(), outbound_filter->text()};
+        return {textFor(ConnectionsTableModel::ColSource), textFor(ConnectionsTableModel::ColDest),
+                textFor(ConnectionsTableModel::ColProcess), textFor(ConnectionsTableModel::ColProtocol),
+                textFor(ConnectionsTableModel::ColOutbound)};
     }
 
     QSize sizeHint() const override {
@@ -101,9 +110,13 @@ public slots:
 
         resizeSections();
         emit geometriesChanged();
+        adjustPositions();
 
         // Tab/Backtab/Shortcut focus reasons make QLineEdit select all; OtherFocusReason does not.
-        if (visible) dest_filter->setFocus(Qt::OtherFocusReason);
+        if (visible) {
+            auto *first = isSectionHidden(ConnectionsTableModel::ColSource) ? dest_filter : source_filter;
+            first->setFocus(Qt::OtherFocusReason);
+        }
     }
 
     void adjustPositions() {
@@ -112,9 +125,16 @@ public slots:
         const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
 
+        // A hidden section reports width 0, so placing its edit would give it a negative width over the neighbour.
         auto place = [&](QLineEdit *edit, int section) {
+            if (isSectionHidden(section)) {
+                edit->hide();
+                return;
+            }
+            edit->show();
             edit->setGeometry(sectionViewportPosition(section) + 2, topPos, sectionSize(section) - 4, editHeight);
         };
+        place(source_filter, ConnectionsTableModel::ColSource);
         place(dest_filter, ConnectionsTableModel::ColDest);
         place(process_filter, ConnectionsTableModel::ColProcess);
         place(protocol_filter, ConnectionsTableModel::ColProtocol);
@@ -138,6 +158,7 @@ private:
 
     QLineEdit *editForColumn(int column) const {
         switch (column) {
+        case ConnectionsTableModel::ColSource:   return source_filter;
         case ConnectionsTableModel::ColDest:     return dest_filter;
         case ConnectionsTableModel::ColProcess:  return process_filter;
         case ConnectionsTableModel::ColProtocol: return protocol_filter;
@@ -146,8 +167,15 @@ private:
         }
     }
 
-    QVector<QLineEdit*> filterEdits() const {
-        return {dest_filter, process_filter, protocol_filter, outbound_filter};
+    // A hidden column must report no filter, or its stale text would keep filtering the table invisibly.
+    QString textFor(int column) const {
+        QLineEdit *edit = editForColumn(column);
+        if (edit == nullptr || isSectionHidden(column)) return {};
+        return edit->text();
+    }
+
+    std::array<QLineEdit*, 5> filterEdits() const {
+        return {source_filter, dest_filter, process_filter, protocol_filter, outbound_filter};
     }
 
     static bool isTextEditingKey(QKeyEvent *key) {
@@ -164,6 +192,7 @@ private:
         return false;
     }
 
+    QLineEdit *source_filter;
     QLineEdit *dest_filter;
     QLineEdit *process_filter;
     QLineEdit *protocol_filter;

@@ -53,6 +53,9 @@ public:
     struct SiteReport {
         QStringList sites;                    // column order
         QMap<int, QList<SiteVerdict>> rows;   // profile id -> one verdict per site
+        QMap<int, QString> errors;            // setup/core failures, not HTTP failures
+        QList<int> skipped;                   // auto-selectors are not individual profiles
+        QString error;                       // the run could not start or was cancelled
     };
 
     static QList<SiteTarget> configuredSites();

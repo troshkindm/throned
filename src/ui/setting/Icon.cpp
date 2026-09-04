@@ -2,90 +2,62 @@
 
 #include "include/global/Configs.hpp"
 
-#include <QPainter>
+#include <QHash>
+#include <QPixmap>
 
+#include <optional>
 
-QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
-    QPixmap pixmap;
-    QPixmap pixmap_read;
+namespace {
+    QHash<Icon::TrayIconStatus, QIcon> g_trayIcons;
+    std::optional<bool> g_trayIconsCustom;
 
-    if (status == NONE)
-    {
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Off" + ".png");
+    QString statusName(Icon::TrayIconStatus status) {
+        switch (status) {
+            case Icon::TrayIconStatus::None: return QStringLiteral("Off");
+            case Icon::TrayIconStatus::Running: return QStringLiteral("Throned");
+            case Icon::TrayIconStatus::SystemProxy: return QStringLiteral("Proxy");
+            case Icon::TrayIconStatus::Vpn: return QStringLiteral("Tun");
+            case Icon::TrayIconStatus::Dns: return QStringLiteral("Dns");
+            case Icon::TrayIconStatus::SystemProxyDns: return QStringLiteral("Proxy-Dns");
         }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Off" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
-    } else if (status == RUNNING)
-    {
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Throned" + ".png");
-            if (pixmap_read.isNull()) {
-                pixmap_read = QPixmap(QString("icons/") + "Throne" + ".png");
-            }
-        }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Throned" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
-    } else if (status == SYSTEM_PROXY_DNS)
-    {
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Proxy-Dns" + ".png");
-        }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Proxy-Dns" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
-    } else if (status == SYSTEM_PROXY)
-    {
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Proxy" + ".png");
-        }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Proxy" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
-    } else if (status == DNS)
-    {
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Dns" + ".png");
-        }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Dns" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
-    } else if (status == VPN)
-    {
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Tun" + ".png");
-        }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Tun" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
-    } else
-    {
         MW_show_log("Icon::GetTrayIcon: Unknown status");
-        if (Configs::dataManager->settingsRepo->use_custom_icons) {
-            pixmap_read = QPixmap(QString("icons/") + "Off" + ".png");
-        }
-        if (pixmap_read.isNull()) {
-            pixmap_read = QPixmap(QString(":/Throned/") + "Off" + ".png");
-        }
-        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+        return QStringLiteral("Off");
     }
 
-    return pixmap;
+    QIcon loadNamedIcon(const QString &name, bool useCustom) {
+        if (useCustom) {
+            // QIcon(path).isNull() is not a decode check: a PNG with a valid signature and a corrupt body passes it.
+            if (const auto custom = QPixmap(QStringLiteral("icons/") + name + QStringLiteral(".png")); !custom.isNull()) return QIcon(custom);
+            if (name == QStringLiteral("Throned")) {
+                if (const QPixmap legacy(QStringLiteral("icons/Throne.png")); !legacy.isNull()) return QIcon(legacy);
+            }
+        }
+        return QIcon(QStringLiteral(":/Throned/") + name + QStringLiteral(".png"));
+    }
+} // namespace
+
+void Icon::InvalidateTrayIconCache() {
+    g_trayIcons.clear();
 }
 
-QPixmap Icon::GetTaskbarIcon(TrayIconStatus status) {
+QIcon Icon::GetTrayIcon(TrayIconStatus status) {
+    const bool useCustom = Configs::dataManager->settingsRepo->use_custom_icons;
+    if (g_trayIconsCustom != useCustom) {
+        g_trayIcons.clear();
+        g_trayIconsCustom = useCustom;
+    }
+    if (const auto it = g_trayIcons.constFind(status); it != g_trayIcons.cend()) return it.value();
+
+    const QIcon icon = loadNamedIcon(statusName(status), useCustom);
+    g_trayIcons.insert(status, icon);
+    return icon;
+}
+
+QIcon Icon::GetTaskbarIcon(TrayIconStatus status) {
     const auto &settings = Configs::dataManager->settingsRepo;
     // The bundled icon only: a custom PNG has no room for the padding macOS adds in the dock.
     if (settings->use_custom_icons && !settings->follow_status_in_taskbar) {
-        return QPixmap(QStringLiteral(":/Throned/Throned.png"));
+        return QIcon(QStringLiteral(":/Throned/Throned.png"));
     }
     return GetTrayIcon(status);
 }

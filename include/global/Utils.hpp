@@ -233,6 +233,12 @@ QWidget *GetMessageBoxParent();
 
 int MessageBoxWarning(const QString &title, const QString &text);
 
+// Non-modal and coalescing: a repeat while the box is open only updates its text, so a recurring background failure never stacks windows. UI thread only.
+void ShowPassiveWarning(const QString &title, const QString &text);
+
+// Thread-safe: queues ShowPassiveWarning on the UI thread and returns at once, even when called from the UI thread.
+void PostPassiveWarning(const QString &title, const QString &text);
+
 int MessageBoxInfo(const QString &title, const QString &text);
 
 void MessageBoxScrollable(const QString &title, const QString &text);

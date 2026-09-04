@@ -575,7 +575,7 @@ void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &p
     favoriteAction->setText(allFavorite ? tr("Remove from favourites") : tr("Add to favourites"));
     favoriteAction->setIcon(MaterialIcon::icon(
         allFavorite ? MaterialIcon::Glyph::StarOutline : MaterialIcon::Glyph::Star,
-        themeManager->Colors().textMuted, 16));
+        themeManager()->Colors().textMuted, 16));
     // A full table leaves no empty row area to click, and the selection card that
     // carries the same button only appears for more than one row.
     if (clearSelectionAction == nullptr) {

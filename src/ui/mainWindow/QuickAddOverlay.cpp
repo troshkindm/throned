@@ -370,7 +370,7 @@ QPushButton#quickAddPrimaryButton:disabled {
     color: #747C86; background: #222529; border-color: #2F3136;
 }
 )");
-    themeManager->RegisterStyle(this, styleTemplate);
+    themeManager()->RegisterStyle(this, styleTemplate);
 
     connect(closeButton, &QToolButton::clicked, this, [this] { closeOverlay(); });
     connect(linkClearAction, &QAction::triggered, linkInput, &QLineEdit::clear);
@@ -391,7 +391,7 @@ QPushButton#quickAddPrimaryButton:disabled {
         connect(edit, &QLineEdit::returnPressed, this, [this] { submit(); });
     }
 
-    connect(themeManager, &ThemeManager::themeChanged, this, [this] { retintIcons(); });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { retintIcons(); });
     retintIcons();
 }
 
@@ -602,7 +602,7 @@ void QuickAddOverlay::closeOverlay() {
 }
 
 void QuickAddOverlay::retintIcons() {
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     headingIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Add, colors.accent, 19));
     closeButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textMuted, 18));
     // QLineEdit places trailing actions against its edge. Keep a little blank

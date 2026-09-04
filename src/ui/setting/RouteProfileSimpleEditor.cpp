@@ -538,7 +538,7 @@ RouteProfileSimpleEditor::RouteProfileSimpleEditor(QWidget *parent) : QWidget(pa
     contentLayout->addWidget(scroll, 1);
     root->addWidget(content, 1);
 
-    themeManager->RegisterStyle(this, QStringLiteral(R"(
+    themeManager()->RegisterStyle(this, QStringLiteral(R"(
 #routeSimpleEditor, #routeTransparent, QScrollArea#routeCardsScroll, QScrollArea#routeCardsScroll > QWidget > QWidget {
     background: transparent;
 }
@@ -1126,7 +1126,7 @@ void RouteProfileSimpleEditor::bulkEdit() {
 
 void RouteProfileSimpleEditor::addApplicationRules() {
     ApplicationPickerDialog picker(this);
-    themeManager->RegisterStyle(&picker, RouteProfileSimpleEditor::dialogStyleSheet());
+    themeManager()->RegisterStyle(&picker, RouteProfileSimpleEditor::dialogStyleSheet());
     if (picker.exec() != QDialog::Accepted) return;
     bool changed = false;
     for (const QString &rule : picker.selectedRules()) {

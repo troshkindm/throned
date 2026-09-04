@@ -117,6 +117,8 @@ var handlers = map[string]handlerFn{
 	"QueryIPTest":         handle(globalServer.QueryIPTest),
 	"UDPTest":             handle(globalServer.UDPTest),
 	"QueryUDPTest":        handle(globalServer.QueryUDPTest),
+	"SiteTest":            handle(globalServer.SiteTest),
+	"QuerySiteTest":       handle(globalServer.QuerySiteTest),
 	"QueryStats":          handle(globalServer.QueryStats),
 	"QueryConnections":    handle(globalServer.QueryConnections),
 	"CloseConnections":    handle(globalServer.CloseConnections),

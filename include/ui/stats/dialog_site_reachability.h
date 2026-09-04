@@ -16,7 +16,7 @@ public:
     explicit SiteReachabilityDialog(QWidget *parent = nullptr);
 
     // Rows appear as soon as the test starts so the dialog is never an empty box.
-    void beginRun(const QList<int> &profileIDs, const QStringList &sites);
+    void beginRun(const QList<QPair<int, QString>> &profiles, const QStringList &sites);
 
     void applyReport(const TestRunner::SiteReport &report);
 

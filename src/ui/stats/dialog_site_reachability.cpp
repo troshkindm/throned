@@ -1,8 +1,5 @@
 #include "include/ui/stats/dialog_site_reachability.h"
 
-#include "include/database/ProfilesRepo.h"
-#include "include/database/entities/Profile.h"
-#include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <QHeaderView>
@@ -20,7 +17,7 @@ namespace {
     }
 
     QColor cellColor(const TestRunner::SiteVerdict &verdict) {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         if (verdict.served()) return colors.success;
         // Answered but refused: reached the service, and the service said no.
         if (verdict.reached()) return colors.warning;
@@ -56,10 +53,12 @@ SiteReachabilityDialog::SiteReachabilityDialog(QWidget *parent) : QDialog(parent
     root->addWidget(m_table, 1);
 
     m_status = new QLabel(this);
+    m_status->setWordWrap(true);
+    m_status->setTextFormat(Qt::PlainText);
     m_status->setObjectName(QStringLiteral("siteReachabilityStatus"));
     root->addWidget(m_status);
 
-    themeManager->RegisterStyle(this, QStringLiteral(R"(
+    themeManager()->RegisterStyle(this, QStringLiteral(R"(
 QDialog#siteReachabilityDialog { background: #1B1E23; }
 QTableWidget#siteReachabilityTable {
     background: #171B21; border: 1px solid #2F3136; border-radius: 7px;
@@ -70,12 +69,13 @@ QLabel#siteReachabilityStatus { color: #A4ABB4; font-size: 12px; }
 )"));
 }
 
-void SiteReachabilityDialog::beginRun(const QList<int> &profileIDs, const QStringList &sites) {
-    m_profileIDs = profileIDs;
+void SiteReachabilityDialog::beginRun(const QList<QPair<int, QString>> &profiles, const QStringList &sites) {
+    m_profileIDs.clear();
+    for (const auto &profile : profiles) m_profileIDs << profile.first;
 
     m_table->clear();
     m_table->setColumnCount(sites.size() + 1);
-    m_table->setRowCount(profileIDs.size());
+    m_table->setRowCount(profiles.size());
     QStringList headers{tr("Profile")};
     headers += sites;
     m_table->setHorizontalHeaderLabels(headers);
@@ -83,37 +83,65 @@ void SiteReachabilityDialog::beginRun(const QList<int> &profileIDs, const QStrin
     for (int column = 1; column < m_table->columnCount(); column++)
         m_table->horizontalHeader()->setSectionResizeMode(column, QHeaderView::ResizeToContents);
 
-    for (int row = 0; row < profileIDs.size(); row++) {
-        const auto profile = Configs::dataManager->profilesRepo->GetProfile(profileIDs.at(row));
-        auto *name = new QTableWidgetItem(profile == nullptr ? tr("Unknown profile") : profile->name);
+    for (int row = 0; row < profiles.size(); row++) {
+        auto *name = new QTableWidgetItem(profiles.at(row).second);
         name->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         m_table->setItem(row, kNameColumn, name);
         for (int column = 1; column < m_table->columnCount(); column++) {
             auto *cell = new QTableWidgetItem(QStringLiteral("…"));
             cell->setTextAlignment(Qt::AlignCenter);
-            cell->setForeground(themeManager->Colors().textSubtle);
+            cell->setForeground(themeManager()->Colors().textSubtle);
             m_table->setItem(row, column, cell);
         }
     }
 
-    m_status->setText(tr("Checking %n profile(s)…", "", profileIDs.size()));
+    m_status->setText(tr("Checking %n profile(s)…", "", profiles.size()));
 }
 
 void SiteReachabilityDialog::applyReport(const TestRunner::SiteReport &report) {
     int reported = 0;
+    int failed = 0;
+    int skipped = 0;
+    QString firstError;
     for (int row = 0; row < m_profileIDs.size(); row++) {
         const auto it = report.rows.constFind(m_profileIDs.at(row));
         if (it == report.rows.constEnd()) {
-            // The batch never got to it: leave the placeholder rather than claim a failure.
+            const int id = m_profileIDs.at(row);
+            const bool isSkipped = report.skipped.contains(id);
+            const QString reason = isSkipped
+                ? tr("Auto-selectors are skipped. Select their individual profiles to test.")
+                : report.errors.value(id, report.error.isEmpty()
+                    ? tr("No test result was returned for this profile.") : report.error);
+            if (isSkipped) ++skipped;
+            else {
+                ++failed;
+                if (firstError.isEmpty()) firstError = reason;
+            }
+            for (int column = 1; column < m_table->columnCount(); ++column) {
+                auto *cell = m_table->item(row, column);
+                cell->setText(isSkipped ? tr("Skipped") : tr("Error"));
+                cell->setToolTip(reason);
+                cell->setForeground(isSkipped ? themeManager()->Colors().textSubtle : themeManager()->Colors().danger);
+            }
             continue;
         }
         fillRow(row, *it);
         reported++;
     }
-    m_status->setText(reported == m_profileIDs.size()
-        ? tr("Green answered, amber refused, dash never answered.")
-        : tr("%1 of %2 profiles answered. Green answered, amber refused, dash never answered.")
-              .arg(reported).arg(m_profileIDs.size()));
+    QString status = tr("Checked: %1. Failed to run: %2. Skipped: %3.").arg(reported).arg(failed).arg(skipped);
+    if (!firstError.isEmpty()) status += QLatin1Char('\n') + tr("Test error: %1").arg(firstError);
+    if (reported > 0) status += QLatin1Char('\n') + tr("Green answered, amber refused, dash never answered.");
+    m_status->setText(status);
+
+    // Translated failure labels can be wider than timings. Preserve room for
+    // profile names instead of letting the result columns squeeze them away.
+    int resultWidth = 0;
+    for (int column = 1; column < m_table->columnCount(); ++column) {
+        m_table->resizeColumnToContents(column);
+        resultWidth += m_table->columnWidth(column);
+    }
+    resize(qMax(width(), resultWidth + 180 + 2 * m_table->frameWidth()
+                             + layout()->contentsMargins().left() + layout()->contentsMargins().right()), height());
 }
 
 void SiteReachabilityDialog::fillRow(int row, const QList<TestRunner::SiteVerdict> &verdicts) {

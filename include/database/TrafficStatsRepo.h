@@ -3,6 +3,7 @@
 #include "Database.h"
 #include <QString>
 #include <QList>
+#include <atomic>
 #include <mutex>
 #include <string>
 
@@ -59,6 +60,7 @@ namespace Configs {
     };
 
     // Every public method is serialized by `mu`, so one shared instance is safe to call from the looper, rollup and UI threads.
+    // A fatal SQLite error, or kMaxConsecutiveFailures in a row, trips the breaker: every call is then a no-op until the next start.
     class TrafficStatsRepo {
     public:
         explicit TrafficStatsRepo(Database& database);
@@ -84,12 +86,52 @@ namespace Configs {
         QList<TrafficSeriesPoint> QueryConfigSeries(long long fromSecs, long long toSecs, long long bucketSecs, long long utcOffsetSecs);
         QList<TrafficSeriesPoint> QueryAppSeries(long long fromSecs, long long toSecs, long long bucketSecs, long long utcOffsetSecs);
 
+        [[nodiscard]] bool Disabled() const { return disabled.load(); }
+
     private:
+        static constexpr int kMaxConsecutiveFailures = 5;
+
         Database& db;
         std::mutex mu;
+        std::atomic<bool> disabled{false};
+        int consecutiveFailures = 0; // guarded by mu
 
-        void createTables() const;
+        void createTables();
         // A member, not a file-local helper: the unity build would collide the symbol with another TU's.
         static std::string bucketExpr(long long bucketSecs, long long utcOffsetSecs);
+
+        // Failure handling runs after mu is released, so a notice can never nest an event loop under the lock.
+        template<typename F>
+        void guarded(const char* op, bool transactional, F&& body) {
+            if (disabled.load()) return;
+            DbError err;
+            bool failed = false;
+            bool trip = false;
+            {
+                std::lock_guard<std::mutex> lk(mu);
+                try {
+                    if (transactional) db.execThrow("BEGIN IMMEDIATE");
+                    body();
+                    if (transactional) db.execThrow("COMMIT");
+                    consecutiveFailures = 0;
+                } catch (std::exception& e) {
+                    if (transactional) {
+                        try { db.execThrow("ROLLBACK"); } catch (...) {}
+                    }
+                    err = DescribeDbError(e);
+                    failed = true;
+                    trip = IsFatalDbError(err) || ++consecutiveFailures >= kMaxConsecutiveFailures;
+                }
+            }
+            if (failed) onFailure(op, err, trip);
+        }
+
+        template<typename F>
+        void write(const char* op, F&& body) { guarded(op, true, std::forward<F>(body)); }
+
+        template<typename F>
+        void read(const char* op, F&& body) { guarded(op, false, std::forward<F>(body)); }
+
+        void onFailure(const char* op, const DbError& err, bool trip);
     };
 }

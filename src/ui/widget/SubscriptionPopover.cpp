@@ -29,7 +29,7 @@ namespace {
 
     // Same reading the tab meter uses, so the popover and the hairline never disagree.
     QColor stateColor(double usedFraction, int days) {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         if (days >= 0 && days <= 2) return colors.danger;
         if (usedFraction >= kQuotaCriticalFrom) return colors.danger;
         if (days >= 0 && days <= 7) return colors.warning;
@@ -187,7 +187,7 @@ SubscriptionPopover::SubscriptionPopover(std::function<void(int)> updateNow, QWi
         if (m_updateNow && gid >= 0) m_updateNow(gid);
     });
 
-    themeManager->RegisterStyle(this, QStringLiteral(R"(
+    themeManager()->RegisterStyle(this, QStringLiteral(R"(
 QFrame#subPopoverCard { background: #171B21; border: 1px solid #2F3136; border-radius: 10px; }
 QLabel#subPopoverName { color: #F1F3F5; font-size: 15px; }
 QLabel#subPopoverMuted { color: #A4ABB4; font-size: 12px; background: transparent; }
@@ -207,7 +207,7 @@ QToolButton#subPopoverMute:checked { background: #222529; }
 
 
 void SubscriptionPopover::applyMuteIcon(bool notify) {
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     m_mute->setIcon(MaterialIcon::icon(notify ? MaterialIcon::Glyph::Bell : MaterialIcon::Glyph::BellOff,
                                        notify ? colors.textMuted : colors.textSubtle, 15));
     m_mute->setToolTip(notify ? tr("Warn me before this subscription runs out")

@@ -160,7 +160,7 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
     style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
 
     const auto visual = index.data(ProfilesTableModel::RowVisualRole).value<ProfilesTableModel::RowVisual>();
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     const bool selected = opt.state & QStyle::State_Selected;
 
     // Running is persistent state, not table selection. The gutter check and the

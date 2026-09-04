@@ -15,7 +15,7 @@ namespace {
 
     // Same three states the start button and the latency column use, from the theme.
     QColor usageColor(GroupTabBar::Urgency urgency) {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         switch (urgency) {
         case GroupTabBar::Urgency::Critical: return colors.danger;
         case GroupTabBar::Urgency::Warning: return colors.warning;

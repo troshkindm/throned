@@ -80,7 +80,7 @@ RoutingQuickMenu::RoutingQuickMenu(Callbacks cb, QWidget *parent) : QFrame(paren
     m_profileName->setObjectName(QStringLiteral("routingQuickProfileName"));
     profileLayout->addWidget(m_profileName, 1);
     auto *check = new QLabel(profileRow);
-    check->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Check, themeManager->Colors().accent, 16));
+    check->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Check, themeManager()->Colors().accent, 16));
     profileLayout->addWidget(check);
     root->addWidget(profileRow);
 
@@ -137,7 +137,7 @@ RoutingQuickMenu::RoutingQuickMenu(Callbacks cb, QWidget *parent) : QFrame(paren
     const auto makeAction = [&](const QString &text, MaterialIcon::Glyph glyph, const std::function<void()> &action) {
         auto *button = new QPushButton(text, card);
         button->setObjectName(QStringLiteral("routingQuickAction"));
-        button->setIcon(MaterialIcon::icon(glyph, themeManager->Colors().textMuted, 17));
+        button->setIcon(MaterialIcon::icon(glyph, themeManager()->Colors().textMuted, 17));
         button->setCursor(Qt::PointingHandCursor);
         connect(button, &QPushButton::clicked, this, [this, action] {
             close();
@@ -148,7 +148,7 @@ RoutingQuickMenu::RoutingQuickMenu(Callbacks cb, QWidget *parent) : QFrame(paren
     makeAction(tr("Open routing profile"), MaterialIcon::Glyph::File, m_cb.openProfile);
     makeAction(tr("Manage profiles…"), MaterialIcon::Glyph::Settings, m_cb.manageProfiles);
 
-    themeManager->RegisterStyle(this, QStringLiteral(R"(
+    themeManager()->RegisterStyle(this, QStringLiteral(R"(
 QFrame#routingQuickCard { background: #171B21; border: 1px solid #2F3136; border-radius: 10px; }
 QLabel#routingQuickHeading { color: #F1F3F5; font-weight: 650; }
 QLabel#routingQuickSection { color: #A4ABB4; font-size: 12px; }

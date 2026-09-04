@@ -29,7 +29,7 @@ DialogDpiBypass::DialogDpiBypass(QWidget *parent) : QDialog(parent), ui(new Ui::
 
     // Adopts the redesigned dialog styling, which is scoped to this object name.
     setObjectName(QStringLiteral("routeProfileEditor"));
-    themeManager->RegisterStyle(this, RouteProfileSimpleEditor::dialogStyleSheet());
+    themeManager()->RegisterStyle(this, RouteProfileSimpleEditor::dialogStyleSheet());
 
     setMinimumSize(680, 560);
     FitWindowToScreen(this, QSize(760, 620));

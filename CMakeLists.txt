@@ -164,6 +164,8 @@ set(PROJECT_SOURCES
         src/global/HTTPRequestHelper.cpp
         src/global/DeviceDetailsHelper.cpp
         src/global/CountryHelper.cpp
+        include/global/LocalNetwork.hpp
+        src/global/LocalNetwork.cpp
         include/global/OTP.hpp
         src/global/OTP.cpp
         include/global/OtpPlaceholder.hpp
@@ -265,6 +267,8 @@ set(PROJECT_SOURCES
         include/ui/widget/SubscriptionPopover.hpp
         src/ui/widget/SubscriptionPopover.cpp
         src/ui/widget/GroupTabBar.cpp
+        include/ui/widget/TrayPopupFrame.hpp
+        src/ui/widget/TrayPopupFrame.cpp
         include/ui/widget/TrayProfileSelector.hpp
         src/ui/widget/TrayProfileSelector.cpp
         include/control/ThronedControl.h
@@ -772,6 +776,18 @@ qt_finalize_executable(Throned)
 # QtCore alone, so `ctest` stays runnable without a display or a built app.
 if (Qt6Test_FOUND)
     enable_testing()
+    qt_add_executable(throned_site_reachability_tests
+            tests/test_site_reachability.cpp
+            src/ui/stats/dialog_site_reachability.cpp
+            include/ui/stats/dialog_site_reachability.h
+            include/ui/setting/ThemeManager.hpp
+    )
+    set_target_properties(throned_site_reachability_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
+    target_link_libraries(throned_site_reachability_tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network myproto)
+    qt_import_plugins(throned_site_reachability_tests INCLUDE Qt6::QOffscreenIntegrationPlugin)
+    add_test(NAME throned_site_reachability_tests COMMAND throned_site_reachability_tests -platform offscreen)
+    set_tests_properties(throned_site_reachability_tests PROPERTIES TIMEOUT 30)
+
     qt_add_executable(throned_tests
             tests/test_validate.cpp
             src/configs/validate.cpp

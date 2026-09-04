@@ -489,7 +489,7 @@ QScrollBar::handle:vertical { background: #344759; border-radius: 4px; min-heigh
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
 )");
-        themeManager->RegisterStyle(this, style);
+        themeManager()->RegisterStyle(this, style);
 
         const bool open = panel.compare(QStringLiteral("closed"), Qt::CaseInsensitive) != 0;
         statsHost_->setVisible(open);
@@ -525,11 +525,11 @@ private:
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
     const QStringList args = app.arguments();
-    themeManager->ApplyTheme(QStringLiteral("Throned ")
+    themeManager()->ApplyTheme(QStringLiteral("Throned ")
                              + argValue(args, QStringLiteral("--theme"), QStringLiteral("Midnight")));
     auto *window = new PreviewWindow(
         argValue(args, QStringLiteral("--panel"), QStringLiteral("closed")),
-        themeManager->Colors());
+        themeManager()->Colors());
     window->show();
 
     if (args.contains(QStringLiteral("--show"))) return app.exec();

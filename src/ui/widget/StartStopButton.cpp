@@ -10,7 +10,7 @@
 
 StartStopButton::StartStopButton(QWidget *parent) : QToolButton(parent) {
     setFocusPolicy(Qt::NoFocus);
-    connect(themeManager, &ThemeManager::themeChanged, this, [this] {
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] {
         m_ringColor = targetRingColor();
         update();
     });
@@ -126,7 +126,7 @@ void StartStopButton::changeEvent(QEvent *e) {
 // Semantic, and taken from the theme rather than the three ad-hoc greens and reds
 // this button used to carry: green starts, red stops, amber is a transition.
 QColor StartStopButton::idleRingColor() const {
-    return themeManager->Colors().success;
+    return themeManager()->Colors().success;
 }
 
 QColor StartStopButton::glyphColor() const {
@@ -134,12 +134,12 @@ QColor StartStopButton::glyphColor() const {
     // supply the ring and this follows.
     switch (m_state) {
     case State::Disabled: return palette().color(QPalette::Disabled, QPalette::WindowText);
-    default: return targetRingColor().lighter(themeManager->Colors().dark ? 140 : 115);
+    default: return targetRingColor().lighter(themeManager()->Colors().dark ? 140 : 115);
     }
 }
 
 QColor StartStopButton::targetRingColor() const {
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     switch (m_state) {
         case State::Connecting:
         case State::Disconnecting: return colors.warning;
@@ -177,7 +177,7 @@ void StartStopButton::paintEvent(QPaintEvent *) {
         p.setBrush(halo);
         p.drawEllipse(shell.adjusted(-2.0, -2.0, 2.0, 2.0));
     }
-    const qreal gloss = qBound(0.0, themeManager->Colors().gloss, 1.0);
+    const qreal gloss = qBound(0.0, themeManager()->Colors().gloss, 1.0);
     QColor border = m_ringColor;
     border.setAlpha(m_state == State::Disabled ? 75 : 175);
     p.setPen(QPen(border, 1.25));

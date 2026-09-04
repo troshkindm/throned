@@ -5,8 +5,13 @@
 #include "include/database/TrafficStatsRepo.h"
 
 #include "include/global/Configs.hpp"
+#include "include/global/Logger.hpp"
 
+#include <3rdparty/SQLiteCpp/include/sqlite3.h>
+
+#include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QThread>
 
@@ -16,11 +21,48 @@ namespace Configs {
         return QDir(fi.absolutePath()).filePath("throne_stats.db").toStdString();
     }
 
+    // Empty when usable. Only file-level verdicts count; anything else is left for the real open to report.
+    QString DatabaseManager::statsDbUnusableReason(const std::string& path) {
+        try {
+            SQLite::Database probe(path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+            probe.exec("PRAGMA schema_version");
+            // SQLite downgrades to read-only without complaint when the file is not writable.
+            if (sqlite3_db_readonly(probe.getHandle(), "main") == 1) return "the file is not writable";
+        } catch (const std::exception& e) {
+            if (IsFatalDbError(DescribeDbError(e))) return QString::fromUtf8(e.what());
+        }
+        return {};
+    }
+
+    // Renamed rather than deleted, so the file can still be handed over for inspection.
+    void DatabaseManager::quarantineDbFile(const std::string& path) {
+        const QString base = QString::fromStdString(path);
+        const QString stamp = QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss");
+        for (const char* suffix : {"", "-wal", "-shm"}) {
+            const QString from = base + suffix;
+            if (!QFile::exists(from)) continue;
+            if (!QFile::rename(from, base + ".broken-" + stamp + suffix) && !QFile::remove(from)) {
+                LOG_WARN(QString("could not quarantine %1").arg(from));
+            }
+        }
+    }
+
+    std::string DatabaseManager::prepareStatsDb(const std::string& path) {
+        const QString marker = QString::fromStdString(DbRebuildMarkerPath(path));
+        const QString reason = QFile::exists(marker) ? QString("the previous session asked for a rebuild")
+                                                     : statsDbUnusableReason(path);
+        if (reason.isEmpty()) return path;
+        LOG_WARN(QString("recreating %1: %2").arg(QString::fromStdString(path), reason));
+        quarantineDbFile(path);
+        QFile::remove(marker);
+        return path;
+    }
+
     DatabaseManager::DatabaseManager(const std::string& dbPath)
-        : db(dbPath), statsDb(deriveStatsDbPath(dbPath), true) {
+        : db(dbPath), statsDb(prepareStatsDb(deriveStatsDbPath(dbPath)), true) {
         // entity_ids must exist before the repos are constructed.
         createEntityIdsTable(db);
-        
+
         initializeRepos();
     }
 
@@ -53,7 +95,7 @@ namespace Configs {
         if (checkQuery && checkQuery->executeStep()) {
             count = checkQuery->getColumn(0).getInt();
         }
-        
+
         if (count == 0) {
             db.exec(R"(
                 INSERT INTO entity_ids (profile_last_id, group_last_id, route_profile_last_id)
@@ -61,7 +103,7 @@ namespace Configs {
             )");
         }
     }
-    
+
     void DatabaseManager::RunDeferredMaintenance() {
         runOnNewThread([this] {
             QThread::msleep(MAINTENANCE_DELAY_MS);

@@ -18,39 +18,39 @@ jobs:
         include:
           - cross_os: windows
             cross_arch: amd64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: ubuntu-22.04
           - cross_os: windows
             cross_arch: arm64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: ubuntu-22.04
           - cross_os: linux
             cross_arch: amd64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: ubuntu-22.04
           - cross_os: linux
             cross_arch: arm64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: ubuntu-22.04
           - cross_os: darwin
             cross_arch: amd64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: macos-latest
           - cross_os: darwin
             cross_arch: arm64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: macos-latest
           - cross_os: darwinlegacy
             cross_arch: amd64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: macos-latest
           - cross_os: windowslegacy
             cross_arch: amd64
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: macos-latest
           - cross_os: windowslegacy
             cross_arch: 386
-            go_version: "1.26.7"
+            go_version: "1.27.0"
             runner: macos-latest
       fail-fast: false
     runs-on: ${{ matrix.runner }}

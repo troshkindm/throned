@@ -77,7 +77,7 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     const bool running = m_model != nullptr && sourceRow >= 0
         && m_model->index(sourceRow, 0).data(ProfilesTableModel::ProfileIdRole).toInt()
                == Configs::dataManager->settingsRepo->started_id;
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     const QColor background = selected
         ? colors.selection
         : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base));

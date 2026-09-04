@@ -787,23 +787,28 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
                               const std::function<void(SiteReport)>& onFinished) {
     const auto sites = configuredSites();
     const auto profileIDs = withoutAutoSelectors(requestedIDs);
+    SiteReport initialReport;
+    for (const auto& site : sites) initialReport.sites << site.name;
+    for (const int id : requestedIDs) {
+        if (!profileIDs.contains(id)) initialReport.skipped << id;
+    }
     if (sites.isEmpty() || profileIDs.isEmpty()) {
-        if (onFinished) onFinished({});
+        if (sites.isEmpty()) initialReport.error = MainWindow::tr("No sites are configured to check. Add some in Basic Settings.");
+        if (onFinished) onFinished(initialReport);
         return;
     }
     if (!session_.tryLock()) {
         MessageBoxWarning(software_name, MainWindow::tr(
             "The last test did not exit completely, please wait. If it persists, please restart the program."));
-        if (onFinished) onFinished({});
+        initialReport.error = MainWindow::tr("Another test is still running. Wait for it to finish.");
+        if (onFinished) onFinished(initialReport);
         return;
     }
     sessionGen_.fetch_add(1);
 
-    runOnNewThread([this, profileIDs, sites, onFinished] {
-        stopRequested_.store(false);
-        SiteReport report;
-        report.sites.reserve(sites.size());
-        for (const auto& site : sites) report.sites << site.name;
+    stopRequested_.store(false);
+    runOnNewThread([this, profileIDs, sites, onFinished, initialReport] {
+        SiteReport report = initialReport;
 
         for (int i = 0; i < profileIDs.length(); i += kTestBatchSize) {
             if (stopRequested_.load()) break;
@@ -812,6 +817,7 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
             auto buildObject = Configs::BuildTestConfig(profiles);
             if (!buildObject->error.isEmpty()) {
                 MW_show_log(MainWindow::tr("Failed to build test config for batch: ") + buildObject->error);
+                for (const int id : slice) report.errors.insert(id, buildObject->error);
                 continue;
             }
 
@@ -847,6 +853,7 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
             batchDone.acquire(targets.size());
         }
 
+        if (stopRequested_.load()) report.error = MainWindow::tr("Test cancelled.");
         session_.unlock();
         runOnUiThread([onFinished, report] { if (onFinished) onFinished(report); });
     });
@@ -872,21 +879,32 @@ void TestRunner::runSiteProbe(const Target& target, const QList<SiteTarget>& sit
     const auto result = defaultClient->SiteTest(&rpcOK, req, &coreError);
     if (!rpcOK) {
         mw_->handleXrayGeoAssetError(coreError, contextName(target.entID));
+        if (coreError.isEmpty()) coreError = MainWindow::tr("The core did not return site test results.");
+        MW_show_log(MainWindow::tr("Site test failed: %1").arg(coreError));
+        const QMutexLocker lock(&reportMutex);
+        if (target.tag2entID.isEmpty()) report.errors.insert(target.entID, coreError);
+        else for (const int id : target.tag2entID) report.errors.insert(id, coreError);
         return;
     }
 
     for (const auto& res : result.results) {
         const int entid = resolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
         if (entid == -1) continue;
+        if (!res.error.value().empty()) {
+            const QMutexLocker lock(&reportMutex);
+            report.errors.insert(entid, QString::fromStdString(res.error.value()));
+            continue;
+        }
+        if (static_cast<int>(res.probes.size()) != sites.size()) {
+            const QMutexLocker lock(&reportMutex);
+            report.errors.insert(entid, MainWindow::tr("The core returned an incomplete site test result."));
+            continue;
+        }
         QList<SiteVerdict> row;
         row.reserve(sites.size());
         // Positional, not by name: the core fills one slot per requested site, and two
         // sites the user happened to name the same would collide in a lookup by name.
         for (int i = 0; i < sites.size(); i++) {
-            if (i >= static_cast<int>(res.probes.size())) {
-                row << SiteVerdict{};
-                continue;
-            }
             const auto& probe = res.probes[i];
             row << SiteVerdict{probe.status.value(), probe.latency_ms.value(),
                                QString::fromStdString(probe.error.value())};

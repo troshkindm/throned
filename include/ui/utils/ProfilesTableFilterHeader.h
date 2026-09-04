@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -188,7 +190,7 @@ signals:
     void closeRequested();
 
 private:
-    QVector<QLineEdit*> filterEdits() const {
+    std::array<QLineEdit*, 4> filterEdits() const {
         return {type_filter, address_filter, name_filter, test_filter};
     }
 

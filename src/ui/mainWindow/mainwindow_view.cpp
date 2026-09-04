@@ -26,6 +26,7 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/SettingsRepo.h"
+#include "include/global/LocalNetwork.hpp"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -242,11 +243,19 @@ void MainWindow::refresh_status(const QString &traffic_update) {
                               : tr("Connection"));
         }
     }
-    const auto display_socks = DisplayAddress(settings->inbound_address, settings->inbound_socks_port);
     const auto inbound_disabled = settings->disable_mixed_inbound;
-    const auto inbound_txt = QString("Mixed: %1").arg(inbound_disabled ? "Disabled" : display_socks);
-    setStatusText(ui->label_inbound, inbound_txt);
-    //
+    auto display_socks = DisplayAddress(settings->inbound_address, settings->inbound_socks_port);
+    QString inbound_tip;
+    // A wildcard bind is not something a LAN client can dial, so show the interface it actually reaches instead.
+    if (!inbound_disabled && LocalNetwork::LanInboundIsWildcard()) {
+        if (const auto lan = LocalNetwork::LanAddress(); !lan.isEmpty()) {
+            inbound_tip = tr("Listening on all interfaces (%1)").arg(display_socks);
+            display_socks = DisplayAddress(lan, settings->inbound_socks_port);
+        }
+    }
+    setStatusText(ui->label_inbound, QString("Mixed: %1").arg(inbound_disabled ? "Disabled" : display_socks));
+    ui->label_inbound->setToolTip(inbound_tip);
+    syncConnectionSourceColumn();
     ui->checkBox_VPN->setChecked(settings->spmode_vpn);
     ui->checkBox_SystemProxy->setChecked(settings->spmode_system_proxy);
     if (select_mode) {
@@ -281,19 +290,19 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         return tt.join(isTray ? "\n" : " ");
     };
 
-    auto icon_status_new = Icon::NONE;
+    auto icon_status_new = Icon::TrayIconStatus::None;
 
     if (running != nullptr) {
         if (settings->spmode_vpn) {
-            icon_status_new = Icon::VPN;
+            icon_status_new = Icon::TrayIconStatus::Vpn;
         } else if (settings->system_dns_set && settings->spmode_system_proxy) {
-            icon_status_new = Icon::SYSTEM_PROXY_DNS;
+            icon_status_new = Icon::TrayIconStatus::SystemProxyDns;
         } else if (settings->system_dns_set) {
-            icon_status_new = Icon::DNS;
+            icon_status_new = Icon::TrayIconStatus::Dns;
         } else if (settings->spmode_system_proxy) {
-            icon_status_new = Icon::SYSTEM_PROXY;
+            icon_status_new = Icon::TrayIconStatus::SystemProxy;
         } else {
-            icon_status_new = Icon::RUNNING;
+            icon_status_new = Icon::TrayIconStatus::Running;
         }
     }
 
@@ -515,7 +524,7 @@ void MainWindow::refreshProfilesEmptyState() {
         setSpacer(6, showSub ? 16 : 12);
         column->invalidate();
     }
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     const bool favorites = Configs::dataManager->settingsRepo->profiles_favorites_view;
     const bool searching = !globalFilterString.isEmpty();
     const int hidden = profilesTableModel != nullptr ? profilesTableModel->rowCount() : 0;
@@ -606,7 +615,7 @@ void MainWindow::addFavoritesButtonAction(QMenu &menu) {
 
 void MainWindow::refreshFavoritesButtonIcon() {
     if (favoritesButton == nullptr) return;
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     favoritesButton->setIcon(MaterialIcon::icon(
         MaterialIcon::Glyph::Star,
         favoritesButton->isChecked() ? colors.accent : colors.textMuted, 18));
@@ -928,7 +937,7 @@ void MainWindow::refreshUdpColumnVisibility() {
 
 void MainWindow::updateStatsPanelChevron(qreal openProgress) {
     statsPanelOpenProgress = qBound(0.0, openProgress, 1.0);
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     const QPixmap glyph = MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronUp,
                                                colors.textMuted, 16);
     // The canvas has to carry the same ratio as the glyph, or rotating it here
@@ -969,7 +978,7 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
     refreshStatsPanelTools();
     if (save) settings->Save();
 
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     if (auto *tools = ui->stats_widget->cornerWidget(Qt::TopRightCorner))
         for (auto *menuButton : tools->findChildren<QToolButton *>(QStringLiteral("panelIconButton")))
             if (menuButton->menu() != nullptr)

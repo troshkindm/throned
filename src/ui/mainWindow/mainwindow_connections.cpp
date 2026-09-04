@@ -3,6 +3,7 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/RoutesRepo.h"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/global/LocalNetwork.hpp"
 #include "include/ui/utils/ConnectionCloseDelegate.h"
 #include "include/ui/utils/ConnectionsFilterHeader.h"
 #include "include/ui/utils/ConnectionsFilterProxyModel.h"
@@ -42,6 +43,7 @@ void MainWindow::setupConnectionList()
 
     auto* header = ui->connections->horizontalHeader();
     header->setHighlightSections(false);
+    header->setSectionResizeMode(ConnectionsTableModel::ColSource, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(ConnectionsTableModel::ColDest, QHeaderView::Stretch);
     header->setSectionResizeMode(ConnectionsTableModel::ColProcess, QHeaderView::Stretch);
     header->setSectionResizeMode(ConnectionsTableModel::ColProtocol, QHeaderView::ResizeToContents);
@@ -53,7 +55,7 @@ void MainWindow::setupConnectionList()
     ui->connections->setColumnWidth(ConnectionsTableModel::ColClose, ConnectionCloseDelegate::ColumnWidth);
     ui->connections->verticalHeader()->hide();
 
-    // Otherwise the four content-sized columns re-measure up to 1000 rows whenever a poll changes the count.
+    // Otherwise the five content-sized columns re-measure up to 1000 rows whenever a poll changes the count.
     header->setResizeContentsPrecision(20);
     ui->connections->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->connections->setWordWrap(false);
@@ -84,6 +86,7 @@ void MainWindow::setupConnectionList()
             QToolTip::hideText();
         });
     });
+    syncConnectionSourceColumn();
     refreshStatsPanelLabels();
 }
 
@@ -227,8 +230,10 @@ void MainWindow::showConnectionMenu(const QPoint &pos)
 void MainWindow::restoreConnectionSort()
 {
     const auto* settings = Configs::dataManager->settingsRepo.get();
-    const int stored = settings->connection_sort;
-    if (stored < Stats::Default || stored > Stats::BySpeed) return;
+    int stored = settings->connection_sort;
+    if (stored < Stats::Default || stored > Stats::BySource) return;
+    // The Source header is unreachable while its column is hidden, so that sort would be stuck for good.
+    if (stored == Stats::BySource && !LocalNetwork::LanInboundEnabled()) stored = Stats::Default;
     // Runs before setup_rpc() spawns the lister thread, so writing the pair unguarded is safe.
     Stats::connection_lister->restoreSort(static_cast<Stats::ConnectionSort>(stored), settings->connection_sort_asc);
 }
@@ -266,7 +271,7 @@ void MainWindow::setupConnectionFilter()
     connect(connectionCloseAllButton, &QToolButton::clicked, this, [this] { closeConnections(listedConnectionIds()); });
 
     const auto retintConnectionTools = [this, btnFilter] {
-        const auto colors = themeManager->Colors();
+        const auto colors = themeManager()->Colors();
         btnFilter->setIcon(MaterialIcon::icon(
             MaterialIcon::Glyph::Tune,
             btnFilter->isChecked() ? colors.accent : colors.textMuted, 18));
@@ -276,7 +281,7 @@ void MainWindow::setupConnectionFilter()
     };
     retintConnectionTools();
     connect(btnFilter, &QToolButton::toggled, this, retintConnectionTools);
-    connect(themeManager, &ThemeManager::themeChanged, this, retintConnectionTools);
+    connect(themeManager(), &ThemeManager::themeChanged, this, retintConnectionTools);
 
     auto* corner = new QWidget(this);
     corner->setProperty("statsPage", ui->connections_tab->objectName());
@@ -309,8 +314,26 @@ void MainWindow::setupConnectionFilter()
 void MainWindow::applyConnectionFilters()
 {
     const auto filters = connectionFilterHeader->filters();
-    connectionsFilterModel->setFilters(filters.dest, filters.process, filters.protocol, filters.outbound);
+    connectionsFilterModel->setFilters(filters.source, filters.dest, filters.process, filters.protocol,
+                                       filters.outbound);
     refreshStatsPanelLabels();
+}
+
+void MainWindow::syncConnectionSourceColumn()
+{
+    if (connectionsModel == nullptr) return;
+    const bool show = LocalNetwork::LanInboundEnabled();
+    // refresh_status() drives this on a 2s tick, so bail out unless the state actually flipped.
+    if (ui->connections->isColumnHidden(ConnectionsTableModel::ColSource) == !show) return;
+
+    ui->connections->setColumnHidden(ConnectionsTableModel::ColSource, !show);
+    connectionFilterHeader->adjustPositions();
+    // Both must be cleared here: a hidden header can be reached by neither the filter field nor a sort click.
+    if (!show) {
+        connectionFilterHeader->clearFilterFor(ConnectionsTableModel::ColSource);
+        if (Stats::connection_lister->getSort() == Stats::BySource) applyConnectionSort(Stats::Default);
+    }
+    applyConnectionFilters();
 }
 
 // Right-click the Traffic / Speed headers to pick the sub-field they sort by;
@@ -362,7 +385,7 @@ void MainWindow::refreshConnectionCloseIcons()
     // ApplyTheme() fires PaletteChange from the constructor, before setupUi() has built the table.
     if (connectionCloseDelegate == nullptr) return;
 
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     connectionCloseIcon = MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textMuted,
                                              ConnectionCloseDelegate::IconSize);
     connectionCloseDelegate->setIcon(connectionCloseIcon);

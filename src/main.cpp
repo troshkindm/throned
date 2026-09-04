@@ -1280,7 +1280,12 @@ briefly interrupts traffic.
                 auto *dialog = new SiteReachabilityDialog(window);
                 const auto ids = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
                 const QStringList sites{"Google", "YouTube", "ChatGPT", "Telegram", "GitHub", "Netflix"};
-                dialog->beginRun(ids, sites);
+                QList<QPair<int, QString>> profiles;
+                for (const int id : ids) {
+                    const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
+                    profiles.append({id, profile == nullptr ? QStringLiteral("Unknown") : profile->name});
+                }
+                dialog->beginRun(profiles, sites);
                 TestRunner::SiteReport report;
                 report.sites = sites;
                 const QList<QList<int>> sample{
@@ -1297,6 +1302,14 @@ briefly interrupts traffic.
                             status > 0 ? QString() : QStringLiteral("context deadline exceeded")};
                     }
                     report.rows.insert(ids.at(row), verdicts);
+                }
+                if (arguments.contains(QStringLiteral("-ui-preview-sites-error"))) {
+                    report.rows.clear();
+                    for (const int id : ids) report.errors.insert(id, QStringLiteral("unknown method: SiteTest"));
+                    if (!ids.isEmpty()) {
+                        report.errors.remove(ids.last());
+                        report.skipped << ids.last();
+                    }
                 }
                 dialog->applyReport(report);
                 dialog->show();
@@ -1500,7 +1513,7 @@ briefly interrupts traffic.
             themeAt >= 0 && themeAt + 1 < app.arguments().size()) {
             const QString name = app.arguments().at(themeAt + 1);
             bool matched = false;
-            for (const QString &theme : themeManager->ThronedThemes())
+            for (const QString &theme : themeManager()->ThronedThemes())
                 if (theme.compare(name, Qt::CaseInsensitive) == 0
                     || theme.compare(QStringLiteral("Throned ") + name, Qt::CaseInsensitive) == 0) {
                     requested = theme;
@@ -1511,7 +1524,7 @@ briefly interrupts traffic.
             // rendering as much as the Throned ones do.
             if (!matched) requested = name;
         }
-        themeManager->ApplyTheme(requested);
+        themeManager()->ApplyTheme(requested);
     }
 
     int RunRouteEditorPreview(QApplication &app) {
@@ -1530,7 +1543,7 @@ briefly interrupts traffic.
         font.setStyleStrategy(QFont::PreferAntialias);
         font.setHintingPreference(QFont::PreferDefaultHinting);
         dialog.setFont(font);
-        themeManager->RegisterStyle(&dialog, RouteProfileSimpleEditor::dialogStyleSheet());
+        themeManager()->RegisterStyle(&dialog, RouteProfileSimpleEditor::dialogStyleSheet());
 
         auto *root = new QVBoxLayout(&dialog);
         root->setContentsMargins(12, 12, 12, 12);
@@ -1885,13 +1898,13 @@ int main(int argc, char* argv[]) {
 
     // Before any theme is resolved: the stored theme may name a skin, and -theme
     // below has to be able to find one too.
-    themeManager->LoadSkins();
+    themeManager()->LoadSkins();
 
     if (const int themeAt = arguments.indexOf(QStringLiteral("-theme"));
         themeAt >= 0 && themeAt + 1 < arguments.size()) {
         const QString requested = arguments.at(themeAt + 1);
         bool matched = false;
-        for (const QString &theme : themeManager->ThronedThemes())
+        for (const QString &theme : themeManager()->ThronedThemes())
             if (theme.compare(requested, Qt::CaseInsensitive) == 0
                 || theme.compare(QStringLiteral("Throned ") + requested, Qt::CaseInsensitive) == 0) {
                 Configs::dataManager->settingsRepo->theme = theme;

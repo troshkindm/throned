@@ -65,7 +65,7 @@ UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
         else if (state_ == State::Error) emit retryRequested();
     });
     connect(secondary_, &QPushButton::clicked, this, &UpdateStatusWidget::dismiss);
-    connect(themeManager, &ThemeManager::themeChanged, this, [this] { refreshIcon(); });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { refreshIcon(); });
 
     dismiss();
 }
@@ -98,7 +98,7 @@ void UpdateStatusWidget::setState(State state) {
 
 void UpdateStatusWidget::refreshIcon() {
     if (icon_ == nullptr || state_ == State::Hidden) return;
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     MaterialIcon::Glyph glyph = MaterialIcon::Glyph::ArrowDown;
     QColor color = colors.accent;
     if (state_ == State::Preparing) glyph = MaterialIcon::Glyph::Reload;

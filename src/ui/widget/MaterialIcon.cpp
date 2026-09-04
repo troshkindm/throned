@@ -151,7 +151,7 @@ QPixmap pixmap(Glyph glyph, const QColor &color, int pixels) {
 
     // A skin's own art is used as authored: it carries its own colour, which is
     // the whole point of shipping a glossy icon set rather than a tinted path.
-    if (const ThronedSkin *skin = themeManager != nullptr ? themeManager->Skin() : nullptr;
+    if (const ThronedSkin *skin = themeManager() != nullptr ? themeManager()->Skin() : nullptr;
         skin != nullptr && !skin->iconDir.isEmpty()) {
         const QString stem = skin->iconDir + QLatin1Char('/') + QLatin1String(glyphName(glyph));
         for (const QString &suffix : {QStringLiteral(".svg"), QStringLiteral(".png")}) {

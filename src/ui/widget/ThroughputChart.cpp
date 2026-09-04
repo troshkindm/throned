@@ -53,7 +53,7 @@ namespace {
 
 ThroughputChart::ThroughputChart(QWidget *parent) : QWidget(parent) {
     setMinimumHeight(120);
-    connect(themeManager, &ThemeManager::themeChanged, this, [this] { update(); });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { update(); });
 }
 
 void ThroughputChart::addSample(qint64 proxyDown, qint64 proxyUp, qint64 directDown, qint64 directUp) {
@@ -97,7 +97,7 @@ void ThroughputChart::paintEvent(QPaintEvent *) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    const auto colors = themeManager->Colors();
+    const auto colors = themeManager()->Colors();
     const QRectF plot(qreal(kPadLeft), qreal(kPadTop),
                       qMax(10.0, qreal(width() - kPadLeft - kPadRight)),
                       qMax(10.0, qreal(height() - kPadTop - kLegendHeight)));

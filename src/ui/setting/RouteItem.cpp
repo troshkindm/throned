@@ -569,7 +569,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     bodyLayout->addLayout(footer);
     dialogLayout->addWidget(body, 1);
 
-    themeManager->RegisterStyle(this, RouteProfileSimpleEditor::dialogStyleSheet());
+    themeManager()->RegisterStyle(this, RouteProfileSimpleEditor::dialogStyleSheet());
     setMinimumSize(960, 680);
     FitWindowToScreen(this, QSize(1085, 761));
 
@@ -739,7 +739,7 @@ void RouteItem::rebuildAdvancedSummary() {
         QDialog dialog(this);
         dialog.setWindowTitle(tr("Full routing source"));
         FitWindowToScreen(&dialog, QSize(760, 560));
-        themeManager->RegisterStyle(&dialog, RouteProfileSimpleEditor::dialogStyleSheet());
+        themeManager()->RegisterStyle(&dialog, RouteProfileSimpleEditor::dialogStyleSheet());
         auto *layout = new QVBoxLayout(&dialog);
         auto *source = new QPlainTextEdit(&dialog);
         source->setReadOnly(true);
@@ -1020,7 +1020,7 @@ void RouteItem::fetchRemote(bool applyToChain) {
                 lay->addWidget(header);
                 if (!warnings.isEmpty()) {
                     auto* warn = new QLabel(warnings, dlg);
-                    warn->setStyleSheet(QStringLiteral("color: #c62828;"));
+                    warn->setStyleSheet(QStringLiteral("color: %1;").arg(themeManager()->Colors().danger.name()));
                     warn->setWordWrap(true);
                     lay->addWidget(warn);
                 }
