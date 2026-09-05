@@ -71,10 +71,10 @@ Thumbs.db
 
 # Custom
 /Throne
-/build
 CMakeLists.txt.user*
 /cmake-build-*
-/build-*
+# Covers /build, build-row, build-ui, buildnu, buildw3 and their stray logs.
+/build*
 .vscode
 .idea
 
@@ -92,3 +92,10 @@ srslist.h
 
 # Local runtime data created when running a build from the source tree
 /config/
+
+# Local scratch: downloaded CI artifacts, preview renders and packaged builds.
+# Committed screenshots live in docs/ui-preview, which these do not touch.
+/ci-artifacts/
+/work/
+/*.zip
+/*.png
