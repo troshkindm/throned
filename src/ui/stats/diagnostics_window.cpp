@@ -492,7 +492,7 @@ QDialog#diagnosticsWindow QLabel[diagnosticRole="factValue"] { color: #F1F3F5; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="finding"] {
     color: #E8A33D; background: #3A2227; border-radius: 5px; padding: 5px 8px;
 }
-QToolButton#diagnosticAddRule::menu-indicator { image: none; }
+QPushButton#diagnosticAddRule::menu-indicator { image: none; }
 QFrame#diagnosticRailPanel { background: #171B21; border: 0; border-right: 1px solid #2F3136; }
 /* Scoped through the dialog so it outweighs the generic button rule below, which
    otherwise fills every rail entry and makes the whole rail look like a keypad. */
@@ -513,10 +513,10 @@ QFrame#diagnosticVerdict, QFrame#diagnosticConnectionDetail, QFrame#diagnosticCa
 QFrame#diagnosticPath { background: #171B21; border: 1px solid #2F3136; border-radius: 8px; }
 QWidget#diagnosticHealthRow { border-top: 1px solid #2F3136; }
 QWidget#diagnosticHealthRow[attention="true"] { background: #3A2227; }
-QDialog#diagnosticsWindow QPushButton, QToolButton#diagnosticRuleButton, QToolButton#diagnosticAddRule {
+QDialog#diagnosticsWindow QPushButton, QToolButton#diagnosticRuleButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 6px; padding: 8px 12px; color: #F1F3F5;
 }
-QDialog#diagnosticsWindow QPushButton:hover, QToolButton#diagnosticRuleButton:hover, QToolButton#diagnosticAddRule:hover { background: #292D33; border-color: #4A4F57; }
+QDialog#diagnosticsWindow QPushButton:hover, QToolButton#diagnosticRuleButton:hover { background: #292D33; border-color: #4A4F57; }
 QDialog#diagnosticsWindow QPushButton[primary="true"] { background: #193452; border-color: #237AE9; }
 QDialog#diagnosticsWindow QPushButton:checked { background: #193452; border-color: #237AE9; }
 QDialog#diagnosticsWindow QPushButton:disabled { color: #747C86; border-color: #2F3136; }
@@ -841,14 +841,11 @@ void DiagnosticsWindow::buildApplicationsPage() {
     sidebarLayout->addWidget(detailScroll, 1);
     diagnoseAddress = button(tr("Check this address"), "diagnosticConnectionCheck");
     diagnoseAddress->setEnabled(false);
-    addRule = new QToolButton;
-    addRule->setObjectName(QStringLiteral("diagnosticAddRule"));
-    addRule->setText(tr("Route this…"));
-    addRule->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    addRule->setPopupMode(QToolButton::InstantPopup);
+    // A push button rather than a tool button: the tool button left-aligns its label
+    // while the two beside it centre theirs, and the three have to read as one set.
+    addRule = button(tr("Route this…"), "diagnosticAddRule");
     addRule->setEnabled(false);
     addRule->setMenu(new QMenu(addRule));
-    addRule->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     dropConnections = button(tr("Drop connections"), "diagnosticDrop");
     dropConnections->setEnabled(false);
     for (auto *action : {static_cast<QWidget *>(diagnoseAddress), static_cast<QWidget *>(addRule),

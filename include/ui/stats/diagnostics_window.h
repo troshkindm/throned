@@ -168,7 +168,7 @@ private:
     QPushButton *observe;
     QPushButton *onlyProblems;
     QPushButton *dropConnections;
-    QToolButton *addRule;
+    QPushButton *addRule;
     QLabel *captureStatus;
     QLabel *summary;
     QTreeWidget *connections;

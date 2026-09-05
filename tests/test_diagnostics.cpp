@@ -251,7 +251,7 @@ private slots:
         c.process = QFileInfo(QCoreApplication::applicationFilePath()).fileName().toStdString();
         snapshot.active.push_back(c);
         window.applyConnections(snapshot);
-        auto *rule = window.findChild<QToolButton *>("diagnosticAddRule");
+        auto *rule = window.findChild<QPushButton *>("diagnosticAddRule");
         QVERIFY(rule->isEnabled());
         // The per-process entries are always offered; the family entry only when a
         // different parent was actually found, which depends on how the test was run.
@@ -268,7 +268,7 @@ private slots:
         libcore::QueryConnectionsResp snapshot;
         snapshot.active.push_back(connection("1"));
         window.applyConnections(snapshot);
-        for (auto *action : window.findChild<QToolButton *>("diagnosticAddRule")->menu()->actions())
+        for (auto *action : window.findChild<QPushButton *>("diagnosticAddRule")->menu()->actions())
             if (action->menu() != nullptr && action->text().contains("Domain and subdomains"))
                 action->menu()->actions().first()->trigger();
         QCOMPARE(emitted, QStringList{QStringLiteral("suffix:example.org")});

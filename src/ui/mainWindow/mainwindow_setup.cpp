@@ -507,7 +507,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     diagnosticsButton->setCursor(Qt::PointingHandCursor);
     diagnosticsButton->setToolTip(tr("Website and application diagnostics (Ctrl+Shift+D)"));
     const auto retintDiagnostics = [openDiagnosticsAction] {
-        openDiagnosticsAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Search, themeManager()->Colors().accent, 19));
+        openDiagnosticsAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Search, themeManager()->Colors().textMuted, 19));
     };
     retintDiagnostics();
     connect(themeManager(), &ThemeManager::themeChanged, this, retintDiagnostics);
