@@ -418,10 +418,8 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     railPanel->setObjectName(QStringLiteral("diagnosticRailPanel"));
     railPanel->setFixedWidth(178);
     auto *railLayout = new QVBoxLayout(railPanel);
-    railLayout->setContentsMargins(10, 13, 10, 10);
+    railLayout->setContentsMargins(10, 12, 10, 10);
     railLayout->setSpacing(3);
-    auto *railCaption = label(tr("SECTIONS"), "railCaption");
-    railLayout->addWidget(railCaption);
     for (const auto &caption : {tr("Overview"), tr("Address"), tr("Applications"), tr("Statistics"), tr("Report")}) {
         auto *item = new RailButton(caption, railPanel);
         // Fixed, so the bolder checked entry does not push the ones below it out of step.
@@ -491,7 +489,6 @@ QDialog#diagnosticsWindow QLabel[diagnosticRole="muted"] { color: #A4ABB4; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="subtle"] { color: #747C86; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="heading"] { font-size: 20px; font-weight: 600; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="title"] { font-weight: 600; }
-QDialog#diagnosticsWindow QLabel[diagnosticRole="railCaption"] { color: #747C86; padding: 2px 10px 7px; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="stepTitle"] { color: #F1F3F5; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="stepTime"] { color: #747C86; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="factName"] { color: #747C86; }
@@ -503,21 +500,27 @@ QDialog#diagnosticsWindow QLabel[diagnosticRole="totalDown"] { color: #2F91FF; f
 QDialog#diagnosticsWindow QLabel[diagnosticRole="totalUp"] { color: #2EBC75; font-size: 22px; font-weight: 600; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="total"] { font-size: 22px; font-weight: 600; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="totalMuted"] { color: #A4ABB4; font-size: 19px; font-weight: 600; }
-QPushButton#diagnosticRange { border-radius: 0; padding: 7px 13px; color: #A4ABB4; }
-QPushButton#diagnosticRange[segment="first"] { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
-QPushButton#diagnosticRange[segment="last"] { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
-QPushButton#diagnosticRange:checked { background: #193452; border-color: #237AE9; color: #F1F3F5; font-weight: 600; }
-QPushButton#diagnosticUsageTab {
+/* One frame around the set, dividers inside it: four bordered buttons pushed together
+   double every seam and read as squashed rather than as one control. */
+QFrame#diagnosticSegmented { background: #222529; border: 1px solid #2F3136; border-radius: 6px; }
+QDialog#diagnosticsWindow QPushButton#diagnosticRange {
+    background: transparent; border: 0; border-left: 1px solid #2F3136;
+    border-radius: 0; padding: 7px 14px; color: #A4ABB4;
+}
+QDialog#diagnosticsWindow QPushButton#diagnosticRange[segment="first"] { border-left: 0; }
+QDialog#diagnosticsWindow QPushButton#diagnosticRange:hover { background: #292D33; color: #F1F3F5; }
+QDialog#diagnosticsWindow QPushButton#diagnosticRange:checked { background: #193452; color: #F1F3F5; font-weight: 600; }
+QDialog#diagnosticsWindow QPushButton#diagnosticUsageTab {
     background: transparent; border: 0; border-bottom: 2px solid transparent;
     border-radius: 0; padding: 8px 15px; color: #A4ABB4;
 }
-QPushButton#diagnosticUsageTab:hover { background: #222529; }
-QPushButton#diagnosticUsageTab:checked { color: #F1F3F5; border-bottom-color: #237AE9; }
-QPushButton#diagnosticUsageTab:disabled { color: #747C86; }
+QDialog#diagnosticsWindow QPushButton#diagnosticUsageTab:hover { background: #222529; }
+QDialog#diagnosticsWindow QPushButton#diagnosticUsageTab:checked { color: #F1F3F5; border-bottom-color: #237AE9; }
+QDialog#diagnosticsWindow QPushButton#diagnosticUsageTab:disabled { color: #747C86; }
 QWidget#diagnosticUsageRow { border-top: 1px solid #2F3136; }
 QProgressBar#diagnosticUsageBar { background: #222529; border: 0; border-radius: 3px; }
 QProgressBar#diagnosticUsageBar::chunk { background: #237AE9; border-radius: 3px; }
-QPushButton#diagnosticAddRule::menu-indicator { image: none; }
+QDialog#diagnosticsWindow QPushButton#diagnosticAddRule::menu-indicator { image: none; }
 QFrame#diagnosticRailPanel { background: #171B21; border: 0; border-right: 1px solid #2F3136; }
 /* Scoped through the dialog so it outweighs the generic button rule below, which
    otherwise fills every rail entry and makes the whole rail look like a keypad. */
@@ -545,7 +548,7 @@ QDialog#diagnosticsWindow QPushButton:hover, QToolButton#diagnosticRuleButton:ho
 QDialog#diagnosticsWindow QPushButton[primary="true"] { background: #193452; border-color: #237AE9; }
 QDialog#diagnosticsWindow QPushButton:checked { background: #193452; border-color: #237AE9; }
 QDialog#diagnosticsWindow QPushButton:disabled { color: #747C86; border-color: #2F3136; }
-QPushButton#diagnosticHealthAction { padding: 5px 10px; color: #2F91FF; }
+QDialog#diagnosticsWindow QPushButton#diagnosticHealthAction { padding: 5px 10px; color: #2F91FF; }
 QLineEdit#diagnosticAddress, QLineEdit#diagnosticCompare, QComboBox#diagnosticApps {
     background: #222529; color: #F1F3F5; border: 1px solid #2F3136; border-radius: 6px;
     padding: 8px 10px; min-height: 20px;
