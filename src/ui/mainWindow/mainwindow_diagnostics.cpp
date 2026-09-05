@@ -104,23 +104,6 @@ DiagnosticsWindow::Usage MainWindow::diagnosticsUsage(int rangeDays) {
     };
     std::sort(usage.apps.begin(), usage.apps.end(), byTotal);
     std::sort(usage.servers.begin(), usage.servers.end(), byTotal);
-    // Beyond a handful of rows the list stops being readable; the rest is one entry.
-    auto collapse = [](QList<DiagnosticsWindow::UsageRow> &rows, const QString &label) {
-        constexpr int keep = 6;
-        if (rows.size() <= keep) return;
-        DiagnosticsWindow::UsageRow other{label, {}, 0, 0, 0, 0};
-        for (int i = keep; i < rows.size(); ++i) {
-            other.up += rows[i].up;
-            other.down += rows[i].down;
-            other.directUp += rows[i].directUp;
-            other.directDown += rows[i].directDown;
-        }
-        other.detail = DiagnosticsWindow::tr("%n more", "", rows.size() - keep);
-        rows = rows.mid(0, keep) << other;
-    };
-    collapse(usage.apps, DiagnosticsWindow::tr("The rest"));
-    collapse(usage.servers, DiagnosticsWindow::tr("The rest"));
-
     // Aligned with the same offset the query used, or a bar's key never matches a point.
     const qint64 alignedFrom = ((from + tzOffset) / usage.bucketSecs) * usage.bucketSecs - tzOffset;
     auto densify = [&](const QList<Configs::TrafficSeriesPoint> &points, QList<DiagnosticsWindow::UsagePoint> &out) {

@@ -39,6 +39,35 @@ class TestDiagnostics : public QObject {
         return c;
     }
 private slots:
+    void disabledProxyFilterKeepsLegacySeriesWhole() {
+        DiagnosticsWindow window;
+        window.usageTab = 0;
+        window.usageProxyOnlyOn = true;
+        window.usage.appSplitRecorded = false;
+        window.usage.series = {{0, 100, 900, 40, 360, "first"}};
+
+        const auto points = window.visibleUsageSeries();
+        QCOMPARE(points.size(), 1);
+        QCOMPARE(points[0].up, 100);
+        QCOMPARE(points[0].down, 900);
+    }
+
+    void proxyFilterRanksBeforeCollapsingRows() {
+        DiagnosticsWindow window;
+        window.usageTab = 0;
+        window.usageProxyOnlyOn = true;
+        for (int i = 0; i < 6; ++i)
+            window.usage.apps.append({QStringLiteral("direct-%1").arg(i), {}, 0, 1000 - i,
+                                      0, 999 - i});
+        window.usage.apps.append({"proxy-leader", {}, 0, 100, 0, 0});
+
+        const auto rows = window.visibleUsageRows();
+        QCOMPARE(rows.size(), 7);
+        QCOMPARE(rows[0].name, QString("proxy-leader"));
+        QCOMPARE(rows[0].down, 100);
+        QCOMPARE(rows.last().name, QString("The rest"));
+    }
+
     void invalidInputNeverRequestsCore() {
         DiagnosticsWindow window;
         int calls = 0;

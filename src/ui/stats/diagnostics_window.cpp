@@ -2097,18 +2097,44 @@ bool DiagnosticsWindow::usageSplitKnown() const {
 // listed at half its size, and only one that never touched the proxy drops out entirely.
 QList<DiagnosticsWindow::UsageRow> DiagnosticsWindow::visibleUsageRows() const {
     auto rows = usageTab == 1 ? usage.servers : usage.apps;
-    if (!usageProxyOnlyOn || !usageSplitKnown()) return rows;
-    for (auto &row : rows) {
-        row.up -= row.directUp;
-        row.down -= row.directDown;
-        row.directUp = row.directDown = 0;
+    if (usageProxyOnlyOn && usageSplitKnown()) {
+        for (auto &row : rows) {
+            row.up -= row.directUp;
+            row.down -= row.directDown;
+            row.directUp = row.directDown = 0;
+        }
+        rows.removeIf([](const UsageRow &row) { return row.up + row.down <= 0; });
+        // Re-ranked, because dropping the bypass is what changes who the heavy programs are.
+        std::sort(rows.begin(), rows.end(), [](const UsageRow &a, const UsageRow &b) {
+            return (a.up + a.down) > (b.up + b.down);
+        });
     }
-    rows.removeIf([](const UsageRow &row) { return row.up + row.down <= 0; });
-    // Re-ranked, because dropping the bypass is what changes who the heavy programs are.
-    std::sort(rows.begin(), rows.end(), [](const UsageRow &a, const UsageRow &b) {
-        return (a.up + a.down) > (b.up + b.down);
-    });
+
+    // Collapse only after the active filter has changed the ranking. Otherwise a program
+    // that is mostly proxied can remain hidden in "The rest" behind direct-only leaders.
+    constexpr int keep = 6;
+    if (rows.size() <= keep) return rows;
+    UsageRow other{tr("The rest"), {}, 0, 0, 0, 0};
+    for (int i = keep; i < rows.size(); ++i) {
+        other.up += rows[i].up;
+        other.down += rows[i].down;
+        other.directUp += rows[i].directUp;
+        other.directDown += rows[i].directDown;
+    }
+    other.detail = tr("%n more", "", rows.size() - keep);
+    rows = rows.mid(0, keep) << other;
     return rows;
+}
+
+QList<DiagnosticsWindow::UsagePoint> DiagnosticsWindow::visibleUsageSeries() const {
+    auto points = usageTab == 1 ? usage.serverSeries : usage.series;
+    if (!usageProxyOnlyOn || !usageSplitKnown()) return points;
+    for (auto &point : points) {
+        point.up -= point.directUp;
+        point.down -= point.directDown;
+        point.directUp = point.directDown = 0;
+    }
+    return points;
 }
 
 void DiagnosticsWindow::refreshUsage() {
@@ -2127,11 +2153,9 @@ void DiagnosticsWindow::refreshUsage() {
     usageAverage->setText(up + down > 0 ? bytes((up + down) / days) : QStringLiteral("—"));
 
     QList<TrafficChartWidget::Bar> bars;
-    const auto &series = usageTab == 1 ? usage.serverSeries : usage.series;
+    const auto series = visibleUsageSeries();
     for (const auto &point : series)
-        bars.append({point.bucketStart,
-                     usageProxyOnlyOn ? point.down - point.directDown : point.down,
-                     usageProxyOnlyOn ? point.up - point.directUp : point.up, point.label});
+        bars.append({point.bucketStart, point.down, point.up, point.label});
     // Enough labels to orient without them colliding at a 30-day range.
     usageChart->setData(bars, qMax(1, bars.size() / 8), usage.bucketSecs);
     usageChartHost->setVisible(!bars.isEmpty());

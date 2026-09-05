@@ -165,6 +165,7 @@ private:
     void setVerdict(const QString &tone, const QString &title, const QString &detail, const QStringList &actions);
     [[nodiscard]] bool usageSplitKnown() const;
     [[nodiscard]] QList<UsageRow> visibleUsageRows() const;
+    [[nodiscard]] QList<UsagePoint> visibleUsageSeries() const;
     void refreshUsage();
     void exportUsage();
     void refreshReport();
