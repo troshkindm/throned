@@ -475,6 +475,10 @@
         <translation>No application reported · %1</translation>
     </message>
     <message>
+        <source>Statistics</source>
+        <translation>Statistics</translation>
+    </message>
+    <message>
         <source>Hide the healthy</source>
         <translation>Hide the healthy</translation>
     </message>
@@ -493,6 +497,62 @@
     <message>
         <source>Route this…</source>
         <translation>Route this…</translation>
+    </message>
+    <message>
+        <source>Day</source>
+        <translation>Day</translation>
+    </message>
+    <message>
+        <source>7 days</source>
+        <translation>7 days</translation>
+    </message>
+    <message>
+        <source>30 days</source>
+        <translation>30 days</translation>
+    </message>
+    <message>
+        <source>All</source>
+        <translation>All</translation>
+    </message>
+    <message>
+        <source>Export CSV</source>
+        <translation>Export CSV</translation>
+    </message>
+    <message>
+        <source>Downloaded</source>
+        <translation>Downloaded</translation>
+    </message>
+    <message>
+        <source>Uploaded</source>
+        <translation>Uploaded</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Total</translation>
+    </message>
+    <message>
+        <source>Per day on average</source>
+        <translation>Per day on average</translation>
+    </message>
+    <message>
+        <source>Over time</source>
+        <translation>Over time</translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation>Programs</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>Servers</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>Sites</translation>
+    </message>
+    <message>
+        <source>Requires recording the domains you open, which is off and not built yet.</source>
+        <translation>Requires recording the domains you open, which is off and not built yet.</translation>
     </message>
     <message>
         <source>%1 · %2 min</source>
@@ -818,6 +878,38 @@
         <translation>Throned · application connections</translation>
     </message>
     <message>
+        <source>The statistics database is unavailable.</source>
+        <translation>The statistics database is unavailable.</translation>
+    </message>
+    <message>
+        <source>Traffic counting is turned off, so there is nothing to show. Turn it on in the settings to start collecting.</source>
+        <translation>Traffic counting is turned off, so there is nothing to show. Turn it on in the settings to start collecting.</translation>
+    </message>
+    <message>
+        <source>Nothing recorded for this period.</source>
+        <translation>Nothing recorded for this period.</translation>
+    </message>
+    <message>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stored on this computer only · %1 · %n day(s) of records</source>
+        <translation><numerusform>%n</numerusform><numerusform>%n</numerusform></translation>
+    </message>
+    <message>
+        <source>Stored on this computer only and never sent anywhere.</source>
+        <translation>Stored on this computer only and never sent anywhere.</translation>
+    </message>
+    <message>
+        <source>Export statistics</source>
+        <translation>Export statistics</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>CSV files (*.csv)</translation>
+    </message>
+    <message>
         <source>Copied</source>
         <translation>Copied</translation>
     </message>
@@ -832,6 +924,26 @@
     <message>
         <source>Not checked</source>
         <translation>Not checked</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Unknown</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Direct</translation>
+    </message>
+    <message>
+        <source>Profile #%1 (deleted)</source>
+        <translation>Profile #%1 (deleted)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation><numerusform>%n</numerusform><numerusform>%n</numerusform></translation>
+    </message>
+    <message>
+        <source>The rest</source>
+        <translation>The rest</translation>
     </message>
 </context>
 <context>

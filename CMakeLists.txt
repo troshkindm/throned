@@ -785,6 +785,8 @@ if (Qt6Test_FOUND)
             include/ui/stats/diagnostics_window.h
             src/ui/widget/MaterialIcon.cpp
             src/ui/widget/ThronedTitleBar.cpp
+            src/ui/stats/TrafficChartWidget.cpp
+            include/ui/stats/TrafficChartWidget.h
             include/ui/setting/ThemeManager.hpp
     )
     set_target_properties(throned_diagnostics_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)

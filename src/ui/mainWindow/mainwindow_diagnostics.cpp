@@ -2,6 +2,14 @@
 #include "include/ui/stats/diagnostics_window.h"
 #include "include/api/RPC.h"
 #include "include/global/Configs.hpp"
+#include "include/database/DatabaseManager.h"
+#include "include/database/ProfilesRepo.h"
+#include "include/database/TrafficStatsRepo.h"
+#include "include/database/entities/Profile.h"
+#include "include/stats/traffic/TrafficStatsManager.hpp"
+#include "include/configs/generate.h"
+#include <QFileInfo>
+#include <QHash>
 #include <QDateTime>
 #include <QRegularExpression>
 #include <QThread>
@@ -39,6 +47,81 @@ DiagnosticsWindow::LocalState MainWindow::diagnosticsLocalState() {
     state.systemProxy = settings.spmode_system_proxy;
     state.environmentReport = collectDiagnostics();
     return state;
+}
+
+// Reads the traffic history the application already collects and hands the window a
+// finished picture, so the window itself never touches the database.
+DiagnosticsWindow::Usage MainWindow::diagnosticsUsage(int rangeDays) {
+    DiagnosticsWindow::Usage usage;
+    auto *repo = Configs::dataManager ? Configs::dataManager->trafficStatsRepo.get() : nullptr;
+    if (repo == nullptr) { usage.available = false; return usage; }
+    usage.recording = !Configs::dataManager->settingsRepo->disable_traffic_stats
+        && !Configs::dataManager->settingsRepo->disable_traffic_aggregation;
+    // The minute in progress is still in memory; without this the last bar is empty.
+    if (Stats::trafficStatsManager) Stats::trafficStatsManager->Flush();
+
+    const qint64 now = QDateTime::currentSecsSinceEpoch();
+    const qint64 retention = qMax(1, Configs::dataManager->settingsRepo->traffic_stats_retention_days);
+    const qint64 days = rangeDays > 0 ? rangeDays : retention;
+    const qint64 from = now - days * 86400LL;
+    usage.bucketSecs = days <= 1 ? 3600LL : 86400LL;
+    usage.daysStored = days;
+    const qint64 tzOffset = QDateTime::currentDateTime().offsetFromUtc();
+
+    QHash<QString, QString> appPaths;
+    for (const auto &meta : repo->GetAllAppMeta()) appPaths.insert(meta.process_name, meta.last_path);
+    for (const auto &row : repo->QueryAppUsage(from, now)) {
+        const auto name = row.process_name.isEmpty() ? DiagnosticsWindow::tr("Unknown") : row.process_name;
+        usage.apps.append({name, appPaths.value(row.process_name), row.up, row.down});
+    }
+
+    QHash<int, Configs::ConfigMetaRow> configMeta;
+    for (const auto &meta : repo->GetAllConfigMeta()) configMeta.insert(meta.profile_id, meta);
+    for (const auto &row : repo->QueryConfigUsage(from, now)) {
+        QString name, group;
+        if (const auto it = configMeta.constFind(row.profile_id); it != configMeta.constEnd()) {
+            name = it->name;
+            group = it->group_name;
+        }
+        if (name.isEmpty()) {
+            if (row.profile_id == Stats::DIRECT_STAT_PROFILE_ID) name = DiagnosticsWindow::tr("Direct");
+            else if (const auto profile = Configs::dataManager->profilesRepo->GetProfile(row.profile_id)) name = profile->name;
+            else if (row.profile_id == Configs::warpProfileID) name = QStringLiteral("built-in warp");
+            else name = DiagnosticsWindow::tr("Profile #%1 (deleted)").arg(row.profile_id);
+        }
+        usage.servers.append({name, group, row.up, row.down});
+    }
+    auto byTotal = [](const DiagnosticsWindow::UsageRow &a, const DiagnosticsWindow::UsageRow &b) {
+        return (a.up + a.down) > (b.up + b.down);
+    };
+    std::sort(usage.apps.begin(), usage.apps.end(), byTotal);
+    std::sort(usage.servers.begin(), usage.servers.end(), byTotal);
+    // Beyond a handful of rows the list stops being readable; the rest is one entry.
+    auto collapse = [](QList<DiagnosticsWindow::UsageRow> &rows, const QString &label) {
+        constexpr int keep = 6;
+        if (rows.size() <= keep) return;
+        DiagnosticsWindow::UsageRow other{label, {}, 0, 0};
+        for (int i = keep; i < rows.size(); ++i) { other.up += rows[i].up; other.down += rows[i].down; }
+        other.detail = DiagnosticsWindow::tr("%n more", "", rows.size() - keep);
+        rows = rows.mid(0, keep) << other;
+    };
+    collapse(usage.apps, DiagnosticsWindow::tr("The rest"));
+    collapse(usage.servers, DiagnosticsWindow::tr("The rest"));
+
+    const auto series = repo->QueryAppSeries(from, now, usage.bucketSecs, tzOffset);
+    QHash<qint64, Configs::TrafficSeriesPoint> byBucket;
+    for (const auto &point : series) byBucket.insert(point.bucket_start, point);
+    // Aligned with the same offset the query used, or a bar's key never matches a point.
+    const qint64 alignedFrom = ((from + tzOffset) / usage.bucketSecs) * usage.bucketSecs - tzOffset;
+    for (qint64 bucket = alignedFrom; bucket < now; bucket += usage.bucketSecs) {
+        const auto point = byBucket.value(bucket);
+        usage.series.append({bucket, point.up, point.down,
+            usage.bucketSecs >= 86400LL ? QDateTime::fromSecsSinceEpoch(bucket).toString(QStringLiteral("dd.MM"))
+                                        : QDateTime::fromSecsSinceEpoch(bucket).toString(QStringLiteral("HH:mm"))});
+    }
+    // The stats database sits beside the main one; its size is what the user is consenting to.
+    usage.databaseBytes = QFileInfo(Configs::dataManager->StatsDatabasePath()).size();
+    return usage;
 }
 
 // The verdict's actions leave the window rather than changing anything themselves:
@@ -122,6 +205,9 @@ void MainWindow::openDiagnostics(const QString &processKey) {
         });
         connect(window, &DiagnosticsWindow::navigateRequested, this, &MainWindow::openDiagnosticsTarget);
         connect(window, &DiagnosticsWindow::ruleRequested, this, &MainWindow::addRuleFromConnection);
+        connect(window, &DiagnosticsWindow::usageRequested, this, [this, window](int rangeDays) {
+            window->applyUsage(diagnosticsUsage(rangeDays));
+        });
     }
     diagnosticsWindow->applyLocalState(diagnosticsLocalState());
     if (!processKey.isEmpty()) diagnosticsWindow->showApplication(processKey);

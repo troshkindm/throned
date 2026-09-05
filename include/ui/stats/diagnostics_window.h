@@ -19,6 +19,7 @@ class QTreeWidget;
 class QTimer;
 class QProgressBar;
 class QGridLayout;
+class TrafficChartWidget;
 class QVBoxLayout;
 class QPlainTextEdit;
 class DiagnosticStep;
@@ -47,6 +48,31 @@ public:
         QString environmentReport;
     };
 
+    // Traffic history, read from the stats database by the application and handed
+    // over whole: the window itself never touches storage.
+    struct UsageRow {
+        QString name;
+        QString detail;
+        qint64 up = 0;
+        qint64 down = 0;
+    };
+    struct UsagePoint {
+        qint64 bucketStart = 0;
+        qint64 up = 0;
+        qint64 down = 0;
+        QString label;
+    };
+    struct Usage {
+        QList<UsageRow> apps;
+        QList<UsageRow> servers;
+        QList<UsagePoint> series;
+        qint64 bucketSecs = 3600;
+        qint64 daysStored = 0;
+        qint64 databaseBytes = 0;
+        bool recording = true;
+        bool available = true;
+    };
+
     explicit DiagnosticsWindow(QWidget *parent = nullptr);
     void showApplication(const QString &processKey = {});
     void showAddress(const QString &url);
@@ -55,6 +81,7 @@ public:
     void applyRoutePreview(const libcore::PreviewRouteResponse &result, const QString &error = {});
     void applySiteResult(const libcore::DiagnoseSiteResponse &result, const QString &error = {});
     void applyMatrixResult(const QString &outbound, const libcore::DiagnoseSiteResponse &result, const QString &error = {});
+    void applyUsage(const Usage &usage);
     void applyConnections(const libcore::QueryConnectionsResp &result, const QString &error = {});
 
 signals:
@@ -63,6 +90,7 @@ signals:
     void siteRequested(const libcore::DiagnoseSiteRequest &request);
     void matrixRequested(const QString &url, const QStringList &outbounds);
     void connectionsRequested();
+    void usageRequested(int rangeDays);
     void closeConnectionsRequested(const QStringList &ids);
     void ruleRequested(const QString &entry, int action);
     // "rules", "dns", "profile", "dpi", "log", "reachability", "interception"
@@ -95,6 +123,7 @@ private:
     void buildOverviewPage();
     void buildAddressPage();
     void buildApplicationsPage();
+    void buildStatisticsPage();
     void buildReportPage();
 
     void refreshTheme();
@@ -115,6 +144,8 @@ private:
     void setStep(int index, const QString &title, const QString &detail, const QString &tone, qint64 ms = -1);
     void rescaleSteps();
     void setVerdict(const QString &tone, const QString &title, const QString &detail, const QStringList &actions);
+    void refreshUsage();
+    void exportUsage();
     void refreshReport();
     void copyReport();
     void saveReport();
@@ -194,6 +225,22 @@ private:
     bool problemsOnly = false;
     qint64 captureStarted = 0;
     qint64 captureStopped = 0;
+
+    // Statistics
+    QList<QPushButton *> ranges;
+    QList<QPushButton *> usageTabs;
+    QLabel *usageDown;
+    QLabel *usageUp;
+    QLabel *usageTotal;
+    QLabel *usageAverage;
+    QLabel *usageFootnote;
+    QWidget *usageChartHost;
+    TrafficChartWidget *usageChart;
+    QVBoxLayout *usageRows;
+    QPushButton *usageExport;
+    Usage usage;
+    int usageRangeDays = 7;
+    int usageTab = 0;
 
     // Report
     QList<QCheckBox *> reportSections;

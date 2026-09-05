@@ -25,6 +25,8 @@ void ThemeManager::RegisterStyle(QWidget *, const QString &) const {}
 namespace ThronedChrome {
 ThronedTitleBar *install(QWidget *window, const QString &context) { return new ThronedTitleBar(context, window); }
 }
+// Pulled in by the traffic chart's tooltip; stubbed rather than linking all of Utils.
+QString ReadableSize(const qint64 &size) { return QLocale().formattedDataSize(size); }
 
 class TestDiagnostics : public QObject {
     Q_OBJECT

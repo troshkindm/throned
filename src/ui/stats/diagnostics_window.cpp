@@ -4,11 +4,13 @@
 #include "include/ui/widget/ThronedTitleBar.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
 #include "include/database/entities/RouteProfile.h"
+#include "include/ui/stats/TrafficChartWidget.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
+#include <QDate>
 #include <QDateTime>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -296,9 +298,12 @@ public:
         setAutoDefault(false);
         setIconSize(QSize(10, 10));
     }
+    // A dot only ever means "there is a remark in here". No dot is the normal state:
+    // a grey one on every entry is decoration, and decoration that looks like a status
+    // light is worse than none.
     void setState(const QString &value) {
         state = value;
-        setIcon(dotPixmap(value.isEmpty() ? themeManager()->Colors().controlInactive : toneColor(value)));
+        setIcon(value.isEmpty() ? QIcon() : QIcon(dotPixmap(toneColor(value))));
     }
     [[nodiscard]] QString stateName() const { return state; }
 private:
@@ -417,7 +422,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     railLayout->setSpacing(3);
     auto *railCaption = label(tr("SECTIONS"), "railCaption");
     railLayout->addWidget(railCaption);
-    for (const auto &caption : {tr("Overview"), tr("Address"), tr("Applications"), tr("Report")}) {
+    for (const auto &caption : {tr("Overview"), tr("Address"), tr("Applications"), tr("Statistics"), tr("Report")}) {
         auto *item = new RailButton(caption, railPanel);
         // Fixed, so the bolder checked entry does not push the ones below it out of step.
         item->setFixedHeight(38);
@@ -438,6 +443,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     buildOverviewPage();
     buildAddressPage();
     buildApplicationsPage();
+    buildStatisticsPage();
     buildReportPage();
 
     for (int i = 0; i < rail.size(); ++i) {
@@ -446,9 +452,10 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
             for (int j = 0; j < rail.size(); ++j) rail[j]->setChecked(j == i);
             if (i == 2) { poll->start(); requestConnections(); }
             else if (!recording) poll->stop();
-            if (i == 3) refreshReport();
-            reportSave->setVisible(i == 3);
-            reportCopy->setProperty("primary", i == 3);
+            if (i == 3) emit usageRequested(usageRangeDays);
+            if (i == 4) refreshReport();
+            reportSave->setVisible(i == 4);
+            reportCopy->setProperty("primary", i == 4);
             reportCopy->style()->unpolish(reportCopy);
             reportCopy->style()->polish(reportCopy);
         });
@@ -492,6 +499,24 @@ QDialog#diagnosticsWindow QLabel[diagnosticRole="factValue"] { color: #F1F3F5; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="finding"] {
     color: #E8A33D; background: #3A2227; border-radius: 5px; padding: 5px 8px;
 }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="totalDown"] { color: #2F91FF; font-size: 22px; font-weight: 600; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="totalUp"] { color: #2EBC75; font-size: 22px; font-weight: 600; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="total"] { font-size: 22px; font-weight: 600; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="totalMuted"] { color: #A4ABB4; font-size: 19px; font-weight: 600; }
+QPushButton#diagnosticRange { border-radius: 0; padding: 7px 13px; color: #A4ABB4; }
+QPushButton#diagnosticRange[segment="first"] { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+QPushButton#diagnosticRange[segment="last"] { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+QPushButton#diagnosticRange:checked { background: #193452; border-color: #237AE9; color: #F1F3F5; font-weight: 600; }
+QPushButton#diagnosticUsageTab {
+    background: transparent; border: 0; border-bottom: 2px solid transparent;
+    border-radius: 0; padding: 8px 15px; color: #A4ABB4;
+}
+QPushButton#diagnosticUsageTab:hover { background: #222529; }
+QPushButton#diagnosticUsageTab:checked { color: #F1F3F5; border-bottom-color: #237AE9; }
+QPushButton#diagnosticUsageTab:disabled { color: #747C86; }
+QWidget#diagnosticUsageRow { border-top: 1px solid #2F3136; }
+QProgressBar#diagnosticUsageBar { background: #222529; border: 0; border-radius: 3px; }
+QProgressBar#diagnosticUsageBar::chunk { background: #237AE9; border-radius: 3px; }
 QPushButton#diagnosticAddRule::menu-indicator { image: none; }
 QFrame#diagnosticRailPanel { background: #171B21; border: 0; border-right: 1px solid #2F3136; }
 /* Scoped through the dialog so it outweighs the generic button rule below, which
@@ -881,6 +906,114 @@ void DiagnosticsWindow::buildApplicationsPage() {
     pages->addWidget(page);
 }
 
+void DiagnosticsWindow::buildStatisticsPage() {
+    auto *page = new QWidget;
+    page->setObjectName(QStringLiteral("diagnosticPage"));
+    auto *layout = new QVBoxLayout(page);
+    layout->setContentsMargins(24, 18, 24, 16);
+    layout->setSpacing(11);
+
+    auto *tools = new QHBoxLayout;
+    tools->setSpacing(0);
+    auto *rangeBox = new QFrame;
+    rangeBox->setObjectName(QStringLiteral("diagnosticSegmented"));
+    auto *rangeLayout = new QHBoxLayout(rangeBox);
+    rangeLayout->setContentsMargins(0, 0, 0, 0);
+    rangeLayout->setSpacing(0);
+    int index = 0;
+    for (const auto &option : {QPair<int, QString>{1, tr("Day")}, {7, tr("7 days")}, {30, tr("30 days")}, {0, tr("All")}}) {
+        auto *choice = button(option.second, "diagnosticRange");
+        choice->setCheckable(true);
+        choice->setChecked(option.first == usageRangeDays);
+        choice->setProperty("segment", index == 0 ? "first" : index == 3 ? "last" : "middle");
+        const int days = option.first;
+        connect(choice, &QPushButton::clicked, this, [this, days] {
+            usageRangeDays = days;
+            for (auto *other : ranges) other->setChecked(other->property("days").toInt() == days);
+            emit usageRequested(days);
+        });
+        choice->setProperty("days", days);
+        rangeLayout->addWidget(choice);
+        ranges.append(choice);
+        ++index;
+    }
+    tools->addWidget(rangeBox);
+    tools->addStretch();
+    usageExport = button(tr("Export CSV"), "diagnosticExport");
+    tools->addWidget(usageExport);
+    layout->addLayout(tools);
+    connect(usageExport, &QPushButton::clicked, this, &DiagnosticsWindow::exportUsage);
+
+    auto *totals = new QHBoxLayout;
+    totals->setSpacing(26);
+    auto addTotal = [&](QLabel *&value, const QString &caption, const char *role) {
+        auto *box = new QVBoxLayout;
+        box->setSpacing(0);
+        value = label(QStringLiteral("—"), role);
+        box->addWidget(value);
+        box->addWidget(label(caption, "factName"));
+        totals->addLayout(box);
+    };
+    addTotal(usageDown, tr("Downloaded"), "totalDown");
+    addTotal(usageUp, tr("Uploaded"), "totalUp");
+    addTotal(usageTotal, tr("Total"), "total");
+    addTotal(usageAverage, tr("Per day on average"), "totalMuted");
+    totals->addStretch();
+    layout->addLayout(totals);
+
+    auto *chartCard = new QFrame;
+    chartCard->setObjectName(QStringLiteral("diagnosticCard"));
+    auto *chartLayout = new QVBoxLayout(chartCard);
+    chartLayout->setContentsMargins(14, 11, 14, 11);
+    chartLayout->setSpacing(8);
+    auto *chartHead = new QHBoxLayout;
+    chartHead->addWidget(label(tr("Over time"), "title"));
+    chartLayout->addLayout(chartHead);
+    usageChart = new TrafficChartWidget;
+    usageChart->setMinimumHeight(140);
+    chartLayout->addWidget(usageChart);
+    usageChartHost = chartCard;
+    layout->addWidget(chartCard);
+
+    auto *tabs = new QHBoxLayout;
+    tabs->setSpacing(0);
+    int tab = 0;
+    for (const auto &caption : {tr("Programs"), tr("Servers"), tr("Sites")}) {
+        auto *choice = button(caption, "diagnosticUsageTab");
+        choice->setCheckable(true);
+        choice->setChecked(tab == 0);
+        // The site breakdown needs a table the stats database does not have, and it is
+        // the one cut that must not be switched on silently. Shown, disabled, explained.
+        if (tab == 2) {
+            choice->setEnabled(false);
+            choice->setToolTip(tr("Requires recording the domains you open, which is off and not built yet."));
+        }
+        const int which = tab;
+        connect(choice, &QPushButton::clicked, this, [this, which] {
+            usageTab = which;
+            for (int i = 0; i < usageTabs.size(); ++i) usageTabs[i]->setChecked(i == which);
+            refreshUsage();
+        });
+        tabs->addWidget(choice);
+        usageTabs.append(choice);
+        ++tab;
+    }
+    tabs->addStretch();
+    layout->addLayout(tabs);
+
+    auto *breakdown = new QFrame;
+    breakdown->setObjectName(QStringLiteral("diagnosticCard"));
+    auto *breakdownLayout = new QVBoxLayout(breakdown);
+    breakdownLayout->setContentsMargins(0, 0, 0, 0);
+    breakdownLayout->setSpacing(0);
+    usageRows = breakdownLayout;
+    layout->addWidget(breakdown, 1);
+
+    usageFootnote = label({}, "subtle");
+    layout->addWidget(usageFootnote);
+    pages->addWidget(page);
+}
+
 void DiagnosticsWindow::buildReportPage() {
     auto *page = new QWidget;
     page->setObjectName(QStringLiteral("diagnosticPage"));
@@ -961,14 +1094,15 @@ void DiagnosticsWindow::refreshRail() {
         if (row->stateName() == QLatin1String("warning")) worst = QStringLiteral("warning");
     }
     rail[0]->setState(worst);
-    rail[1]->setState(verdictTone);
     QString apps;
     for (const auto &group : groups) {
         if (group.suspicion >= 2) { apps = QStringLiteral("error"); break; }
         if (group.suspicion == 1) apps = QStringLiteral("warning");
     }
     rail[2]->setState(apps);
-    rail[3]->setState({});
+    // Address carries the last check's verdict, which is a result the user just read
+    // rather than a standing condition; statistics and the report have no state at all.
+    for (const int section : {1, 3, 4}) rail[section]->setState({});
 }
 
 // ---------------------------------------------------------------- overview
@@ -1740,6 +1874,108 @@ QString DiagnosticsWindow::buildReport() const {
         report.replace(group.processPath, QFileInfo(group.processPath).fileName());
     }
     return report;
+}
+
+void DiagnosticsWindow::applyUsage(const Usage &value) {
+    usage = value;
+    refreshUsage();
+}
+
+void DiagnosticsWindow::refreshUsage() {
+    while (auto *item = usageRows->takeAt(0)) {
+        if (auto *widget = item->widget()) widget->deleteLater();
+        delete item;
+    }
+    const auto &rows = usageTab == 1 ? usage.servers : usage.apps;
+    qint64 up = 0, down = 0;
+    for (const auto &row : rows) { up += row.up; down += row.down; }
+    usageDown->setText(down > 0 ? bytes(down) : QStringLiteral("—"));
+    usageUp->setText(up > 0 ? bytes(up) : QStringLiteral("—"));
+    usageTotal->setText(up + down > 0 ? bytes(up + down) : QStringLiteral("—"));
+    const auto days = qMax<qint64>(1, usageRangeDays > 0 ? usageRangeDays : qMax<qint64>(1, usage.daysStored));
+    usageAverage->setText(up + down > 0 ? bytes((up + down) / days) : QStringLiteral("—"));
+
+    QList<TrafficChartWidget::Bar> bars;
+    for (const auto &point : usage.series)
+        bars.append({point.bucketStart, point.down, point.up, point.label});
+    // Enough labels to orient without them colliding at a 30-day range.
+    usageChart->setData(bars, qMax(1, bars.size() / 8), usage.bucketSecs);
+    usageChartHost->setVisible(!bars.isEmpty());
+
+    if (!usage.available) {
+        usageRows->addWidget(label(tr("The statistics database is unavailable."), "muted"));
+    } else if (!usage.recording) {
+        usageRows->addWidget(label(tr("Traffic counting is turned off, so there is nothing to show. Turn it on in the settings to start collecting."), "muted"));
+    } else if (rows.isEmpty()) {
+        usageRows->addWidget(label(tr("Nothing recorded for this period."), "muted"));
+    }
+    // A single scale for the bars: the top row is full width and the rest read against it.
+    qint64 peak = 1;
+    for (const auto &row : rows) peak = qMax(peak, row.up + row.down);
+    static const QColor swatches[] = {QColor("#3B82F6"), QColor("#5C99FF"), QColor("#3ECF8E"),
+                                      QColor("#D9A441"), QColor("#A78BFA"), QColor("#4B4F58")};
+    for (int i = 0; i < rows.size(); ++i) {
+        const auto &row = rows[i];
+        auto *line = new QWidget;
+        line->setObjectName(QStringLiteral("diagnosticUsageRow"));
+        auto *grid = new QGridLayout(line);
+        grid->setContentsMargins(14, 9, 14, 9);
+        grid->setHorizontalSpacing(11);
+        grid->setVerticalSpacing(1);
+        auto *swatch = new QLabel;
+        swatch->setFixedSize(10, 10);
+        swatch->setPixmap(dotPixmap(swatches[qMin<int>(i, 5)], 10));
+        grid->addWidget(swatch, 0, 0, 2, 1);
+        auto *name = label(row.name, "factValue");
+        name->setWordWrap(false);
+        grid->addWidget(name, 0, 1);
+        if (!row.detail.isEmpty()) {
+            auto *detail = label(row.detail, "factName");
+            detail->setWordWrap(false);
+            grid->addWidget(detail, 1, 1);
+        }
+        auto *bar = new QProgressBar;
+        bar->setObjectName(QStringLiteral("diagnosticUsageBar"));
+        bar->setTextVisible(false);
+        bar->setFixedHeight(6);
+        bar->setRange(0, 1000);
+        bar->setValue(static_cast<int>(1000 * (row.up + row.down) / peak));
+        bar->setFixedWidth(150);
+        grid->addWidget(bar, 0, 2, 2, 1, Qt::AlignVCenter);
+        auto *value = label(bytes(row.up + row.down), "factValue");
+        value->setAlignment(Qt::AlignRight | Qt::AlignBottom);
+        grid->addWidget(value, 0, 3);
+        auto *share = label(tr("%1%").arg(100.0 * (row.up + row.down) / qMax<qint64>(1, up + down), 0, 'f', 0), "factName");
+        share->setAlignment(Qt::AlignRight | Qt::AlignTop);
+        grid->addWidget(share, 1, 3);
+        grid->setColumnStretch(1, 1);
+        usageRows->addWidget(line);
+    }
+    usageRows->addStretch(1);
+    usageFootnote->setText(usage.databaseBytes > 0
+        ? tr("Stored on this computer only · %1 · %n day(s) of records", "", static_cast<int>(usage.daysStored))
+              .arg(bytes(usage.databaseBytes))
+        : tr("Stored on this computer only and never sent anywhere."));
+    usageExport->setEnabled(!rows.isEmpty());
+}
+
+void DiagnosticsWindow::exportUsage() {
+    const auto &rows = usageTab == 1 ? usage.servers : usage.apps;
+    if (rows.isEmpty()) return;
+    const auto path = QFileDialog::getSaveFileName(this, tr("Export statistics"),
+        QStringLiteral("throned-traffic-") + QDate::currentDate().toString(Qt::ISODate) + QStringLiteral(".csv"),
+        tr("CSV files (*.csv)"));
+    if (path.isEmpty()) return;
+    QString out = QStringLiteral("name,detail,download_bytes,upload_bytes\n");
+    for (const auto &row : rows)
+        out += QStringLiteral("\"%1\",\"%2\",%3,%4\n")
+            .arg(QString(row.name).replace(QLatin1Char('"'), QStringLiteral("\"\"")),
+                 QString(row.detail).replace(QLatin1Char('"'), QStringLiteral("\"\"")))
+            .arg(row.down).arg(row.up);
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+    file.write(out.toUtf8());
+    file.commit();
 }
 
 void DiagnosticsWindow::refreshReport() {

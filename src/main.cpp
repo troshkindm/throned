@@ -1380,16 +1380,48 @@ briefly interrupts traffic.
 
                     QTimer::singleShot(200, dialog, [dialog, prefix] {
                         dialog->grab().save(prefix + QStringLiteral("-diagnostics-app.png"), "PNG");
-                        auto *reportRail = dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(3);
+                        auto *reportRail = dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(4);
                         if (reportRail == nullptr) {
                             qWarning() << "Diagnostics preview lost the report section";
                             qApp->exit(2);
                             return;
                         }
-                        reportRail->click();
-                        QTimer::singleShot(120, dialog, [dialog, prefix] {
-                            dialog->grab().save(prefix + QStringLiteral("-diagnostics-report.png"), "PNG");
-                            dialog->close(); qApp->exit(0);
+                        auto *statsRail = dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(3);
+                        if (statsRail == nullptr) {
+                            qWarning() << "Diagnostics preview lost the statistics section";
+                            qApp->exit(2);
+                            return;
+                        }
+                        // Synthetic week of traffic: the shape of the screen, not the probe.
+                        DiagnosticsWindow::Usage usage;
+                        usage.bucketSecs = 86400;
+                        usage.daysStored = 7;
+                        usage.databaseBytes = 4404019;
+                        usage.apps = {
+                            {QStringLiteral("chrome.exe"), QStringLiteral("C:/Program Files/Google/Chrome"), 720LL << 20, 18400LL << 20},
+                            {QStringLiteral("steam.exe"), QStringLiteral("C:/Program Files (x86)/Steam"), 190LL << 20, 11200LL << 20},
+                            {QStringLiteral("Telegram.exe"), QStringLiteral("C:/Users/demo/AppData/Roaming/Telegram"), 640LL << 20, 7900LL << 20},
+                            {QStringLiteral("DemoChat.exe"), QStringLiteral("C:/Demo"), 210LL << 20, 4100LL << 20},
+                        };
+                        usage.servers = {
+                            {QStringLiteral("Demo North"), QStringLiteral("Demo subscription"), 1200LL << 20, 33000LL << 20},
+                            {QStringLiteral("Direct"), {}, 560LL << 20, 8600LL << 20},
+                        };
+                        const auto today = QDateTime::currentSecsSinceEpoch() / 86400 * 86400;
+                        const qint64 shape[] = {5600, 7400, 3800, 8800, 4600, 6400, 3000};
+                        for (int day = 0; day < 7; ++day)
+                            usage.series.append({today - (6 - day) * 86400, shape[day] << 17, shape[day] << 20,
+                                                 QDateTime::fromSecsSinceEpoch(today - (6 - day) * 86400).toString(QStringLiteral("dd.MM"))});
+                        dialog->applyUsage(usage);
+                        statsRail->click();
+                        dialog->applyUsage(usage);
+                        QTimer::singleShot(120, dialog, [dialog, prefix, reportRail] {
+                            dialog->grab().save(prefix + QStringLiteral("-diagnostics-stats.png"), "PNG");
+                            reportRail->click();
+                            QTimer::singleShot(120, dialog, [dialog, prefix] {
+                                dialog->grab().save(prefix + QStringLiteral("-diagnostics-report.png"), "PNG");
+                                dialog->close(); qApp->exit(0);
+                            });
                         });
                     });
                 });

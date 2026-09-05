@@ -177,6 +177,7 @@ public:
     void openDiagnostics(const QString &processKey = {});
     void openDiagnosticsTarget(const QString &target);
     DiagnosticsWindow::LocalState diagnosticsLocalState();
+    DiagnosticsWindow::Usage diagnosticsUsage(int rangeDays);
     // Unix ms when the core last came up; 0 when it is not running.
     qint64 coreStartedAt = 0;
 

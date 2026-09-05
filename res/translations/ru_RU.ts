@@ -543,6 +543,10 @@
         <translation>Приложение не определено · %1</translation>
     </message>
     <message>
+        <source>Statistics</source>
+        <translation>Статистика</translation>
+    </message>
+    <message>
         <source>Hide the healthy</source>
         <translation>Скрыть исправные</translation>
     </message>
@@ -561,6 +565,62 @@
     <message>
         <source>Route this…</source>
         <translation>Направить это…</translation>
+    </message>
+    <message>
+        <source>Day</source>
+        <translation>Сутки</translation>
+    </message>
+    <message>
+        <source>7 days</source>
+        <translation>7 дней</translation>
+    </message>
+    <message>
+        <source>30 days</source>
+        <translation>30 дней</translation>
+    </message>
+    <message>
+        <source>All</source>
+        <translation>Всё</translation>
+    </message>
+    <message>
+        <source>Export CSV</source>
+        <translation>Экспорт CSV</translation>
+    </message>
+    <message>
+        <source>Downloaded</source>
+        <translation>Получено (↓)</translation>
+    </message>
+    <message>
+        <source>Uploaded</source>
+        <translation>Отправлено (↑)</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Всего</translation>
+    </message>
+    <message>
+        <source>Per day on average</source>
+        <translation>В среднем за сутки</translation>
+    </message>
+    <message>
+        <source>Over time</source>
+        <translation>По времени</translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation>Программы</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>Серверы</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>Сайты</translation>
+    </message>
+    <message>
+        <source>Requires recording the domains you open, which is off and not built yet.</source>
+        <translation>Требует записи доменов, которые вы открываете, — она выключена и пока не реализована.</translation>
     </message>
     <message>
         <source>%1 · %2 min</source>
@@ -887,6 +947,41 @@
         <translation>Throned · соединения приложения</translation>
     </message>
     <message>
+        <source>The statistics database is unavailable.</source>
+        <translation>База статистики недоступна.</translation>
+    </message>
+    <message>
+        <source>Traffic counting is turned off, so there is nothing to show. Turn it on in the settings to start collecting.</source>
+        <translation>Подсчёт трафика выключен, показывать нечего. Включите его в настройках, чтобы начать собирать.</translation>
+    </message>
+    <message>
+        <source>Nothing recorded for this period.</source>
+        <translation>За этот период ничего не записано.</translation>
+    </message>
+    <message>
+        <source>%1%</source>
+        <translation>%1 %</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stored on this computer only · %1 · %n day(s) of records</source>
+        <translation>
+            <numerusform>Только на этом компьютере · %1 · %n день записей</numerusform>
+            <numerusform>Только на этом компьютере · %1 · %n дня записей</numerusform>
+            <numerusform>Только на этом компьютере · %1 · %n дней записей</numerusform>
+        </translation>    </message>
+    <message>
+        <source>Stored on this computer only and never sent anywhere.</source>
+        <translation>Хранится только на этом компьютере и никуда не отправляется.</translation>
+    </message>
+    <message>
+        <source>Export statistics</source>
+        <translation>Экспорт статистики</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>Файлы CSV (*.csv)</translation>
+    </message>
+    <message>
         <source>Copied</source>
         <translation>Скопировано</translation>
     </message>
@@ -901,6 +996,29 @@
     <message>
         <source>Not checked</source>
         <translation>Не проверено</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Неизвестно</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Profile #%1 (deleted)</source>
+        <translation>Профиль №%1 (удалён)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>ещё %n</numerusform>
+            <numerusform>ещё %n</numerusform>
+            <numerusform>ещё %n</numerusform>
+        </translation>    </message>
+    <message>
+        <source>The rest</source>
+        <translation>Остальные</translation>
     </message>
 </context>
 <context>

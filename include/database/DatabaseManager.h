@@ -40,6 +40,9 @@ namespace Configs {
 
         // Call once, after the UI is up.
         void RunDeferredMaintenance();
+
+        // So the statistics screen can tell the user how much history is on disk.
+        [[nodiscard]] QString StatsDatabasePath() const { return QString::fromStdString(statsDb.Path()); }
         
         DatabaseManager(const DatabaseManager&) = delete;
         DatabaseManager& operator=(const DatabaseManager&) = delete;
