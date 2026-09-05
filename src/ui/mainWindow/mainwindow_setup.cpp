@@ -498,16 +498,38 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     openDiagnosticsAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+D")));
     ui->menu_program->insertAction(ui->menu_exit, openDiagnosticsAction);
     connect(openDiagnosticsAction, &QAction::triggered, this, [this] { openDiagnostics(); });
-    auto *diagnosticsButton = new QToolButton(redesignedCentral);
+    auto *openStatsAction = new QAction(tr("Traffic statistics"), this);
+    ui->menu_program->insertAction(ui->menu_exit, openStatsAction);
+    connect(openStatsAction, &QAction::triggered, this, [this] { openDiagnostics({}, 3); });
+
+    // Icons in one bordered pair rather than two labelled buttons: this corner competes
+    // with the group tabs for width, and a labelled entry each would crowd them out.
+    auto *diagnosticsButton = new QFrame(redesignedCentral);
     diagnosticsButton->setObjectName(QStringLiteral("diagnosticsButton"));
-    diagnosticsButton->setDefaultAction(openDiagnosticsAction);
-    diagnosticsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    diagnosticsButton->setIconSize(QSize(19, 19));
     diagnosticsButton->setFixedHeight(38);
-    diagnosticsButton->setCursor(Qt::PointingHandCursor);
-    diagnosticsButton->setToolTip(tr("Website and application diagnostics (Ctrl+Shift+D)"));
-    const auto retintDiagnostics = [openDiagnosticsAction] {
-        openDiagnosticsAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Search, themeManager()->Colors().textMuted, 19));
+    auto *pairLayout = new QHBoxLayout(diagnosticsButton);
+    pairLayout->setContentsMargins(0, 0, 0, 0);
+    pairLayout->setSpacing(0);
+    QList<QToolButton *> pair;
+    for (auto *action : {openStatsAction, openDiagnosticsAction}) {
+        auto *entry = new QToolButton(diagnosticsButton);
+        entry->setObjectName(QStringLiteral("diagnosticsPairButton"));
+        entry->setProperty("segment", action == openStatsAction ? "first" : "last");
+        entry->setDefaultAction(action);
+        entry->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        entry->setIconSize(QSize(19, 19));
+        // The QSS margin leaves a 33 px visible box, so the content is 31 inside its border.
+        entry->setFixedSize(36, 31);
+        entry->setCursor(Qt::PointingHandCursor);
+        pairLayout->addWidget(entry);
+        pair.append(entry);
+    }
+    pair[0]->setToolTip(tr("Traffic statistics by program and server"));
+    pair[1]->setToolTip(tr("Website and application diagnostics (Ctrl+Shift+D)"));
+    const auto retintDiagnostics = [openDiagnosticsAction, openStatsAction] {
+        const auto tint = themeManager()->Colors().textMuted;
+        openDiagnosticsAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Search, tint, 19));
+        openStatsAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, tint, 19));
     };
     retintDiagnostics();
     connect(themeManager(), &ThemeManager::themeChanged, this, retintDiagnostics);
@@ -999,11 +1021,15 @@ QToolButton#groupAddButton {
     margin-bottom: 5px;
 }
 QToolButton#groupAddButton:hover { background: #292D33; border-color: #4A4F57; }
-QToolButton#diagnosticsButton {
-    background: #222529; color: #F1F3F5; border: 1px solid #3E454F; border-radius: 7px;
-    margin-bottom: 5px; padding: 0 10px;
+QFrame#diagnosticsButton {
+    background: #222529; border: 1px solid #3E454F; border-radius: 7px; margin-bottom: 5px;
 }
-QToolButton#diagnosticsButton:hover { background: #292D33; border-color: #237AE9; }
+QToolButton#diagnosticsPairButton {
+    background: transparent; border: 0; border-left: 1px solid #3E454F; border-radius: 0; color: #F1F3F5;
+}
+QToolButton#diagnosticsPairButton[segment="first"] { border-left: 0; border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+QToolButton#diagnosticsPairButton[segment="last"] { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+QToolButton#diagnosticsPairButton:hover { background: #292D33; }
 QToolButton#groupAddButton:pressed { background: #182530; border-color: #237AE9; }
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;

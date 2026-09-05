@@ -5294,6 +5294,22 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
+        <translation>Диагностика сайтов и приложений (Ctrl+Shift+D)</translation>
+    </message>
+    <message>
+        <source>Traffic statistics by program and server</source>
+        <translation>Статистика трафика по программам и серверам</translation>
+    </message>
+    <message>
+        <source>Traffic statistics</source>
+        <translation>Статистика трафика</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>Диагностика</translation>
+    </message>
+    <message>
         <source>Connection</source>
         <translation>Соединение</translation>
     </message>

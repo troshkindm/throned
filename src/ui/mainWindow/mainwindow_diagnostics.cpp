@@ -138,7 +138,7 @@ void MainWindow::openDiagnosticsTarget(const QString &target) {
     on_menu_basic_settings_triggered();
 }
 
-void MainWindow::openDiagnostics(const QString &processKey) {
+void MainWindow::openDiagnostics(const QString &processKey, int section) {
     if (!diagnosticsWindow) {
         diagnosticsWindow = new DiagnosticsWindow(this);
         diagnosticsWindow->setAttribute(Qt::WA_DeleteOnClose);
@@ -211,6 +211,7 @@ void MainWindow::openDiagnostics(const QString &processKey) {
     }
     diagnosticsWindow->applyLocalState(diagnosticsLocalState());
     if (!processKey.isEmpty()) diagnosticsWindow->showApplication(processKey);
+    if (section >= 0) diagnosticsWindow->showSection(section);
     diagnosticsWindow->show();
     diagnosticsWindow->raise();
     diagnosticsWindow->activateWindow();

@@ -76,6 +76,8 @@ public:
     explicit DiagnosticsWindow(QWidget *parent = nullptr);
     void showApplication(const QString &processKey = {});
     void showAddress(const QString &url);
+    // 0 overview, 1 address, 2 applications, 3 statistics, 4 report
+    void showSection(int section);
     void applyLocalState(const LocalState &state);
     void applyHealth(const libcore::HealthResponse &result, const QString &error = {});
     void applyRoutePreview(const libcore::PreviewRouteResponse &result, const QString &error = {});

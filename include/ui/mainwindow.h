@@ -174,7 +174,7 @@ public:
     QString collectDiagnostics();
 
     void copyDiagnostics();
-    void openDiagnostics(const QString &processKey = {});
+    void openDiagnostics(const QString &processKey = {}, int section = -1);
     void openDiagnosticsTarget(const QString &target);
     DiagnosticsWindow::LocalState diagnosticsLocalState();
     DiagnosticsWindow::Usage diagnosticsUsage(int rangeDays);

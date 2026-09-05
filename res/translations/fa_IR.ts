@@ -2,6 +2,941 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="fa_IR" sourcelanguage="en">
 <context>
+    <name>DiagnosticsWindow</name>
+    <message>
+        <source>Unknown</source>
+        <translation>نامشخص</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>مستقیم</translation>
+    </message>
+    <message>
+        <source>Profile #%1 (deleted)</source>
+        <translation>پروفایل #%1 (حذف‌شده)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation><numerusform>%n مورد دیگر</numerusform></translation>
+    </message>
+    <message>
+        <source>The rest</source>
+        <translation>بقیه</translation>
+    </message>
+    <message>
+        <source>No application reported</source>
+        <translation>برنامه‌ای گزارش نشد</translation>
+    </message>
+    <message>
+        <source>No application reported · %1</source>
+        <translation>برنامه‌ای گزارش نشد · %1</translation>
+    </message>
+    <message>
+        <source>The rule blocks this traffic.</source>
+        <translation>این قانون جلوی این ترافیک را می‌گیرد.</translation>
+    </message>
+    <message>
+        <source>Chosen by the program that opened the connection.</source>
+        <translation>بر اساس برنامه‌ای که اتصال را باز کرده انتخاب شد.</translation>
+    </message>
+    <message>
+        <source>Chosen by the domain.</source>
+        <translation>بر اساس دامنه انتخاب شد.</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination IP address.</source>
+        <translation>بر اساس نشانی IP مقصد انتخاب شد.</translation>
+    </message>
+    <message>
+        <source>Chosen by the protocol, not by the address.</source>
+        <translation>بر اساس پروتکل انتخاب شد، نه بر اساس نشانی.</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination port.</source>
+        <translation>بر اساس درگاه مقصد انتخاب شد.</translation>
+    </message>
+    <message>
+        <source>Reported by the core as written in the routing profile.</source>
+        <translation>هسته آن را همان‌گونه که در پروفایل مسیریابی نوشته شده گزارش کرده است.</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 میلی‌ثانیه</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>عیب‌یابی</translation>
+    </message>
+    <message>
+        <source>Overview</source>
+        <translation>نمای کلی</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>آدرس</translation>
+    </message>
+    <message>
+        <source>Applications</source>
+        <translation>برنامه‌ها</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>آمار</translation>
+    </message>
+    <message>
+        <source>Report</source>
+        <translation>گزارش</translation>
+    </message>
+    <message>
+        <source>Save to file</source>
+        <translation>ذخیره در فایل</translation>
+    </message>
+    <message>
+        <source>Copy report</source>
+        <translation>کپی گزارش</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>بستن</translation>
+    </message>
+    <message>
+        <source>Connection state</source>
+        <translation>وضعیت اتصال</translation>
+    </message>
+    <message>
+        <source>Checked when the window opens. Nothing leaves the machine except two requests through the active outbound.</source>
+        <translation>هنگام باز شدن پنجره بررسی می‌شود. جز دو درخواست از طریق خروجی فعال، چیزی از این دستگاه خارج نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>Core</source>
+        <translation>هسته</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>نمایه</translation>
+    </message>
+    <message>
+        <source>Traffic capture</source>
+        <translation>گرفتن ترافیک</translation>
+    </message>
+    <message>
+        <source>Visible address</source>
+        <translation>نشانی قابل مشاهده</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>دی‌ان‌اس</translation>
+    </message>
+    <message>
+        <source>UDP</source>
+        <translation>UDP</translation>
+    </message>
+    <message>
+        <source>System clock</source>
+        <translation>ساعت سیستم</translation>
+    </message>
+    <message>
+        <source>Check again</source>
+        <translation>بررسی دوباره</translation>
+    </message>
+    <message>
+        <source>Rows with an action open the screen that fixes that cause. Nothing here changes settings on its own.</source>
+        <translation>ردیف‌های دارای دکمه، صفحه‌ای را باز می‌کنند که آن علت را برطرف می‌کند. اینجا هیچ تنظیمی خودبه‌خود تغییر نمی‌کند.</translation>
+    </message>
+    <message>
+        <source>Check an address</source>
+        <translation>بررسی یک نشانی</translation>
+    </message>
+    <message>
+        <source>Website address</source>
+        <translation>نشانی وب‌سایت</translation>
+    </message>
+    <message>
+        <source>Compare with…</source>
+        <translation>مقایسه با…</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>بررسی</translation>
+    </message>
+    <message>
+        <source>An address that works, for comparison</source>
+        <translation>نشانی‌ای که کار می‌کند، برای مقایسه</translation>
+    </message>
+    <message>
+        <source>The address is matched against your routing rules first, then requested through the outbound they choose.</source>
+        <translation>ابتدا نشانی با قوانین مسیریابی شما تطبیق داده می‌شود، سپس درخواست از طریق خروجی انتخاب‌شده ارسال می‌شود.</translation>
+    </message>
+    <message>
+        <source>Any application</source>
+        <translation>هر برنامه‌ای</translation>
+    </message>
+    <message>
+        <source>Enter an address to begin</source>
+        <translation>برای شروع یک نشانی وارد کنید</translation>
+    </message>
+    <message>
+        <source>Start a connection in Throned, then check where the request stops.</source>
+        <translation>ابتدا در Throned اتصال برقرار کنید، سپس ببینید درخواست کجا متوقف می‌شود.</translation>
+    </message>
+    <message>
+        <source>Request path</source>
+        <translation>مسیر درخواست</translation>
+    </message>
+    <message>
+        <source>Route · not checked</source>
+        <translation>مسیر · بررسی نشده</translation>
+    </message>
+    <message>
+        <source>The routing rules decide the outbound before anything is sent.</source>
+        <translation>پیش از ارسال هر چیزی، خروجی را قوانین مسیریابی تعیین می‌کنند.</translation>
+    </message>
+    <message>
+        <source>DNS · not checked</source>
+        <translation>DNS · بررسی نشده</translation>
+    </message>
+    <message>
+        <source>Resolved beside the probe, never in front of it, so the proxy still resolves the name itself.</source>
+        <translation>همزمان با آزمون انجام می‌شود، نه پیش از آن، بنابراین نام همچنان توسط پروکسی تفکیک می‌شود.</translation>
+    </message>
+    <message>
+        <source>Connection · not checked</source>
+        <translation>اتصال · بررسی نشده</translation>
+    </message>
+    <message>
+        <source>Establishing the connection through the chosen outbound.</source>
+        <translation>برقراری اتصال از طریق خروجی انتخاب‌شده.</translation>
+    </message>
+    <message>
+        <source>TLS · not checked</source>
+        <translation>TLS · بررسی نشده</translation>
+    </message>
+    <message>
+        <source>Certificate and hostname verification remain enabled.</source>
+        <translation>بررسی گواهی و نام میزبان فعال می‌ماند.</translation>
+    </message>
+    <message>
+        <source>HTTP · not checked</source>
+        <translation>HTTP · بررسی نشده</translation>
+    </message>
+    <message>
+        <source>One HEAD request, without following redirects or sending account credentials.</source>
+        <translation>یک درخواست HEAD، بدون دنبال کردن تغییر مسیرها و بدون ارسال اطلاعات حساب.</translation>
+    </message>
+    <message>
+        <source>Through the other outbounds</source>
+        <translation>از طریق خروجی‌های دیگر</translation>
+    </message>
+    <message>
+        <source>Outbound</source>
+        <translation>خروجی</translation>
+    </message>
+    <message>
+        <source>TLS</source>
+        <translation>TLS</translation>
+    </message>
+    <message>
+        <source>HTTP</source>
+        <translation>HTTP</translation>
+    </message>
+    <message>
+        <source>This test does not reproduce browser DNS, extensions, application login or UDP traffic.</source>
+        <translation>این آزمون DNS مرورگر، افزونه‌ها، ورود به برنامه یا ترافیک UDP را بازتولید نمی‌کند.</translation>
+    </message>
+    <message>
+        <source>Application connections</source>
+        <translation>اتصال‌های برنامه</translation>
+    </message>
+    <message>
+        <source>Observe traffic passing through Throned while reproducing the problem.</source>
+        <translation>هنگام بازتولید مشکل، ترافیک عبوری از Throned را مشاهده کنید.</translation>
+    </message>
+    <message>
+        <source>Application</source>
+        <translation>برنامه</translation>
+    </message>
+    <message>
+        <source>All applications</source>
+        <translation>همهٔ برنامه‌ها</translation>
+    </message>
+    <message>
+        <source>Hide the healthy</source>
+        <translation>پنهان کردن موارد سالم</translation>
+    </message>
+    <message>
+        <source>Keeps only the destinations with a remark: no outbound reported, nothing came back, or going direct while the rest is proxied.</source>
+        <translation>فقط مقصدهایی را نگه می‌دارد که نکته‌ای دارند: خروجی گزارش نشده، پاسخی نیامده، یا در حالی مستقیم می‌روند که بقیه از پروکسی عبور می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Start observation</source>
+        <translation>شروع مشاهده</translation>
+    </message>
+    <message>
+        <source>Current connections. Start observation to retain completed connections.</source>
+        <translation>اتصال‌های جاری. برای نگه‌داشتن اتصال‌های پایان‌یافته، مشاهده را شروع کنید.</translation>
+    </message>
+    <message>
+        <source>Destination</source>
+        <translation>مقصد</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>ترافیک</translation>
+    </message>
+    <message>
+        <source>Select a connection</source>
+        <translation>یک اتصال را انتخاب کنید</translation>
+    </message>
+    <message>
+        <source>The list includes only connections visible to the core.</source>
+        <translation>فهرست فقط شامل اتصال‌هایی است که هسته می‌بیند.</translation>
+    </message>
+    <message>
+        <source>Check this address</source>
+        <translation>بررسی این نشانی</translation>
+    </message>
+    <message>
+        <source>Route this…</source>
+        <translation>مسیریابی این…</translation>
+    </message>
+    <message>
+        <source>Drop connections</source>
+        <translation>قطع اتصال‌ها</translation>
+    </message>
+    <message>
+        <source>HTTPS contents are not recorded. Byte counters cover the connection&apos;s lifetime; no reply does not by itself prove a failure.</source>
+        <translation>محتوای HTTPS ثبت نمی‌شود. شمارنده‌های بایت کل عمر اتصال را در بر می‌گیرند؛ نبودِ پاسخ به‌تنهایی نشانهٔ خطا نیست.</translation>
+    </message>
+    <message>
+        <source>Rules are matched as if %1 opened the address. Application login is not reproduced.</source>
+        <translation>قوانین چنان تطبیق می‌شوند که گویی %1 این نشانی را باز کرده است. ورود به برنامه بازتولید نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>Day</source>
+        <translation>یک روز</translation>
+    </message>
+    <message>
+        <source>7 days</source>
+        <translation>۷ روز</translation>
+    </message>
+    <message>
+        <source>30 days</source>
+        <translation>۳۰ روز</translation>
+    </message>
+    <message>
+        <source>All</source>
+        <translation>همه</translation>
+    </message>
+    <message>
+        <source>Export CSV</source>
+        <translation>خروجی CSV</translation>
+    </message>
+    <message>
+        <source>Downloaded</source>
+        <translation>دریافت‌شده</translation>
+    </message>
+    <message>
+        <source>Uploaded</source>
+        <translation>ارسال‌شده</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>مجموع</translation>
+    </message>
+    <message>
+        <source>Per day on average</source>
+        <translation>میانگین روزانه</translation>
+    </message>
+    <message>
+        <source>Over time</source>
+        <translation>در طول زمان</translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation>برنامه‌ها</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>سرورها</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>سایت‌ها</translation>
+    </message>
+    <message>
+        <source>Requires recording the domains you open, which is off and not built yet.</source>
+        <translation>نیازمند ثبت دامنه‌هایی است که باز می‌کنید؛ این قابلیت خاموش است و هنوز ساخته نشده.</translation>
+    </message>
+    <message>
+        <source>Report for support</source>
+        <translation>گزارش برای پشتیبانی</translation>
+    </message>
+    <message>
+        <source>One paste instead of two. Pick what goes in and see exactly what you are about to send.</source>
+        <translation>یک بار جای‌گذاری به‌جای دو بار. انتخاب کنید چه چیزی وارد شود و دقیقاً ببینید چه می‌فرستید.</translation>
+    </message>
+    <message>
+        <source>Address check</source>
+        <translation>بررسی نشانی</translation>
+    </message>
+    <message>
+        <source>Settings, DNS and log</source>
+        <translation>تنظیمات، DNS و گزارش‌ها</translation>
+    </message>
+    <message>
+        <source>Hide personal data</source>
+        <translation>پنهان کردن داده‌های شخصی</translation>
+    </message>
+    <message>
+        <source>Masks the profile name, the visible address and paths to programs.</source>
+        <translation>نام پروفایل، نشانی قابل مشاهده و مسیر برنامه‌ها را پنهان می‌کند.</translation>
+    </message>
+    <message>
+        <source>%1 · %2 min</source>
+        <translation>%1 · %2 دقیقه</translation>
+    </message>
+    <message>
+        <source>Not started — nothing is being routed</source>
+        <translation>اجرا نشده — هیچ ترافیکی مسیریابی نمی‌شود</translation>
+    </message>
+    <message>
+        <source>Log</source>
+        <translation>گزارش‌ها</translation>
+    </message>
+    <message>
+        <source>No profile is selected</source>
+        <translation>هیچ پروفایلی انتخاب نشده</translation>
+    </message>
+    <message>
+        <source>%1 · %2</source>
+        <translation>%1 · %2</translation>
+    </message>
+    <message>
+        <source>%1 · %2 · %3 ms</source>
+        <translation>%1 · %2 · %3 میلی‌ثانیه</translation>
+    </message>
+    <message>
+        <source>Change</source>
+        <translation>تغییر</translation>
+    </message>
+    <message>
+        <source>TUN is active — every program goes through Throned</source>
+        <translation>TUN فعال است — همهٔ برنامه‌ها از Throned عبور می‌کنند</translation>
+    </message>
+    <message>
+        <source>System proxy is set — programs that honour it go through Throned</source>
+        <translation>پروکسی سیستم تنظیم شده — برنامه‌هایی که آن را رعایت می‌کنند از Throned عبور می‌کنند</translation>
+    </message>
+    <message>
+        <source>Neither TUN nor the system proxy is on — programs go past Throned</source>
+        <translation>نه TUN و نه پروکسی سیستم فعال نیست — برنامه‌ها از کنار Throned رد می‌شوند</translation>
+    </message>
+    <message>
+        <source>Turn on</source>
+        <translation>روشن کردن</translation>
+    </message>
+    <message>
+        <source>Could not be checked: %1</source>
+        <translation>بررسی ممکن نشد: %1</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>در حال بررسی…</translation>
+    </message>
+    <message>
+        <source>Not checked yet</source>
+        <translation>هنوز بررسی نشده</translation>
+    </message>
+    <message>
+        <source>The system and the core agree on %1</source>
+        <translation>سیستم و هسته دربارهٔ %1 هم‌نظرند</translation>
+    </message>
+    <message>
+        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
+        <translation>سیستم و هسته برای %1 پاسخ متفاوت می‌دهند — پرس‌وجوها از تونل خارج می‌شوند</translation>
+    </message>
+    <message>
+        <source>Fix</source>
+        <translation>رفع</translation>
+    </message>
+    <message>
+        <source>Answers in %1 ms — calls, games and QUIC have a path</source>
+        <translation>در %1 میلی‌ثانیه پاسخ می‌دهد — تماس‌ها، بازی‌ها و QUIC مسیر دارند</translation>
+    </message>
+    <message>
+        <source>Answers — calls, games and QUIC have a path</source>
+        <translation>پاسخ می‌دهد — تماس‌ها، بازی‌ها و QUIC مسیر دارند</translation>
+    </message>
+    <message>
+        <source>No answer — calls, games and QUIC will not work</source>
+        <translation>پاسخی نیست — تماس‌ها، بازی‌ها و QUIC کار نخواهند کرد</translation>
+    </message>
+    <message>
+        <source>Rules</source>
+        <translation>قوانین</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS will fail everywhere until the clock is corrected</source>
+        <translation>%1 ثانیه اختلاف — تا اصلاح ساعت، TLS همه‌جا شکست می‌خورد</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS is unaffected</source>
+        <translation>%1 ثانیه اختلاف — بر TLS اثری ندارد</translation>
+    </message>
+    <message>
+        <source>checking…</source>
+        <translation>در حال بررسی…</translation>
+    </message>
+    <message>
+        <source>checked %1</source>
+        <translation>بررسی‌شده %1</translation>
+    </message>
+    <message>
+        <source>Request path · %1 ms in total</source>
+        <translation>مسیر درخواست · مجموعاً %1 میلی‌ثانیه</translation>
+    </message>
+    <message>
+        <source>Open routing rules</source>
+        <translation>باز کردن قوانین مسیریابی</translation>
+    </message>
+    <message>
+        <source>Try the other servers</source>
+        <translation>سرورهای دیگر را امتحان کنید</translation>
+    </message>
+    <message>
+        <source>Turn on DPI bypass</source>
+        <translation>روشن کردن دور زدن DPI</translation>
+    </message>
+    <message>
+        <source>Open DNS settings</source>
+        <translation>باز کردن تنظیمات DNS</translation>
+    </message>
+    <message>
+        <source>Check the other outbounds</source>
+        <translation>بررسی خروجی‌های دیگر</translation>
+    </message>
+    <message>
+        <source>Enter a valid HTTP or HTTPS address</source>
+        <translation>یک نشانی معتبر HTTP یا HTTPS وارد کنید</translation>
+    </message>
+    <message>
+        <source>Do not include credentials or a URL fragment.</source>
+        <translation>اطلاعات ورود یا بخش قطعهٔ نشانی را وارد نکنید.</translation>
+    </message>
+    <message>
+        <source>Not checked</source>
+        <translation>بررسی نشده</translation>
+    </message>
+    <message>
+        <source>Checking %1…</source>
+        <translation>در حال بررسی %1…</translation>
+    </message>
+    <message>
+        <source>Route, DNS, connection, TLS and HTTP · up to 15 seconds</source>
+        <translation>مسیر، DNS، اتصال، TLS و HTTP · تا ۱۵ ثانیه</translation>
+    </message>
+    <message>
+        <source>Waiting for result…</source>
+        <translation>در انتظار نتیجه…</translation>
+    </message>
+    <message>
+        <source>Route: blocked by a rule</source>
+        <translation>مسیر: توسط یک قانون مسدود شد</translation>
+    </message>
+    <message>
+        <source>Route unavailable</source>
+        <translation>مسیر در دسترس نیست</translation>
+    </message>
+    <message>
+        <source>A routing rule blocks this address</source>
+        <translation>یک قانون مسیریابی این نشانی را مسدود می‌کند</translation>
+    </message>
+    <message>
+        <source>The route could not be resolved</source>
+        <translation>مسیر قابل تعیین نبود</translation>
+    </message>
+    <message>
+        <source>Matched rule: %1. Nothing was sent — remove or narrow the rule to allow it.</source>
+        <translation>قانون منطبق: %1. چیزی ارسال نشد — برای اجازه دادن، قانون را حذف یا محدودتر کنید.</translation>
+    </message>
+    <message>
+        <source>No rule matched, so the default outbound is used.</source>
+        <translation>هیچ قانونی منطبق نشد، بنابراین خروجی پیش‌فرض استفاده می‌شود.</translation>
+    </message>
+    <message>
+        <source>Matched rule: %1</source>
+        <translation>قانون منطبق: %1</translation>
+    </message>
+    <message>
+        <source>Rules that match on IP are not evaluated for a hostname.</source>
+        <translation>قوانین مبتنی بر IP برای یک نام میزبان ارزیابی نمی‌شوند.</translation>
+    </message>
+    <message>
+        <source>Process rules are only matched when an application is selected.</source>
+        <translation>قوانین مبتنی بر فرایند فقط زمانی تطبیق می‌شوند که برنامه‌ای انتخاب شده باشد.</translation>
+    </message>
+    <message>
+        <source>Route: %1</source>
+        <translation>مسیر: %1</translation>
+    </message>
+    <message>
+        <source>DNS · not compared</source>
+        <translation>DNS · مقایسه نشد</translation>
+    </message>
+    <message>
+        <source>The address is already an IP, or one of the resolvers did not answer.</source>
+        <translation>نشانی خودش یک IP است، یا یکی از تفکیک‌کننده‌ها پاسخ نداد.</translation>
+    </message>
+    <message>
+        <source>The system and the core agree: %1</source>
+        <translation>سیستم و هسته هم‌نظرند: %1</translation>
+    </message>
+    <message>
+        <source>DNS · answers differ</source>
+        <translation>DNS · پاسخ‌ها متفاوت‌اند</translation>
+    </message>
+    <message>
+        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
+        <translation>هسته %1 را تفکیک کرد و سیستم %2 را. برنامه‌هایی که از تفکیک‌کنندهٔ سیستم استفاده می‌کنند جای دیگری می‌روند.</translation>
+    </message>
+    <message>
+        <source>%1 · not checked</source>
+        <translation>%1 · بررسی نشده</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>اتصال</translation>
+    </message>
+    <message>
+        <source>Established through the outbound. The proxy may resolve the name remotely.</source>
+        <translation>از طریق خروجی برقرار شد. ممکن است نام را پروکسی از راه دور تفکیک کند.</translation>
+    </message>
+    <message>
+        <source>Issued by %1</source>
+        <translation>صادرشده توسط %1</translation>
+    </message>
+    <message>
+        <source>Valid until %1</source>
+        <translation>معتبر تا %1</translation>
+    </message>
+    <message>
+        <source>TLS · connection cut</source>
+        <translation>TLS · اتصال قطع شد</translation>
+    </message>
+    <message>
+        <source>TLS · not used for HTTP</source>
+        <translation>TLS · برای HTTP استفاده نمی‌شود</translation>
+    </message>
+    <message>
+        <source>This URL uses unencrypted HTTP.</source>
+        <translation>این نشانی از HTTP رمزنگاری‌نشده استفاده می‌کند.</translation>
+    </message>
+    <message>
+        <source>HTTP %1</source>
+        <translation>HTTP %1</translation>
+    </message>
+    <message>
+        <source>HEAD request, no redirects, no login.</source>
+        <translation>درخواست HEAD، بدون تغییر مسیر، بدون ورود.</translation>
+    </message>
+    <message>
+        <source>The connection is cut right after the site name</source>
+        <translation>اتصال درست پس از نام سایت قطع می‌شود</translation>
+    </message>
+    <message>
+        <source>The connection was established and then dropped before the server answered — the signature of filtering on the name, not a refusal by the site. %1</source>
+        <translation>اتصال برقرار شد و پیش از پاسخ سرور قطع گردید — این نشانهٔ فیلترینگ بر اساس نام است، نه ردّ درخواست توسط سایت. %1</translation>
+    </message>
+    <message>
+        <source>The outbound %1 did not answer</source>
+        <translation>خروجی %1 پاسخ نداد</translation>
+    </message>
+    <message>
+        <source>The request never left Throned, so this is the connection to the server, not the site. %1</source>
+        <translation>درخواست هرگز از Throned خارج نشد، پس مشکل در اتصال به سرور است نه در سایت. %1</translation>
+    </message>
+    <message>
+        <source>TLS failed on the way to the site</source>
+        <translation>TLS در مسیر رسیدن به سایت شکست خورد</translation>
+    </message>
+    <message>
+        <source>The server accepted the connection but the handshake did not verify. %1</source>
+        <translation>سرور اتصال را پذیرفت اما دست‌دادن تأیید نشد. %1</translation>
+    </message>
+    <message>
+        <source>The outbound connected but the site stayed silent</source>
+        <translation>خروجی وصل شد اما سایت پاسخی نداد</translation>
+    </message>
+    <message>
+        <source>A connection through %1 was established and nothing answered. %2</source>
+        <translation>اتصالی از طریق %1 برقرار شد و پاسخی نیامد. %2</translation>
+    </message>
+    <message>
+        <source>Could not run the check</source>
+        <translation>اجرای بررسی ممکن نشد</translation>
+    </message>
+    <message>
+        <source>The site answered — with an error</source>
+        <translation>سایت پاسخ داد — با خطا</translation>
+    </message>
+    <message>
+        <source>HTTP %1 came from the site itself over a working connection through %2, so Throned delivered the request.</source>
+        <translation>HTTP %1 از خود سایت و از طریق اتصال سالمِ %2 آمد، پس Throned درخواست را رسانده است.</translation>
+    </message>
+    <message>
+        <source>The site redirected</source>
+        <translation>سایت تغییر مسیر داد</translation>
+    </message>
+    <message>
+        <source>The site responded</source>
+        <translation>سایت پاسخ داد</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2. Routing, connection and TLS all work for this address.</source>
+        <translation>HTTP %1 از طریق %2. مسیریابی، اتصال و TLS برای این نشانی کار می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Throned · address check</source>
+        <translation>Throned · بررسی نشانی</translation>
+    </message>
+    <message>
+        <source>Compared with %1</source>
+        <translation>مقایسه با %1</translation>
+    </message>
+    <message>
+        <source>Result for %1: %2</source>
+        <translation>نتیجه برای %1: %2</translation>
+    </message>
+    <message>
+        <source>No other outbounds are running to compare against.</source>
+        <translation>خروجی دیگری در حال اجرا نیست تا با آن مقایسه شود.</translation>
+    </message>
+    <message>
+        <source>current</source>
+        <translation>فعلی</translation>
+    </message>
+    <message>
+        <source>fail</source>
+        <translation>ناموفق</translation>
+    </message>
+    <message>
+        <source>…</source>
+        <translation>…</translation>
+    </message>
+    <message>
+        <source>cut</source>
+        <translation>قطع‌شده</translation>
+    </message>
+    <message>
+        <source>no route</source>
+        <translation>بدون مسیر</translation>
+    </message>
+    <message>
+        <source>Stop observation</source>
+        <translation>توقف مشاهده</translation>
+    </message>
+    <message>
+        <source>Could not read connections: %1</source>
+        <translation>خواندن اتصال‌ها ممکن نشد: %1</translation>
+    </message>
+    <message>
+        <source>Without an application</source>
+        <translation>بدون برنامه</translation>
+    </message>
+    <message>
+        <source>%1 destinations · %2 connections · sent %3 · received %4</source>
+        <translation>%1 مقصد · %2 اتصال · ارسال %3 · دریافت %4</translation>
+    </message>
+    <message>
+        <source>Observing · %1 s. Reproduce the problem in the application.</source>
+        <translation>در حال مشاهده · %1 ثانیه. مشکل را در برنامه بازتولید کنید.</translation>
+    </message>
+    <message>
+        <source>Observation stopped · %1 s.</source>
+        <translation>مشاهده متوقف شد · %1 ثانیه.</translation>
+    </message>
+    <message>
+        <source> Limit reached: the first 1000 connections are retained.</source>
+        <translation> به سقف رسید: تنها ۱۰۰۰ اتصال نخست نگه داشته می‌شود.</translation>
+    </message>
+    <message>
+        <source>No connections yet. Start Throned and open the application.</source>
+        <translation>هنوز اتصالی نیست. Throned را اجرا کنید و برنامه را باز کنید.</translation>
+    </message>
+    <message>
+        <source>No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up.</source>
+        <translation>برای هیچ اتصالی برنامه‌ای گزارش نشده: پروفایل مسیریابی قانونی مبتنی بر برنامه ندارد، پس هسته اصلاً به دنبال آن نمی‌گردد.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.</source>
+        <translation><numerusform>%n اتصال برنامه‌ای گزارش نمی‌کنند — ترافیک از دستگاهی دیگر، یا سوکتی که پیش از تعیین مالک بسته شده است.</numerusform></translation>
+    </message>
+    <message>
+        <source>Unknown outbound</source>
+        <translation>خروجی نامشخص</translation>
+    </message>
+    <message>
+        <source>×%1</source>
+        <translation>×%1</translation>
+    </message>
+    <message>
+        <source>Closed</source>
+        <translation>بسته‌شده</translation>
+    </message>
+    <message>
+        <source>no outbound</source>
+        <translation>بدون خروجی</translation>
+    </message>
+    <message>
+        <source>no reply</source>
+        <translation>بدون پاسخ</translation>
+    </message>
+    <message>
+        <source>bypasses the proxy</source>
+        <translation>پروکسی را دور می‌زند</translation>
+    </message>
+    <message>
+        <source>Default route (no rule reported)</source>
+        <translation>مسیر پیش‌فرض (قانونی گزارش نشد)</translation>
+    </message>
+    <message>
+        <source>This domain — %1</source>
+        <translation>این دامنه — %1</translation>
+    </message>
+    <message>
+        <source>Domain and subdomains — *.%1</source>
+        <translation>دامنه و زیردامنه‌ها — *.%1</translation>
+    </message>
+    <message>
+        <source>This process — %1</source>
+        <translation>این فرایند — %1</translation>
+    </message>
+    <message>
+        <source>This executable — %1</source>
+        <translation>این فایل اجرایی — %1</translation>
+    </message>
+    <message>
+        <source>This address — %1</source>
+        <translation>این نشانی — %1</translation>
+    </message>
+    <message>
+        <source>Through proxy</source>
+        <translation>از طریق پروکسی</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>مستقیم</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>مسدود کردن</translation>
+    </message>
+    <message numerus="yes">
+        <source>The whole application — %1 and %n helper(s)</source>
+        <translation><numerusform>کل برنامه — %1 و %n فرایند کمکی</numerusform></translation>
+    </message>
+    <message>
+        <source>Program</source>
+        <translation>برنامه</translation>
+    </message>
+    <message>
+        <source>Protocol</source>
+        <translation>پروتکل</translation>
+    </message>
+    <message>
+        <source>Started by</source>
+        <translation>اجراشده توسط</translation>
+    </message>
+    <message>
+        <source>Opened from</source>
+        <translation>باز شده از</translation>
+    </message>
+    <message>
+        <source>Connections</source>
+        <translation>اتصال‌ها</translation>
+    </message>
+    <message>
+        <source>%1 · %2 closed</source>
+        <translation>%1 · %2 بسته‌شده</translation>
+    </message>
+    <message>
+        <source>The core did not report an outbound for this traffic.</source>
+        <translation>هسته برای این ترافیک خروجی گزارش نکرد.</translation>
+    </message>
+    <message>
+        <source>Nothing came back. On its own this does not identify the cause.</source>
+        <translation>پاسخی برنگشت. این به‌تنهایی علت را مشخص نمی‌کند.</translation>
+    </message>
+    <message>
+        <source>Goes direct while the rest of the traffic uses the proxy.</source>
+        <translation>در حالی مستقیم می‌رود که بقیهٔ ترافیک از پروکسی استفاده می‌کند.</translation>
+    </message>
+    <message>
+        <source>No owning program, so process rules cannot match this traffic.</source>
+        <translation>برنامهٔ مالکی وجود ندارد، پس قوانین مبتنی بر فرایند این ترافیک را نمی‌گیرند.</translation>
+    </message>
+    <message>
+        <source>An HTTP check does not test this UDP or other non-TCP flow.</source>
+        <translation>بررسی HTTP این جریان UDP یا دیگر جریان‌های غیر TCP را آزمایش نمی‌کند.</translation>
+    </message>
+    <message>
+        <source>No usable destination address was reported.</source>
+        <translation>نشانی مقصد قابل استفاده‌ای گزارش نشد.</translation>
+    </message>
+    <message>
+        <source>Throned · connection state</source>
+        <translation>Throned · وضعیت اتصال</translation>
+    </message>
+    <message>
+        <source>Throned · application connections</source>
+        <translation>Throned · اتصال‌های برنامه</translation>
+    </message>
+    <message>
+        <source>The statistics database is unavailable.</source>
+        <translation>پایگاه دادهٔ آمار در دسترس نیست.</translation>
+    </message>
+    <message>
+        <source>Traffic counting is turned off, so there is nothing to show. Turn it on in the settings to start collecting.</source>
+        <translation>شمارش ترافیک خاموش است، پس چیزی برای نمایش نیست. برای شروع جمع‌آوری، آن را در تنظیمات روشن کنید.</translation>
+    </message>
+    <message>
+        <source>Nothing recorded for this period.</source>
+        <translation>برای این بازه چیزی ثبت نشده است.</translation>
+    </message>
+    <message>
+        <source>%1%</source>
+        <translation>%1٪</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stored on this computer only · %1 · %n day(s) of records</source>
+        <translation><numerusform>فقط روی همین رایانه · %1 · %n روز رکورد</numerusform></translation>
+    </message>
+    <message>
+        <source>Stored on this computer only and never sent anywhere.</source>
+        <translation>فقط روی همین رایانه ذخیره می‌شود و هرگز جایی فرستاده نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>Export statistics</source>
+        <translation>خروجی گرفتن از آمار</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>فایل‌های CSV (*.csv)</translation>
+    </message>
+    <message>
+        <source>Copied</source>
+        <translation>کپی شده است</translation>
+    </message>
+    <message>
+        <source>Save report</source>
+        <translation>ذخیرهٔ گزارش</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt)</source>
+        <translation>فایل‌های متنی (*.txt)</translation>
+    </message>
+</context>
+<context>
     <name>QObject</name>
     <message>
         <source>Request with proxy but no profile started.</source>
@@ -2036,6 +2971,22 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
+        <translation>عیب‌یابی وب‌سایت و برنامه (Ctrl+Shift+D)</translation>
+    </message>
+    <message>
+        <source>Traffic statistics by program and server</source>
+        <translation>آمار ترافیک بر اساس برنامه و سرور</translation>
+    </message>
+    <message>
+        <source>Traffic statistics</source>
+        <translation>آمار ترافیک</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>عیب‌یابی</translation>
+    </message>
     <message>
         <source>Program</source>
         <translation>برنامه</translation>

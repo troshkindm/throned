@@ -2,6 +2,941 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>DiagnosticsWindow</name>
+    <message>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>直连</translation>
+    </message>
+    <message>
+        <source>Profile #%1 (deleted)</source>
+        <translation>配置档 №%1 (已删除)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation><numerusform>另外 %n 项</numerusform></translation>
+    </message>
+    <message>
+        <source>The rest</source>
+        <translation>其余</translation>
+    </message>
+    <message>
+        <source>No application reported</source>
+        <translation>未报告应用</translation>
+    </message>
+    <message>
+        <source>No application reported · %1</source>
+        <translation>未报告应用 · %1</translation>
+    </message>
+    <message>
+        <source>The rule blocks this traffic.</source>
+        <translation>该规则拦截了此流量。</translation>
+    </message>
+    <message>
+        <source>Chosen by the program that opened the connection.</source>
+        <translation>按发起连接的程序匹配。</translation>
+    </message>
+    <message>
+        <source>Chosen by the domain.</source>
+        <translation>按域名匹配。</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination IP address.</source>
+        <translation>按目标 IP 地址匹配。</translation>
+    </message>
+    <message>
+        <source>Chosen by the protocol, not by the address.</source>
+        <translation>按协议匹配，而非按地址。</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination port.</source>
+        <translation>按目标端口匹配。</translation>
+    </message>
+    <message>
+        <source>Reported by the core as written in the routing profile.</source>
+        <translation>由内核按路由配置中的原文报告。</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 毫秒</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>诊断</translation>
+    </message>
+    <message>
+        <source>Overview</source>
+        <translation>概览</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>地址</translation>
+    </message>
+    <message>
+        <source>Applications</source>
+        <translation>应用</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>统计</translation>
+    </message>
+    <message>
+        <source>Report</source>
+        <translation>报告</translation>
+    </message>
+    <message>
+        <source>Save to file</source>
+        <translation>保存到文件</translation>
+    </message>
+    <message>
+        <source>Copy report</source>
+        <translation>复制报告</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <source>Connection state</source>
+        <translation>连接状态</translation>
+    </message>
+    <message>
+        <source>Checked when the window opens. Nothing leaves the machine except two requests through the active outbound.</source>
+        <translation>打开窗口时自动检查。除经由当前出站的两个请求外，不会有任何数据离开本机。</translation>
+    </message>
+    <message>
+        <source>Core</source>
+        <translation>核心</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Traffic capture</source>
+        <translation>流量接管</translation>
+    </message>
+    <message>
+        <source>Visible address</source>
+        <translation>对外地址</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>UDP</source>
+        <translation>UDP</translation>
+    </message>
+    <message>
+        <source>System clock</source>
+        <translation>系统时钟</translation>
+    </message>
+    <message>
+        <source>Check again</source>
+        <translation>重新检查</translation>
+    </message>
+    <message>
+        <source>Rows with an action open the screen that fixes that cause. Nothing here changes settings on its own.</source>
+        <translation>带按钮的行会打开修复该问题的页面。此处不会自行更改任何设置。</translation>
+    </message>
+    <message>
+        <source>Check an address</source>
+        <translation>检查地址</translation>
+    </message>
+    <message>
+        <source>Website address</source>
+        <translation>网站地址</translation>
+    </message>
+    <message>
+        <source>Compare with…</source>
+        <translation>与其对比…</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>检查</translation>
+    </message>
+    <message>
+        <source>An address that works, for comparison</source>
+        <translation>一个可用的地址，用于对比</translation>
+    </message>
+    <message>
+        <source>The address is matched against your routing rules first, then requested through the outbound they choose.</source>
+        <translation>先用你的路由规则匹配该地址，再通过规则选中的出站发起请求。</translation>
+    </message>
+    <message>
+        <source>Any application</source>
+        <translation>任意应用</translation>
+    </message>
+    <message>
+        <source>Enter an address to begin</source>
+        <translation>输入地址以开始</translation>
+    </message>
+    <message>
+        <source>Start a connection in Throned, then check where the request stops.</source>
+        <translation>先在 Throned 中建立连接，然后查看请求停在哪一步。</translation>
+    </message>
+    <message>
+        <source>Request path</source>
+        <translation>请求路径</translation>
+    </message>
+    <message>
+        <source>Route · not checked</source>
+        <translation>路由 · 未检查</translation>
+    </message>
+    <message>
+        <source>The routing rules decide the outbound before anything is sent.</source>
+        <translation>在发送任何数据之前，出站由路由规则决定。</translation>
+    </message>
+    <message>
+        <source>DNS · not checked</source>
+        <translation>DNS · 未检查</translation>
+    </message>
+    <message>
+        <source>Resolved beside the probe, never in front of it, so the proxy still resolves the name itself.</source>
+        <translation>解析与探测并行进行，而非在其之前，因此域名仍由代理自行解析。</translation>
+    </message>
+    <message>
+        <source>Connection · not checked</source>
+        <translation>连接 · 未检查</translation>
+    </message>
+    <message>
+        <source>Establishing the connection through the chosen outbound.</source>
+        <translation>通过所选出站建立连接。</translation>
+    </message>
+    <message>
+        <source>TLS · not checked</source>
+        <translation>TLS · 未检查</translation>
+    </message>
+    <message>
+        <source>Certificate and hostname verification remain enabled.</source>
+        <translation>证书与主机名校验保持开启。</translation>
+    </message>
+    <message>
+        <source>HTTP · not checked</source>
+        <translation>HTTP · 未检查</translation>
+    </message>
+    <message>
+        <source>One HEAD request, without following redirects or sending account credentials.</source>
+        <translation>仅一个 HEAD 请求，不跟随重定向，也不发送账号凭据。</translation>
+    </message>
+    <message>
+        <source>Through the other outbounds</source>
+        <translation>通过其他出站</translation>
+    </message>
+    <message>
+        <source>Outbound</source>
+        <translation>出站</translation>
+    </message>
+    <message>
+        <source>TLS</source>
+        <translation>TLS</translation>
+    </message>
+    <message>
+        <source>HTTP</source>
+        <translation>HTTP</translation>
+    </message>
+    <message>
+        <source>This test does not reproduce browser DNS, extensions, application login or UDP traffic.</source>
+        <translation>此检查不会重现浏览器 DNS、扩展、应用登录或 UDP 流量。</translation>
+    </message>
+    <message>
+        <source>Application connections</source>
+        <translation>应用连接</translation>
+    </message>
+    <message>
+        <source>Observe traffic passing through Throned while reproducing the problem.</source>
+        <translation>在复现问题时观察经过 Throned 的流量。</translation>
+    </message>
+    <message>
+        <source>Application</source>
+        <translation>应用</translation>
+    </message>
+    <message>
+        <source>All applications</source>
+        <translation>所有应用</translation>
+    </message>
+    <message>
+        <source>Hide the healthy</source>
+        <translation>隐藏正常项</translation>
+    </message>
+    <message>
+        <source>Keeps only the destinations with a remark: no outbound reported, nothing came back, or going direct while the rest is proxied.</source>
+        <translation>只保留有备注的目标：未报告出站、没有任何回应，或在其余流量走代理时直连。</translation>
+    </message>
+    <message>
+        <source>Start observation</source>
+        <translation>开始观察</translation>
+    </message>
+    <message>
+        <source>Current connections. Start observation to retain completed connections.</source>
+        <translation>当前连接。开始观察后会保留已结束的连接。</translation>
+    </message>
+    <message>
+        <source>Destination</source>
+        <translation>目标</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>流量</translation>
+    </message>
+    <message>
+        <source>Select a connection</source>
+        <translation>选择一个连接</translation>
+    </message>
+    <message>
+        <source>The list includes only connections visible to the core.</source>
+        <translation>列表只包含内核可见的连接。</translation>
+    </message>
+    <message>
+        <source>Check this address</source>
+        <translation>检查此地址</translation>
+    </message>
+    <message>
+        <source>Route this…</source>
+        <translation>为其设置路由…</translation>
+    </message>
+    <message>
+        <source>Drop connections</source>
+        <translation>断开连接</translation>
+    </message>
+    <message>
+        <source>HTTPS contents are not recorded. Byte counters cover the connection&apos;s lifetime; no reply does not by itself prove a failure.</source>
+        <translation>不记录 HTTPS 内容。字节计数覆盖连接的整个生命周期；没有回应本身并不能说明出错。</translation>
+    </message>
+    <message>
+        <source>Rules are matched as if %1 opened the address. Application login is not reproduced.</source>
+        <translation>按 %1 打开该地址来匹配规则。不会重现应用登录。</translation>
+    </message>
+    <message>
+        <source>Day</source>
+        <translation>一天</translation>
+    </message>
+    <message>
+        <source>7 days</source>
+        <translation>7 天</translation>
+    </message>
+    <message>
+        <source>30 days</source>
+        <translation>30 天</translation>
+    </message>
+    <message>
+        <source>All</source>
+        <translation>全部</translation>
+    </message>
+    <message>
+        <source>Export CSV</source>
+        <translation>导出 CSV</translation>
+    </message>
+    <message>
+        <source>Downloaded</source>
+        <translation>下载 (↓)</translation>
+    </message>
+    <message>
+        <source>Uploaded</source>
+        <translation>上传 (↑)</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>合计</translation>
+    </message>
+    <message>
+        <source>Per day on average</source>
+        <translation>日均</translation>
+    </message>
+    <message>
+        <source>Over time</source>
+        <translation>随时间变化</translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation>程序</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>服务器</translation>
+    </message>
+    <message>
+        <source>Sites</source>
+        <translation>网站</translation>
+    </message>
+    <message>
+        <source>Requires recording the domains you open, which is off and not built yet.</source>
+        <translation>需要记录你打开的域名，该功能已关闭且尚未实现。</translation>
+    </message>
+    <message>
+        <source>Report for support</source>
+        <translation>支持用报告</translation>
+    </message>
+    <message>
+        <source>One paste instead of two. Pick what goes in and see exactly what you are about to send.</source>
+        <translation>一次粘贴而非两次。选择要包含的内容，并确认即将发送的原文。</translation>
+    </message>
+    <message>
+        <source>Address check</source>
+        <translation>地址检查</translation>
+    </message>
+    <message>
+        <source>Settings, DNS and log</source>
+        <translation>设置、DNS 与日志</translation>
+    </message>
+    <message>
+        <source>Hide personal data</source>
+        <translation>隐藏个人数据</translation>
+    </message>
+    <message>
+        <source>Masks the profile name, the visible address and paths to programs.</source>
+        <translation>遮蔽配置名称、对外地址和程序路径。</translation>
+    </message>
+    <message>
+        <source>%1 · %2 min</source>
+        <translation>%1 · %2 分钟</translation>
+    </message>
+    <message>
+        <source>Not started — nothing is being routed</source>
+        <translation>未启动 — 没有任何流量被路由</translation>
+    </message>
+    <message>
+        <source>Log</source>
+        <translation>日志</translation>
+    </message>
+    <message>
+        <source>No profile is selected</source>
+        <translation>未选择配置</translation>
+    </message>
+    <message>
+        <source>%1 · %2</source>
+        <translation>%1 · %2</translation>
+    </message>
+    <message>
+        <source>%1 · %2 · %3 ms</source>
+        <translation>%1 · %2 · %3 毫秒</translation>
+    </message>
+    <message>
+        <source>Change</source>
+        <translation>更换</translation>
+    </message>
+    <message>
+        <source>TUN is active — every program goes through Throned</source>
+        <translation>TUN 已启用 — 所有程序都经过 Throned</translation>
+    </message>
+    <message>
+        <source>System proxy is set — programs that honour it go through Throned</source>
+        <translation>已设置系统代理 — 遵循它的程序会经过 Throned</translation>
+    </message>
+    <message>
+        <source>Neither TUN nor the system proxy is on — programs go past Throned</source>
+        <translation>TUN 和系统代理都未启用 — 程序会绕过 Throned</translation>
+    </message>
+    <message>
+        <source>Turn on</source>
+        <translation>启用</translation>
+    </message>
+    <message>
+        <source>Could not be checked: %1</source>
+        <translation>无法检查：%1</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>正在检查…</translation>
+    </message>
+    <message>
+        <source>Not checked yet</source>
+        <translation>尚未检查</translation>
+    </message>
+    <message>
+        <source>The system and the core agree on %1</source>
+        <translation>系统与内核对 %1 的解析一致</translation>
+    </message>
+    <message>
+        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
+        <translation>系统与内核对 %1 的解析不同 — 查询正在绕过隧道</translation>
+    </message>
+    <message>
+        <source>Fix</source>
+        <translation>修复</translation>
+    </message>
+    <message>
+        <source>Answers in %1 ms — calls, games and QUIC have a path</source>
+        <translation>%1 毫秒内有回应 — 通话、游戏和 QUIC 有通路</translation>
+    </message>
+    <message>
+        <source>Answers — calls, games and QUIC have a path</source>
+        <translation>有回应 — 通话、游戏和 QUIC 有通路</translation>
+    </message>
+    <message>
+        <source>No answer — calls, games and QUIC will not work</source>
+        <translation>没有回应 — 通话、游戏和 QUIC 将无法工作</translation>
+    </message>
+    <message>
+        <source>Rules</source>
+        <translation>规则</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS will fail everywhere until the clock is corrected</source>
+        <translation>相差 %1 秒 — 在校正时钟之前 TLS 会全面失败</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS is unaffected</source>
+        <translation>相差 %1 秒 — 不影响 TLS</translation>
+    </message>
+    <message>
+        <source>checking…</source>
+        <translation>检查中…</translation>
+    </message>
+    <message>
+        <source>checked %1</source>
+        <translation>已于 %1 检查</translation>
+    </message>
+    <message>
+        <source>Request path · %1 ms in total</source>
+        <translation>请求路径 · 共 %1 毫秒</translation>
+    </message>
+    <message>
+        <source>Open routing rules</source>
+        <translation>打开路由规则</translation>
+    </message>
+    <message>
+        <source>Try the other servers</source>
+        <translation>试试其他服务器</translation>
+    </message>
+    <message>
+        <source>Turn on DPI bypass</source>
+        <translation>启用 DPI 绕过</translation>
+    </message>
+    <message>
+        <source>Open DNS settings</source>
+        <translation>打开 DNS 设置</translation>
+    </message>
+    <message>
+        <source>Check the other outbounds</source>
+        <translation>检查其他出站</translation>
+    </message>
+    <message>
+        <source>Enter a valid HTTP or HTTPS address</source>
+        <translation>请输入有效的 HTTP 或 HTTPS 地址</translation>
+    </message>
+    <message>
+        <source>Do not include credentials or a URL fragment.</source>
+        <translation>不要包含账号密码或 URL 片段。</translation>
+    </message>
+    <message>
+        <source>Not checked</source>
+        <translation>未检查</translation>
+    </message>
+    <message>
+        <source>Checking %1…</source>
+        <translation>正在检查 %1…</translation>
+    </message>
+    <message>
+        <source>Route, DNS, connection, TLS and HTTP · up to 15 seconds</source>
+        <translation>路由、DNS、连接、TLS 和 HTTP · 最多 15 秒</translation>
+    </message>
+    <message>
+        <source>Waiting for result…</source>
+        <translation>等待结果…</translation>
+    </message>
+    <message>
+        <source>Route: blocked by a rule</source>
+        <translation>路由：被规则拦截</translation>
+    </message>
+    <message>
+        <source>Route unavailable</source>
+        <translation>无法确定路由</translation>
+    </message>
+    <message>
+        <source>A routing rule blocks this address</source>
+        <translation>有一条路由规则拦截了该地址</translation>
+    </message>
+    <message>
+        <source>The route could not be resolved</source>
+        <translation>无法确定路由</translation>
+    </message>
+    <message>
+        <source>Matched rule: %1. Nothing was sent — remove or narrow the rule to allow it.</source>
+        <translation>匹配的规则：%1。没有发送任何数据 — 删除或收窄该规则即可放行。</translation>
+    </message>
+    <message>
+        <source>No rule matched, so the default outbound is used.</source>
+        <translation>没有规则匹配，因此使用默认出站。</translation>
+    </message>
+    <message>
+        <source>Matched rule: %1</source>
+        <translation>匹配的规则：%1</translation>
+    </message>
+    <message>
+        <source>Rules that match on IP are not evaluated for a hostname.</source>
+        <translation>对域名不会评估按 IP 匹配的规则。</translation>
+    </message>
+    <message>
+        <source>Process rules are only matched when an application is selected.</source>
+        <translation>只有选定应用时才会匹配按进程的规则。</translation>
+    </message>
+    <message>
+        <source>Route: %1</source>
+        <translation>路由：%1</translation>
+    </message>
+    <message>
+        <source>DNS · not compared</source>
+        <translation>DNS · 未对比</translation>
+    </message>
+    <message>
+        <source>The address is already an IP, or one of the resolvers did not answer.</source>
+        <translation>地址本身就是 IP，或其中一个解析器没有回应。</translation>
+    </message>
+    <message>
+        <source>The system and the core agree: %1</source>
+        <translation>系统与内核一致：%1</translation>
+    </message>
+    <message>
+        <source>DNS · answers differ</source>
+        <translation>DNS · 解析结果不同</translation>
+    </message>
+    <message>
+        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
+        <translation>内核解析为 %1，系统解析为 %2。使用系统解析器的程序会走到别处。</translation>
+    </message>
+    <message>
+        <source>%1 · not checked</source>
+        <translation>%1 · 未检查</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <source>Established through the outbound. The proxy may resolve the name remotely.</source>
+        <translation>已通过出站建立。域名可能由代理远程解析。</translation>
+    </message>
+    <message>
+        <source>Issued by %1</source>
+        <translation>颁发者：%1</translation>
+    </message>
+    <message>
+        <source>Valid until %1</source>
+        <translation>有效期至 %1</translation>
+    </message>
+    <message>
+        <source>TLS · connection cut</source>
+        <translation>TLS · 连接被切断</translation>
+    </message>
+    <message>
+        <source>TLS · not used for HTTP</source>
+        <translation>TLS · HTTP 不使用</translation>
+    </message>
+    <message>
+        <source>This URL uses unencrypted HTTP.</source>
+        <translation>该网址使用未加密的 HTTP。</translation>
+    </message>
+    <message>
+        <source>HTTP %1</source>
+        <translation>HTTP %1</translation>
+    </message>
+    <message>
+        <source>HEAD request, no redirects, no login.</source>
+        <translation>HEAD 请求，不跟随重定向，不登录。</translation>
+    </message>
+    <message>
+        <source>The connection is cut right after the site name</source>
+        <translation>连接在发出网站名称后立即被切断</translation>
+    </message>
+    <message>
+        <source>The connection was established and then dropped before the server answered — the signature of filtering on the name, not a refusal by the site. %1</source>
+        <translation>连接已建立，但在服务器回应前被丢弃 — 这是按名称过滤的特征，而不是网站的拒绝。%1</translation>
+    </message>
+    <message>
+        <source>The outbound %1 did not answer</source>
+        <translation>出站 %1 没有回应</translation>
+    </message>
+    <message>
+        <source>The request never left Throned, so this is the connection to the server, not the site. %1</source>
+        <translation>请求始终没有离开 Throned，因此问题在于到服务器的连接，而不是网站。%1</translation>
+    </message>
+    <message>
+        <source>TLS failed on the way to the site</source>
+        <translation>前往该网站的路上 TLS 失败</translation>
+    </message>
+    <message>
+        <source>The server accepted the connection but the handshake did not verify. %1</source>
+        <translation>服务器接受了连接，但握手未通过校验。%1</translation>
+    </message>
+    <message>
+        <source>The outbound connected but the site stayed silent</source>
+        <translation>出站已连接，但网站没有回应</translation>
+    </message>
+    <message>
+        <source>A connection through %1 was established and nothing answered. %2</source>
+        <translation>已通过 %1 建立连接，但没有任何回应。%2</translation>
+    </message>
+    <message>
+        <source>Could not run the check</source>
+        <translation>无法执行检查</translation>
+    </message>
+    <message>
+        <source>The site answered — with an error</source>
+        <translation>网站有回应 — 但返回了错误</translation>
+    </message>
+    <message>
+        <source>HTTP %1 came from the site itself over a working connection through %2, so Throned delivered the request.</source>
+        <translation>HTTP %1 来自网站本身，经由 %2 的连接正常送达，说明 Throned 已把请求投递出去。</translation>
+    </message>
+    <message>
+        <source>The site redirected</source>
+        <translation>网站返回了重定向</translation>
+    </message>
+    <message>
+        <source>The site responded</source>
+        <translation>网站有回应</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2. Routing, connection and TLS all work for this address.</source>
+        <translation>经由 %2 返回 HTTP %1。该地址的路由、连接和 TLS 均正常。</translation>
+    </message>
+    <message>
+        <source>Throned · address check</source>
+        <translation>Throned · 地址检查</translation>
+    </message>
+    <message>
+        <source>Compared with %1</source>
+        <translation>与 %1 对比</translation>
+    </message>
+    <message>
+        <source>Result for %1: %2</source>
+        <translation>%1 的结果：%2</translation>
+    </message>
+    <message>
+        <source>No other outbounds are running to compare against.</source>
+        <translation>没有其他正在运行的出站可供对比。</translation>
+    </message>
+    <message>
+        <source>current</source>
+        <translation>当前</translation>
+    </message>
+    <message>
+        <source>fail</source>
+        <translation>失败</translation>
+    </message>
+    <message>
+        <source>…</source>
+        <translation>…</translation>
+    </message>
+    <message>
+        <source>cut</source>
+        <translation>被切断</translation>
+    </message>
+    <message>
+        <source>no route</source>
+        <translation>无路由</translation>
+    </message>
+    <message>
+        <source>Stop observation</source>
+        <translation>停止观察</translation>
+    </message>
+    <message>
+        <source>Could not read connections: %1</source>
+        <translation>无法读取连接：%1</translation>
+    </message>
+    <message>
+        <source>Without an application</source>
+        <translation>无应用</translation>
+    </message>
+    <message>
+        <source>%1 destinations · %2 connections · sent %3 · received %4</source>
+        <translation>目标 %1 个 · 连接 %2 个 · 发送 %3 · 接收 %4</translation>
+    </message>
+    <message>
+        <source>Observing · %1 s. Reproduce the problem in the application.</source>
+        <translation>观察中 · %1 秒。请在应用中复现问题。</translation>
+    </message>
+    <message>
+        <source>Observation stopped · %1 s.</source>
+        <translation>观察已停止 · %1 秒。</translation>
+    </message>
+    <message>
+        <source> Limit reached: the first 1000 connections are retained.</source>
+        <translation> 已达上限：仅保留前 1000 个连接。</translation>
+    </message>
+    <message>
+        <source>No connections yet. Start Throned and open the application.</source>
+        <translation>暂无连接。请启动 Throned 并打开应用。</translation>
+    </message>
+    <message>
+        <source>No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up.</source>
+        <translation>所有连接都没有报告应用：路由配置中没有按程序匹配的规则，因此内核不会去查找。</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.</source>
+        <translation><numerusform>有 %n 个连接没有报告应用 — 来自其他设备的流量，或在归属确定前就已关闭的套接字。</numerusform></translation>
+    </message>
+    <message>
+        <source>Unknown outbound</source>
+        <translation>未知出站</translation>
+    </message>
+    <message>
+        <source>×%1</source>
+        <translation>×%1</translation>
+    </message>
+    <message>
+        <source>Closed</source>
+        <translation>已关闭</translation>
+    </message>
+    <message>
+        <source>no outbound</source>
+        <translation>无出站</translation>
+    </message>
+    <message>
+        <source>no reply</source>
+        <translation>无回应</translation>
+    </message>
+    <message>
+        <source>bypasses the proxy</source>
+        <translation>绕过代理</translation>
+    </message>
+    <message>
+        <source>Default route (no rule reported)</source>
+        <translation>默认路由（未报告规则）</translation>
+    </message>
+    <message>
+        <source>This domain — %1</source>
+        <translation>此域名 — %1</translation>
+    </message>
+    <message>
+        <source>Domain and subdomains — *.%1</source>
+        <translation>域名及子域名 — *.%1</translation>
+    </message>
+    <message>
+        <source>This process — %1</source>
+        <translation>此进程 — %1</translation>
+    </message>
+    <message>
+        <source>This executable — %1</source>
+        <translation>此可执行文件 — %1</translation>
+    </message>
+    <message>
+        <source>This address — %1</source>
+        <translation>此地址 — %1</translation>
+    </message>
+    <message>
+        <source>Through proxy</source>
+        <translation>走代理</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>直连</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>阻止</translation>
+    </message>
+    <message numerus="yes">
+        <source>The whole application — %1 and %n helper(s)</source>
+        <translation><numerusform>整个应用 — %1 及 %n 个辅助进程</numerusform></translation>
+    </message>
+    <message>
+        <source>Program</source>
+        <translation>程序</translation>
+    </message>
+    <message>
+        <source>Protocol</source>
+        <translation>协议</translation>
+    </message>
+    <message>
+        <source>Started by</source>
+        <translation>启动者</translation>
+    </message>
+    <message>
+        <source>Opened from</source>
+        <translation>来源</translation>
+    </message>
+    <message>
+        <source>Connections</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <source>%1 · %2 closed</source>
+        <translation>%1 · 已关闭 %2</translation>
+    </message>
+    <message>
+        <source>The core did not report an outbound for this traffic.</source>
+        <translation>内核没有为此流量报告出站。</translation>
+    </message>
+    <message>
+        <source>Nothing came back. On its own this does not identify the cause.</source>
+        <translation>没有任何回应。仅凭这一点还不能确定原因。</translation>
+    </message>
+    <message>
+        <source>Goes direct while the rest of the traffic uses the proxy.</source>
+        <translation>在其余流量走代理时，它却是直连。</translation>
+    </message>
+    <message>
+        <source>No owning program, so process rules cannot match this traffic.</source>
+        <translation>没有归属程序，因此按进程的规则无法匹配此流量。</translation>
+    </message>
+    <message>
+        <source>An HTTP check does not test this UDP or other non-TCP flow.</source>
+        <translation>HTTP 检查不会测试此 UDP 或其他非 TCP 流。</translation>
+    </message>
+    <message>
+        <source>No usable destination address was reported.</source>
+        <translation>没有报告可用的目标地址。</translation>
+    </message>
+    <message>
+        <source>Throned · connection state</source>
+        <translation>Throned · 连接状态</translation>
+    </message>
+    <message>
+        <source>Throned · application connections</source>
+        <translation>Throned · 应用连接</translation>
+    </message>
+    <message>
+        <source>The statistics database is unavailable.</source>
+        <translation>统计数据库不可用。</translation>
+    </message>
+    <message>
+        <source>Traffic counting is turned off, so there is nothing to show. Turn it on in the settings to start collecting.</source>
+        <translation>流量统计已关闭，因此没有可显示的内容。请在设置中启用以开始收集。</translation>
+    </message>
+    <message>
+        <source>Nothing recorded for this period.</source>
+        <translation>该时间段内没有记录。</translation>
+    </message>
+    <message>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stored on this computer only · %1 · %n day(s) of records</source>
+        <translation><numerusform>仅保存在本机 · %1 · %n 天的记录</numerusform></translation>
+    </message>
+    <message>
+        <source>Stored on this computer only and never sent anywhere.</source>
+        <translation>仅保存在本机，不会发送到任何地方。</translation>
+    </message>
+    <message>
+        <source>Export statistics</source>
+        <translation>导出统计</translation>
+    </message>
+    <message>
+        <source>CSV files (*.csv)</source>
+        <translation>CSV 文件 (*.csv)</translation>
+    </message>
+    <message>
+        <source>Copied</source>
+        <translation>已复制</translation>
+    </message>
+    <message>
+        <source>Save report</source>
+        <translation>保存报告</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt)</source>
+        <translation>文本文件 (*.txt)</translation>
+    </message>
+</context>
+<context>
     <name>DialogAutoSelector</name>
     <message>
         <source>Auto Selector Stats</source>
@@ -3721,6 +4656,22 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
+        <translation>网站与应用诊断 (Ctrl+Shift+D)</translation>
+    </message>
+    <message>
+        <source>Traffic statistics by program and server</source>
+        <translation>按程序和服务器统计流量</translation>
+    </message>
+    <message>
+        <source>Traffic statistics</source>
+        <translation>流量统计</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>诊断</translation>
+    </message>
     <message>
         <source>Program</source>
         <translation>程序</translation>

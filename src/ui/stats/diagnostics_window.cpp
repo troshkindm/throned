@@ -207,8 +207,11 @@ public:
         bar->setAttribute(Qt::WA_TransparentForMouseEvents);
         grid->addWidget(bar, 0, 2);
         time = label({}, "stepTime");
+        time->setWordWrap(false); // "миллисекунды" in some locales wraps and breaks the row
         time->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        time->setMinimumWidth(58);
+        // Sized from the translated unit, not a magic number: "миллисекунды" and its
+        // Persian equivalent are far wider than "ms" and were clipped at a fixed 58.
+        time->setMinimumWidth(time->fontMetrics().horizontalAdvance(DiagnosticsWindow::tr("%1 ms").arg(8888)) + 8);
         time->setTextInteractionFlags(Qt::NoTextInteraction);
         grid->addWidget(time, 0, 3);
         detail = label({}, "muted");
@@ -246,7 +249,9 @@ protected:
         const QColor accentTone = toneColor(tone);
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
-        const int centerX = RailWidth / 2;
+        // Mirrored for right-to-left, where the layout moves the rail column to the
+        // other edge but the painter still works in widget coordinates.
+        const int centerX = isRightToLeft() ? width() - RailWidth / 2 : RailWidth / 2;
         const int centerY = bar->geometry().center().y();
         painter.setPen(QPen(colors.border, 1.5));
         if (!isFirst) painter.drawLine(centerX, 0, centerX, centerY - 7);
@@ -433,9 +438,16 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     railLayout->addWidget(overviewStamp);
     bodyRow->addWidget(railPanel);
 
+    // The footer belongs to the content column, not to the whole window: hung under the
+    // rail as well, its buttons line up with nothing on either side of them.
+    auto *contentColumn = new QWidget;
+    auto *contentLayout = new QVBoxLayout(contentColumn);
+    contentLayout->setContentsMargins(0, 0, 0, 0);
+    contentLayout->setSpacing(0);
     pages = new QStackedWidget;
     pages->setObjectName(QStringLiteral("diagnosticPages"));
-    bodyRow->addWidget(pages, 1);
+    contentLayout->addWidget(pages, 1);
+    bodyRow->addWidget(contentColumn, 1);
     root->addWidget(body, 1);
 
     buildOverviewPage();
@@ -463,7 +475,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     // Saving belongs beside copying, not stranded at the bottom of one page; it only
     // appears on the section that produces a file.
     auto *footer = new QHBoxLayout;
-    footer->setContentsMargins(20, 11, 20, 13);
+    footer->setContentsMargins(24, 11, 24, 13);
     footer->setSpacing(9);
     reportSave = button(tr("Save to file"), "diagnosticSaveReport");
     reportSave->hide();
@@ -473,7 +485,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     footer->addStretch();
     auto *close = button(tr("Close"), "diagnosticClose");
     footer->addWidget(close);
-    root->addLayout(footer);
+    contentLayout->addLayout(footer);
     connect(close, &QPushButton::clicked, this, &QDialog::close);
     connect(reportCopy, &QPushButton::clicked, this, &DiagnosticsWindow::copyReport);
     connect(reportSave, &QPushButton::clicked, this, &DiagnosticsWindow::saveReport);
@@ -1207,6 +1219,10 @@ void DiagnosticsWindow::refreshOverview() {
 }
 
 // ---------------------------------------------------------------- address
+
+void DiagnosticsWindow::showSection(int section) {
+    if (section >= 0 && section < rail.size()) rail[section]->click();
+}
 
 void DiagnosticsWindow::showAddress(const QString &url) {
     address->setText(url);

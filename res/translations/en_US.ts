@@ -948,6 +948,22 @@
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
+        <translation>Website and application diagnostics (Ctrl+Shift+D)</translation>
+    </message>
+    <message>
+        <source>Traffic statistics by program and server</source>
+        <translation>Traffic statistics by program and server</translation>
+    </message>
+    <message>
+        <source>Traffic statistics</source>
+        <translation>Traffic statistics</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>Diagnostics</translation>
+    </message>
     <message numerus="yes">
         <source>%n day(s) left.</source>
         <translation>
