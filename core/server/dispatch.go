@@ -119,6 +119,7 @@ var handlers = map[string]handlerFn{
 	"QueryUDPTest":        handle(globalServer.QueryUDPTest),
 	"SiteTest":            handle(globalServer.SiteTest),
 	"DiagnoseSite":        handle(globalServer.DiagnoseSite),
+	"Health":              handle(globalServer.Health),
 	"PreviewRoute":        handle(globalServer.PreviewRoute),
 	"QuerySiteTest":       handle(globalServer.QuerySiteTest),
 	"QueryStats":          handle(globalServer.QueryStats),

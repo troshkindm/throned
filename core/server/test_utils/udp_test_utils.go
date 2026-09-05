@@ -176,3 +176,18 @@ func buildDNSQuery(id uint16) []byte {
 	query = append(query, 0x00, 0x01) // class IN
 	return query
 }
+
+// ProbeUDP is the single-outbound form the health snapshot needs: one dial through
+// an outbound that is already running, rather than a batch over a throwaway box.
+func ProbeUDP(ctx context.Context, outbound adapter.Outbound, target string, probeCount int, timeout time.Duration) *UDPTestResult {
+	if target == "" {
+		target = UDPTestTarget
+	}
+	if probeCount <= 0 {
+		probeCount = UDPTestProbeCount
+	}
+	if timeout <= 0 {
+		timeout = UDPTestTimeout
+	}
+	return udpTest(ctx, outbound, target, probeCount, timeout)
+}

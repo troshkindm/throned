@@ -33,6 +33,7 @@ service LibcoreService {
   rpc QuerySiteTest(EmptyReq) returns (QuerySiteTestResponse);
   rpc DiagnoseSite(DiagnoseSiteRequest) returns (DiagnoseSiteResponse);
   rpc PreviewRoute(PreviewRouteRequest) returns (PreviewRouteResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
   //
   rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
 
@@ -263,6 +264,45 @@ message DiagnoseSiteResponse {
   optional string tls_version = 6 [default = ""];
   optional string error_stage = 7 [default = ""];
   optional string error = 8 [default = ""];
+  // Informational: resolved alongside the probe, never used for the dial itself, so
+  // the proxy keeps resolving the name remotely exactly as it does for real traffic.
+  optional int64 dns_ms = 9 [default = -1];
+  repeated string dns_core = 10;
+  repeated string dns_system = 11;
+  optional bool dns_agrees = 12 [default = false];
+  optional bool dns_compared = 13 [default = false];
+  optional string tls_issuer = 14 [default = ""];
+  optional int64 tls_expires_unix = 15 [default = 0];
+  optional string tls_alpn = 16 [default = ""];
+  // The handshake was cut rather than refused: the signature of filtering on the
+  // server name, which is a different problem from a certificate that did not verify.
+  optional bool tls_cut = 17 [default = false];
+  optional int64 server_unix = 18 [default = 0]; // Date header, for clock skew
+}
+
+// A snapshot of everything about the running instance that needs the network to know.
+message HealthRequest {
+  optional string dns_probe_domain = 1 [default = ""];
+}
+
+message HealthResponse {
+  optional string outbound_tag = 1 [default = ""];
+  repeated string outbounds = 2;
+  optional string external_ip = 3 [default = ""];
+  optional string external_country = 4 [default = ""];
+  optional string external_error = 5 [default = ""];
+  optional int64 clock_skew_ms = 6 [default = 0];
+  optional bool clock_known = 7 [default = false];
+  optional string dns_domain = 8 [default = ""];
+  repeated string dns_system = 9;
+  repeated string dns_core = 10;
+  optional bool dns_agrees = 11 [default = false];
+  optional bool dns_compared = 12 [default = false];
+  optional string dns_error = 13 [default = ""];
+  optional bool udp_checked = 14 [default = false];
+  optional bool udp_ok = 15 [default = false];
+  optional int64 udp_rtt_ms = 16 [default = -1];
+  optional string udp_error = 17 [default = ""];
 }
 
 // Ids come from a previous QueryConnections; ones that already closed are a

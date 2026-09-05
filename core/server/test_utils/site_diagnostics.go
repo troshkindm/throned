@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
+	"syscall"
 	"time"
 
 	"ThroneCore/gen"
@@ -66,9 +69,20 @@ func DiagnoseSite(ctx context.Context, dial func(context.Context, string, M.Sock
 		err = tlsConn.HandshakeContext(ctx)
 		r.TlsMs = proto.Int64(time.Since(begin).Milliseconds())
 		if err != nil {
+			// A refused certificate and a severed handshake are different diagnoses:
+			// the first is the server's answer, the second means something in between
+			// dropped the connection once it saw the name being requested.
+			r.TlsCut = proto.Bool(handshakeWasCut(err))
 			return fail("tls", err)
 		}
-		r.TlsVersion = proto.String(tls.VersionName(tlsConn.ConnectionState().Version))
+		state := tlsConn.ConnectionState()
+		r.TlsVersion = proto.String(tls.VersionName(state.Version))
+		r.TlsAlpn = proto.String(state.NegotiatedProtocol)
+		if len(state.PeerCertificates) > 0 {
+			leaf := state.PeerCertificates[0]
+			r.TlsIssuer = proto.String(leaf.Issuer.CommonName)
+			r.TlsExpiresUnix = proto.Int64(leaf.NotAfter.Unix())
+		}
 		stream = tlsConn
 	}
 	begin = time.Now()
@@ -90,5 +104,27 @@ func DiagnoseSite(ctx context.Context, dial func(context.Context, string, M.Sock
 	}
 	defer resp.Body.Close()
 	r.Status = proto.Int32(int32(resp.StatusCode))
+	if served, parseErr := http.ParseTime(resp.Header.Get("Date")); parseErr == nil {
+		r.ServerUnix = proto.Int64(served.Unix())
+	}
 	return r
+}
+
+// A cut handshake shows up as a reset or a truncated read, never as a certificate
+// or protocol complaint, because the peer never got far enough to make one.
+func handshakeWasCut(err error) bool {
+	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, syscall.ECONNRESET) {
+		return true
+	}
+	var recordErr tls.RecordHeaderError
+	if errors.As(err, &recordErr) {
+		return true
+	}
+	message := strings.ToLower(err.Error())
+	for _, marker := range []string{"connection reset", "reset by peer", "unexpected eof", "broken pipe", "forcibly closed"} {
+		if strings.Contains(message, marker) {
+			return true
+		}
+	}
+	return false
 }

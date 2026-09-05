@@ -115,18 +115,6 @@
         <translation>Диагностика</translation>
     </message>
     <message>
-        <source>Site</source>
-        <translation>Сайт</translation>
-    </message>
-    <message>
-        <source>Check a website</source>
-        <translation>Проверить сайт</translation>
-    </message>
-    <message>
-        <source>A fresh request through the running connection</source>
-        <translation>Отдельный запрос через работающее подключение</translation>
-    </message>
-    <message>
         <source>Website address</source>
         <translation>Адрес сайта</translation>
     </message>
@@ -145,14 +133,6 @@
     <message>
         <source>Request path</source>
         <translation>Путь запроса</translation>
-    </message>
-    <message>
-        <source>Connection and DNS · not checked</source>
-        <translation>Соединение и DNS · не проверено</translation>
-    </message>
-    <message>
-        <source>DNS may be resolved by the proxy. Its time is included in connection establishment.</source>
-        <translation>DNS может разрешаться на прокси. Его время входит в установление соединения.</translation>
     </message>
     <message>
         <source>TLS · not checked</source>
@@ -283,10 +263,6 @@
         <translation>Путь запроса · %1 мс всего</translation>
     </message>
     <message>
-        <source>Route, connection, TLS and HTTP · up to 15 seconds</source>
-        <translation>Маршрут, соединение, TLS и HTTP · до 15 секунд</translation>
-    </message>
-    <message>
         <source>Route: blocked by a rule</source>
         <translation>Маршрут: заблокирован правилом</translation>
     </message>
@@ -351,16 +327,8 @@
         <translation>Выход: %1</translation>
     </message>
     <message>
-        <source>Connection and DNS</source>
-        <translation>Соединение и DNS</translation>
-    </message>
-    <message>
         <source>TLS</source>
         <translation>TLS</translation>
-    </message>
-    <message>
-        <source>Certificate and hostname verified.</source>
-        <translation>Сертификат и имя сайта проверены.</translation>
     </message>
     <message>
         <source>TLS · not used for HTTP</source>
@@ -385,14 +353,6 @@
     <message>
         <source>The site responded</source>
         <translation>Сайт ответил</translation>
-    </message>
-    <message>
-        <source>Throned · website diagnostics</source>
-        <translation>Throned · диагностика сайта</translation>
-    </message>
-    <message>
-        <source>DNS may be resolved by the proxy; it has no separate timing.</source>
-        <translation>DNS может резолвиться на прокси, отдельного времени у него нет.</translation>
     </message>
     <message>
         <source>HEAD request, no redirects, no login.</source>
@@ -459,6 +419,338 @@
         <translation>Наблюдаем · %1 с. Воспроизведите проблему в приложении.</translation>
     </message>
     <message>
+        <source>SECTIONS</source>
+        <translation>РАЗДЕЛЫ</translation>
+    </message>
+    <message>
+        <source>Overview</source>
+        <translation>Обзор</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Адрес</translation>
+    </message>
+    <message>
+        <source>Applications</source>
+        <translation>Приложения</translation>
+    </message>
+    <message>
+        <source>Report</source>
+        <translation>Отчёт</translation>
+    </message>
+    <message>
+        <source>Connection state</source>
+        <translation>Состояние подключения</translation>
+    </message>
+    <message>
+        <source>Checked when the window opens. Nothing leaves the machine except two requests through the active outbound.</source>
+        <translation>Проверка запускается при открытии окна. Наружу уходят только два запроса через активный выход.</translation>
+    </message>
+    <message>
+        <source>Core</source>
+        <translation>Ядро</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Traffic capture</source>
+        <translation>Перехват трафика</translation>
+    </message>
+    <message>
+        <source>Visible address</source>
+        <translation>Видимый адрес</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>UDP</source>
+        <translation>UDP</translation>
+    </message>
+    <message>
+        <source>System clock</source>
+        <translation>Часы системы</translation>
+    </message>
+    <message>
+        <source>Check again</source>
+        <translation>Проверить заново</translation>
+    </message>
+    <message>
+        <source>Rows with an action open the screen that fixes that cause. Nothing here changes settings on its own.</source>
+        <translation>Строки с кнопкой открывают экран, который правит эту причину. Само окно ничего не меняет.</translation>
+    </message>
+    <message>
+        <source>Check an address</source>
+        <translation>Проверить адрес</translation>
+    </message>
+    <message>
+        <source>Compare with…</source>
+        <translation>Сравнить с…</translation>
+    </message>
+    <message>
+        <source>An address that works, for comparison</source>
+        <translation>Адрес, который работает, — для сравнения</translation>
+    </message>
+    <message>
+        <source>DNS · not checked</source>
+        <translation>DNS · не проверялся</translation>
+    </message>
+    <message>
+        <source>Resolved beside the probe, never in front of it, so the proxy still resolves the name itself.</source>
+        <translation>Резолв идёт рядом с проверкой, а не вместо неё, — имя по-прежнему разрешает прокси.</translation>
+    </message>
+    <message>
+        <source>Connection · not checked</source>
+        <translation>Соединение · не проверялось</translation>
+    </message>
+    <message>
+        <source>Establishing the connection through the chosen outbound.</source>
+        <translation>Установка соединения через выбранный выход.</translation>
+    </message>
+    <message>
+        <source>Through the other outbounds</source>
+        <translation>Через другие выходы</translation>
+    </message>
+    <message>
+        <source>Problems only</source>
+        <translation>Только проблемные</translation>
+    </message>
+    <message>
+        <source>Drop connections</source>
+        <translation>Разорвать соединения</translation>
+    </message>
+    <message>
+        <source>Report for support</source>
+        <translation>Отчёт для поддержки</translation>
+    </message>
+    <message>
+        <source>One paste instead of two. Pick what goes in and see exactly what you are about to send.</source>
+        <translation>Одна вставка вместо двух. Выберите, что войдёт, и увидите ровно то, что отправляете.</translation>
+    </message>
+    <message>
+        <source>Address check</source>
+        <translation>Проверка адреса</translation>
+    </message>
+    <message>
+        <source>Settings, DNS and log</source>
+        <translation>Настройки, DNS и журнал</translation>
+    </message>
+    <message>
+        <source>Hide personal data</source>
+        <translation>Скрыть личные данные</translation>
+    </message>
+    <message>
+        <source>Masks the profile name, the visible address and paths to programs.</source>
+        <translation>Скрывает имя профиля, видимый адрес и пути к программам.</translation>
+    </message>
+    <message>
+        <source>Save to file</source>
+        <translation>Сохранить в файл</translation>
+    </message>
+    <message>
+        <source>%1 · %2 min</source>
+        <translation>%1 · %2 мин</translation>
+    </message>
+    <message>
+        <source>Not started — nothing is being routed</source>
+        <translation>Не запущено — трафик никуда не направляется</translation>
+    </message>
+    <message>
+        <source>Log</source>
+        <translation>Журнал</translation>
+    </message>
+    <message>
+        <source>No profile is selected</source>
+        <translation>Профиль не выбран</translation>
+    </message>
+    <message>
+        <source>%1 · %2</source>
+        <translation>%1 · %2</translation>
+    </message>
+    <message>
+        <source>%1 · %2 · %3 ms</source>
+        <translation>%1 · %2 · %3 мс</translation>
+    </message>
+    <message>
+        <source>Change</source>
+        <translation>Сменить</translation>
+    </message>
+    <message>
+        <source>TUN is active — every program goes through Throned</source>
+        <translation>TUN активен — все программы идут через Throned</translation>
+    </message>
+    <message>
+        <source>System proxy is set — programs that honour it go through Throned</source>
+        <translation>Системный прокси установлен — программы, которые его учитывают, идут через Throned</translation>
+    </message>
+    <message>
+        <source>Neither TUN nor the system proxy is on — programs go past Throned</source>
+        <translation>Ни TUN, ни системный прокси не включены — программы идут мимо Throned</translation>
+    </message>
+    <message>
+        <source>Turn on</source>
+        <translation>Включить</translation>
+    </message>
+    <message>
+        <source>Could not be checked: %1</source>
+        <translation>Не удалось проверить: %1</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>Проверяем…</translation>
+    </message>
+    <message>
+        <source>Not checked yet</source>
+        <translation>Ещё не проверялось</translation>
+    </message>
+    <message>
+        <source>The system and the core agree on %1</source>
+        <translation>Система и ядро дают одинаковый ответ для %1</translation>
+    </message>
+    <message>
+        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
+        <translation>Система и ядро отвечают по-разному для %1 — запросы уходят мимо туннеля</translation>
+    </message>
+    <message>
+        <source>Fix</source>
+        <translation>Исправить</translation>
+    </message>
+    <message>
+        <source>Answers in %1 ms — calls, games and QUIC have a path</source>
+        <translation>Отвечает за %1 мс — звонкам, играм и QUIC есть путь</translation>
+    </message>
+    <message>
+        <source>Answers — calls, games and QUIC have a path</source>
+        <translation>Отвечает — звонкам, играм и QUIC есть путь</translation>
+    </message>
+    <message>
+        <source>No answer — calls, games and QUIC will not work</source>
+        <translation>Ответа нет — звонки, игры и QUIC работать не будут</translation>
+    </message>
+    <message>
+        <source>Rules</source>
+        <translation>Правила</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS will fail everywhere until the clock is corrected</source>
+        <translation>Расхождение %1 с — TLS будет падать везде, пока часы не поправить</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS is unaffected</source>
+        <translation>Расхождение %1 с — на TLS не влияет</translation>
+    </message>
+    <message>
+        <source>checking…</source>
+        <translation>проверяем…</translation>
+    </message>
+    <message>
+        <source>checked %1</source>
+        <translation>проверено %1</translation>
+    </message>
+    <message>
+        <source>Turn on DPI bypass</source>
+        <translation>Включить обход DPI</translation>
+    </message>
+    <message>
+        <source>Open DNS settings</source>
+        <translation>Открыть настройки DNS</translation>
+    </message>
+    <message>
+        <source>Check the other outbounds</source>
+        <translation>Проверить другие выходы</translation>
+    </message>
+    <message>
+        <source>Route, DNS, connection, TLS and HTTP · up to 15 seconds</source>
+        <translation>Маршрут, DNS, соединение, TLS и HTTP · до 15 секунд</translation>
+    </message>
+    <message>
+        <source>DNS · not compared</source>
+        <translation>DNS · не сверялся</translation>
+    </message>
+    <message>
+        <source>The address is already an IP, or one of the resolvers did not answer.</source>
+        <translation>Адрес уже задан как IP, либо один из резолверов не ответил.</translation>
+    </message>
+    <message>
+        <source>The system and the core agree: %1</source>
+        <translation>Система и ядро совпали: %1</translation>
+    </message>
+    <message>
+        <source>DNS · answers differ</source>
+        <translation>DNS · ответы различаются</translation>
+    </message>
+    <message>
+        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
+        <translation>Ядро вернуло %1, система — %2. Программы с системным резолвером уйдут не туда.</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>Соединение</translation>
+    </message>
+    <message>
+        <source>Established through the outbound. The proxy may resolve the name remotely.</source>
+        <translation>Установлено через выход. Имя может разрешаться на стороне прокси.</translation>
+    </message>
+    <message>
+        <source>Issued by %1</source>
+        <translation>Выдан: %1</translation>
+    </message>
+    <message>
+        <source>Valid until %1</source>
+        <translation>Действителен до %1</translation>
+    </message>
+    <message>
+        <source>TLS · connection cut</source>
+        <translation>TLS · соединение оборвано</translation>
+    </message>
+    <message>
+        <source>The connection is cut right after the site name</source>
+        <translation>Соединение обрывают сразу после имени сайта</translation>
+    </message>
+    <message>
+        <source>The connection was established and then dropped before the server answered — the signature of filtering on the name, not a refusal by the site. %1</source>
+        <translation>Соединение установилось и было сброшено до ответа сервера — это подпись фильтрации по имени, а не отказ сайта. %1</translation>
+    </message>
+    <message>
+        <source>Throned · address check</source>
+        <translation>Throned · проверка адреса</translation>
+    </message>
+    <message>
+        <source>Compared with %1</source>
+        <translation>Сравнение с %1</translation>
+    </message>
+    <message>
+        <source>Result for %1: %2</source>
+        <translation>Результат для %1: %2</translation>
+    </message>
+    <message>
+        <source>No other outbounds are running to compare against.</source>
+        <translation>Других запущенных выходов для сравнения нет.</translation>
+    </message>
+    <message>
+        <source>current</source>
+        <translation>сейчас</translation>
+    </message>
+    <message>
+        <source>fail</source>
+        <translation>сбой</translation>
+    </message>
+    <message>
+        <source>…</source>
+        <translation>…</translation>
+    </message>
+    <message>
+        <source>cut</source>
+        <translation>обрыв</translation>
+    </message>
+    <message>
+        <source>no route</source>
+        <translation>нет маршрута</translation>
+    </message>
+    <message>
         <source>Observation stopped · %1 s.</source>
         <translation>Наблюдение остановлено · %1 с.</translation>
     </message>
@@ -491,12 +783,24 @@
         <translation>Для проверки используется HTTPS, для порта 80 — HTTP. Перед запуском адрес можно изменить.</translation>
     </message>
     <message>
+        <source>Throned · connection state</source>
+        <translation>Throned · состояние подключения</translation>
+    </message>
+    <message>
         <source>Throned · application connections</source>
         <translation>Throned · соединения приложения</translation>
     </message>
     <message>
         <source>Copied</source>
         <translation>Скопировано</translation>
+    </message>
+    <message>
+        <source>Save report</source>
+        <translation>Сохранить отчёт</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt)</source>
+        <translation>Текстовые файлы (*.txt)</translation>
     </message>
     <message>
         <source>Not checked</source>

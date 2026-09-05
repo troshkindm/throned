@@ -367,6 +367,7 @@ void MainWindow::profile_start(int _id) {
         // Must land after the stop this start may have run first: that stop clears the map.
         Stats::SetVpnEndpointProfiles(result->vpnEndpointProfiles);
         running = ent;
+        coreStartedAt = QDateTime::currentMSecsSinceEpoch();
         if (Configs::dataManager->settingsRepo->spmode_system_proxy) set_system_proxy(true);
 
         const bool exitIsEndpoint = vpn_exit_endpoint(ent) != nullptr;
@@ -549,6 +550,7 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
 
         if (manual) Configs::dataManager->settingsRepo->UpdateStartedId(Configs::NoProfileId);
         running = nullptr;
+        coreStartedAt = 0;
 
         runOnUiThread([=, this, &restartMsgboxTimer, &restartMsgbox] {
             if (restartMsgboxTimer != nullptr) {

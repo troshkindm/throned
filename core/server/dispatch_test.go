@@ -101,6 +101,40 @@ func TestDispatchPreviewRouteReplaysTheRunningRules(t *testing.T) {
 	}
 }
 
+func TestDispatchHealthNeedsARunningInstanceAndListsOutbounds(t *testing.T) {
+	previous, previousCancel := currentInstance()
+	defer setBoxInstance(previous, previousCancel)
+	setBoxInstance(nil, nil)
+	payload, _ := proto.Marshal(&gen.HealthRequest{})
+	if _, err := dispatch("Health", payload); err == nil {
+		t.Fatal("a stopped instance must return an explicit error")
+	}
+	env, err := prepareTestEnv(false, false, "", nil,
+		`{"outbounds":[{"type":"direct","tag":"fallback"},{"type":"direct","tag":"second"}]}`, nil, true, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer env.close()
+	setBoxInstance(env.box, nil)
+	// A domain nothing can resolve keeps the test off the network while still
+	// exercising the whole path; only the outbound inventory is asserted.
+	payload, _ = proto.Marshal(&gen.HealthRequest{DnsProbeDomain: To("invalid.")})
+	response, err := dispatch("Health", payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var result gen.HealthResponse
+	if err := proto.Unmarshal(response, &result); err != nil {
+		t.Fatal(err)
+	}
+	if len(result.GetOutbounds()) < 2 || result.GetOutboundTag() == "" {
+		t.Fatalf("outbound inventory missing: %v", &result)
+	}
+	if result.GetDnsCompared() {
+		t.Fatalf("an unresolvable name must not be reported as a compared answer: %v", &result)
+	}
+}
+
 func TestDispatchSiteTestReturnsHTTPResults(t *testing.T) {
 	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/blocked" {

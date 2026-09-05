@@ -48,18 +48,6 @@
         <translation>Diagnostics</translation>
     </message>
     <message>
-        <source>Site</source>
-        <translation>Site</translation>
-    </message>
-    <message>
-        <source>Check a website</source>
-        <translation>Check a website</translation>
-    </message>
-    <message>
-        <source>A fresh request through the running connection</source>
-        <translation>A fresh request through the running connection</translation>
-    </message>
-    <message>
         <source>Website address</source>
         <translation>Website address</translation>
     </message>
@@ -78,14 +66,6 @@
     <message>
         <source>Request path</source>
         <translation>Request path</translation>
-    </message>
-    <message>
-        <source>Connection and DNS · not checked</source>
-        <translation>Connection and DNS · not checked</translation>
-    </message>
-    <message>
-        <source>DNS may be resolved by the proxy. Its time is included in connection establishment.</source>
-        <translation>DNS may be resolved by the proxy. Its time is included in connection establishment.</translation>
     </message>
     <message>
         <source>TLS · not checked</source>
@@ -216,10 +196,6 @@
         <translation>Request path · %1 ms in total</translation>
     </message>
     <message>
-        <source>Route, connection, TLS and HTTP · up to 15 seconds</source>
-        <translation>Route, connection, TLS and HTTP · up to 15 seconds</translation>
-    </message>
-    <message>
         <source>Route: blocked by a rule</source>
         <translation>Route: blocked by a rule</translation>
     </message>
@@ -284,16 +260,8 @@
         <translation>Outbound: %1</translation>
     </message>
     <message>
-        <source>Connection and DNS</source>
-        <translation>Connection and DNS</translation>
-    </message>
-    <message>
         <source>TLS</source>
         <translation>TLS</translation>
-    </message>
-    <message>
-        <source>Certificate and hostname verified.</source>
-        <translation>Certificate and hostname verified.</translation>
     </message>
     <message>
         <source>TLS · not used for HTTP</source>
@@ -318,14 +286,6 @@
     <message>
         <source>The site responded</source>
         <translation>The site responded</translation>
-    </message>
-    <message>
-        <source>Throned · website diagnostics</source>
-        <translation>Throned · website diagnostics</translation>
-    </message>
-    <message>
-        <source>DNS may be resolved by the proxy; it has no separate timing.</source>
-        <translation>DNS may be resolved by the proxy; it has no separate timing.</translation>
     </message>
     <message>
         <source>HEAD request, no redirects, no login.</source>
@@ -392,6 +352,338 @@
         <translation>Observing · %1 s. Reproduce the problem in the application.</translation>
     </message>
     <message>
+        <source>SECTIONS</source>
+        <translation>SECTIONS</translation>
+    </message>
+    <message>
+        <source>Overview</source>
+        <translation>Overview</translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation>Address</translation>
+    </message>
+    <message>
+        <source>Applications</source>
+        <translation>Applications</translation>
+    </message>
+    <message>
+        <source>Report</source>
+        <translation>Report</translation>
+    </message>
+    <message>
+        <source>Connection state</source>
+        <translation>Connection state</translation>
+    </message>
+    <message>
+        <source>Checked when the window opens. Nothing leaves the machine except two requests through the active outbound.</source>
+        <translation>Checked when the window opens. Nothing leaves the machine except two requests through the active outbound.</translation>
+    </message>
+    <message>
+        <source>Core</source>
+        <translation>Core</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Profile</translation>
+    </message>
+    <message>
+        <source>Traffic capture</source>
+        <translation>Traffic capture</translation>
+    </message>
+    <message>
+        <source>Visible address</source>
+        <translation>Visible address</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>UDP</source>
+        <translation>UDP</translation>
+    </message>
+    <message>
+        <source>System clock</source>
+        <translation>System clock</translation>
+    </message>
+    <message>
+        <source>Check again</source>
+        <translation>Check again</translation>
+    </message>
+    <message>
+        <source>Rows with an action open the screen that fixes that cause. Nothing here changes settings on its own.</source>
+        <translation>Rows with an action open the screen that fixes that cause. Nothing here changes settings on its own.</translation>
+    </message>
+    <message>
+        <source>Check an address</source>
+        <translation>Check an address</translation>
+    </message>
+    <message>
+        <source>Compare with…</source>
+        <translation>Compare with…</translation>
+    </message>
+    <message>
+        <source>An address that works, for comparison</source>
+        <translation>An address that works, for comparison</translation>
+    </message>
+    <message>
+        <source>DNS · not checked</source>
+        <translation>DNS · not checked</translation>
+    </message>
+    <message>
+        <source>Resolved beside the probe, never in front of it, so the proxy still resolves the name itself.</source>
+        <translation>Resolved beside the probe, never in front of it, so the proxy still resolves the name itself.</translation>
+    </message>
+    <message>
+        <source>Connection · not checked</source>
+        <translation>Connection · not checked</translation>
+    </message>
+    <message>
+        <source>Establishing the connection through the chosen outbound.</source>
+        <translation>Establishing the connection through the chosen outbound.</translation>
+    </message>
+    <message>
+        <source>Through the other outbounds</source>
+        <translation>Through the other outbounds</translation>
+    </message>
+    <message>
+        <source>Problems only</source>
+        <translation>Problems only</translation>
+    </message>
+    <message>
+        <source>Drop connections</source>
+        <translation>Drop connections</translation>
+    </message>
+    <message>
+        <source>Report for support</source>
+        <translation>Report for support</translation>
+    </message>
+    <message>
+        <source>One paste instead of two. Pick what goes in and see exactly what you are about to send.</source>
+        <translation>One paste instead of two. Pick what goes in and see exactly what you are about to send.</translation>
+    </message>
+    <message>
+        <source>Address check</source>
+        <translation>Address check</translation>
+    </message>
+    <message>
+        <source>Settings, DNS and log</source>
+        <translation>Settings, DNS and log</translation>
+    </message>
+    <message>
+        <source>Hide personal data</source>
+        <translation>Hide personal data</translation>
+    </message>
+    <message>
+        <source>Masks the profile name, the visible address and paths to programs.</source>
+        <translation>Masks the profile name, the visible address and paths to programs.</translation>
+    </message>
+    <message>
+        <source>Save to file</source>
+        <translation>Save to file</translation>
+    </message>
+    <message>
+        <source>%1 · %2 min</source>
+        <translation>%1 · %2 min</translation>
+    </message>
+    <message>
+        <source>Not started — nothing is being routed</source>
+        <translation>Not started — nothing is being routed</translation>
+    </message>
+    <message>
+        <source>Log</source>
+        <translation>Log</translation>
+    </message>
+    <message>
+        <source>No profile is selected</source>
+        <translation>No profile is selected</translation>
+    </message>
+    <message>
+        <source>%1 · %2</source>
+        <translation>%1 · %2</translation>
+    </message>
+    <message>
+        <source>%1 · %2 · %3 ms</source>
+        <translation>%1 · %2 · %3 ms</translation>
+    </message>
+    <message>
+        <source>Change</source>
+        <translation>Change</translation>
+    </message>
+    <message>
+        <source>TUN is active — every program goes through Throned</source>
+        <translation>TUN is active — every program goes through Throned</translation>
+    </message>
+    <message>
+        <source>System proxy is set — programs that honour it go through Throned</source>
+        <translation>System proxy is set — programs that honour it go through Throned</translation>
+    </message>
+    <message>
+        <source>Neither TUN nor the system proxy is on — programs go past Throned</source>
+        <translation>Neither TUN nor the system proxy is on — programs go past Throned</translation>
+    </message>
+    <message>
+        <source>Turn on</source>
+        <translation>Turn on</translation>
+    </message>
+    <message>
+        <source>Could not be checked: %1</source>
+        <translation>Could not be checked: %1</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>Checking…</translation>
+    </message>
+    <message>
+        <source>Not checked yet</source>
+        <translation>Not checked yet</translation>
+    </message>
+    <message>
+        <source>The system and the core agree on %1</source>
+        <translation>The system and the core agree on %1</translation>
+    </message>
+    <message>
+        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
+        <translation>The system and the core answer differently for %1 — queries are leaving the tunnel</translation>
+    </message>
+    <message>
+        <source>Fix</source>
+        <translation>Fix</translation>
+    </message>
+    <message>
+        <source>Answers in %1 ms — calls, games and QUIC have a path</source>
+        <translation>Answers in %1 ms — calls, games and QUIC have a path</translation>
+    </message>
+    <message>
+        <source>Answers — calls, games and QUIC have a path</source>
+        <translation>Answers — calls, games and QUIC have a path</translation>
+    </message>
+    <message>
+        <source>No answer — calls, games and QUIC will not work</source>
+        <translation>No answer — calls, games and QUIC will not work</translation>
+    </message>
+    <message>
+        <source>Rules</source>
+        <translation>Rules</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS will fail everywhere until the clock is corrected</source>
+        <translation>Off by %1 s — TLS will fail everywhere until the clock is corrected</translation>
+    </message>
+    <message>
+        <source>Off by %1 s — TLS is unaffected</source>
+        <translation>Off by %1 s — TLS is unaffected</translation>
+    </message>
+    <message>
+        <source>checking…</source>
+        <translation>checking…</translation>
+    </message>
+    <message>
+        <source>checked %1</source>
+        <translation>checked %1</translation>
+    </message>
+    <message>
+        <source>Turn on DPI bypass</source>
+        <translation>Turn on DPI bypass</translation>
+    </message>
+    <message>
+        <source>Open DNS settings</source>
+        <translation>Open DNS settings</translation>
+    </message>
+    <message>
+        <source>Check the other outbounds</source>
+        <translation>Check the other outbounds</translation>
+    </message>
+    <message>
+        <source>Route, DNS, connection, TLS and HTTP · up to 15 seconds</source>
+        <translation>Route, DNS, connection, TLS and HTTP · up to 15 seconds</translation>
+    </message>
+    <message>
+        <source>DNS · not compared</source>
+        <translation>DNS · not compared</translation>
+    </message>
+    <message>
+        <source>The address is already an IP, or one of the resolvers did not answer.</source>
+        <translation>The address is already an IP, or one of the resolvers did not answer.</translation>
+    </message>
+    <message>
+        <source>The system and the core agree: %1</source>
+        <translation>The system and the core agree: %1</translation>
+    </message>
+    <message>
+        <source>DNS · answers differ</source>
+        <translation>DNS · answers differ</translation>
+    </message>
+    <message>
+        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
+        <translation>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>Connection</translation>
+    </message>
+    <message>
+        <source>Established through the outbound. The proxy may resolve the name remotely.</source>
+        <translation>Established through the outbound. The proxy may resolve the name remotely.</translation>
+    </message>
+    <message>
+        <source>Issued by %1</source>
+        <translation>Issued by %1</translation>
+    </message>
+    <message>
+        <source>Valid until %1</source>
+        <translation>Valid until %1</translation>
+    </message>
+    <message>
+        <source>TLS · connection cut</source>
+        <translation>TLS · connection cut</translation>
+    </message>
+    <message>
+        <source>The connection is cut right after the site name</source>
+        <translation>The connection is cut right after the site name</translation>
+    </message>
+    <message>
+        <source>The connection was established and then dropped before the server answered — the signature of filtering on the name, not a refusal by the site. %1</source>
+        <translation>The connection was established and then dropped before the server answered — the signature of filtering on the name, not a refusal by the site. %1</translation>
+    </message>
+    <message>
+        <source>Throned · address check</source>
+        <translation>Throned · address check</translation>
+    </message>
+    <message>
+        <source>Compared with %1</source>
+        <translation>Compared with %1</translation>
+    </message>
+    <message>
+        <source>Result for %1: %2</source>
+        <translation>Result for %1: %2</translation>
+    </message>
+    <message>
+        <source>No other outbounds are running to compare against.</source>
+        <translation>No other outbounds are running to compare against.</translation>
+    </message>
+    <message>
+        <source>current</source>
+        <translation>current</translation>
+    </message>
+    <message>
+        <source>fail</source>
+        <translation>fail</translation>
+    </message>
+    <message>
+        <source>…</source>
+        <translation>…</translation>
+    </message>
+    <message>
+        <source>cut</source>
+        <translation>cut</translation>
+    </message>
+    <message>
+        <source>no route</source>
+        <translation>no route</translation>
+    </message>
+    <message>
         <source>Observation stopped · %1 s.</source>
         <translation>Observation stopped · %1 s.</translation>
     </message>
@@ -424,12 +716,24 @@
         <translation>Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.</translation>
     </message>
     <message>
+        <source>Throned · connection state</source>
+        <translation>Throned · connection state</translation>
+    </message>
+    <message>
         <source>Throned · application connections</source>
         <translation>Throned · application connections</translation>
     </message>
     <message>
         <source>Copied</source>
         <translation>Copied</translation>
+    </message>
+    <message>
+        <source>Save report</source>
+        <translation>Save report</translation>
+    </message>
+    <message>
+        <source>Text files (*.txt)</source>
+        <translation>Text files (*.txt)</translation>
     </message>
     <message>
         <source>Not checked</source>

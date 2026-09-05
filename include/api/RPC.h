@@ -53,6 +53,8 @@ namespace API {
 
         libcore::PreviewRouteResponse PreviewRoute(bool *rpcOK, const libcore::PreviewRouteRequest &request, QString *coreError = nullptr);
 
+        libcore::HealthResponse Health(bool *rpcOK, const libcore::HealthRequest &request, QString *coreError = nullptr);
+
         QString SetSystemDNS(bool *rpcOK, bool clear) const;
         // WFP block held across a core restart so the gap between Stop and Start
         // does not fall through to the physical interface. Windows only.

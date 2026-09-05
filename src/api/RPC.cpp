@@ -609,6 +609,20 @@ namespace API {
         return {};
     }
 
+    libcore::HealthResponse Client::Health(bool *rpcOK, const libcore::HealthRequest &request, QString *coreError) {
+        *rpcOK = false;
+        libcore::HealthResponse reply;
+        std::vector<uint8_t> resp;
+        const auto status = channel->Call("Health", spb::pb::serialize<std::string>(request), resp);
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        if (coreError) *coreError = resp.empty() ? QStringLiteral("IPC error")
+            : QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        return {};
+    }
+
     libcore::QueryConnectionsResp Client::QueryConnections(bool *rpcOK) const
     {
         if (rpcOK) *rpcOK = false;

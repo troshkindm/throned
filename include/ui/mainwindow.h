@@ -105,7 +105,7 @@ enum class ExitReason {
     RestartWithDns,
 };
 
-class DiagnosticsWindow;
+#include "include/ui/stats/diagnostics_window.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -175,7 +175,10 @@ public:
 
     void copyDiagnostics();
     void openDiagnostics(const QString &processKey = {});
-    void openDiagnosticsHelper(bool routingRules);
+    void openDiagnosticsTarget(const QString &target);
+    DiagnosticsWindow::LocalState diagnosticsLocalState();
+    // Unix ms when the core last came up; 0 when it is not running.
+    qint64 coreStartedAt = 0;
 
     // Refresh the routing segment of the status bar from the active profile.
     void refreshRoutingStatus();

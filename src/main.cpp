@@ -1297,20 +1297,49 @@ briefly interrupts traffic.
                     qApp->exit(2);
                     return;
                 }
-                previewAddress->setText(QStringLiteral("https://example.org"));
                 // Same production widgets, isolated synthetic data. No RPC is connected.
-                libcore::PreviewRouteResponse route;
-                route.outbound_tag = "demo-proxy";
-                route.matched_rule = "domain_suffix=example.org => route(demo-proxy)";
-                route.action = "route";
-                dialog->applyRoutePreview(route);
-                libcore::DiagnoseSiteResponse result;
-                result.outbound_tag = "demo-proxy";
-                result.connect_ms = 86; result.tls_ms = 115; result.http_ms = 68;
-                result.status = 403; result.tls_version = "TLS 1.3";
-                dialog->applySiteResult(result);
+                DiagnosticsWindow::LocalState state;
+                state.coreRunning = true;
+                state.coreVersion = QStringLiteral("sing-box 1.13.20");
+                state.coreUptimeMs = 12 * 60 * 1000;
+                state.profileName = QStringLiteral("Demo North");
+                state.profileType = QStringLiteral("Trojan");
+                state.profileLatencyMs = 57;
+                state.tun = true;
+                state.environmentReport = QStringLiteral("Throned 1.3.8\nOS: Windows 11 (x86_64)\nTun: on | System proxy: off");
+                dialog->applyLocalState(state);
+                libcore::HealthResponse health;
+                health.outbound_tag = "demo-proxy";
+                health.outbounds = {"demo-proxy", "demo-eu", "demo-backup", "direct"};
+                health.external_ip = "198.51.100.24";
+                health.external_country = "FI";
+                health.clock_known = true; health.clock_skew_ms = 400;
+                health.udp_checked = true; health.udp_ok = false;
+                health.udp_error = "i/o timeout";
+                health.dns_domain = "example.org";
+                health.dns_compared = true; health.dns_agrees = false;
+                health.dns_core = {"172.64.155.209"};
+                health.dns_system = {"104.18.32.47"};
+                dialog->applyHealth(health);
                 dialog->show();
-                QTimer::singleShot(250, window, [dialog, prefix, previewConnections, previewRuleButton] {
+                QTimer::singleShot(200, window, [dialog, prefix, previewAddress, previewConnections, previewRuleButton] {
+                    dialog->grab().save(prefix + QStringLiteral("-diagnostics-overview.png"), "PNG");
+                    previewAddress->setText(QStringLiteral("https://example.org"));
+                    dialog->showAddress(QStringLiteral("https://example.org"));
+                    libcore::PreviewRouteResponse route;
+                    route.outbound_tag = "demo-proxy";
+                    route.matched_rule = "domain_suffix=example.org => route(demo-proxy)";
+                    route.action = "route";
+                    dialog->applyRoutePreview(route);
+                    libcore::DiagnoseSiteResponse result;
+                    result.outbound_tag = "demo-proxy";
+                    result.connect_ms = 86; result.tls_ms = 115; result.http_ms = 68;
+                    result.status = 403; result.tls_version = "TLS 1.3"; result.tls_alpn = "http/1.1";
+                    result.tls_issuer = "Demo Root CA"; result.tls_expires_unix = 1798761600;
+                    result.dns_ms = 7; result.dns_compared = true; result.dns_agrees = false;
+                    result.dns_core = {"172.64.155.209"};
+                    result.dns_system = {"104.18.32.47"};
+                    dialog->applySiteResult(result);
                     dialog->grab().save(prefix + QStringLiteral("-diagnostics-site.png"), "PNG");
                     dialog->showApplication();
                     // Twelve sockets over three destinations: the point of the list is that
@@ -1339,7 +1368,17 @@ briefly interrupts traffic.
                     previewRuleButton->setChecked(true);
                     QTimer::singleShot(200, dialog, [dialog, prefix] {
                         dialog->grab().save(prefix + QStringLiteral("-diagnostics-app.png"), "PNG");
-                        dialog->close(); qApp->exit(0);
+                        auto *reportRail = dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(3);
+                        if (reportRail == nullptr) {
+                            qWarning() << "Diagnostics preview lost the report section";
+                            qApp->exit(2);
+                            return;
+                        }
+                        reportRail->click();
+                        QTimer::singleShot(120, dialog, [dialog, prefix] {
+                            dialog->grab().save(prefix + QStringLiteral("-diagnostics-report.png"), "PNG");
+                            dialog->close(); qApp->exit(0);
+                        });
                     });
                 });
                 return;

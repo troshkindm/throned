@@ -9,7 +9,9 @@
 #include <QTabWidget>
 #include <QToolButton>
 #include <QTreeWidget>
+#include <QCheckBox>
 #include <QLocale>
+#include <QPlainTextEdit>
 #include <QTest>
 
 ThemeManager *themeManager() { static ThemeManager manager; return &manager; }
@@ -147,6 +149,67 @@ private slots:
         // Same widget instance: a clear()/rebuild would drop the selection and the scroll.
         QCOMPARE(tree->topLevelItem(0), first);
         QVERIFY(tree->topLevelItem(0)->text(2).contains(QLocale().formattedDataSize(4096)));
+    }
+    void splitDNSIsReportedAsAProblemNotAsAFailure() {
+        DiagnosticsWindow window;
+        libcore::HealthResponse health;
+        health.dns_domain = "example.org";
+        health.dns_compared = true;
+        health.dns_agrees = false;
+        health.dns_core = {"172.64.155.209"};
+        health.dns_system = {"104.18.32.47"};
+        health.clock_known = true;
+        health.clock_skew_ms = 600000;
+        window.applyHealth(health);
+        const auto rows = window.findChildren<QWidget *>("diagnosticHealthRow");
+        QCOMPARE(rows.size(), 7);
+        // The DNS row offers a way out; the clock row states the consequence and does not.
+        QVERIFY(!rows[4]->findChild<QPushButton *>("diagnosticHealthAction")->isHidden());
+        const auto labels = rows[6]->findChildren<QLabel *>();
+        bool mentionsTLS = false;
+        for (const auto *text : labels) mentionsTLS = mentionsTLS || text->text().contains("TLS will fail");
+        QVERIFY(mentionsTLS);
+    }
+    void aCutHandshakeOffersTheBypassRatherThanBlamingTheCertificate() {
+        DiagnosticsWindow window;
+        window.findChild<QLineEdit *>("diagnosticAddress")->setText("chatgpt.com");
+        window.findChild<QPushButton *>("diagnosticCheck")->click();
+        libcore::PreviewRouteResponse route;
+        route.outbound_tag = "direct";
+        route.action = "route";
+        window.applyRoutePreview(route);
+        libcore::DiagnoseSiteResponse result;
+        result.outbound_tag = "direct";
+        result.connect_ms = 22;
+        result.tls_ms = 12;
+        result.error_stage = "tls";
+        result.error = "connection reset by peer";
+        result.tls_cut = true;
+        window.applySiteResult(result);
+        QCOMPARE(window.findChild<QLabel *>("diagnosticVerdictTitle")->text(),
+                 QString("The connection is cut right after the site name"));
+        const auto actions = window.findChildren<QPushButton *>("diagnosticVerdictAction");
+        QVERIFY(!actions.isEmpty());
+        QCOMPARE(actions[0]->property("target").toString(), QString("dpi"));
+    }
+    void theReportMasksTheProfileAndTheVisibleAddress() {
+        DiagnosticsWindow window;
+        DiagnosticsWindow::LocalState state;
+        state.coreRunning = true;
+        state.profileName = "Secret Node";
+        state.environmentReport = "Throned 1.3.8";
+        window.applyLocalState(state);
+        libcore::HealthResponse health;
+        health.external_ip = "198.51.100.24";
+        window.applyHealth(health);
+        auto *preview = window.findChild<QPlainTextEdit *>("diagnosticReportPreview");
+        window.findChildren<QPushButton *>("diagnosticRail").value(3)->click();
+        const auto masked = preview->toPlainText();
+        QVERIFY(!masked.contains("Secret Node"));
+        QVERIFY(!masked.contains("198.51.100.24"));
+        for (auto *box : window.findChildren<QCheckBox *>())
+            if (box->text().contains("Hide personal")) box->setChecked(false);
+        QVERIFY(window.findChild<QPlainTextEdit *>("diagnosticReportPreview")->toPlainText().contains("Secret Node"));
     }
     void observationRetainsClosedAndIgnoresLatePollAfterStop() {
         DiagnosticsWindow window;
