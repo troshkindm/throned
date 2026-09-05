@@ -71,10 +71,6 @@
 <context>
     <name>DiagnosticsWindow</name>
     <message>
-        <source>Unknown process</source>
-        <translation>Процесс неизвестен</translation>
-    </message>
-    <message>
         <source>Unknown outbound</source>
         <translation>Неизвестный выход</translation>
     </message>
@@ -407,6 +403,21 @@
         <translation>Не удалось получить соединения: %1</translation>
     </message>
     <message>
+        <source>No connections yet. Start Throned and open the application.</source>
+        <translation>Соединений пока нет. Запустите Throned и откройте приложение.</translation>
+    </message>
+    <message>
+        <source>No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up.</source>
+        <translation>Приложение не определено ни для одного соединения: в профиле маршрутизации нет правил по программам, поэтому ядро его и не ищет.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.</source>
+        <translation>
+            <numerusform>%n соединение не сообщает приложение — трафик с другого устройства или сокет, закрывшийся до определения.</numerusform>
+            <numerusform>%n соединения не сообщают приложение — трафик с другого устройства или сокеты, закрывшиеся до определения.</numerusform>
+            <numerusform>%n соединений не сообщают приложение — трафик с другого устройства или сокеты, закрывшиеся до определения.</numerusform>
+        </translation>    </message>
+    <message>
         <source>Closed</source>
         <translation>Закрыто</translation>
     </message>
@@ -549,6 +560,14 @@
     <message>
         <source>Save to file</source>
         <translation>Сохранить в файл</translation>
+    </message>
+    <message>
+        <source>No application reported</source>
+        <translation>Приложение не определено</translation>
+    </message>
+    <message>
+        <source>No application reported · %1</source>
+        <translation>Приложение не определено · %1</translation>
     </message>
     <message>
         <source>%1 · %2 min</source>
@@ -751,6 +770,10 @@
         <translation>нет маршрута</translation>
     </message>
     <message>
+        <source>Without an application</source>
+        <translation>Без приложения</translation>
+    </message>
+    <message>
         <source>Observation stopped · %1 s.</source>
         <translation>Наблюдение остановлено · %1 с.</translation>
     </message>
@@ -759,8 +782,12 @@
         <translation> Достигнут лимит: сохранены первые 1000 соединений.</translation>
     </message>
     <message>
-        <source>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</source>
-        <translation>Соединений пока нет. Подключитесь в Throned и откройте приложение. Определение процесса зависит от режима подключения и платформы.</translation>
+        <source>The core did not report an owning program, so process rules cannot match this traffic.</source>
+        <translation>Ядро не сообщило программу-владельца, поэтому правила по процессам этот трафик не поймают.</translation>
+    </message>
+    <message>
+        <source>Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.</source>
+        <translation>Открыто с %1. Ядро не сообщило программу-владельца, поэтому правила по процессам этот трафик не поймают.</translation>
     </message>
     <message>
         <source>%1 connections to this destination, %2 already closed.</source>

@@ -39,7 +39,20 @@
 namespace {
 QString text(const std::optional<std::string> &value) { return QString::fromStdString(value.value_or("")); }
 QString processKey(const libcore::ConnectionMetaData &c) { return text(c.process_path).isEmpty() ? text(c.process) : text(c.process_path); }
-QString processName(const libcore::ConnectionMetaData &c) { return text(c.process).isEmpty() ? DiagnosticsWindow::tr("Unknown process") : text(c.process); }
+QString sourceHost(const libcore::ConnectionMetaData &c) {
+    const auto endpoint = text(c.source);
+    const int colon = endpoint.lastIndexOf(QLatin1Char(':'));
+    return colon > 0 ? endpoint.left(colon) : endpoint;
+}
+// sing-box only looks up the owning process when the routing profile has a process
+// rule, so a blank one is ordinary rather than a failure; the client address is then
+// the only identity there is, and it is what tells two LAN devices apart.
+QString processName(const libcore::ConnectionMetaData &c) {
+    if (!text(c.process).isEmpty()) return text(c.process);
+    const auto host = sourceHost(c);
+    return host.isEmpty() ? DiagnosticsWindow::tr("No application reported")
+                          : DiagnosticsWindow::tr("No application reported · %1").arg(host);
+}
 QString bytes(qint64 value) { return QLocale().formattedDataSize(value); }
 QStringList toList(const std::vector<std::string> &values) {
     QStringList out;
@@ -705,7 +718,9 @@ void DiagnosticsWindow::buildApplicationsPage() {
     connections->setRootIsDecorated(false);
     connections->setUniformRowHeights(true);
     connections->setSelectionMode(QAbstractItemView::SingleSelection);
-    connections->setMinimumHeight(150);
+    // The page does not scroll, so the list is what gives up room when the status or
+    // the detail card grows; everything else must keep its own height.
+    connections->setMinimumHeight(104);
     connections->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     connections->header()->setSectionResizeMode(1, QHeaderView::Interactive);
     connections->header()->setSectionResizeMode(2, QHeaderView::Interactive);
@@ -715,6 +730,7 @@ void DiagnosticsWindow::buildApplicationsPage() {
 
     auto *detailFrame = new QFrame;
     detailFrame->setObjectName(QStringLiteral("diagnosticConnectionDetail"));
+    detailFrame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     auto *detailLayout = new QVBoxLayout(detailFrame);
     detailLayout->setContentsMargins(16, 14, 16, 14);
     detailLayout->setSpacing(10);
@@ -1278,7 +1294,10 @@ void DiagnosticsWindow::applyConnections(const libcore::QueryConnectionsResp &r,
         if (recording && (!closed || c.closed_at.value_or(0) >= captureStarted)
             && (captured.contains(id) || captured.size() < MaxConnections)) captured.insert(id, c);
         const auto key = processKey(c);
-        if (!key.isEmpty() && apps->findData(key) < 0 && apps->count() < 300) {
+        if (key.isEmpty()) {
+            if (apps->findData(NoProcessFilter) < 0)
+                apps->addItem(tr("Without an application"), NoProcessFilter);
+        } else if (apps->findData(key) < 0 && apps->count() < 300) {
             apps->addItem(processName(c), key);
             apps->setItemData(apps->count() - 1, key, Qt::ToolTipRole);
         }
@@ -1295,16 +1314,24 @@ void DiagnosticsWindow::rebuildConnections() {
     QHash<QString, int> outboundUse;
     qint64 up = 0, down = 0;
     int total = 0;
+    int withoutProcess = 0;
     for (auto it = rows.cbegin(); it != rows.cend(); ++it) {
         const auto &c = it.value();
-        if (!filter.isEmpty() && processKey(c) != filter) continue;
+        if (processKey(c).isEmpty()) ++withoutProcess;
+        if (filter == NoProcessFilter) {
+            if (!processKey(c).isEmpty()) continue;
+        } else if (!filter.isEmpty() && processKey(c) != filter) continue;
         const auto host = text(c.domain).isEmpty() ? text(c.dest) : text(c.domain);
-        const auto key = processKey(c) + QLatin1Char('\x1f') + host + QLatin1Char('\x1f')
+        // Without a process the client address is the identity, or two LAN devices
+        // talking to the same host would collapse into one indistinguishable row.
+        const auto identity = processKey(c).isEmpty() ? sourceHost(c) : processKey(c);
+        const auto key = identity + QLatin1Char('\x1f') + host + QLatin1Char('\x1f')
             + text(c.outbound) + QLatin1Char('\x1f') + text(c.network);
         auto &group = merged[key];
         if (group.count == 0) {
             group.key = key; group.host = host; group.domain = text(c.domain); group.dest = text(c.dest);
             group.process = processName(c); group.processPath = processKey(c);
+            group.source = sourceHost(c);
             group.outbound = text(c.outbound); group.network = text(c.network);
         }
         if (group.matchedRule.isEmpty()) group.matchedRule = text(c.matched_rule);
@@ -1349,7 +1376,15 @@ void DiagnosticsWindow::rebuildConnections() {
         const auto elapsed = ((recording ? QDateTime::currentMSecsSinceEpoch() : captureStopped) - captureStarted) / 1000;
         captureStatus->setText((recording ? tr("Observing · %1 s. Reproduce the problem in the application.") : tr("Observation stopped · %1 s.")).arg(elapsed)
             + (captured.size() >= MaxConnections ? tr(" Limit reached: the first 1000 connections are retained.") : QString()));
-    } else captureStatus->setText(latest.isEmpty() ? tr("No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.") : tr("Current connections. Start observation to retain completed connections."));
+    } else captureStatus->setText(latest.isEmpty() ? tr("No connections yet. Start Throned and open the application.") : tr("Current connections. Start observation to retain completed connections."));
+    // The core only resolves the owning process when the routing profile asks it to,
+    // so a list with no applications at all is a settings answer, not a bug report.
+    if (withoutProcess > 0 && withoutProcess == total && total > 0)
+        captureStatus->setText(captureStatus->text() + QLatin1Char('\n')
+            + tr("No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up."));
+    else if (withoutProcess > 0)
+        captureStatus->setText(captureStatus->text() + QLatin1Char('\n')
+            + tr("%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.", "", withoutProcess));
     showConnection();
     refreshRail();
 }
@@ -1416,6 +1451,10 @@ void DiagnosticsWindow::showConnection() {
     connectionTitle->setText(group->dest.isEmpty() ? group->host : group->dest);
     QString detail = group->process + QStringLiteral(" · ") + group->network.toUpper()
         + QStringLiteral("\n") + tr("Outbound: %1").arg(group->outbound.isEmpty() ? tr("Unknown outbound") : group->outbound);
+    if (group->processPath.isEmpty())
+        detail += QStringLiteral("\n") + (group->source.isEmpty()
+            ? tr("The core did not report an owning program, so process rules cannot match this traffic.")
+            : tr("Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.").arg(group->source));
     if (group->count > 1)
         detail += QStringLiteral("\n") + tr("%1 connections to this destination, %2 already closed.").arg(group->count).arg(group->closed);
     if (group->download == 0 && group->upload > 0)

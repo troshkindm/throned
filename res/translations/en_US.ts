@@ -4,10 +4,6 @@
 <context>
     <name>DiagnosticsWindow</name>
     <message>
-        <source>Unknown process</source>
-        <translation>Unknown process</translation>
-    </message>
-    <message>
         <source>Unknown outbound</source>
         <translation>Unknown outbound</translation>
     </message>
@@ -340,6 +336,18 @@
         <translation>Could not read connections: %1</translation>
     </message>
     <message>
+        <source>No connections yet. Start Throned and open the application.</source>
+        <translation>No connections yet. Start Throned and open the application.</translation>
+    </message>
+    <message>
+        <source>No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up.</source>
+        <translation>No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.</source>
+        <translation><numerusform>%n connection reports no application</numerusform><numerusform>%n connections report no application</numerusform></translation>
+    </message>
+    <message>
         <source>Closed</source>
         <translation>Closed</translation>
     </message>
@@ -482,6 +490,14 @@
     <message>
         <source>Save to file</source>
         <translation>Save to file</translation>
+    </message>
+    <message>
+        <source>No application reported</source>
+        <translation>No application reported</translation>
+    </message>
+    <message>
+        <source>No application reported · %1</source>
+        <translation>No application reported · %1</translation>
     </message>
     <message>
         <source>%1 · %2 min</source>
@@ -684,6 +700,10 @@
         <translation>no route</translation>
     </message>
     <message>
+        <source>Without an application</source>
+        <translation>Without an application</translation>
+    </message>
+    <message>
         <source>Observation stopped · %1 s.</source>
         <translation>Observation stopped · %1 s.</translation>
     </message>
@@ -692,8 +712,12 @@
         <translation> Limit reached: the first 1000 connections are retained.</translation>
     </message>
     <message>
-        <source>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</source>
-        <translation>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</translation>
+        <source>The core did not report an owning program, so process rules cannot match this traffic.</source>
+        <translation>The core did not report an owning program, so process rules cannot match this traffic.</translation>
+    </message>
+    <message>
+        <source>Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.</source>
+        <translation>Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.</translation>
     </message>
     <message>
         <source>%1 connections to this destination, %2 already closed.</source>

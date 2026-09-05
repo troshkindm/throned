@@ -1355,6 +1355,18 @@ briefly interrupts traffic.
                         c.outbound = kind == 2 ? "direct" : "demo-proxy";
                         c.matched_rule = kind == 2 ? "network=udp => route(direct)" : "process_name=DemoChat.exe => route(demo-proxy)";
                         c.upload = 8192; c.download = kind == 2 ? 0 : 47104;
+                        c.source = "127.0.0.1:5510";
+                        snapshot.active.push_back(c);
+                    }
+                    // A LAN client sharing the connection: the core reports no owning
+                    // program for it, which is ordinary and must still be listed.
+                    for (int i = 0; i < 2; ++i) {
+                        libcore::ConnectionMetaData c;
+                        c.id = std::to_string(100 + i);
+                        c.domain = "updates.example.net"; c.dest = "203.0.113.80:443";
+                        c.network = "tcp"; c.outbound = "demo-proxy";
+                        c.source = "192.168.1.42:5510";
+                        c.upload = 2048; c.download = 9216;
                         snapshot.active.push_back(c);
                     }
                     dialog->applyConnections(snapshot);

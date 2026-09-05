@@ -75,6 +75,7 @@ private:
         QString dest;
         QString process;
         QString processPath;
+        QString source;
         QString outbound;
         QString network;
         QString matchedRule;
@@ -189,6 +190,8 @@ private:
     QPushButton *reportCopy;
     QPushButton *reportSave;
 
+    // Sentinel for the "no application" entry of the filter; a real path can never be this.
+    static inline const QString NoProcessFilter = QStringLiteral("?no-process");
     static constexpr int MaxConnections = 1000;
     static constexpr int HistorySamples = 40;
 };

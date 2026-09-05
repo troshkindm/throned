@@ -10,6 +10,7 @@
 #include <QToolButton>
 #include <QTreeWidget>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QLocale>
 #include <QPlainTextEdit>
 #include <QTest>
@@ -210,6 +211,31 @@ private slots:
         for (auto *box : window.findChildren<QCheckBox *>())
             if (box->text().contains("Hide personal")) box->setChecked(false);
         QVERIFY(window.findChild<QPlainTextEdit *>("diagnosticReportPreview")->toPlainText().contains("Secret Node"));
+    }
+    void connectionsWithoutAProcessStaySeparateAndExplainThemselves() {
+        DiagnosticsWindow window;
+        auto *tree = window.findChild<QTreeWidget *>("diagnosticConnections");
+        libcore::QueryConnectionsResp snapshot;
+        // Two LAN devices reaching the same host: no process either way, so only the
+        // client address tells them apart. They must not collapse into one row.
+        for (const auto *pair : {"1|192.168.1.42:5510", "2|192.168.1.99:4410"}) {
+            auto c = connection(QString(pair).section('|', 0, 0).toUtf8().constData());
+            c.process = ""; c.process_path = "";
+            c.source = QString(pair).section('|', 1).toStdString();
+            snapshot.active.push_back(c);
+        }
+        window.applyConnections(snapshot);
+        QCOMPARE(tree->topLevelItemCount(), 2);
+        QVERIFY(tree->topLevelItem(0)->text(0).contains("192.168.1."));
+        // Nothing in the snapshot has a process, so the window says why rather than
+        // leaving the user to conclude the capture is broken.
+        bool explained = false;
+        for (const auto *text : window.findChildren<QLabel *>())
+            explained = explained || text->text().contains("no rules that match on a program");
+        QVERIFY(explained);
+        // And they can be isolated from the applications that do report a name.
+        auto *filter = window.findChild<QComboBox *>("diagnosticApps");
+        QVERIFY(filter->findData(QStringLiteral("?no-process")) > 0);
     }
     void observationRetainsClosedAndIgnoresLatePollAfterStop() {
         DiagnosticsWindow window;
