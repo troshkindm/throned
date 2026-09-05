@@ -87,6 +87,42 @@ private slots:
         QCOMPARE(siteCalls, 1);
         QCOMPARE(siteRequest.outbound_tag.value(), std::string("rule-proxy"));
     }
+    void comparisonRunsEachAddressExactlyOnce() {
+        DiagnosticsWindow window;
+        int routeCalls = 0, siteCalls = 0;
+        connect(&window, &DiagnosticsWindow::routeRequested, &window, [&](const auto &) { ++routeCalls; });
+        connect(&window, &DiagnosticsWindow::siteRequested, &window, [&](const auto &) { ++siteCalls; });
+        window.findChild<QLineEdit *>("diagnosticAddress")->setText("first.example");
+        window.findChild<QLineEdit *>("diagnosticCompare")->setText("second.example");
+        window.findChild<QPushButton *>("diagnosticCompareToggle")->setChecked(true);
+        window.findChild<QPushButton *>("diagnosticCheck")->click();
+
+        libcore::PreviewRouteResponse route;
+        route.outbound_tag = "proxy";
+        route.action = "route";
+        libcore::DiagnoseSiteResponse site;
+        site.outbound_tag = "proxy";
+        site.connect_ms = 1;
+        site.tls_ms = 1;
+        site.http_ms = 1;
+        site.status = 200;
+
+        QCOMPARE(routeCalls, 1);
+        window.applyRoutePreview(route);
+        QCOMPARE(siteCalls, 1);
+        window.applySiteResult(site);
+        QTRY_COMPARE(routeCalls, 2);
+        window.applyRoutePreview(route);
+        QCOMPARE(siteCalls, 2);
+        window.applySiteResult(site);
+        QCoreApplication::processEvents();
+        QCOMPARE(routeCalls, 2);
+
+        window.findChildren<QPushButton *>("diagnosticRail").value(4)->click();
+        const auto report = window.findChild<QPlainTextEdit *>("diagnosticReportPreview")->toPlainText();
+        QVERIFY(report.contains("first.example"));
+        QVERIFY(report.contains("second.example"));
+    }
     void aRejectingRuleNeverReachesTheNetwork() {
         DiagnosticsWindow window;
         int siteCalls = 0;
@@ -241,6 +277,23 @@ private slots:
         // And they can be isolated from the applications that do report a name.
         auto *filter = window.findChild<QComboBox *>("diagnosticApps");
         QVERIFY(filter->findData(QStringLiteral("?no-process")) > 0);
+    }
+    void processWarningFollowsTheSelectedApplicationFilter() {
+        DiagnosticsWindow window;
+        libcore::QueryConnectionsResp snapshot;
+        snapshot.active.push_back(connection("with-process"));
+        auto unknown = connection("without-process");
+        unknown.process = "";
+        unknown.process_path = "";
+        unknown.source = "192.168.1.42:5510";
+        snapshot.active.push_back(unknown);
+        window.applyConnections(snapshot);
+
+        auto *filter = window.findChild<QComboBox *>("diagnosticApps");
+        filter->setCurrentIndex(filter->findData(QStringLiteral("C:/demo.exe")));
+        const auto status = window.findChild<QLabel *>("diagnosticCaptureStatus")->text();
+        QVERIFY(!status.contains("No application is reported for any connection"));
+        QVERIFY(!status.contains("connection(s) report no application"));
     }
     void aHelperProcessOffersAWholeApplicationRule() {
         DiagnosticsWindow window;

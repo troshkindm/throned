@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
+	"sync"
 	"time"
 
 	"ThroneCore/gen"
@@ -47,31 +48,6 @@ func (s *server) Health(ctx context.Context, in *gen.HealthRequest) (*gen.Health
 	ctx, cancel := context.WithTimeout(ctx, healthTimeout)
 	defer cancel()
 
-	if def := outbounds.Default(); def != nil {
-		out.OutboundTag = To(def.Tag())
-		client := test_utils.OutboundHTTPClient(box.Context(), def, healthTimeout)
-		info, served, err := test_utils.ExternalAddress(ctx, client)
-		if err != nil {
-			out.ExternalError = To(err.Error())
-		} else {
-			out.ExternalIp = To(info.IP)
-			out.ExternalCountry = To(info.CountryCode)
-		}
-		if !served.IsZero() {
-			out.ClockKnown = To(true)
-			out.ClockSkewMs = To(time.Since(served).Milliseconds())
-		}
-		// A DNS round trip over UDP: the cheapest honest answer to "will calls work".
-		udp := test_utils.ProbeUDP(ctx, def, "", 3, 0)
-		out.UdpChecked = To(true)
-		out.UdpOk = To(udp.Received > 0)
-		if udp.Received > 0 {
-			out.UdpRttMs = To(udp.Avg.Milliseconds())
-		} else if udp.Error != nil {
-			out.UdpError = To(udp.Error.Error())
-		}
-	}
-
 	domain := in.GetDnsProbeDomain()
 	if domain == "" {
 		domain = healthProbeDomain
@@ -80,7 +56,54 @@ func (s *server) Health(ctx context.Context, in *gen.HealthRequest) (*gen.Health
 	if router := service.FromContext[adapter.DNSRouter](box.Context()); router != nil {
 		core = coreLookup{router: router}
 	}
-	comparison := test_utils.CompareDNS(ctx, core, test_utils.DefaultSystemResolver(), domain)
+
+	def := outbounds.Default()
+	var info test_utils.IPInfo
+	var served time.Time
+	var externalErr error
+	var udp *test_utils.UDPTestResult
+	var comparison test_utils.DNSComparison
+	var probes sync.WaitGroup
+	if def != nil {
+		out.OutboundTag = To(def.Tag())
+		probes.Add(2)
+		go func() {
+			defer probes.Done()
+			client := test_utils.OutboundHTTPClient(ctx, def, healthTimeout)
+			info, served, externalErr = test_utils.ExternalAddress(ctx, client)
+		}()
+		go func() {
+			defer probes.Done()
+			// A DNS round trip over UDP: the cheapest honest answer to "will calls work".
+			udp = test_utils.ProbeUDP(ctx, def, "", 3, 0)
+		}()
+	}
+	probes.Add(1)
+	go func() {
+		defer probes.Done()
+		comparison = test_utils.CompareDNS(ctx, core, test_utils.DefaultSystemResolver(), domain)
+	}()
+	probes.Wait()
+
+	if def != nil {
+		if externalErr != nil {
+			out.ExternalError = To(externalErr.Error())
+		} else {
+			out.ExternalIp = To(info.IP)
+			out.ExternalCountry = To(info.CountryCode)
+		}
+		if !served.IsZero() {
+			out.ClockKnown = To(true)
+			out.ClockSkewMs = To(time.Since(served).Milliseconds())
+		}
+		out.UdpChecked = To(true)
+		out.UdpOk = To(udp != nil && udp.Received > 0)
+		if udp != nil && udp.Received > 0 {
+			out.UdpRttMs = To(udp.Avg.Milliseconds())
+		} else if udp != nil && udp.Error != nil {
+			out.UdpError = To(udp.Error.Error())
+		}
+	}
 	out.DnsDomain = To(comparison.Domain)
 	out.DnsSystem = comparison.System
 	out.DnsCore = comparison.Core

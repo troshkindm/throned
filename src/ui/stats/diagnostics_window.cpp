@@ -1270,7 +1270,10 @@ void DiagnosticsWindow::setVerdict(const QString &tone, const QString &title, co
 void DiagnosticsWindow::startSite() {
     if (siteBusy) return;
     requestURL = normaliseURL(address->text());
-    comparingURL = compareToggle->isChecked() ? normaliseURL(compare->text()) : QString();
+    if (!comparisonPass) {
+        comparingURL = compareToggle->isChecked() ? normaliseURL(compare->text()) : QString();
+        comparisonSummary.clear();
+    }
     if (requestURL.isEmpty()) {
         setVerdict("warning", tr("Enter a valid HTTP or HTTPS address"),
                    tr("Do not include credentials or a URL fragment."), {});
@@ -1278,7 +1281,6 @@ void DiagnosticsWindow::startSite() {
         for (int i = 0; i < steps.size(); ++i) setStep(i, tr("Not checked"), {}, {});
         return;
     }
-    comparisonSummary.clear();
     matrix->clear();
     matrix->hide();
     matrixCaption->hide();
@@ -1426,8 +1428,12 @@ void DiagnosticsWindow::endSite() {
         comparisonSummary = tr("Compared with %1").arg(next) + QStringLiteral("\n")
             + tr("Result for %1: %2").arg(QUrl(requestURL).host(), verdictTitle->text());
         comparingURL.clear();
+        comparisonPass = true;
         address->setText(next);
         QTimer::singleShot(0, this, &DiagnosticsWindow::startSite);
+    } else if (comparisonPass) {
+        comparisonPass = false;
+        comparisonSummary.clear();
     }
 }
 
@@ -1559,20 +1565,21 @@ void DiagnosticsWindow::rebuildConnections() {
     int withoutProcess = 0;
     for (auto it = rows.cbegin(); it != rows.cend(); ++it) {
         const auto &c = it.value();
-        if (processKey(c).isEmpty()) ++withoutProcess;
+        const auto rowProcessKey = processKey(c);
         if (filter == NoProcessFilter) {
-            if (!processKey(c).isEmpty()) continue;
-        } else if (!filter.isEmpty() && processKey(c) != filter) continue;
+            if (!rowProcessKey.isEmpty()) continue;
+        } else if (!filter.isEmpty() && rowProcessKey != filter) continue;
+        if (rowProcessKey.isEmpty()) ++withoutProcess;
         const auto host = text(c.domain).isEmpty() ? text(c.dest) : text(c.domain);
         // Without a process the client address is the identity, or two LAN devices
         // talking to the same host would collapse into one indistinguishable row.
-        const auto identity = processKey(c).isEmpty() ? sourceHost(c) : processKey(c);
+        const auto identity = rowProcessKey.isEmpty() ? sourceHost(c) : rowProcessKey;
         const auto key = identity + QLatin1Char('\x1f') + host + QLatin1Char('\x1f')
             + text(c.outbound) + QLatin1Char('\x1f') + text(c.network);
         auto &group = merged[key];
         if (group.count == 0) {
             group.key = key; group.host = host; group.domain = text(c.domain); group.dest = text(c.dest);
-            group.process = processName(c); group.processPath = processKey(c);
+            group.process = processName(c); group.processPath = rowProcessKey;
             group.source = sourceHost(c);
             group.pid = c.process_id.value_or(0);
             group.outbound = text(c.outbound); group.network = text(c.network);
@@ -1764,7 +1771,10 @@ void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
         const auto names = family;
         const int action = target.first;
         connect(whole->addAction(target.second), &QAction::triggered, this, [this, names, action] {
-            for (const auto &name : names) emit ruleRequested(QStringLiteral("processName:") + name, action);
+            QStringList entries;
+            entries.reserve(names.size());
+            for (const auto &name : names) entries << QStringLiteral("processName:") + name;
+            emit rulesRequested(entries, action);
         });
     }
 }

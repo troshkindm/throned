@@ -371,6 +371,7 @@ private:
     void setStatusText(QLabel *label, const QString &text);
     void showConnectionMenu(const QPoint &pos);
     void addRuleFromConnection(const QString &entry, int action);
+    void addRulesFromConnection(const QStringList &entries, int action);
     [[nodiscard]] QString existingRuleAction(const QString &entry) const;
     QPointer<TrayOtpCodes> trayOtpCodes;
     void openTrayOtpCodes();

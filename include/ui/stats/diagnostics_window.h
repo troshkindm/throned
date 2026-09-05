@@ -95,6 +95,7 @@ signals:
     void usageRequested(int rangeDays);
     void closeConnectionsRequested(const QStringList &ids);
     void ruleRequested(const QString &entry, int action);
+    void rulesRequested(const QStringList &entries, int action);
     // "rules", "dns", "profile", "dpi", "log", "reachability", "interception"
     void navigateRequested(const QString &target);
 
@@ -193,6 +194,7 @@ private:
     QString requestURL;
     QString comparingURL;
     QString comparisonSummary;
+    bool comparisonPass = false;
     int matrixPending = 0;
     bool siteBusy = false;
 

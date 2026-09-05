@@ -149,6 +149,11 @@ QString MainWindow::existingRuleAction(const QString &entry) const
 
 void MainWindow::addRuleFromConnection(const QString &entry, int action)
 {
+    addRulesFromConnection({entry}, action);
+}
+
+void MainWindow::addRulesFromConnection(const QStringList &entries, int action)
+{
     auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
         Configs::dataManager->settingsRepo->current_route_id);
     if (!profile) {
@@ -163,8 +168,13 @@ void MainWindow::addRuleFromConnection(const QString &entry, int action)
     }
     const auto simple = static_cast<Configs::simpleAction>(action);
     QStringList current = profile->GetSimpleRules(simple).split('\n', Qt::SkipEmptyParts);
-    if (current.contains(entry)) return;
-    current << entry;
+    bool changed = false;
+    for (const auto &entry : entries) {
+        if (entry.isEmpty() || current.contains(entry)) continue;
+        current << entry;
+        changed = true;
+    }
+    if (!changed) return;
     if (const QString error = profile->UpdateSimpleRules(current.join('\n'), simple); !error.isEmpty()) {
         MessageBoxWarning(tr("Rule not added"), error);
         return;

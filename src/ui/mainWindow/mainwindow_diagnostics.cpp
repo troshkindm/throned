@@ -205,6 +205,7 @@ void MainWindow::openDiagnostics(const QString &processKey, int section) {
         });
         connect(window, &DiagnosticsWindow::navigateRequested, this, &MainWindow::openDiagnosticsTarget);
         connect(window, &DiagnosticsWindow::ruleRequested, this, &MainWindow::addRuleFromConnection);
+        connect(window, &DiagnosticsWindow::rulesRequested, this, &MainWindow::addRulesFromConnection);
         connect(window, &DiagnosticsWindow::usageRequested, this, [this, window](int rangeDays) {
             window->applyUsage(diagnosticsUsage(rangeDays));
         });

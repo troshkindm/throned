@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/netip"
+	"strings"
 	"testing"
+	"time"
 )
 
 type stubCore struct {
@@ -22,6 +24,24 @@ func (s stubCore) Lookup(context.Context, string) ([]netip.Addr, error) {
 type stubSystem struct {
 	addrs []string
 	err   error
+}
+
+type contextCore struct{}
+
+func (contextCore) Lookup(ctx context.Context, _ string) ([]netip.Addr, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		return parseAll([]string{"1.1.1.1"}), nil
+	}
+}
+
+type blockedSystem struct{}
+
+func (blockedSystem) LookupNetIP(ctx context.Context, _, _ string) ([]netip.Addr, error) {
+	<-ctx.Done()
+	return nil, ctx.Err()
 }
 
 func (s stubSystem) LookupNetIP(context.Context, string, string) ([]netip.Addr, error) {
@@ -68,6 +88,18 @@ func TestCompareDNSReportsAResolverFailureWithoutClaimingASplit(t *testing.T) {
 		stubSystem{addrs: []string{"10.0.0.5"}}, "example.org")
 	if result.Agrees || result.Error == "" || result.Skipped {
 		t.Fatalf("%+v", result)
+	}
+}
+
+func TestCompareDNSDoesNotLetOneResolverStarveTheOther(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 75*time.Millisecond)
+	defer cancel()
+	result := CompareDNS(ctx, contextCore{}, blockedSystem{}, "example.org")
+	if len(result.Core) != 1 || result.Core[0] != "1.1.1.1" {
+		t.Fatalf("the core lookup was starved by the system resolver: %+v", result)
+	}
+	if !strings.Contains(result.Error, "система:") {
+		t.Fatalf("the blocked resolver was not reported: %+v", result)
 	}
 }
 

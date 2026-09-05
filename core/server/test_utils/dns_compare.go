@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/netip"
 	"sort"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -45,23 +47,38 @@ func CompareDNS(ctx context.Context, core CoreResolver, system SystemResolver, d
 	ctx, cancel := context.WithTimeout(ctx, dnsCompareTimeout)
 	defer cancel()
 
+	var systemAddrs, coreAddrs []netip.Addr
+	var systemErr, coreErr error
+	var coreMs int64
+	var lookups sync.WaitGroup
 	if system != nil {
-		if addrs, err := system.LookupNetIP(ctx, "ip", domain); err == nil {
-			result.System = sortedStrings(addrs)
-		} else {
-			result.Error = "система: " + err.Error()
-		}
+		lookups.Add(1)
+		go func() {
+			defer lookups.Done()
+			systemAddrs, systemErr = system.LookupNetIP(ctx, "ip", domain)
+		}()
 	}
 	if core != nil {
-		begin := time.Now()
-		addrs, err := core.Lookup(ctx, domain)
-		result.CoreMs = time.Since(begin).Milliseconds()
-		if err == nil {
-			result.Core = sortedStrings(addrs)
-		} else if result.Error == "" {
-			result.Error = "ядро: " + err.Error()
-		}
+		lookups.Add(1)
+		go func() {
+			defer lookups.Done()
+			begin := time.Now()
+			coreAddrs, coreErr = core.Lookup(ctx, domain)
+			coreMs = time.Since(begin).Milliseconds()
+		}()
 	}
+	lookups.Wait()
+	result.System = sortedStrings(systemAddrs)
+	result.Core = sortedStrings(coreAddrs)
+	result.CoreMs = coreMs
+	var lookupErrors []string
+	if systemErr != nil {
+		lookupErrors = append(lookupErrors, "система: "+systemErr.Error())
+	}
+	if coreErr != nil {
+		lookupErrors = append(lookupErrors, "ядро: "+coreErr.Error())
+	}
+	result.Error = strings.Join(lookupErrors, "; ")
 	if len(result.System) == 0 || len(result.Core) == 0 {
 		result.Skipped = result.Error == ""
 		return result

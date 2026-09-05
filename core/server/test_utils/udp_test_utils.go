@@ -67,6 +67,8 @@ func udpTest(ctx context.Context, outbound adapter.Outbound, target string, prob
 		return &UDPTestResult{Error: err}
 	}
 	defer conn.Close()
+	stop := context.AfterFunc(ctx, func() { _ = conn.Close() })
+	defer stop()
 
 	result := &UDPTestResult{Sent: probeCount}
 	var samples []time.Duration
