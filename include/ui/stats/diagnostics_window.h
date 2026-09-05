@@ -31,6 +31,7 @@ class Sparkline;
 // without starting a core or reading the user's database.
 class DiagnosticsWindow final : public QDialog {
     Q_OBJECT
+    friend class TestDiagnostics;
 public:
     // Everything the window needs that the application already knows, so it never
     // reaches into the database or the core itself.
@@ -43,6 +44,7 @@ public:
         int profileLatencyMs = -1;
         bool tun = false;
         bool systemProxy = false;
+        bool fakeDns = false;
         QString udpState;   // "ok", "fail", "unknown"
         QString udpDetail;
         QString environmentReport;
@@ -112,6 +114,7 @@ private:
         QString source;
         QString parentProcess;
         quint32 pid = 0;
+        quint32 applicationRootPid = 0;
         QString outbound;
         QString network;
         QString matchedRule;
@@ -196,6 +199,7 @@ private:
     QString comparisonSummary;
     bool comparisonPass = false;
     int matrixPending = 0;
+    int siteStatus = 0;
     bool siteBusy = false;
 
     // Applications

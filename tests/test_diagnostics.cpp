@@ -212,6 +212,53 @@ private slots:
         for (const auto *text : labels) mentionsTLS = mentionsTLS || text->text().contains("TLS will fail");
         QVERIFY(mentionsTLS);
     }
+    void fakeDNSDifferenceIsExpected() {
+        DiagnosticsWindow window;
+        DiagnosticsWindow::LocalState state;
+        state.fakeDns = true;
+        window.applyLocalState(state);
+        libcore::HealthResponse health;
+        health.dns_domain = "example.org";
+        health.dns_compared = true;
+        health.dns_agrees = false;
+        health.dns_core = {"104.18.32.47"};
+        health.dns_system = {"198.18.0.1"};
+        window.applyHealth(health);
+        const auto rows = window.findChildren<QWidget *>("diagnosticHealthRow");
+        QVERIFY(rows[4]->findChild<QPushButton *>("diagnosticHealthAction")->isHidden());
+        bool explainsFakeIP = false;
+        for (const auto *label : rows[4]->findChildren<QLabel *>())
+            explainsFakeIP = explainsFakeIP || label->text().contains("FakeIP");
+        QVERIFY(explainsFakeIP);
+    }
+    void comparisonMatrixUsesDNS_TLS_AndHTTPColumns() {
+        DiagnosticsWindow window;
+        libcore::HealthResponse health;
+        health.outbounds = {"proxy", "direct"};
+        window.applyHealth(health);
+        window.findChild<QLineEdit *>("diagnosticAddress")->setText("example.org");
+        window.findChild<QPushButton *>("diagnosticCheck")->click();
+        libcore::PreviewRouteResponse route;
+        route.outbound_tag = "proxy";
+        route.action = "route";
+        window.applyRoutePreview(route);
+        libcore::DiagnoseSiteResponse site;
+        site.outbound_tag = "proxy";
+        site.connect_ms = 1;
+        site.tls_ms = 27;
+        site.http_ms = 3;
+        site.status = 403;
+        site.dns_compared = true;
+        site.dns_agrees = true;
+        window.applySiteResult(site);
+        for (auto *action : window.findChildren<QPushButton *>("diagnosticVerdictAction"))
+            if (action->property("target").toString() == QStringLiteral("matrix")) action->click();
+        auto *matrix = window.findChild<QTreeWidget *>("diagnosticMatrix");
+        QVERIFY(matrix->topLevelItemCount() >= 2);
+        QCOMPARE(matrix->topLevelItem(0)->text(1), QString::fromUtf8("✓"));
+        QCOMPARE(matrix->topLevelItem(0)->text(2), QString("27 ms"));
+        QCOMPARE(matrix->topLevelItem(0)->text(3), QString("403"));
+    }
     void aCutHandshakeOffersTheBypassRatherThanBlamingTheCertificate() {
         DiagnosticsWindow window;
         window.findChild<QLineEdit *>("diagnosticAddress")->setText("chatgpt.com");
@@ -314,6 +361,48 @@ private slots:
         for (const auto *action : rule->menu()->actions())
             hasProcessEntry = hasProcessEntry || action->text().contains("This process");
         QVERIFY(hasProcessEntry);
+    }
+    void wholeApplicationDoesNotCaptureSiblingAppsFromTheDesktopShell() {
+        DiagnosticsWindow window;
+        window.ancestryTakenAt = QDateTime::currentMSecsSinceEpoch();
+        window.ancestry.insert(100, {4, QStringLiteral("explorer.exe")});
+        window.ancestry.insert(200, {100, QStringLiteral("chrome.exe")});
+        window.ancestry.insert(201, {200, QStringLiteral("chrome-helper.exe")});
+        window.ancestry.insert(300, {100, QStringLiteral("Telegram.exe")});
+
+        libcore::QueryConnectionsResp snapshot;
+        auto add = [&](const char *id, quint32 pid, const char *name) {
+            auto c = connection(id);
+            c.process_id = pid;
+            c.process = name;
+            c.process_path = (QStringLiteral("C:/apps/") + QString::fromUtf8(name)).toStdString();
+            c.domain = (QString::fromUtf8(name) + QStringLiteral(".example")).toStdString();
+            snapshot.active.push_back(c);
+        };
+        add("chrome", 200, "chrome.exe");
+        add("helper", 201, "chrome-helper.exe");
+        add("telegram", 300, "Telegram.exe");
+        window.applyConnections(snapshot);
+
+        const DiagnosticsWindow::ConnectionGroup *chrome = nullptr;
+        for (const auto &group : window.groups)
+            if (group.process == QStringLiteral("chrome.exe")) chrome = &group;
+        QVERIFY(chrome != nullptr);
+        window.rebuildRuleMenu(*chrome);
+
+        QStringList emitted;
+        connect(&window, &DiagnosticsWindow::rulesRequested, &window,
+                [&](const QStringList &entries, int) { emitted = entries; });
+        for (auto *action : window.addRule->menu()->actions())
+            if (action->menu() != nullptr && action->text().contains("The whole application")) {
+                QVERIFY(action->text().contains(QStringLiteral("chrome.exe")));
+                action->menu()->actions().first()->trigger();
+            }
+
+        QCOMPARE(emitted, QStringList({QStringLiteral("processName:chrome.exe"),
+                                       QStringLiteral("processName:chrome-helper.exe")}));
+        QVERIFY(!emitted.contains(QStringLiteral("processName:Telegram.exe")));
+        QVERIFY(!emitted.contains(QStringLiteral("processName:explorer.exe")));
     }
     void ruleEntriesMatchTheConnectionsTableFormat() {
         DiagnosticsWindow window;

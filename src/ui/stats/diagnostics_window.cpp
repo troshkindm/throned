@@ -1180,8 +1180,12 @@ void DiagnosticsWindow::refreshOverview() {
     } else if (health.dns_agrees.value_or(false)) {
         healthRows[4]->set("ok", tr("The system and the core agree on %1").arg(dnsDomain));
         healthRows[4]->setAction({}, {});
+    } else if (local.fakeDns) {
+        healthRows[4]->set("ok", tr("FakeIP is active — different system and core answers are expected for %1")
+            .arg(dnsDomain));
+        healthRows[4]->setAction({}, {});
     } else {
-        healthRows[4]->set("error", tr("The system and the core answer differently for %1 — queries are leaving the tunnel")
+        healthRows[4]->set("warning", tr("The system and the core answered differently for %1 — check the DNS path if this persists")
             .arg(dnsDomain));
         healthRows[4]->setAction(tr("Fix"), QStringLiteral("dns"));
     }
@@ -1285,6 +1289,7 @@ void DiagnosticsWindow::startSite() {
     matrix->hide();
     matrixCaption->hide();
     routedOutbound.clear(); routedRule.clear(); routedAction.clear();
+    siteStatus = 0;
     siteBusy = true;
     check->setEnabled(false); address->setEnabled(false); resetRoute->setEnabled(false);
     diagnoseAddress->setEnabled(false);
@@ -1339,6 +1344,7 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
     const QString stage = rpcError.isEmpty() ? text(r.error_stage) : QStringLiteral("core");
     const auto outbound = text(r.outbound_tag);
     const auto status = r.status.value_or(0);
+    siteStatus = status;
     if (!outbound.isEmpty() && outbound != routedOutbound)
         setStep(0, tr("Route: %1").arg(outbound), routedRule, "ok");
 
@@ -1349,9 +1355,13 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
     } else if (r.dns_agrees.value_or(false)) {
         setStep(1, tr("DNS"), tr("The system and the core agree: %1").arg(dnsCore.join(QStringLiteral(", "))),
                 "ok", r.dns_ms.value_or(-1));
+    } else if (local.fakeDns) {
+        setStep(1, tr("DNS · FakeIP"),
+                tr("The system received a synthetic address while the core resolved the real destination. This is expected with FakeIP."),
+                "ok", r.dns_ms.value_or(-1));
     } else {
         setStep(1, tr("DNS · answers differ"),
-                tr("The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.")
+                tr("The core resolved %1, the system resolved %2. Different CDN answers are possible; check DNS settings if this persists.")
                     .arg(dnsCore.join(QStringLiteral(", ")), dnsSystem.join(QStringLiteral(", "))),
                 "warning", r.dns_ms.value_or(-1));
     }
@@ -1454,10 +1464,15 @@ void DiagnosticsWindow::startMatrix() {
     matrix->show();
     auto *current = new QTreeWidgetItem(matrix);
     current->setText(0, routedOutbound + QStringLiteral(" · ") + tr("current"));
-    for (int i = 1; i < 4; ++i) {
-        current->setText(i, steps[i]->tone == "ok" ? QStringLiteral("✓") : steps[i]->tone == "error" ? tr("fail") : QStringLiteral("—"));
-        current->setForeground(i, toneColor(steps[i]->tone));
-    }
+    current->setText(1, steps[1]->tone == "ok" ? QStringLiteral("✓")
+                         : steps[1]->tone == "warning" ? QStringLiteral("≠") : QStringLiteral("—"));
+    current->setForeground(1, toneColor(steps[1]->tone));
+    current->setText(2, steps[3]->tone == "ok" ? tr("%1 ms").arg(steps[3]->ms)
+                         : steps[3]->tone == "error" ? tr("fail") : QStringLiteral("—"));
+    current->setForeground(2, toneColor(steps[3]->tone));
+    current->setText(3, siteStatus > 0 ? QString::number(siteStatus)
+                         : steps[4]->tone == "error" ? tr("fail") : QStringLiteral("—"));
+    current->setForeground(3, toneColor(steps[4]->tone));
     for (const auto &tag : others) {
         auto *item = new QTreeWidgetItem(matrix);
         item->setText(0, tag);
@@ -1582,6 +1597,7 @@ void DiagnosticsWindow::rebuildConnections() {
             group.process = processName(c); group.processPath = rowProcessKey;
             group.source = sourceHost(c);
             group.pid = c.process_id.value_or(0);
+            group.applicationRootPid = group.pid;
             group.outbound = text(c.outbound); group.network = text(c.network);
         }
         if (group.matchedRule.isEmpty()) group.matchedRule = text(c.matched_rule);
@@ -1699,17 +1715,31 @@ void DiagnosticsWindow::resolveAncestry() {
     }
     for (auto &group : groups) {
         if (group.pid == 0 || !ancestry.contains(group.pid)) continue;
+        group.applicationRootPid = group.pid;
         const auto own = QFileInfo(group.processPath).fileName();
         quint32 pid = ancestry.value(group.pid).first;
-        // Stop at the first ancestor that is a different program: helpers of helpers
-        // still belong to the application the user recognises.
+        // Same-name subprocesses belong to one application instance. A different
+        // direct parent may be the application's launcher, but a desktop shell or
+        // terminal is merely the common parent of unrelated applications.
+        static const QSet<QString> genericLaunchers{
+            QStringLiteral("explorer.exe"), QStringLiteral("cmd.exe"), QStringLiteral("powershell.exe"),
+            QStringLiteral("pwsh.exe"), QStringLiteral("conhost.exe"), QStringLiteral("services.exe"),
+            QStringLiteral("svchost.exe"), QStringLiteral("systemd"), QStringLiteral("init"),
+            QStringLiteral("launchd"), QStringLiteral("sh"), QStringLiteral("bash"),
+            QStringLiteral("zsh"), QStringLiteral("fish")
+        };
         for (int depth = 0; depth < 12 && pid > 4 && ancestry.contains(pid); ++depth) {
             const auto name = ancestry.value(pid).second;
-            if (!name.isEmpty() && name.compare(own, Qt::CaseInsensitive) != 0) {
-                group.parentProcess = name;
-                break;
+            if (name.compare(own, Qt::CaseInsensitive) == 0) {
+                group.applicationRootPid = pid;
+                pid = ancestry.value(pid).first;
+                continue;
             }
-            pid = ancestry.value(pid).first;
+            if (!name.isEmpty() && !genericLaunchers.contains(name.toLower())) {
+                group.parentProcess = name;
+                group.applicationRootPid = pid;
+            }
+            break;
         }
     }
 }
@@ -1739,10 +1769,11 @@ void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
     // has no parent matcher, so this is one rule per program, and a helper that starts
     // later under a new name is not covered until it appears here too.
     QStringList family;
-    if (!group.parentProcess.isEmpty()) {
-        family << group.parentProcess;
+    if (group.applicationRootPid != 0) {
+        if (!group.parentProcess.isEmpty()) family << group.parentProcess;
+        else if (!group.process.isEmpty()) family << group.process;
         for (const auto &other : groups)
-            if (other.parentProcess == group.parentProcess && !other.processPath.isEmpty())
+            if (other.applicationRootPid == group.applicationRootPid && !other.processPath.isEmpty())
                 family << QFileInfo(other.processPath).fileName();
         family.removeDuplicates();
     }
@@ -1763,8 +1794,9 @@ void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
     }
     if (family.size() < 2) return;
     menu->addSeparator();
+    const auto familyLabel = group.parentProcess.isEmpty() ? group.process : group.parentProcess;
     auto *whole = menu->addMenu(tr("The whole application — %1 and %n helper(s)", "", family.size() - 1)
-                                    .arg(group.parentProcess));
+                                    .arg(familyLabel));
     for (const auto &target : {QPair<int, QString>{Configs::proxy, tr("Through proxy")},
                                {Configs::bypass, tr("Directly")},
                                {Configs::block, tr("Block")}}) {

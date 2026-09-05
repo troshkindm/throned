@@ -45,6 +45,7 @@ DiagnosticsWindow::LocalState MainWindow::diagnosticsLocalState() {
     }
     state.tun = settings.spmode_vpn;
     state.systemProxy = settings.spmode_system_proxy;
+    state.fakeDns = settings.fake_dns;
     state.environmentReport = collectDiagnostics();
     return state;
 }
@@ -143,7 +144,9 @@ void MainWindow::openDiagnostics(const QString &processKey, int section) {
         diagnosticsWindow = new DiagnosticsWindow(this);
         diagnosticsWindow->setAttribute(Qt::WA_DeleteOnClose);
         auto *window = diagnosticsWindow.data();
-        connect(window, &DiagnosticsWindow::healthRequested, window, [window] {
+        connect(window, &DiagnosticsWindow::healthRequested, window, [this, window] {
+            // The window can stay open while the profile, TUN or DNS settings change.
+            window->applyLocalState(diagnosticsLocalState());
             background(window, [] {
                 bool ok = false;
                 QString error;

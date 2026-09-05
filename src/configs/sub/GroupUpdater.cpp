@@ -364,7 +364,7 @@ namespace Subscription {
         ImportSink sink(gid, nullptr);
 
         MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
-        for (auto &document : documents) ParseDocument(std::move(document), sinkFor(sink));
+        for (auto &document : documents) (void) ParseDocument(std::move(document), sinkFor(sink));
         sink.flush();
         MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
 
@@ -413,23 +413,30 @@ namespace Subscription {
             return ids;
         };
 
+        // Parse once without writing anything. A parser can emit a valid prefix before
+        // a malformed later entry throws; applying that prefix would make reconciliation
+        // delete every old server which happened to follow the bad entry.
+        bool hasUsableProfile = false;
+        ParseSink validation;
+        validation.profile = [&hasUsableProfile](std::shared_ptr<Configs::Profile>) { hasUsableProfile = true; };
+        validation.log = [](const QString &) {};
+        validation.warn = [](const QString &, const QString &) {};
+        const bool parseComplete = ParseDocument(body, validation);
+        if (!parseComplete) {
+            MW_show_log("<<<<<<<< " + QObject::tr(
+                "Subscription \"%1\" could not be parsed completely, so the servers already in the group were kept.")
+                .arg(group->name));
+            MW_dialog_message(MwMessage::SubscriptionFinished, {MwArg::Quiet});
+            return;
+        }
         // Clear mode used to delete first and only then discover that the response
-        // was empty or malformed. Preflight it without retaining the profiles so a
-        // bad 200 response cannot wipe a working group.
-        if (settings->sub_clear && !members().isEmpty()) {
-            bool hasUsableProfile = false;
-            ParseSink validation;
-            validation.profile = [&hasUsableProfile](std::shared_ptr<Configs::Profile>) { hasUsableProfile = true; };
-            validation.log = [](const QString &) {};
-            validation.warn = [](const QString &, const QString &) {};
-            ParseDocument(body, validation);
-            if (!hasUsableProfile) {
-                MW_show_log("<<<<<<<< " + QObject::tr(
-                    "Subscription \"%1\" returned nothing usable, so the servers already in the "
-                    "group were kept. Use Clear servers if it really is empty now.").arg(group->name));
-                MW_dialog_message(MwMessage::SubscriptionFinished, {MwArg::Quiet});
-                return;
-            }
+        // was empty. A bad 200 response must not wipe a working group.
+        if (settings->sub_clear && !members().isEmpty() && !hasUsableProfile) {
+            MW_show_log("<<<<<<<< " + QObject::tr(
+                "Subscription \"%1\" returned nothing usable, so the servers already in the "
+                "group were kept. Use Clear servers if it really is empty now.").arg(group->name));
+            MW_dialog_message(MwMessage::SubscriptionFinished, {MwArg::Quiet});
+            return;
         }
 
         // Ids a running auto selector can no longer trust: deleted, or same id with new settings.
@@ -461,7 +468,7 @@ namespace Subscription {
         ImportSink sink(gid, cleared ? nullptr : &index);
 
         MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
-        ParseDocument(std::move(body), sinkFor(sink));
+        (void) ParseDocument(std::move(body), sinkFor(sink));
         sink.flush();
         MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
 

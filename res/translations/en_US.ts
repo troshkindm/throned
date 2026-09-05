@@ -615,8 +615,12 @@
         <translation>The system and the core agree on %1</translation>
     </message>
     <message>
-        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
-        <translation>The system and the core answer differently for %1 — queries are leaving the tunnel</translation>
+        <source>The system and the core answered differently for %1 — check the DNS path if this persists</source>
+        <translation>The system and the core answered differently for %1 — check the DNS path if this persists</translation>
+    </message>
+    <message>
+        <source>FakeIP is active — different system and core answers are expected for %1</source>
+        <translation>FakeIP is active — different system and core answers are expected for %1</translation>
     </message>
     <message>
         <source>Fix</source>
@@ -687,8 +691,16 @@
         <translation>DNS · answers differ</translation>
     </message>
     <message>
-        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
-        <translation>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</translation>
+        <source>The core resolved %1, the system resolved %2. Different CDN answers are possible; check DNS settings if this persists.</source>
+        <translation>The core resolved %1, the system resolved %2. Different CDN answers are possible; check DNS settings if this persists.</translation>
+    </message>
+    <message>
+        <source>DNS · FakeIP</source>
+        <translation>DNS · FakeIP</translation>
+    </message>
+    <message>
+        <source>The system received a synthetic address while the core resolved the real destination. This is expected with FakeIP.</source>
+        <translation>The system received a synthetic address while the core resolved the real destination. This is expected with FakeIP.</translation>
     </message>
     <message>
         <source>Connection</source>

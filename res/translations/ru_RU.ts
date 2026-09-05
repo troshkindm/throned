@@ -683,8 +683,12 @@
         <translation>Система и ядро дают одинаковый ответ для %1</translation>
     </message>
     <message>
-        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
-        <translation>Система и ядро отвечают по-разному для %1 — запросы уходят мимо туннеля</translation>
+        <source>The system and the core answered differently for %1 — check the DNS path if this persists</source>
+        <translation>Система и ядро ответили по-разному для %1 — если это повторяется, проверьте путь DNS-запросов</translation>
+    </message>
+    <message>
+        <source>FakeIP is active — different system and core answers are expected for %1</source>
+        <translation>FakeIP включён — разные ответы системы и ядра для %1 ожидаемы</translation>
     </message>
     <message>
         <source>Fix</source>
@@ -755,8 +759,16 @@
         <translation>DNS · ответы различаются</translation>
     </message>
     <message>
-        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
-        <translation>Ядро вернуло %1, система — %2. Программы с системным резолвером уйдут не туда.</translation>
+        <source>The core resolved %1, the system resolved %2. Different CDN answers are possible; check DNS settings if this persists.</source>
+        <translation>Ядро вернуло %1, система — %2. CDN могут возвращать разные адреса; если это повторяется, проверьте настройки DNS.</translation>
+    </message>
+    <message>
+        <source>DNS · FakeIP</source>
+        <translation>DNS · FakeIP</translation>
+    </message>
+    <message>
+        <source>The system received a synthetic address while the core resolved the real destination. This is expected with FakeIP.</source>
+        <translation>Система получила синтетический адрес, а ядро определило настоящий адрес назначения. При включённом FakeIP это нормально.</translation>
     </message>
     <message>
         <source>Connection</source>

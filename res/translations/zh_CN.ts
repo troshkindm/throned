@@ -452,8 +452,12 @@
         <translation>系统与内核对 %1 的解析一致</translation>
     </message>
     <message>
-        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
-        <translation>系统与内核对 %1 的解析不同 — 查询正在绕过隧道</translation>
+        <source>The system and the core answered differently for %1 — check the DNS path if this persists</source>
+        <translation>系统与内核对 %1 的解析结果不同 — 如果持续出现，请检查 DNS 路径</translation>
+    </message>
+    <message>
+        <source>FakeIP is active — different system and core answers are expected for %1</source>
+        <translation>FakeIP 已启用 — 系统与内核对 %1 的解析结果不同属于正常现象</translation>
     </message>
     <message>
         <source>Fix</source>
@@ -596,8 +600,16 @@
         <translation>DNS · 解析结果不同</translation>
     </message>
     <message>
-        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
-        <translation>内核解析为 %1，系统解析为 %2。使用系统解析器的程序会走到别处。</translation>
+        <source>The core resolved %1, the system resolved %2. Different CDN answers are possible; check DNS settings if this persists.</source>
+        <translation>内核解析为 %1，系统解析为 %2。CDN 可能返回不同地址；如果持续出现，请检查 DNS 设置。</translation>
+    </message>
+    <message>
+        <source>DNS · FakeIP</source>
+        <translation>DNS · FakeIP</translation>
+    </message>
+    <message>
+        <source>The system received a synthetic address while the core resolved the real destination. This is expected with FakeIP.</source>
+        <translation>系统获得了合成地址，而内核解析了真实目标地址。启用 FakeIP 时这是正常现象。</translation>
     </message>
     <message>
         <source>%1 · not checked</source>

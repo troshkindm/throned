@@ -452,8 +452,12 @@
         <translation>سیستم و هسته دربارهٔ %1 هم‌نظرند</translation>
     </message>
     <message>
-        <source>The system and the core answer differently for %1 — queries are leaving the tunnel</source>
-        <translation>سیستم و هسته برای %1 پاسخ متفاوت می‌دهند — پرس‌وجوها از تونل خارج می‌شوند</translation>
+        <source>The system and the core answered differently for %1 — check the DNS path if this persists</source>
+        <translation>سیستم و هسته برای %1 پاسخ‌های متفاوتی دادند — اگر این وضعیت ادامه داشت، مسیر DNS را بررسی کنید</translation>
+    </message>
+    <message>
+        <source>FakeIP is active — different system and core answers are expected for %1</source>
+        <translation>FakeIP فعال است — متفاوت بودن پاسخ سیستم و هسته برای %1 طبیعی است</translation>
     </message>
     <message>
         <source>Fix</source>
@@ -596,8 +600,16 @@
         <translation>DNS · پاسخ‌ها متفاوت‌اند</translation>
     </message>
     <message>
-        <source>The core resolved %1, the system resolved %2. Programs using the system resolver go elsewhere.</source>
-        <translation>هسته %1 را تفکیک کرد و سیستم %2 را. برنامه‌هایی که از تفکیک‌کنندهٔ سیستم استفاده می‌کنند جای دیگری می‌روند.</translation>
+        <source>The core resolved %1, the system resolved %2. Different CDN answers are possible; check DNS settings if this persists.</source>
+        <translation>هسته %1 و سیستم %2 را تفکیک کردند. پاسخ‌های متفاوت CDN ممکن است؛ اگر ادامه داشت، تنظیمات DNS را بررسی کنید.</translation>
+    </message>
+    <message>
+        <source>DNS · FakeIP</source>
+        <translation>DNS · FakeIP</translation>
+    </message>
+    <message>
+        <source>The system received a synthetic address while the core resolved the real destination. This is expected with FakeIP.</source>
+        <translation>سیستم یک نشانی ساختگی دریافت کرد و هسته مقصد واقعی را تفکیک کرد. این رفتار با FakeIP طبیعی است.</translation>
     </message>
     <message>
         <source>%1 · not checked</source>

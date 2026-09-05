@@ -16,7 +16,9 @@ namespace Subscription {
     };
 
     // Profiles are handed to the sink in document order; the body is consumed in place.
-    void ParseDocument(QByteArray body, const ParseSink &sink);
+    // False means parsing aborted after a structural error; callers that reconcile a
+    // subscription must then keep the previous contents instead of applying a prefix.
+    [[nodiscard]] bool ParseDocument(QByteArray body, const ParseSink &sink);
 
-    void ParseText(const QString &text, const ParseSink &sink);
+    [[nodiscard]] bool ParseText(const QString &text, const ParseSink &sink);
 }

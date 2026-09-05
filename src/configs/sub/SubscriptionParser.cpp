@@ -247,10 +247,12 @@ namespace Subscription {
             explicit Parser(const ParseSink &sink) : sink(sink) {}
 
             void document(std::string_view raw, bool allowBase64, bool needParse, int depth);
+            [[nodiscard]] bool ok() const { return !failed; }
 
         private:
             const ParseSink &sink;
             int produced = 0;
+            bool failed = false;
 
             void produce(ProfilePtr ent) {
                 if (ent == nullptr) return;
@@ -453,8 +455,10 @@ namespace Subscription {
                 }
             // fkYAML can throw beyond fkyaml::exception on hostile input (bad_alloc, length_error).
             } catch (const std::exception &ex) {
+                failed = true;
                 warn("YAML Exception", QString::fromUtf8(ex.what()));
             } catch (...) {
+                failed = true;
                 warn("YAML Exception", QObject::tr("Failed to parse the Clash configuration."));
             }
         }
@@ -605,9 +609,9 @@ namespace Subscription {
         }
     }
 
-    void ParseDocument(QByteArray body, const ParseSink &sink) {
+    bool ParseDocument(QByteArray body, const ParseSink &sink) {
         scan::trimInPlace(body);
-        if (body.isEmpty()) return;
+        if (body.isEmpty()) return true;
 
         if (scan::looksLikeBase64(scan::view(body))) {
             if (auto decoded = scan::decodeBase64(scan::view(body)); !decoded.isEmpty()) body = std::move(decoded);
@@ -617,9 +621,10 @@ namespace Subscription {
 
         Parser parser(sink);
         parser.document(scan::view(body), false, true, 0);
+        return parser.ok();
     }
 
-    void ParseText(const QString &text, const ParseSink &sink) {
-        ParseDocument(text.toUtf8(), sink);
+    bool ParseText(const QString &text, const ParseSink &sink) {
+        return ParseDocument(text.toUtf8(), sink);
     }
 }
