@@ -352,7 +352,12 @@ QLineEdit#quickAddInput, QComboBox#quickAddInput {
 }
 QLineEdit#quickAddInput:focus, QComboBox#quickAddInput:focus { border-color: #237AE9; }
 QLineEdit#quickAddInput:disabled { color: #747C86; background: #222529; border-color: #2F3136; }
-QComboBox#quickAddInput::drop-down { border: none; width: 26px; }
+QComboBox#quickAddInput { padding-right: 28px; }
+QComboBox#quickAddInput::drop-down {
+    subcontrol-origin: padding; subcontrol-position: center right;
+    border: none; background: transparent; width: 26px;
+}
+QComboBox#quickAddInput::down-arrow { image: url("%CHEVRON_DOWN%"); width: 14px; height: 14px; }
 QLabel#quickAddNote { color: #747C86; font-size: 12px; background: transparent; }
 QFrame#quickAddFooter { background: transparent; border: none; border-top: 1px solid #2F3136; }
 QPushButton#quickAddManualButton {

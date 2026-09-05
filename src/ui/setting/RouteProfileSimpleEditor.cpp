@@ -629,10 +629,17 @@ QDialog#routeProfileEditor QTableView {
     color: #F1F3F5; background: #171B21; border: 1px solid #2F3136;
     border-radius: 6px; padding: 6px 9px; selection-background-color: #237AE9;
 }
+QDialog#routeProfileEditor QComboBox { padding-right: 26px; }
 QDialog#routeProfileEditor QComboBox#def_out { padding-right: 34px; }
-QDialog#routeProfileEditor QComboBox#def_out::drop-down {
-    subcontrol-origin: padding; subcontrol-position: top right;
-    width: 30px; border: none;
+/* Styling the box takes the arrow away from the platform style, so it has to be
+   supplied here or Qt falls back to a bevelled Windows 95 drop-down button. */
+QDialog#routeProfileEditor QComboBox::drop-down {
+    subcontrol-origin: padding; subcontrol-position: center right;
+    width: 24px; border: none; background: transparent;
+}
+QDialog#routeProfileEditor QComboBox#def_out::drop-down { width: 30px; }
+QDialog#routeProfileEditor QComboBox::down-arrow {
+    image: url("%CHEVRON_DOWN%"); width: 14px; height: 14px;
 }
 QDialog#routeProfileEditor QLineEdit:focus, QDialog#routeProfileEditor QComboBox:focus,
 QDialog#routeProfileEditor QPlainTextEdit:focus, QDialog#routeProfileEditor QTextEdit:focus,

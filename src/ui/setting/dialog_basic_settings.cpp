@@ -846,6 +846,24 @@ QDialog#basicSettingsDialog QLabel#settingsHero { color: #F1F3F5; font-size: 18p
 QDialog#basicSettingsDialog QLabel#settingsMuted { color: #AEB7C2; }
 QDialog#basicSettingsDialog QFrame#settingsHeading { border: none; border-bottom: 1px solid #2F3136; }
 QDialog#basicSettingsDialog QFrame#settingsField { border: none; border-top: 1px solid #25292F; }
+/* Any QComboBox rule in this sheet makes Qt style every combo box here, so the plain
+   ones need their own or they render as bare text with a floating arrow. */
+QDialog#basicSettingsDialog QComboBox {
+    color: #F1F3F5; background: #222529; border: 1px solid #3E454F;
+    border-radius: 6px; padding: 5px 26px 5px 9px;
+}
+QDialog#basicSettingsDialog QComboBox:hover { background: #292D33; border-color: #4A4F57; }
+QDialog#basicSettingsDialog QComboBox:focus, QDialog#basicSettingsDialog QComboBox:on { border-color: #237AE9; }
+QDialog#basicSettingsDialog QComboBox:disabled { color: #747C86; background: #171B21; }
+QDialog#basicSettingsDialog QComboBox::drop-down {
+    subcontrol-origin: padding; subcontrol-position: center right;
+    width: 24px; border: none; background: transparent;
+}
+QDialog#basicSettingsDialog QComboBox::down-arrow { image: url("%CHEVRON_DOWN%"); width: 14px; height: 14px; }
+QDialog#basicSettingsDialog QComboBox QAbstractItemView {
+    color: #F1F3F5; background: #222529; border: 1px solid #3E454F;
+    selection-background-color: #237AE9; outline: none;
+}
 /* An editable combo box draws through an inner line edit rather than painting itself,
    so the rules written for the plain ones never reach it and it comes out as a bare
    arrow on the dialog background. Scoped to :editable so the plain ones are untouched. */

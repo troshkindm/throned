@@ -12,11 +12,15 @@
 #include <QColor>
 #include <QMap>
 #include <QPainter>
+#include <QProxyStyle>
+#include <QStandardPaths>
 #include <QStyleFactory>
+#include <QStyleOption>
 #include <QWidget>
 
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/MaterialIcon.h"
 
 #include <QGlobalStatic>
 
@@ -40,6 +44,48 @@ QColor mixColors(const QColor &a, const QColor &b, qreal amount) {
     };
     return QColor(mix(a.red(), b.red()), mix(a.green(), b.green()), mix(a.blue(), b.blue()));
 }
+
+// A stylesheet can only reach a drop-down arrow through url(), and a resource file
+// cannot follow the theme, so the chevron is rasterised once per colour and skin.
+QString chevronAssetPath(const QColor &color, const QString &skinId) {
+    static QMap<QString, QString> generated;
+    const QString key = color.name(QColor::HexRgb).mid(1) + (skinId.isEmpty() ? QString() : QLatin1Char('-') + skinId);
+    if (const auto it = generated.constFind(key); it != generated.constEnd()) return *it;
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    if (dir.isEmpty() || !QDir().mkpath(dir)) return {};
+    const QString path = dir + QStringLiteral("/chevron-down-") + key + QStringLiteral(".png");
+    if (!QFileInfo::exists(path)
+        && !MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronDown, color, 28).save(path, "PNG")) return {};
+    generated.insert(key, path);
+    return path;
+}
+
+// Fusion paints combo, spin and menu arrows from windowText at alpha 160, which on
+// the dark grounds lands a few units above the surface and reads as an artefact.
+class ThronedStyle final : public QProxyStyle {
+public:
+    using QProxyStyle::QProxyStyle;
+
+    void drawPrimitive(PrimitiveElement element, const QStyleOption *option,
+                       QPainter *painter, const QWidget *widget) const override {
+        if (element == PE_IndicatorArrowDown || element == PE_IndicatorArrowUp) {
+            const auto colors = themeManager()->Colors();
+            const QColor color = !option->state.testFlag(State_Enabled) ? colors.textSubtle
+                : option->state.testFlag(State_MouseOver) ? colors.text : colors.textMuted;
+            // The glyph carries padding inside its box, so it is drawn a little larger
+            // than the slot the style hands us or it reads as a speck.
+            const int side = qBound(10, qMin(option->rect.width(), option->rect.height()) + 3, 18);
+            if (option->rect.width() >= 7 && option->rect.height() >= 7) {
+                const QPixmap glyph = MaterialIcon::pixmap(element == PE_IndicatorArrowDown
+                    ? MaterialIcon::Glyph::ChevronDown : MaterialIcon::Glyph::ChevronUp, color, side);
+                painter->drawPixmap(alignedRect(option->direction, Qt::AlignCenter,
+                    glyph.deviceIndependentSize().toSize(), option->rect), glyph);
+                return;
+            }
+        }
+        QProxyStyle::drawPrimitive(element, option, painter, widget);
+    }
+};
 
 } // namespace
 
@@ -205,7 +251,7 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         // The redesigned UI is built from semantic colors. Fusion gives every
         // platform the same control metrics while the palette also covers menus,
         // popups and any legacy widget not yet styled by the new shell.
-        qApp->setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
+        qApp->setStyle(new ThronedStyle(QStyleFactory::create(QStringLiteral("Fusion"))));
         const auto colors = Colors(theme);
         qApp->setPalette(buildThemePalette({
             .window = colors.window, .windowText = colors.text,
@@ -413,6 +459,11 @@ QString ThemeManager::ResolveStyleSheet(const QString &styleSheetTemplate) const
     if (const ThronedSkin *skin = Skin(); skin != nullptr && !skin->styleOverlay.isEmpty()) {
         sheet += QLatin1Char('\n');
         sheet += ThronedPalette::Resolve(skin->styleOverlay, Colors(), fontPx);
+    }
+    if (sheet.contains(QStringLiteral("%CHEVRON_DOWN%"))) {
+        const ThronedSkin *skin = Skin();
+        sheet.replace(QStringLiteral("%CHEVRON_DOWN%"),
+                      chevronAssetPath(Colors().textMuted, skin != nullptr ? skin->id : QString()));
     }
     return sheet;
 }
