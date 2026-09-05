@@ -37,11 +37,32 @@ signals:
     void routingRulesRequested();
 
 private:
+    // One row per destination an application talks to, not per socket: a chat client
+    // opens dozens of connections to the same host and the raw list is unreadable.
+    struct ConnectionGroup {
+        QString key;
+        QString host;
+        QString domain;
+        QString dest;
+        QString process;
+        QString processPath;
+        QString outbound;
+        QString network;
+        QString matchedRule;
+        int count = 0;
+        int closed = 0;
+        qint64 upload = 0;
+        qint64 download = 0;
+        int suspicion = 0;
+    };
+
     void refreshTheme();
     void requestConnections();
     void startSite();
     void toggleObservation();
     void rebuildConnections();
+    void syncConnectionRows();
+    [[nodiscard]] const ConnectionGroup *currentGroup() const;
     void showConnection();
     void setStep(int index, const QString &title, const QString &detail, const QString &tone, qint64 ms = -1);
     void rescaleSteps();
@@ -87,6 +108,7 @@ private:
     QTimer *poll;
     QMap<QString, libcore::ConnectionMetaData> captured;
     QMap<QString, libcore::ConnectionMetaData> latest;
+    QList<ConnectionGroup> groups;
     QString desiredProcess;
     bool recording = false;
     bool pollBusy = false;

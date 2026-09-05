@@ -19,6 +19,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QScreen>
 #include <QSignalBlocker>
 #include <QTabWidget>
@@ -27,6 +28,7 @@
 #include <QTreeWidget>
 #include <QUrl>
 #include <QVBoxLayout>
+#include <algorithm>
 
 namespace {
 QString text(const std::optional<std::string> &value) { return QString::fromStdString(value.value_or("")); }
@@ -55,9 +57,30 @@ QColor toneColor(const QString &tone) {
     const auto c = themeManager()->Colors();
     return tone == "ok" ? c.success : tone == "error" ? c.danger : tone == "warning" ? c.warning : c.controlInactive;
 }
-QString targetURL(const libcore::ConnectionMetaData &c) {
-    QUrl endpoint(QStringLiteral("tcp://") + text(c.dest));
-    const auto host = text(c.domain).isEmpty() ? endpoint.host() : text(c.domain);
+// The core reports a rule the way it is written in the config; a user reading it in a
+// support chat needs to know which condition caught them, not the exact syntax.
+QString explainRuleText(const QString &rule) {
+    const auto conditions = rule.section(QStringLiteral("=>"), 0, 0);
+    const auto action = rule.section(QStringLiteral("=>"), 1);
+    QStringList reasons;
+    if (action.contains(QStringLiteral("reject")))
+        reasons << DiagnosticsWindow::tr("The rule blocks this traffic.");
+    if (conditions.contains(QStringLiteral("process_name")) || conditions.contains(QStringLiteral("process_path")))
+        reasons << DiagnosticsWindow::tr("Chosen by the program that opened the connection.");
+    if (conditions.contains(QStringLiteral("domain")) || conditions.contains(QStringLiteral("geosite")))
+        reasons << DiagnosticsWindow::tr("Chosen by the domain.");
+    if (conditions.contains(QStringLiteral("geoip")) || conditions.contains(QStringLiteral("ip_")))
+        reasons << DiagnosticsWindow::tr("Chosen by the destination IP address.");
+    if (conditions.contains(QStringLiteral("network=")))
+        reasons << DiagnosticsWindow::tr("Chosen by the protocol, not by the address.");
+    if (conditions.contains(QStringLiteral("port")))
+        reasons << DiagnosticsWindow::tr("Chosen by the destination port.");
+    return reasons.isEmpty() ? DiagnosticsWindow::tr("Reported by the core as written in the routing profile.")
+                             : reasons.join(QLatin1Char(' '));
+}
+QString targetURL(const QString &domain, const QString &dest) {
+    QUrl endpoint(QStringLiteral("tcp://") + dest);
+    const auto host = domain.isEmpty() ? endpoint.host() : domain;
     if (host.isEmpty()) return {};
     const int port = endpoint.port(443);
     QUrl url;
@@ -174,7 +197,7 @@ private:
 DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Window) {
     setObjectName(QStringLiteral("diagnosticsWindow"));
     setWindowTitle(tr("Diagnostics"));
-    resize(880, 800);
+    resize(880, 860);
     setMinimumSize(620, 560);
     if (auto *display = screen()) resize(size().boundedTo(display->availableGeometry().size() - QSize(32, 32)));
     auto *root = new QVBoxLayout(this);
@@ -185,20 +208,26 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     tabs->setObjectName(QStringLiteral("diagnosticTabs"));
     root->addWidget(tabs, 1);
 
-    auto page = [this](const QString &title) {
-        auto *scroll = new QScrollArea;
-        scroll->setWidgetResizable(true);
-        scroll->setFrameShape(QFrame::NoFrame);
+    // A page whose height is driven by one stretching widget must not sit in a scroll
+    // area: the area would hand it its minimum and scroll the rest of the page instead.
+    auto page = [this](const QString &title, bool scrollable) {
         auto *content = new QWidget;
         content->setObjectName(QStringLiteral("diagnosticPage"));
         auto *layout = new QVBoxLayout(content);
-        layout->setContentsMargins(24, 20, 24, 20);
-        layout->setSpacing(12);
+        layout->setContentsMargins(24, 18, 24, 16);
+        layout->setSpacing(11);
+        if (!scrollable) {
+            tabs->addTab(content, title);
+            return layout;
+        }
+        auto *scroll = new QScrollArea;
+        scroll->setWidgetResizable(true);
+        scroll->setFrameShape(QFrame::NoFrame);
         scroll->setWidget(content);
         tabs->addTab(scroll, title);
         return layout;
     };
-    auto *site = page(tr("Site"));
+    auto *site = page(tr("Site"), true);
     site->addWidget(label(tr("Check a website"), "heading"));
     site->addWidget(label(tr("A fresh request through the running connection"), "muted"));
     auto *form = new QHBoxLayout;
@@ -266,7 +295,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     site->addWidget(label(tr("This test does not reproduce browser DNS, extensions, application login or UDP traffic."), "muted"));
     site->addStretch(1);
 
-    auto *app = page(tr("Application"));
+    auto *app = page(tr("Application"), false);
     app->addWidget(label(tr("Application connections"), "heading"));
     app->addWidget(label(tr("Observe traffic passing through Throned while reproducing the problem."), "muted"));
     auto *appForm = new QHBoxLayout;
@@ -292,7 +321,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     connections->setRootIsDecorated(false);
     connections->setUniformRowHeights(true);
     connections->setSelectionMode(QAbstractItemView::SingleSelection);
-    connections->setMinimumHeight(180);
+    connections->setMinimumHeight(150);
     connections->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     connections->header()->setSectionResizeMode(1, QHeaderView::Interactive);
     connections->header()->setSectionResizeMode(2, QHeaderView::Interactive);
@@ -354,17 +383,15 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     connect(connections, &QTreeWidget::itemSelectionChanged, this, &DiagnosticsWindow::showConnection);
     connect(explainRule, &QToolButton::toggled, ruleDetail, &QWidget::setVisible);
     connect(diagnoseAddress, &QPushButton::clicked, this, [this] {
-        auto *item = connections->currentItem();
-        if (!item || siteBusy) return;
-        const auto &rows = (recording || captureFinished) ? captured : latest;
-        const auto c = rows.value(item->data(0, Qt::UserRole).toString());
-        pinnedProcess = processKey(c);
-        pinnedOutbound = text(c.outbound);
-        address->setText(targetURL(c));
+        const auto *group = currentGroup();
+        if (group == nullptr || siteBusy) return;
+        pinnedProcess = group->processPath;
+        pinnedOutbound = group->outbound;
+        address->setText(targetURL(group->domain, group->dest));
         resetRoute->setVisible(!pinnedProcess.isEmpty());
         siteContext->setText(pinnedProcess.isEmpty()
             ? tr("The address is matched against your routing rules first, then requested through the outbound they choose.")
-            : tr("Rules are matched as if %1 opened the address. Application login is not reproduced.").arg(processName(c)));
+            : tr("Rules are matched as if %1 opened the address. Application login is not reproduced.").arg(group->process));
         tabs->setCurrentIndex(0);
         address->setFocus();
     });
@@ -640,33 +667,103 @@ void DiagnosticsWindow::applyConnections(const libcore::QueryConnectionsResp &r,
 
 void DiagnosticsWindow::rebuildConnections() {
     const auto &rows = (recording || captureFinished) ? captured : latest;
-    const QString selected = connections->currentItem() ? connections->currentItem()->data(0, Qt::UserRole).toString() : QString();
-    const QSignalBlocker block(connections);
-    connections->clear();
-    const auto key = apps->currentData().toString();
+    const auto filter = apps->currentData().toString();
+    QHash<QString, ConnectionGroup> merged;
+    QHash<QString, int> outboundUse;
     qint64 up = 0, down = 0;
+    int total = 0;
     for (auto it = rows.cbegin(); it != rows.cend(); ++it) {
         const auto &c = it.value();
-        if (!key.isEmpty() && processKey(c) != key) continue;
-        up += c.upload.value_or(0); down += c.download.value_or(0);
-        auto *item = new QTreeWidgetItem(connections);
-        item->setData(0, Qt::UserRole, it.key());
+        if (!filter.isEmpty() && processKey(c) != filter) continue;
         const auto host = text(c.domain).isEmpty() ? text(c.dest) : text(c.domain);
-        item->setText(0, host + QStringLiteral("\n") + processName(c) + QStringLiteral(" · ") + text(c.network).toUpper());
-        item->setText(1, route(c));
-        item->setText(2, QStringLiteral("↑ %1  ↓ %2\n").arg(bytes(c.upload.value_or(0)), bytes(c.download.value_or(0))) + (c.closed_at.value_or(0) > 0 ? tr("Closed") : tr("Tracked")));
-        item->setToolTip(0, text(c.dest) + QStringLiteral("\n") + processKey(c));
-        item->setToolTip(1, rule(c));
-        if (it.key() == selected) connections->setCurrentItem(item);
+        const auto key = processKey(c) + QLatin1Char('\x1f') + host + QLatin1Char('\x1f')
+            + text(c.outbound) + QLatin1Char('\x1f') + text(c.network);
+        auto &group = merged[key];
+        if (group.count == 0) {
+            group.key = key; group.host = host; group.domain = text(c.domain); group.dest = text(c.dest);
+            group.process = processName(c); group.processPath = processKey(c);
+            group.outbound = text(c.outbound); group.network = text(c.network);
+        }
+        if (group.matchedRule.isEmpty()) group.matchedRule = text(c.matched_rule);
+        ++group.count;
+        if (c.closed_at.value_or(0) > 0) ++group.closed;
+        group.upload += c.upload.value_or(0);
+        group.download += c.download.value_or(0);
+        up += c.upload.value_or(0); down += c.download.value_or(0);
+        ++total;
+        if (!text(c.outbound).isEmpty()) outboundUse[text(c.outbound)] += 1;
     }
-    if (!connections->currentItem() && connections->topLevelItemCount()) connections->setCurrentItem(connections->topLevelItem(0));
-    summary->setText(tr("Connections: %1 · sent %2 · received %3").arg(connections->topLevelItemCount()).arg(bytes(up), bytes(down)));
+    // "direct while everything else is proxied" is the shape of a misrouted app, so it
+    // is worth surfacing; it is only a hint, which is why it scores below hard signals.
+    QString dominant;
+    for (auto it = outboundUse.cbegin(); it != outboundUse.cend(); ++it)
+        if (dominant.isEmpty() || it.value() > outboundUse.value(dominant)) dominant = it.key();
+    groups = merged.values();
+    for (auto &group : groups) {
+        if (group.outbound.isEmpty()) group.suspicion = 3;
+        else if (group.download == 0 && group.upload > 0) group.suspicion = 2;
+        else if (!dominant.isEmpty() && group.outbound != dominant
+                 && group.outbound.compare(QStringLiteral("direct"), Qt::CaseInsensitive) == 0) group.suspicion = 1;
+    }
+    std::sort(groups.begin(), groups.end(), [](const ConnectionGroup &a, const ConnectionGroup &b) {
+        if (a.suspicion != b.suspicion) return a.suspicion > b.suspicion;
+        if (a.count != b.count) return a.count > b.count;
+        if (a.host != b.host) return a.host < b.host;
+        return a.key < b.key;
+    });
+    syncConnectionRows();
+    summary->setText(tr("%1 destinations · %2 connections · sent %3 · received %4")
+                         .arg(groups.size()).arg(total).arg(bytes(up), bytes(down)));
     if (recording || captureFinished) {
         const auto elapsed = ((recording ? QDateTime::currentMSecsSinceEpoch() : captureStopped) - captureStarted) / 1000;
         captureStatus->setText((recording ? tr("Observing · %1 s. Reproduce the problem in the application.") : tr("Observation stopped · %1 s.")).arg(elapsed)
             + (captured.size() >= MaxConnections ? tr(" Limit reached: the first 1000 connections are retained.") : QString()));
     } else captureStatus->setText(latest.isEmpty() ? tr("No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.") : tr("Current connections. Start observation to retain completed connections."));
     showConnection();
+}
+
+// Rows are reused rather than rebuilt: a poll a second through clear() would throw the
+// scroll position and the selection away while the user is reading the list.
+void DiagnosticsWindow::syncConnectionRows() {
+    const QSignalBlocker block(connections);
+    const int scroll = connections->verticalScrollBar()->value();
+    QHash<QString, QTreeWidgetItem *> existing;
+    for (int i = 0; i < connections->topLevelItemCount(); ++i) {
+        auto *item = connections->topLevelItem(i);
+        existing.insert(item->data(0, Qt::UserRole).toString(), item);
+    }
+    for (int i = 0; i < groups.size(); ++i) {
+        const auto &group = groups[i];
+        auto *item = existing.take(group.key);
+        if (item == nullptr) {
+            item = new QTreeWidgetItem;
+            item->setData(0, Qt::UserRole, group.key);
+            connections->insertTopLevelItem(i, item);
+        } else if (connections->indexOfTopLevelItem(item) != i) {
+            connections->insertTopLevelItem(i, connections->takeTopLevelItem(connections->indexOfTopLevelItem(item)));
+        }
+        QString subtitle = group.process + QStringLiteral(" · ") + group.network.toUpper();
+        if (group.count > 1) subtitle += QStringLiteral(" · ") + tr("%1 connections").arg(group.count);
+        item->setText(0, group.host + QStringLiteral("\n") + subtitle);
+        item->setText(1, group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound);
+        item->setText(2, QStringLiteral("↑ %1  ↓ %2\n").arg(bytes(group.upload), bytes(group.download))
+            + (group.closed >= group.count ? tr("Closed") : tr("Tracked")));
+        item->setToolTip(0, group.dest + QStringLiteral("\n") + group.processPath);
+        item->setToolTip(1, group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule);
+    }
+    for (auto *stale : existing) delete connections->takeTopLevelItem(connections->indexOfTopLevelItem(stale));
+    if (!connections->currentItem() && connections->topLevelItemCount())
+        connections->setCurrentItem(connections->topLevelItem(0));
+    connections->verticalScrollBar()->setValue(scroll);
+}
+
+const DiagnosticsWindow::ConnectionGroup *DiagnosticsWindow::currentGroup() const {
+    auto *item = connections->currentItem();
+    if (item == nullptr) return nullptr;
+    const auto key = item->data(0, Qt::UserRole).toString();
+    for (const auto &group : groups)
+        if (group.key == key) return &group;
+    return nullptr;
 }
 
 void DiagnosticsWindow::showConnection() {
@@ -679,30 +776,42 @@ void DiagnosticsWindow::showConnection() {
         ruleDetail->clear();
         return;
     }
-    const auto &rows = (recording || captureFinished) ? captured : latest;
-    const auto c = rows.value(item->data(0, Qt::UserRole).toString());
-    connectionTitle->setText(text(c.dest));
-    QString detail = processName(c) + QStringLiteral(" · ") + text(c.network).toUpper() + QStringLiteral("\n") + tr("Outbound: %1").arg(route(c));
-    if (c.download.value_or(0) == 0) detail += QStringLiteral("\n") + tr("No return traffic recorded. This alone does not identify the cause.");
-    if (text(c.network).compare(QStringLiteral("tcp"), Qt::CaseInsensitive) != 0) detail += QStringLiteral("\n") + tr("An HTTP check does not test this UDP or other non-TCP flow.");
-    else if (targetURL(c).isEmpty()) detail += QStringLiteral("\n") + tr("No usable destination address was reported.");
+    const auto *group = currentGroup();
+    if (group == nullptr) return;
+    connectionTitle->setText(group->dest.isEmpty() ? group->host : group->dest);
+    QString detail = group->process + QStringLiteral(" · ") + group->network.toUpper()
+        + QStringLiteral("\n") + tr("Outbound: %1").arg(group->outbound.isEmpty() ? tr("Unknown outbound") : group->outbound);
+    if (group->count > 1)
+        detail += QStringLiteral("\n") + tr("%1 connections to this destination, %2 already closed.").arg(group->count).arg(group->closed);
+    if (group->download == 0 && group->upload > 0)
+        detail += QStringLiteral("\n") + tr("No return traffic recorded. This alone does not identify the cause.");
+    if (group->network.compare(QStringLiteral("tcp"), Qt::CaseInsensitive) != 0)
+        detail += QStringLiteral("\n") + tr("An HTTP check does not test this UDP or other non-TCP flow.");
+    else if (targetURL(group->domain, group->dest).isEmpty())
+        detail += QStringLiteral("\n") + tr("No usable destination address was reported.");
     else {
-        diagnoseAddress->setEnabled(!siteBusy && !text(c.outbound).isEmpty());
+        diagnoseAddress->setEnabled(!siteBusy);
         detail += QStringLiteral("\n") + tr("Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.");
     }
     connectionDetail->setText(detail);
-    ruleDetail->setText(rule(c));
+    // A wrapping QLabel reports one line as its minimum, so the layout would squeeze the
+    // card down to that when the page is tight. Hold a floor for the lines it actually has.
+    connectionDetail->setMinimumHeight(connectionDetail->fontMetrics().lineSpacing() * (detail.count(QLatin1Char('\n')) + 1) + 4);
+    ruleDetail->setText(group->matchedRule.isEmpty()
+        ? tr("No rule matched, so the default outbound is used.")
+        : group->matchedRule + QStringLiteral("\n") + explainRuleText(group->matchedRule));
 }
 
 QString DiagnosticsWindow::connectionReport() const {
     QString result = tr("Throned · application connections") + QStringLiteral("\n") + QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral("\n") + captureStatus->text() + QStringLiteral("\n");
-    const auto &rows = (recording || captureFinished) ? captured : latest;
-    for (int i = 0; i < connections->topLevelItemCount(); ++i) {
-        auto *item = connections->topLevelItem(i);
-        const auto c = rows.value(item->data(0, Qt::UserRole).toString());
-        result += QStringLiteral("\n%1 · %2 · %3 → %4\n%5\n↑ %6 · ↓ %7\n")
-            .arg(processName(c), text(c.dest), text(c.network), route(c), rule(c), bytes(c.upload.value_or(0)), bytes(c.download.value_or(0)));
-    }
+    // Ordered as shown, so the entry the window flagged first is first in the paste too.
+    for (const auto &group : groups)
+        result += QStringLiteral("\n%1 · %2 · %3 ×%4 → %5\n%6\n↑ %7 · ↓ %8\n")
+            .arg(group.process, group.dest.isEmpty() ? group.host : group.dest, group.network)
+            .arg(group.count)
+            .arg(group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound,
+                 group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule,
+                 bytes(group.upload), bytes(group.download));
     return result;
 }
 

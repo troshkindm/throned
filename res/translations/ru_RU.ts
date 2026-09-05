@@ -83,6 +83,34 @@
         <translation>Маршрут по умолчанию (правило не передано)</translation>
     </message>
     <message>
+        <source>The rule blocks this traffic.</source>
+        <translation>Правило блокирует этот трафик.</translation>
+    </message>
+    <message>
+        <source>Chosen by the program that opened the connection.</source>
+        <translation>Выбрано по программе, открывшей соединение.</translation>
+    </message>
+    <message>
+        <source>Chosen by the domain.</source>
+        <translation>Выбрано по домену.</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination IP address.</source>
+        <translation>Выбрано по IP-адресу назначения.</translation>
+    </message>
+    <message>
+        <source>Chosen by the protocol, not by the address.</source>
+        <translation>Выбрано по протоколу, а не по адресу.</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination port.</source>
+        <translation>Выбрано по порту назначения.</translation>
+    </message>
+    <message>
+        <source>Reported by the core as written in the routing profile.</source>
+        <translation>Ядро передало правило так, как оно записано в профиле маршрутизации.</translation>
+    </message>
+    <message>
         <source>Diagnostics</source>
         <translation>Диагностика</translation>
     </message>
@@ -311,6 +339,14 @@
         <translation>%1 · не проверено</translation>
     </message>
     <message>
+        <source>%1 destinations · %2 connections · sent %3 · received %4</source>
+        <translation>Назначений: %1 · соединений: %2 · отправлено %3 · получено %4</translation>
+    </message>
+    <message>
+        <source>%1 connections</source>
+        <translation>соединений: %1</translation>
+    </message>
+    <message>
         <source>Outbound: %1</source>
         <translation>Выход: %1</translation>
     </message>
@@ -419,10 +455,6 @@
         <translation>Отслеживается</translation>
     </message>
     <message>
-        <source>Connections: %1 · sent %2 · received %3</source>
-        <translation>Соединений: %1 · отправлено %2 · получено %3</translation>
-    </message>
-    <message>
         <source>Observing · %1 s. Reproduce the problem in the application.</source>
         <translation>Наблюдаем · %1 с. Воспроизведите проблему в приложении.</translation>
     </message>
@@ -437,6 +469,10 @@
     <message>
         <source>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</source>
         <translation>Соединений пока нет. Подключитесь в Throned и откройте приложение. Определение процесса зависит от режима подключения и платформы.</translation>
+    </message>
+    <message>
+        <source>%1 connections to this destination, %2 already closed.</source>
+        <translation>Соединений с этим назначением: %1, из них закрыто: %2.</translation>
     </message>
     <message>
         <source>No return traffic recorded. This alone does not identify the cause.</source>

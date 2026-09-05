@@ -1313,16 +1313,19 @@ briefly interrupts traffic.
                 QTimer::singleShot(250, window, [dialog, prefix, previewConnections, previewRuleButton] {
                     dialog->grab().save(prefix + QStringLiteral("-diagnostics-site.png"), "PNG");
                     dialog->showApplication();
+                    // Twelve sockets over three destinations: the point of the list is that
+                    // it collapses them and floats the flow that never answered to the top.
                     libcore::QueryConnectionsResp snapshot;
-                    for (int i = 0; i < 4; ++i) {
+                    for (int i = 0; i < 12; ++i) {
+                        const int kind = i % 3;
                         libcore::ConnectionMetaData c;
                         c.id = std::to_string(i); c.process = "DemoChat.exe"; c.process_path = "C:/Demo/DemoChat.exe";
-                        c.domain = i == 2 ? "" : "gateway.example.org";
-                        c.dest = i == 2 ? "203.0.113.24:50005" : "203.0.113.10:443";
-                        c.network = i == 2 ? "udp" : "tcp";
-                        c.outbound = i == 2 ? "direct" : "demo-proxy";
-                        c.matched_rule = i == 2 ? "network=udp => route(direct)" : "process_name=DemoChat.exe => route(demo-proxy)";
-                        c.upload = 8192; c.download = i == 2 ? 0 : 47104;
+                        c.domain = kind == 2 ? "" : kind == 1 ? "cdn.example.org" : "gateway.example.org";
+                        c.dest = kind == 2 ? "203.0.113.24:50005" : kind == 1 ? "203.0.113.60:443" : "203.0.113.10:443";
+                        c.network = kind == 2 ? "udp" : "tcp";
+                        c.outbound = kind == 2 ? "direct" : "demo-proxy";
+                        c.matched_rule = kind == 2 ? "network=udp => route(direct)" : "process_name=DemoChat.exe => route(demo-proxy)";
+                        c.upload = 8192; c.download = kind == 2 ? 0 : 47104;
                         snapshot.active.push_back(c);
                     }
                     dialog->applyConnections(snapshot);
@@ -1331,7 +1334,8 @@ briefly interrupts traffic.
                         qApp->exit(2);
                         return;
                     }
-                    previewConnections->setCurrentItem(previewConnections->topLevelItem(2));
+                    // Row 0 is whatever the window ranked most suspicious, which is the case worth showing.
+                    previewConnections->setCurrentItem(previewConnections->topLevelItem(0));
                     previewRuleButton->setChecked(true);
                     QTimer::singleShot(200, dialog, [dialog, prefix] {
                         dialog->grab().save(prefix + QStringLiteral("-diagnostics-app.png"), "PNG");

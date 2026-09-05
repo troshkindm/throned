@@ -9,6 +9,7 @@
 #include <QTabWidget>
 #include <QToolButton>
 #include <QTreeWidget>
+#include <QLocale>
 #include <QTest>
 
 ThemeManager *themeManager() { static ThemeManager manager; return &manager; }
@@ -112,7 +113,40 @@ private slots:
         snapshot.active.push_back(connection("1", "udp"));
         window.applyConnections(snapshot);
         QVERIFY(!window.findChild<QPushButton *>("diagnosticConnectionCheck")->isEnabled());
-        QCOMPARE(window.findChild<QLabel *>("diagnosticRuleDetail")->text(), QString::fromStdString(snapshot.active[0].matched_rule.value()));
+        const auto rule = window.findChild<QLabel *>("diagnosticRuleDetail")->text();
+        QVERIFY(rule.startsWith(QString::fromStdString(snapshot.active[0].matched_rule.value())));
+        QVERIFY(rule.contains("Chosen by the program that opened the connection."));
+    }
+    void connectionsToOneDestinationCollapseIntoOneRow() {
+        DiagnosticsWindow window;
+        auto *tree = window.findChild<QTreeWidget *>("diagnosticConnections");
+        libcore::QueryConnectionsResp snapshot;
+        for (const char *id : {"1", "2", "3"}) snapshot.active.push_back(connection(id));
+        auto other = connection("4");
+        other.domain = "elsewhere.example";
+        other.upload = 10; other.download = 20;
+        snapshot.active.push_back(other);
+        window.applyConnections(snapshot);
+        QCOMPARE(tree->topLevelItemCount(), 2);
+        // Nothing came back on the three-connection group, so it sorts above the healthy one.
+        QVERIFY(tree->topLevelItem(0)->text(0).contains("example.org"));
+        QVERIFY(tree->topLevelItem(0)->text(0).contains("3 connections"));
+        QVERIFY(tree->topLevelItem(1)->text(0).contains("elsewhere.example"));
+    }
+    void aPollReusesRowsInsteadOfRebuildingThem() {
+        DiagnosticsWindow window;
+        auto *tree = window.findChild<QTreeWidget *>("diagnosticConnections");
+        libcore::QueryConnectionsResp snapshot;
+        snapshot.active.push_back(connection("1"));
+        window.applyConnections(snapshot);
+        auto *first = tree->topLevelItem(0);
+        auto grown = connection("2");
+        grown.download = 4096;
+        snapshot.active.push_back(grown);
+        window.applyConnections(snapshot);
+        // Same widget instance: a clear()/rebuild would drop the selection and the scroll.
+        QCOMPARE(tree->topLevelItem(0), first);
+        QVERIFY(tree->topLevelItem(0)->text(2).contains(QLocale().formattedDataSize(4096)));
     }
     void observationRetainsClosedAndIgnoresLatePollAfterStop() {
         DiagnosticsWindow window;

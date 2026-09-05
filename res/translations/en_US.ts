@@ -16,6 +16,34 @@
         <translation>Default route (no rule reported)</translation>
     </message>
     <message>
+        <source>The rule blocks this traffic.</source>
+        <translation>The rule blocks this traffic.</translation>
+    </message>
+    <message>
+        <source>Chosen by the program that opened the connection.</source>
+        <translation>Chosen by the program that opened the connection.</translation>
+    </message>
+    <message>
+        <source>Chosen by the domain.</source>
+        <translation>Chosen by the domain.</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination IP address.</source>
+        <translation>Chosen by the destination IP address.</translation>
+    </message>
+    <message>
+        <source>Chosen by the protocol, not by the address.</source>
+        <translation>Chosen by the protocol, not by the address.</translation>
+    </message>
+    <message>
+        <source>Chosen by the destination port.</source>
+        <translation>Chosen by the destination port.</translation>
+    </message>
+    <message>
+        <source>Reported by the core as written in the routing profile.</source>
+        <translation>Reported by the core as written in the routing profile.</translation>
+    </message>
+    <message>
         <source>Diagnostics</source>
         <translation>Diagnostics</translation>
     </message>
@@ -244,6 +272,14 @@
         <translation>%1 · not checked</translation>
     </message>
     <message>
+        <source>%1 destinations · %2 connections · sent %3 · received %4</source>
+        <translation>%1 destinations · %2 connections · sent %3 · received %4</translation>
+    </message>
+    <message>
+        <source>%1 connections</source>
+        <translation>%1 connections</translation>
+    </message>
+    <message>
         <source>Outbound: %1</source>
         <translation>Outbound: %1</translation>
     </message>
@@ -352,10 +388,6 @@
         <translation>Tracked</translation>
     </message>
     <message>
-        <source>Connections: %1 · sent %2 · received %3</source>
-        <translation>Connections: %1 · sent %2 · received %3</translation>
-    </message>
-    <message>
         <source>Observing · %1 s. Reproduce the problem in the application.</source>
         <translation>Observing · %1 s. Reproduce the problem in the application.</translation>
     </message>
@@ -370,6 +402,10 @@
     <message>
         <source>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</source>
         <translation>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</translation>
+    </message>
+    <message>
+        <source>%1 connections to this destination, %2 already closed.</source>
+        <translation>%1 connections to this destination, %2 already closed.</translation>
     </message>
     <message>
         <source>No return traffic recorded. This alone does not identify the cause.</source>
