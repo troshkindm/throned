@@ -124,10 +124,6 @@
         <translation>Check this address</translation>
     </message>
     <message>
-        <source>Matched rule</source>
-        <translation>Matched rule</translation>
-    </message>
-    <message>
         <source>HTTPS contents are not recorded. Byte counters cover the connection&apos;s lifetime; no reply does not by itself prove a failure.</source>
         <translation>HTTPS contents are not recorded. Byte counters cover the connection&apos;s lifetime; no reply does not by itself prove a failure.</translation>
     </message>
@@ -238,10 +234,6 @@
     <message>
         <source>%1 destinations · %2 connections · sent %3 · received %4</source>
         <translation>%1 destinations · %2 connections · sent %3 · received %4</translation>
-    </message>
-    <message>
-        <source>Outbound: %1</source>
-        <translation>Outbound: %1</translation>
     </message>
     <message>
         <source>TLS</source>
@@ -443,10 +435,6 @@
         <translation>Through the other outbounds</translation>
     </message>
     <message>
-        <source>Problems only</source>
-        <translation>Problems only</translation>
-    </message>
-    <message>
         <source>Drop connections</source>
         <translation>Drop connections</translation>
     </message>
@@ -485,6 +473,14 @@
     <message>
         <source>No application reported · %1</source>
         <translation>No application reported · %1</translation>
+    </message>
+    <message>
+        <source>Hide the healthy</source>
+        <translation>Hide the healthy</translation>
+    </message>
+    <message>
+        <source>Keeps only the destinations with a remark: no outbound reported, nothing came back, or going direct while the rest is proxied.</source>
+        <translation>Keeps only the destinations with a remark: no outbound reported, nothing came back, or going direct while the rest is proxied.</translation>
     </message>
     <message>
         <source>Destination</source>
@@ -715,6 +711,18 @@
         <translation>×%1</translation>
     </message>
     <message>
+        <source>no outbound</source>
+        <translation>no outbound</translation>
+    </message>
+    <message>
+        <source>no reply</source>
+        <translation>no reply</translation>
+    </message>
+    <message>
+        <source>bypasses the proxy</source>
+        <translation>bypasses the proxy</translation>
+    </message>
+    <message>
         <source>This domain — %1</source>
         <translation>This domain — %1</translation>
     </message>
@@ -748,27 +756,50 @@
     </message>
     <message numerus="yes">
         <source>The whole application — %1 and %n helper(s)</source>
-        <translation><numerusform>%1 and %n helper</numerusform><numerusform>%1 and %n helpers</numerusform></translation>
+        <translation>
+            <numerusform>%1 and %n helper</numerusform>
+            <numerusform>%1 and %n helpers</numerusform>
+        </translation>
     </message>
     <message>
-        <source>Started by %1 — a helper of that application.</source>
-        <translation>Started by %1 — a helper of that application.</translation>
+        <source>Program</source>
+        <translation>Program</translation>
     </message>
     <message>
-        <source>The core did not report an owning program, so process rules cannot match this traffic.</source>
-        <translation>The core did not report an owning program, so process rules cannot match this traffic.</translation>
+        <source>Protocol</source>
+        <translation>Protocol</translation>
     </message>
     <message>
-        <source>Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.</source>
-        <translation>Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.</translation>
+        <source>Started by</source>
+        <translation>Started by</translation>
     </message>
     <message>
-        <source>%1 connections to this destination, %2 already closed.</source>
-        <translation>%1 connections to this destination, %2 already closed.</translation>
+        <source>Opened from</source>
+        <translation>Opened from</translation>
     </message>
     <message>
-        <source>No return traffic recorded. This alone does not identify the cause.</source>
-        <translation>No return traffic recorded. This alone does not identify the cause.</translation>
+        <source>Connections</source>
+        <translation>Connections</translation>
+    </message>
+    <message>
+        <source>%1 · %2 closed</source>
+        <translation>%1 · %2 closed</translation>
+    </message>
+    <message>
+        <source>The core did not report an outbound for this traffic.</source>
+        <translation>The core did not report an outbound for this traffic.</translation>
+    </message>
+    <message>
+        <source>Nothing came back. On its own this does not identify the cause.</source>
+        <translation>Nothing came back. On its own this does not identify the cause.</translation>
+    </message>
+    <message>
+        <source>Goes direct while the rest of the traffic uses the proxy.</source>
+        <translation>Goes direct while the rest of the traffic uses the proxy.</translation>
+    </message>
+    <message>
+        <source>No owning program, so process rules cannot match this traffic.</source>
+        <translation>No owning program, so process rules cannot match this traffic.</translation>
     </message>
     <message>
         <source>An HTTP check does not test this UDP or other non-TCP flow.</source>
@@ -777,10 +808,6 @@
     <message>
         <source>No usable destination address was reported.</source>
         <translation>No usable destination address was reported.</translation>
-    </message>
-    <message>
-        <source>Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.</source>
-        <translation>Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.</translation>
     </message>
     <message>
         <source>Throned · connection state</source>

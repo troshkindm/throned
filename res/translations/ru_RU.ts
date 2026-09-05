@@ -191,10 +191,6 @@
         <translation>Проверить этот адрес</translation>
     </message>
     <message>
-        <source>Matched rule</source>
-        <translation>Совпавшее правило</translation>
-    </message>
-    <message>
         <source>HTTPS contents are not recorded. Byte counters cover the connection&apos;s lifetime; no reply does not by itself prove a failure.</source>
         <translation>Содержимое HTTPS не записывается. Счётчики — за всё время соединения; отсутствие ответа само по себе не означает сбой.</translation>
     </message>
@@ -305,10 +301,6 @@
     <message>
         <source>%1 destinations · %2 connections · sent %3 · received %4</source>
         <translation>Назначений: %1 · соединений: %2 · отправлено %3 · получено %4</translation>
-    </message>
-    <message>
-        <source>Outbound: %1</source>
-        <translation>Выход: %1</translation>
     </message>
     <message>
         <source>TLS</source>
@@ -511,10 +503,6 @@
         <translation>Через другие выходы</translation>
     </message>
     <message>
-        <source>Problems only</source>
-        <translation>Только проблемные</translation>
-    </message>
-    <message>
         <source>Drop connections</source>
         <translation>Разорвать соединения</translation>
     </message>
@@ -553,6 +541,14 @@
     <message>
         <source>No application reported · %1</source>
         <translation>Приложение не определено · %1</translation>
+    </message>
+    <message>
+        <source>Hide the healthy</source>
+        <translation>Скрыть исправные</translation>
+    </message>
+    <message>
+        <source>Keeps only the destinations with a remark: no outbound reported, nothing came back, or going direct while the rest is proxied.</source>
+        <translation>Оставляет только назначения с замечанием: выход не сообщён, ответа не пришло, либо идёт напрямую, когда остальное через прокси.</translation>
     </message>
     <message>
         <source>Destination</source>
@@ -783,6 +779,18 @@
         <translation>×%1</translation>
     </message>
     <message>
+        <source>no outbound</source>
+        <translation>нет выхода</translation>
+    </message>
+    <message>
+        <source>no reply</source>
+        <translation>нет ответа</translation>
+    </message>
+    <message>
+        <source>bypasses the proxy</source>
+        <translation>мимо прокси</translation>
+    </message>
+    <message>
         <source>This domain — %1</source>
         <translation>Этот домен — %1</translation>
     </message>
@@ -820,26 +828,47 @@
             <numerusform>Всё приложение — %1 и %n вспомогательный процесс</numerusform>
             <numerusform>Всё приложение — %1 и %n вспомогательных процесса</numerusform>
             <numerusform>Всё приложение — %1 и %n вспомогательных процессов</numerusform>
-        </translation>    </message>
-    <message>
-        <source>Started by %1 — a helper of that application.</source>
-        <translation>Запущен из %1 — вспомогательный процесс этого приложения.</translation>
+        </translation>
     </message>
     <message>
-        <source>The core did not report an owning program, so process rules cannot match this traffic.</source>
-        <translation>Ядро не сообщило программу-владельца, поэтому правила по процессам этот трафик не поймают.</translation>
+        <source>Program</source>
+        <translation>Программа</translation>
     </message>
     <message>
-        <source>Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.</source>
-        <translation>Открыто с %1. Ядро не сообщило программу-владельца, поэтому правила по процессам этот трафик не поймают.</translation>
+        <source>Protocol</source>
+        <translation>Протокол</translation>
     </message>
     <message>
-        <source>%1 connections to this destination, %2 already closed.</source>
-        <translation>Соединений с этим назначением: %1, из них закрыто: %2.</translation>
+        <source>Started by</source>
+        <translation>Запущен из</translation>
     </message>
     <message>
-        <source>No return traffic recorded. This alone does not identify the cause.</source>
-        <translation>Ответный трафик не зафиксирован. Причину по этому признаку определить нельзя.</translation>
+        <source>Opened from</source>
+        <translation>Открыто с</translation>
+    </message>
+    <message>
+        <source>Connections</source>
+        <translation>Соединений</translation>
+    </message>
+    <message>
+        <source>%1 · %2 closed</source>
+        <translation>%1 · закрыто %2</translation>
+    </message>
+    <message>
+        <source>The core did not report an outbound for this traffic.</source>
+        <translation>Ядро не сообщило выход для этого трафика.</translation>
+    </message>
+    <message>
+        <source>Nothing came back. On its own this does not identify the cause.</source>
+        <translation>Ответа не пришло. Само по себе это причину не определяет.</translation>
+    </message>
+    <message>
+        <source>Goes direct while the rest of the traffic uses the proxy.</source>
+        <translation>Идёт напрямую, когда остальной трафик идёт через прокси.</translation>
+    </message>
+    <message>
+        <source>No owning program, so process rules cannot match this traffic.</source>
+        <translation>Программа-владелец неизвестна — правила по процессам этот трафик не поймают.</translation>
     </message>
     <message>
         <source>An HTTP check does not test this UDP or other non-TCP flow.</source>
@@ -848,10 +877,6 @@
     <message>
         <source>No usable destination address was reported.</source>
         <translation>Ядро не передало адрес, пригодный для проверки.</translation>
-    </message>
-    <message>
-        <source>Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.</source>
-        <translation>Для проверки используется HTTPS, для порта 80 — HTTP. Перед запуском адрес можно изменить.</translation>
     </message>
     <message>
         <source>Throned · connection state</source>

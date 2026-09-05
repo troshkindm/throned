@@ -18,6 +18,8 @@ class QStackedWidget;
 class QTreeWidget;
 class QTimer;
 class QProgressBar;
+class QGridLayout;
+class QVBoxLayout;
 class QPlainTextEdit;
 class DiagnosticStep;
 class RailButton;
@@ -108,6 +110,7 @@ private:
     [[nodiscard]] const ConnectionGroup *currentGroup() const;
     void resolveAncestry();
     void rebuildRuleMenu(const ConnectionGroup &group);
+    void setFacts(const QList<QPair<QString, QString>> &rows, const QStringList &notes);
     void showConnection();
     void setStep(int index, const QString &title, const QString &detail, const QString &tone, qint64 ms = -1);
     void rescaleSteps();
@@ -172,8 +175,9 @@ private:
     QLabel *connectionTitle;
     Sparkline *connectionSpark;
     QLabel *connectionDetail;
+    QGridLayout *facts;
+    QVBoxLayout *findings;
     QLabel *ruleDetail;
-    QToolButton *explainRule;
     QPushButton *diagnoseAddress;
     QTimer *poll;
     QMap<QString, libcore::ConnectionMetaData> captured;

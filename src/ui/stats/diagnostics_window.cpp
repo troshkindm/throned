@@ -487,6 +487,12 @@ QDialog#diagnosticsWindow QLabel[diagnosticRole="title"] { font-weight: 600; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="railCaption"] { color: #747C86; padding: 2px 10px 7px; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="stepTitle"] { color: #F1F3F5; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="stepTime"] { color: #747C86; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="factName"] { color: #747C86; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="factValue"] { color: #F1F3F5; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="finding"] {
+    color: #E8A33D; background: #3A2227; border-radius: 5px; padding: 5px 8px;
+}
+QToolButton#diagnosticAddRule::menu-indicator { image: none; }
 QFrame#diagnosticRailPanel { background: #171B21; border: 0; border-right: 1px solid #2F3136; }
 /* Scoped through the dialog so it outweighs the generic button rule below, which
    otherwise fills every rail entry and makes the whole rail look like a keypad. */
@@ -745,8 +751,12 @@ void DiagnosticsWindow::buildApplicationsPage() {
     apps->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     apps->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     apps->addItem(tr("All applications"), QString());
-    onlyProblems = button(tr("Problems only"), "diagnosticProblemsOnly");
+    // Named by what it does, not by a word only this code knows the meaning of; the
+    // tooltip spells out the three things that count as "not fine".
+    onlyProblems = button(tr("Hide the healthy"), "diagnosticProblemsOnly");
     onlyProblems->setCheckable(true);
+    onlyProblems->setToolTip(tr("Keeps only the destinations with a remark: no outbound reported, "
+                                "nothing came back, or going direct while the rest is proxied."));
     observe = button(tr("Start observation"), "diagnosticObserve");
     observe->setProperty("primary", true);
     form->addWidget(apps, 1);
@@ -794,30 +804,43 @@ void DiagnosticsWindow::buildApplicationsPage() {
     detailLayout->setContentsMargins(15, 14, 15, 14);
     detailLayout->setSpacing(9);
     detailScroll->setWidget(detailFrame);
-    columns->addWidget(detailScroll);
-    layout->addLayout(columns, 1);
+
     connectionTitle = label(tr("Select a connection"), "title");
     connectionTitle->setObjectName(QStringLiteral("diagnosticConnectionTitle"));
     detailLayout->addWidget(connectionTitle);
-    // One readable chart for the selected destination rather than a thumbnail in every
-    // row: an item widget in the tree dictates the row height and clips the text.
     connectionSpark = new Sparkline;
     detailLayout->addWidget(connectionSpark);
+    // Labelled facts rather than a paragraph: every line here is a name and a value,
+    // and running them together as prose is what made the card unreadable.
+    facts = new QGridLayout;
+    facts->setContentsMargins(0, 2, 0, 0);
+    facts->setHorizontalSpacing(10);
+    facts->setVerticalSpacing(4);
+    facts->setColumnStretch(1, 1);
+    detailLayout->addLayout(facts);
+    // The observations that need attention, kept out of the facts and tinted, so a
+    // finding never reads as one more neutral property of the connection.
+    findings = new QVBoxLayout;
+    findings->setContentsMargins(0, 4, 0, 0);
+    findings->setSpacing(4);
+    detailLayout->addLayout(findings);
     connectionDetail = label(tr("The list includes only connections visible to the core."), "muted");
     detailLayout->addWidget(connectionDetail);
-    // Stacked, because a 268 px sidebar cannot hold three buttons in a row.
+    ruleDetail = label({}, "muted");
+    ruleDetail->setObjectName(QStringLiteral("diagnosticRuleDetail"));
+    detailLayout->addWidget(ruleDetail);
+    detailLayout->addStretch(1);
+
+    // The actions sit outside the scroll area: a button that scrolls half out of view
+    // reads as broken, and they have to look like one set.
+    auto *sidebar = new QWidget;
+    sidebar->setFixedWidth(DetailWidth);
+    auto *sidebarLayout = new QVBoxLayout(sidebar);
+    sidebarLayout->setContentsMargins(0, 0, 0, 0);
+    sidebarLayout->setSpacing(8);
+    sidebarLayout->addWidget(detailScroll, 1);
     diagnoseAddress = button(tr("Check this address"), "diagnosticConnectionCheck");
     diagnoseAddress->setEnabled(false);
-    dropConnections = button(tr("Drop connections"), "diagnosticDrop");
-    dropConnections->setEnabled(false);
-    explainRule = new QToolButton;
-    explainRule->setObjectName(QStringLiteral("diagnosticRuleButton"));
-    explainRule->setText(tr("Matched rule"));
-    explainRule->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    explainRule->setCheckable(true);
-    explainRule->setEnabled(false);
-    explainRule->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    detailLayout->addWidget(diagnoseAddress);
     addRule = new QToolButton;
     addRule->setObjectName(QStringLiteral("diagnosticAddRule"));
     addRule->setText(tr("Route this…"));
@@ -826,21 +849,21 @@ void DiagnosticsWindow::buildApplicationsPage() {
     addRule->setEnabled(false);
     addRule->setMenu(new QMenu(addRule));
     addRule->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    detailLayout->addWidget(addRule);
-    detailLayout->addWidget(dropConnections);
-    detailLayout->addWidget(explainRule);
-    ruleDetail = label({}, "muted");
-    ruleDetail->setObjectName(QStringLiteral("diagnosticRuleDetail"));
-    ruleDetail->hide();
-    detailLayout->addWidget(ruleDetail);
-    detailLayout->addStretch(1);
+    dropConnections = button(tr("Drop connections"), "diagnosticDrop");
+    dropConnections->setEnabled(false);
+    for (auto *action : {static_cast<QWidget *>(diagnoseAddress), static_cast<QWidget *>(addRule),
+                         static_cast<QWidget *>(dropConnections)}) {
+        action->setFixedHeight(34);
+        sidebarLayout->addWidget(action);
+    }
+    columns->addWidget(sidebar);
+    layout->addLayout(columns, 1);
     layout->addWidget(label(tr("HTTPS contents are not recorded. Byte counters cover the connection's lifetime; no reply does not by itself prove a failure."), "subtle"));
 
     connect(observe, &QPushButton::clicked, this, &DiagnosticsWindow::toggleObservation);
     connect(onlyProblems, &QPushButton::toggled, this, [this](bool on) { problemsOnly = on; rebuildConnections(); });
     connect(apps, &QComboBox::currentIndexChanged, this, [this] { desiredProcess.clear(); rebuildConnections(); });
     connect(connections, &QTreeWidget::itemSelectionChanged, this, &DiagnosticsWindow::showConnection);
-    connect(explainRule, &QToolButton::toggled, ruleDetail, &QWidget::setVisible);
     connect(dropConnections, &QPushButton::clicked, this, [this] {
         const auto *group = currentGroup();
         if (group != nullptr && !group->ids.isEmpty()) emit closeConnectionsRequested(group->ids);
@@ -923,7 +946,7 @@ void DiagnosticsWindow::refreshTheme() {
     diagnoseAddress->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Public, c.text, 18));
     dropConnections->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, c.textMuted, 18));
     onlyProblems->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, c.textMuted, 18));
-    explainRule->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Routes, c.textMuted, 18));
+
     addRule->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune, c.textMuted, 18));
     reportCopy->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Copy, c.textMuted, 18));
     recheck->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Reload, c.text, 18));
@@ -1482,11 +1505,19 @@ void DiagnosticsWindow::syncConnectionRows() {
         }
         // Two columns rather than four: the outbound and the count read fine on the
         // second line, and the width they used to take is what the list was short of.
-        QStringList facts{group.process, group.network.toUpper(),
-                          group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound};
-        if (group.count > 1) facts.insert(2, tr("×%1").arg(group.count));
-        if (group.closed >= group.count) facts << tr("Closed");
-        item->setText(0, group.host + QStringLiteral("\n") + facts.join(QStringLiteral(" · ")));
+        QStringList line{group.process, group.network.toUpper(),
+                         group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound};
+        if (group.count > 1) line.insert(2, tr("×%1").arg(group.count));
+        if (group.closed >= group.count) line << tr("Closed");
+        // The remark that made the row rank where it did, said in the row itself: the
+        // filter above is only meaningful if you can see what it would keep.
+        if (group.suspicion == 3) line << tr("no outbound");
+        else if (group.suspicion == 2) line << tr("no reply");
+        else if (group.suspicion == 1) line << tr("bypasses the proxy");
+        item->setIcon(0, dotPixmap(group.suspicion >= 2 ? themeManager()->Colors().danger
+                                   : group.suspicion == 1 ? themeManager()->Colors().warning
+                                   : themeManager()->Colors().success, 9));
+        item->setText(0, group.host + QStringLiteral("\n") + line.join(QStringLiteral(" · ")));
         item->setText(1, QStringLiteral("↑ %1\n↓ %2").arg(bytes(group.upload), bytes(group.download)));
         item->setTextAlignment(1, Qt::AlignRight | Qt::AlignVCenter);
         item->setToolTip(0, group.dest + QStringLiteral("\n") + group.processPath + QStringLiteral("\n")
@@ -1597,15 +1628,35 @@ const DiagnosticsWindow::ConnectionGroup *DiagnosticsWindow::currentGroup() cons
     return nullptr;
 }
 
+void DiagnosticsWindow::setFacts(const QList<QPair<QString, QString>> &rows, const QStringList &notes) {
+    auto clear = [](QLayout *layout) {
+        while (auto *item = layout->takeAt(0)) {
+            if (auto *widget = item->widget()) widget->deleteLater();
+            delete item;
+        }
+    };
+    clear(facts);
+    clear(findings);
+    for (int i = 0; i < rows.size(); ++i) {
+        auto *name = label(rows[i].first, "factName");
+        name->setWordWrap(false);
+        auto *value = label(rows[i].second, "factValue");
+        facts->addWidget(name, i, 0, Qt::AlignTop);
+        facts->addWidget(value, i, 1);
+    }
+    for (const auto &note : notes) findings->addWidget(label(note, "finding"));
+}
+
 void DiagnosticsWindow::showConnection() {
     auto *item = connections->currentItem();
     diagnoseAddress->setEnabled(false);
     dropConnections->setEnabled(false);
-    explainRule->setEnabled(item != nullptr);
     if (!item) {
         connectionTitle->setText(tr("Select a connection"));
         connectionDetail->setText(tr("The list includes only connections visible to the core."));
+        connectionDetail->show();
         connectionSpark->hide();
+        setFacts({}, {});
         ruleDetail->clear();
         return;
     }
@@ -1615,34 +1666,37 @@ void DiagnosticsWindow::showConnection() {
     connectionSpark->setSamples(history, group->suspicion == 0);
     connectionSpark->setVisible(history.size() >= 2); // an empty chart is just a hole
     connectionTitle->setText(group->dest.isEmpty() ? group->host : group->dest);
-    QString detail = group->process + QStringLiteral(" · ") + group->network.toUpper()
-        + QStringLiteral("\n") + tr("Outbound: %1").arg(group->outbound.isEmpty() ? tr("Unknown outbound") : group->outbound);
-    if (!group->parentProcess.isEmpty())
-        detail += QStringLiteral("\n") + tr("Started by %1 — a helper of that application.").arg(group->parentProcess);
-    if (group->processPath.isEmpty())
-        detail += QStringLiteral("\n") + (group->source.isEmpty()
-            ? tr("The core did not report an owning program, so process rules cannot match this traffic.")
-            : tr("Opened from %1. The core did not report an owning program, so process rules cannot match this traffic.").arg(group->source));
-    if (group->count > 1)
-        detail += QStringLiteral("\n") + tr("%1 connections to this destination, %2 already closed.").arg(group->count).arg(group->closed);
+    connectionDetail->hide();
+
+    QList<QPair<QString, QString>> rows{
+        {tr("Program"), group->process},
+        {tr("Protocol"), group->network.toUpper()},
+        {tr("Outbound"), group->outbound.isEmpty() ? tr("Unknown outbound") : group->outbound},
+    };
+    if (!group->parentProcess.isEmpty()) rows.append({tr("Started by"), group->parentProcess});
+    if (group->processPath.isEmpty() && !group->source.isEmpty()) rows.append({tr("Opened from"), group->source});
+    rows.append({tr("Connections"), group->closed > 0
+        ? tr("%1 · %2 closed").arg(group->count).arg(group->closed) : QString::number(group->count)});
+
+    QStringList notes;
+    if (group->outbound.isEmpty())
+        notes << tr("The core did not report an outbound for this traffic.");
     if (group->download == 0 && group->upload > 0)
-        detail += QStringLiteral("\n") + tr("No return traffic recorded. This alone does not identify the cause.");
+        notes << tr("Nothing came back. On its own this does not identify the cause.");
+    if (group->suspicion == 1)
+        notes << tr("Goes direct while the rest of the traffic uses the proxy.");
+    if (group->processPath.isEmpty())
+        notes << tr("No owning program, so process rules cannot match this traffic.");
     if (group->network.compare(QStringLiteral("tcp"), Qt::CaseInsensitive) != 0)
-        detail += QStringLiteral("\n") + tr("An HTTP check does not test this UDP or other non-TCP flow.");
+        notes << tr("An HTTP check does not test this UDP or other non-TCP flow.");
     else if (targetURL(group->domain, group->dest).isEmpty())
-        detail += QStringLiteral("\n") + tr("No usable destination address was reported.");
-    else {
+        notes << tr("No usable destination address was reported.");
+    else
         diagnoseAddress->setEnabled(!siteBusy);
-        detail += QStringLiteral("\n") + tr("Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.");
-    }
+    setFacts(rows, notes);
+
     dropConnections->setEnabled(!group->ids.isEmpty());
     rebuildRuleMenu(*group);
-    connectionDetail->setText(detail);
-    // A wrapping QLabel reports one line as its minimum, so the layout squeezes it and
-    // clips the text. Measure against the sidebar's own width, which is fixed: the
-    // widget's current width is still the unlaid-out default the first time through.
-    connectionDetail->setMinimumHeight(connectionDetail->fontMetrics()
-        .boundingRect(QRect(0, 0, DetailWidth - 46, 0), Qt::TextWordWrap, detail).height() + 4);
     ruleDetail->setText(group->matchedRule.isEmpty()
         ? tr("No rule matched, so the default outbound is used.")
         : group->matchedRule + QStringLiteral("\n") + explainRuleText(group->matchedRule));

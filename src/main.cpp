@@ -1291,8 +1291,8 @@ briefly interrupts traffic.
                 // regression, so it exits 2 instead of dereferencing a null child.
                 auto *previewAddress = dialog->findChild<QLineEdit *>(QStringLiteral("diagnosticAddress"));
                 auto *previewConnections = dialog->findChild<QTreeWidget *>(QStringLiteral("diagnosticConnections"));
-                auto *previewRuleButton = dialog->findChild<QToolButton *>(QStringLiteral("diagnosticRuleButton"));
-                if (previewAddress == nullptr || previewConnections == nullptr || previewRuleButton == nullptr) {
+
+                if (previewAddress == nullptr || previewConnections == nullptr) {
                     qWarning() << "Diagnostics preview is missing a widget it drives";
                     qApp->exit(2);
                     return;
@@ -1322,7 +1322,7 @@ briefly interrupts traffic.
                 health.dns_system = {"104.18.32.47"};
                 dialog->applyHealth(health);
                 dialog->show();
-                QTimer::singleShot(200, window, [dialog, prefix, previewAddress, previewConnections, previewRuleButton] {
+                QTimer::singleShot(200, window, [dialog, prefix, previewAddress, previewConnections] {
                     dialog->grab().save(prefix + QStringLiteral("-diagnostics-overview.png"), "PNG");
                     previewAddress->setText(QStringLiteral("https://example.org"));
                     dialog->showAddress(QStringLiteral("https://example.org"));
@@ -1377,7 +1377,7 @@ briefly interrupts traffic.
                     }
                     // Row 0 is whatever the window ranked most suspicious, which is the case worth showing.
                     previewConnections->setCurrentItem(previewConnections->topLevelItem(0));
-                    previewRuleButton->setChecked(true);
+
                     QTimer::singleShot(200, dialog, [dialog, prefix] {
                         dialog->grab().save(prefix + QStringLiteral("-diagnostics-app.png"), "PNG");
                         auto *reportRail = dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(3);
