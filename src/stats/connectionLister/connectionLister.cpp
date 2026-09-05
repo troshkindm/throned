@@ -199,7 +199,8 @@ namespace Stats
                 if (dUp == 0 && dDown == 0) return;
                 QString name = QString::fromStdString(cm.process.value());
                 if (name.isEmpty()) name = "Unknown";
-                trafficStatsManager->AddAppDelta(name, QString::fromStdString(cm.process_path.value()), dUp, dDown);
+                trafficStatsManager->AddAppDelta(name, QString::fromStdString(cm.process_path.value()),
+                                                 QString::fromStdString(cm.outbound.value()), dUp, dDown);
             };
 
             for (const auto& cm : resp.active)

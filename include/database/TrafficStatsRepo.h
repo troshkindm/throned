@@ -19,6 +19,9 @@ namespace Configs {
     struct AppTrafficRow {
         long long bucket_start = 0;
         QString process_name;
+        // The outbound tag the bytes took. Empty means the row predates this column, which
+        // is not the same as unknown routing and is reported apart from it.
+        QString outbound;
         long long up = 0;
         long long down = 0;
     };
@@ -33,12 +36,19 @@ namespace Configs {
         QString process_name;
         long long up = 0;
         long long down = 0;
+        // Subsets of up/down, never additions to them.
+        long long direct_up = 0;
+        long long direct_down = 0;
+        long long unknown_up = 0;
+        long long unknown_down = 0;
     };
 
     struct TrafficSeriesPoint {
         long long bucket_start = 0;
         long long up = 0;
         long long down = 0;
+        long long direct_up = 0;
+        long long direct_down = 0;
     };
 
     // Kept so deleted/renamed configs and moved apps still resolve in the dashboard.
@@ -83,7 +93,11 @@ namespace Configs {
         QList<AppMetaRow> GetAllAppMeta();
 
         // Empty buckets are omitted; utcOffsetSecs (east of UTC) shifts the UTC-aligned grouping so bucket_start is the local boundary epoch.
-        QList<TrafficSeriesPoint> QueryConfigSeries(long long fromSecs, long long toSecs, long long bucketSecs, long long utcOffsetSecs);
+        // directProfileId names the pseudo-profile that stands for direct egress, so the
+        // point can carry its bypassed share. 0 is never a real profile id, so the default
+        // simply reports no bypass for callers that do not care.
+        QList<TrafficSeriesPoint> QueryConfigSeries(long long fromSecs, long long toSecs, long long bucketSecs,
+                                                    long long utcOffsetSecs, int directProfileId = 0);
         QList<TrafficSeriesPoint> QueryAppSeries(long long fromSecs, long long toSecs, long long bucketSecs, long long utcOffsetSecs);
 
         [[nodiscard]] bool Disabled() const { return disabled.load(); }
@@ -97,8 +111,10 @@ namespace Configs {
         int consecutiveFailures = 0; // guarded by mu
 
         void createTables();
+        void migrateAppOutbound();
         // A member, not a file-local helper: the unity build would collide the symbol with another TU's.
         static std::string bucketExpr(long long bucketSecs, long long utcOffsetSecs);
+        static std::string bypassExpr();
 
         // Failure handling runs after mu is released, so a notice can never nest an event loop under the lock.
         template<typename F>

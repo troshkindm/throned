@@ -73,7 +73,11 @@ DiagnosticsWindow::Usage MainWindow::diagnosticsUsage(int rangeDays) {
     for (const auto &meta : repo->GetAllAppMeta()) appPaths.insert(meta.process_name, meta.last_path);
     for (const auto &row : repo->QueryAppUsage(from, now)) {
         const auto name = row.process_name.isEmpty() ? DiagnosticsWindow::tr("Unknown") : row.process_name;
-        usage.apps.append({name, appPaths.value(row.process_name), row.up, row.down});
+        usage.apps.append({name, appPaths.value(row.process_name), row.up, row.down,
+                           row.direct_up, row.direct_down});
+        // One byte written before the outbound column existed makes the whole range's
+        // split a guess, and a guessed bar is worse than an honest solid one.
+        if (row.unknown_up > 0 || row.unknown_down > 0) usage.appSplitRecorded = false;
     }
 
     QHash<int, Configs::ConfigMetaRow> configMeta;
@@ -90,7 +94,10 @@ DiagnosticsWindow::Usage MainWindow::diagnosticsUsage(int rangeDays) {
             else if (row.profile_id == Configs::warpProfileID) name = QStringLiteral("built-in warp");
             else name = DiagnosticsWindow::tr("Profile #%1 (deleted)").arg(row.profile_id);
         }
-        usage.servers.append({name, group, row.up, row.down});
+        // The servers tab has always known its own split: direct is a profile of its own.
+        const bool bypass = row.profile_id == Stats::DIRECT_STAT_PROFILE_ID;
+        usage.servers.append({name, group, row.up, row.down,
+                              bypass ? row.up : 0, bypass ? row.down : 0});
     }
     auto byTotal = [](const DiagnosticsWindow::UsageRow &a, const DiagnosticsWindow::UsageRow &b) {
         return (a.up + a.down) > (b.up + b.down);
@@ -101,25 +108,34 @@ DiagnosticsWindow::Usage MainWindow::diagnosticsUsage(int rangeDays) {
     auto collapse = [](QList<DiagnosticsWindow::UsageRow> &rows, const QString &label) {
         constexpr int keep = 6;
         if (rows.size() <= keep) return;
-        DiagnosticsWindow::UsageRow other{label, {}, 0, 0};
-        for (int i = keep; i < rows.size(); ++i) { other.up += rows[i].up; other.down += rows[i].down; }
+        DiagnosticsWindow::UsageRow other{label, {}, 0, 0, 0, 0};
+        for (int i = keep; i < rows.size(); ++i) {
+            other.up += rows[i].up;
+            other.down += rows[i].down;
+            other.directUp += rows[i].directUp;
+            other.directDown += rows[i].directDown;
+        }
         other.detail = DiagnosticsWindow::tr("%n more", "", rows.size() - keep);
         rows = rows.mid(0, keep) << other;
     };
     collapse(usage.apps, DiagnosticsWindow::tr("The rest"));
     collapse(usage.servers, DiagnosticsWindow::tr("The rest"));
 
-    const auto series = repo->QueryAppSeries(from, now, usage.bucketSecs, tzOffset);
-    QHash<qint64, Configs::TrafficSeriesPoint> byBucket;
-    for (const auto &point : series) byBucket.insert(point.bucket_start, point);
     // Aligned with the same offset the query used, or a bar's key never matches a point.
     const qint64 alignedFrom = ((from + tzOffset) / usage.bucketSecs) * usage.bucketSecs - tzOffset;
-    for (qint64 bucket = alignedFrom; bucket < now; bucket += usage.bucketSecs) {
-        const auto point = byBucket.value(bucket);
-        usage.series.append({bucket, point.up, point.down,
-            usage.bucketSecs >= 86400LL ? QDateTime::fromSecsSinceEpoch(bucket).toString(QStringLiteral("dd.MM"))
-                                        : QDateTime::fromSecsSinceEpoch(bucket).toString(QStringLiteral("HH:mm"))});
-    }
+    auto densify = [&](const QList<Configs::TrafficSeriesPoint> &points, QList<DiagnosticsWindow::UsagePoint> &out) {
+        QHash<qint64, Configs::TrafficSeriesPoint> byBucket;
+        for (const auto &point : points) byBucket.insert(point.bucket_start, point);
+        for (qint64 bucket = alignedFrom; bucket < now; bucket += usage.bucketSecs) {
+            const auto point = byBucket.value(bucket);
+            out.append({bucket, point.up, point.down, point.direct_up, point.direct_down,
+                usage.bucketSecs >= 86400LL ? QDateTime::fromSecsSinceEpoch(bucket).toString(QStringLiteral("dd.MM"))
+                                            : QDateTime::fromSecsSinceEpoch(bucket).toString(QStringLiteral("HH:mm"))});
+        }
+    };
+    densify(repo->QueryAppSeries(from, now, usage.bucketSecs, tzOffset), usage.series);
+    densify(repo->QueryConfigSeries(from, now, usage.bucketSecs, tzOffset, Stats::DIRECT_STAT_PROFILE_ID),
+            usage.serverSeries);
     // The stats database sits beside the main one; its size is what the user is consenting to.
     usage.databaseBytes = QFileInfo(Configs::dataManager->StatsDatabasePath()).size();
     return usage;

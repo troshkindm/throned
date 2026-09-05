@@ -149,6 +149,46 @@ private:
     QString full;
     Qt::TextElideMode elide;
 };
+// The row already spent its width on a bar showing the share of the busiest program.
+// Splitting that same bar says how much went around the tunnel without asking the screen
+// for a column, a number or a legend it does not have room for.
+class SplitBar final : public QWidget {
+public:
+    SplitBar(qint64 proxy, qint64 direct, qint64 peak, bool recorded)
+        : proxied(proxy), bypassed(direct), scale(qMax<qint64>(1, peak)), known(recorded) {
+        setFixedSize(150, 6);
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(Qt::NoPen);
+        const auto radius = height() / 2.0;
+        painter.setBrush(QColor(QStringLiteral("#222529")));
+        painter.drawRoundedRect(rect(), radius, radius);
+        const double total = width() * double(proxied + bypassed) / double(scale);
+        if (total <= 0) return;
+        QPainterPath filled;
+        filled.addRoundedRect(QRectF(0, 0, total, height()), radius, radius);
+        painter.setClipPath(filled);
+        // Direct sits at the tail so the accent still starts at the left edge and rows
+        // stay comparable at a glance; grey because green already means "uploaded" here.
+        painter.setBrush(QColor(QStringLiteral("#237AE9")));
+        painter.drawRect(QRectF(0, 0, known ? total * double(proxied) / double(proxied + bypassed) : total, height()));
+        if (known && bypassed > 0) {
+            painter.setBrush(QColor(QStringLiteral("#4A4F57")));
+            painter.drawRect(QRectF(total * double(proxied) / double(proxied + bypassed), 0,
+                                    total * double(bypassed) / double(proxied + bypassed), height()));
+        }
+    }
+
+private:
+    qint64 proxied;
+    qint64 bypassed;
+    qint64 scale;
+    bool known;
+};
 // sing-box prints a matched rule with every literal it contains, so one rule_set line
 // can be fifteen entries wide. The shape of the rule is what identifies it; the bulk is
 // kept in the tooltip and in the report.
@@ -1096,6 +1136,16 @@ void DiagnosticsWindow::buildStatisticsPage() {
         ++tab;
     }
     tabs->addStretch();
+    // The right end of the tab strip is the only empty space on this page, so the filter
+    // costs no row of its own.
+    usageProxyOnly = button(tr("Proxy only"), "diagnosticUsageProxyOnly");
+    usageProxyOnly->setCheckable(true);
+    usageProxyOnly->setToolTip(tr("Leaves out what went around the tunnel, in the totals, the chart and the export."));
+    connect(usageProxyOnly, &QPushButton::toggled, this, [this](bool on) {
+        usageProxyOnlyOn = on;
+        refreshUsage();
+    });
+    tabs->addWidget(usageProxyOnly);
     layout->addLayout(tabs);
 
     auto *breakdown = new QFrame;
@@ -2037,14 +2087,39 @@ void DiagnosticsWindow::applyUsage(const Usage &value) {
     refreshUsage();
 }
 
+// The servers tab has always recorded direct as a profile of its own, so a gap in the
+// programs' history must not disable the split there too.
+bool DiagnosticsWindow::usageSplitKnown() const {
+    return usageTab == 1 || usage.appSplitRecorded;
+}
+
+// Filtering subtracts rather than hides: a program that went half around the tunnel stays
+// listed at half its size, and only one that never touched the proxy drops out entirely.
+QList<DiagnosticsWindow::UsageRow> DiagnosticsWindow::visibleUsageRows() const {
+    auto rows = usageTab == 1 ? usage.servers : usage.apps;
+    if (!usageProxyOnlyOn || !usageSplitKnown()) return rows;
+    for (auto &row : rows) {
+        row.up -= row.directUp;
+        row.down -= row.directDown;
+        row.directUp = row.directDown = 0;
+    }
+    rows.removeIf([](const UsageRow &row) { return row.up + row.down <= 0; });
+    // Re-ranked, because dropping the bypass is what changes who the heavy programs are.
+    std::sort(rows.begin(), rows.end(), [](const UsageRow &a, const UsageRow &b) {
+        return (a.up + a.down) > (b.up + b.down);
+    });
+    return rows;
+}
+
 void DiagnosticsWindow::refreshUsage() {
     while (auto *item = usageRows->takeAt(0)) {
         if (auto *widget = item->widget()) widget->deleteLater();
         delete item;
     }
-    const auto &rows = usageTab == 1 ? usage.servers : usage.apps;
-    qint64 up = 0, down = 0;
-    for (const auto &row : rows) { up += row.up; down += row.down; }
+    const auto rows = visibleUsageRows();
+    const bool splitKnown = usageSplitKnown();
+    qint64 up = 0, down = 0, direct = 0;
+    for (const auto &row : rows) { up += row.up; down += row.down; direct += row.directUp + row.directDown; }
     usageDown->setText(down > 0 ? bytes(down) : QStringLiteral("—"));
     usageUp->setText(up > 0 ? bytes(up) : QStringLiteral("—"));
     usageTotal->setText(up + down > 0 ? bytes(up + down) : QStringLiteral("—"));
@@ -2052,8 +2127,11 @@ void DiagnosticsWindow::refreshUsage() {
     usageAverage->setText(up + down > 0 ? bytes((up + down) / days) : QStringLiteral("—"));
 
     QList<TrafficChartWidget::Bar> bars;
-    for (const auto &point : usage.series)
-        bars.append({point.bucketStart, point.down, point.up, point.label});
+    const auto &series = usageTab == 1 ? usage.serverSeries : usage.series;
+    for (const auto &point : series)
+        bars.append({point.bucketStart,
+                     usageProxyOnlyOn ? point.down - point.directDown : point.down,
+                     usageProxyOnlyOn ? point.up - point.directUp : point.up, point.label});
     // Enough labels to orient without them colliding at a 30-day range.
     usageChart->setData(bars, qMax(1, bars.size() / 8), usage.bucketSecs);
     usageChartHost->setVisible(!bars.isEmpty());
@@ -2086,13 +2164,13 @@ void DiagnosticsWindow::refreshUsage() {
         // The middle of a path is the part that repeats; the drive and the executable
         // are what tell two entries apart.
         if (!row.detail.isEmpty()) grid->addWidget(new ElidedLabel(row.detail, Qt::ElideMiddle, "factName"), 1, 1);
-        auto *bar = new QProgressBar;
-        bar->setObjectName(QStringLiteral("diagnosticUsageBar"));
-        bar->setTextVisible(false);
-        bar->setFixedHeight(6);
-        bar->setRange(0, 1000);
-        bar->setValue(static_cast<int>(1000 * (row.up + row.down) / peak));
-        bar->setFixedWidth(150);
+        const auto rowDirect = row.directUp + row.directDown;
+        const auto rowTotal = row.up + row.down;
+        auto *bar = new SplitBar(rowTotal - rowDirect, rowDirect, peak, splitKnown);
+        bar->setToolTip(!splitKnown
+            ? tr("The proxy and direct split was not recorded for this period.")
+            : rowDirect > 0 ? tr("Through the proxy %1 · directly %2").arg(bytes(rowTotal - rowDirect), bytes(rowDirect))
+                            : tr("All of it through the proxy"));
         grid->addWidget(bar, 0, 2, 2, 1, Qt::AlignVCenter);
         auto *value = label(bytes(row.up + row.down), "factValue");
         value->setAlignment(Qt::AlignRight | Qt::AlignBottom);
@@ -2107,26 +2185,31 @@ void DiagnosticsWindow::refreshUsage() {
         usageRows->addWidget(line);
     }
     usageRows->addStretch(1);
-    usageFootnote->setText(usage.databaseBytes > 0
+    auto footnote = usage.databaseBytes > 0
         ? tr("Stored on this computer only · %1 · %n day(s) of records", "", static_cast<int>(usage.daysStored))
               .arg(bytes(usage.databaseBytes))
-        : tr("Stored on this computer only and never sent anywhere."));
+        : tr("Stored on this computer only and never sent anywhere.");
+    // The one number the split is worth spelling out, on a line that already exists.
+    if (splitKnown && direct > 0)
+        footnote += QStringLiteral(" · ") + tr("%1 went around the tunnel").arg(bytes(direct));
+    usageFootnote->setText(footnote);
+    usageProxyOnly->setEnabled(splitKnown);
     usageExport->setEnabled(!rows.isEmpty());
 }
 
 void DiagnosticsWindow::exportUsage() {
-    const auto &rows = usageTab == 1 ? usage.servers : usage.apps;
+    const auto rows = visibleUsageRows(); // what the screen shows, filter included
     if (rows.isEmpty()) return;
     const auto path = QFileDialog::getSaveFileName(this, tr("Export statistics"),
         QStringLiteral("throned-traffic-") + QDate::currentDate().toString(Qt::ISODate) + QStringLiteral(".csv"),
         tr("CSV files (*.csv)"));
     if (path.isEmpty()) return;
-    QString out = QStringLiteral("name,detail,download_bytes,upload_bytes\n");
+    QString out = QStringLiteral("name,detail,download_bytes,upload_bytes,direct_download_bytes,direct_upload_bytes\n");
     for (const auto &row : rows)
-        out += QStringLiteral("\"%1\",\"%2\",%3,%4\n")
+        out += QStringLiteral("\"%1\",\"%2\",%3,%4,%5,%6\n")
             .arg(QString(row.name).replace(QLatin1Char('"'), QStringLiteral("\"\"")),
                  QString(row.detail).replace(QLatin1Char('"'), QStringLiteral("\"\"")))
-            .arg(row.down).arg(row.up);
+            .arg(row.down).arg(row.up).arg(row.directDown).arg(row.directUp);
     QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
     file.write(out.toUtf8());

@@ -44,7 +44,8 @@ namespace Stats {
         }
         for (auto it = appAccum.constBegin(); it != appAccum.constEnd(); ++it) {
             if (it.value().up == 0 && it.value().down == 0) continue;
-            app.append(Configs::AppTrafficRow{bucket, it.key(), it.value().up, it.value().down});
+            app.append(Configs::AppTrafficRow{bucket, it.key().first, it.key().second,
+                                              it.value().up, it.value().down});
         }
         configAccum.clear();
         appAccum.clear();
@@ -77,7 +78,7 @@ namespace Stats {
     }
 
     void TrafficStatsManager::AddAppDelta(const QString& processName, const QString& path,
-                                          long long up, long long down) {
+                                          const QString& outbound, long long up, long long down) {
         if (aggregationDisabled()) return;
         if (processName.isEmpty() || (up == 0 && down == 0)) return;
         const long long nowBucket = alignMinute(QDateTime::currentSecsSinceEpoch());
@@ -90,7 +91,7 @@ namespace Stats {
                 drainLocked(currentBucket, cfg, app);
             }
             currentBucket = nowBucket;
-            auto& d = appAccum[processName];
+            auto& d = appAccum[{processName, outbound}];
             d.up += up;
             d.down += down;
             if (!path.isEmpty()) {

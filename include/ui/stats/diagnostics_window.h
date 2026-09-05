@@ -52,27 +52,40 @@ public:
 
     // Traffic history, read from the stats database by the application and handed
     // over whole: the window itself never touches storage.
+    // The direct halves are part of the totals, not extra: a row is what the program
+    // moved, and how much of it went around the tunnel is a property of that number.
     struct UsageRow {
         QString name;
         QString detail;
         qint64 up = 0;
         qint64 down = 0;
+        qint64 directUp = 0;
+        qint64 directDown = 0;
     };
     struct UsagePoint {
         qint64 bucketStart = 0;
         qint64 up = 0;
         qint64 down = 0;
+        qint64 directUp = 0;
+        qint64 directDown = 0;
         QString label;
     };
     struct Usage {
         QList<UsageRow> apps;
         QList<UsageRow> servers;
+        // One series per tab. Sharing the app series meant the chart on the servers tab
+        // drew a different aggregation from the totals printed above it.
         QList<UsagePoint> series;
+        QList<UsagePoint> serverSeries;
         qint64 bucketSecs = 3600;
         qint64 daysStored = 0;
         qint64 databaseBytes = 0;
         bool recording = true;
         bool available = true;
+        // False for app records written before the outbound was stored beside the bytes:
+        // the totals are still right, only the split for that period is unknown. Servers
+        // are not affected — direct has always been a profile of its own there.
+        bool appSplitRecorded = true;
     };
 
     explicit DiagnosticsWindow(QWidget *parent = nullptr);
@@ -150,6 +163,8 @@ private:
     void setStep(int index, const QString &title, const QString &detail, const QString &tone, qint64 ms = -1);
     void rescaleSteps();
     void setVerdict(const QString &tone, const QString &title, const QString &detail, const QStringList &actions);
+    [[nodiscard]] bool usageSplitKnown() const;
+    [[nodiscard]] QList<UsageRow> visibleUsageRows() const;
     void refreshUsage();
     void exportUsage();
     void refreshReport();
@@ -246,9 +261,11 @@ private:
     TrafficChartWidget *usageChart;
     QVBoxLayout *usageRows;
     QPushButton *usageExport;
+    QPushButton *usageProxyOnly;
     Usage usage;
     int usageRangeDays = 7;
     int usageTab = 0;
+    bool usageProxyOnlyOn = false;
 
     // Report
     QList<QCheckBox *> reportSections;

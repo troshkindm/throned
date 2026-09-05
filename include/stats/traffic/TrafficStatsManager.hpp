@@ -21,7 +21,9 @@ namespace Stats {
 
         void AddConfigDelta(int profileId, long long up, long long down);
 
-        void AddAppDelta(const QString& processName, const QString& path,
+        // outbound is the tag the bytes actually took; empty only for a caller that cannot
+        // know it, which reads back as "not recorded" rather than as direct.
+        void AddAppDelta(const QString& processName, const QString& path, const QString& outbound,
                          long long up, long long down);
 
         void Flush();
@@ -35,7 +37,8 @@ namespace Stats {
 
         QMutex mu; // guards the accumulators + currentBucket
         QHash<int, Delta> configAccum;
-        QHash<QString, Delta> appAccum;
+        // Keyed by process and outbound together: one program routed two ways is two rows.
+        QHash<QPair<QString, QString>, Delta> appAccum;
         QHash<QString, QString> appMetaSeen; // process name -> last path written to app_meta
         long long currentBucket = 0; // minute-aligned epoch secs; 0 = nothing yet
 

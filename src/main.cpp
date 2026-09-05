@@ -1418,26 +1418,67 @@ briefly interrupts traffic.
                         // Paths as long as the ones a store-installed program really has:
                         // the row has to survive them without pushing the bar and the
                         // share off its own card.
+                        // Four shapes the split has to render: mostly proxied, split down
+                        // the middle, entirely proxied, and entirely around the tunnel.
                         usage.apps = {
-                            {QStringLiteral("chrome.exe"), QStringLiteral("C:/Program Files/Google/Chrome/Application/chrome.exe"), 720LL << 20, 18400LL << 20},
-                            {QStringLiteral("steam.exe"), QStringLiteral("C:/Program Files (x86)/Steam/steamapps/common/Steamworks Shared/steam.exe"), 190LL << 20, 11200LL << 20},
-                            {QStringLiteral("Telegram.exe"), QStringLiteral("C:/Users/demo/AppData/Roaming/Telegram Desktop/tdata/user_data/Telegram.exe"), 640LL << 20, 7900LL << 20},
-                            {QStringLiteral("DemoChat.exe"), QStringLiteral("C:/Program Files/WindowsApps/DemoChat_1.46388.4.0_x64__pzs8sxrjxfjjc/app/DemoChat.exe"), 210LL << 20, 4100LL << 20},
+                            {QStringLiteral("chrome.exe"), QStringLiteral("C:/Program Files/Google/Chrome/Application/chrome.exe"), 720LL << 20, 18400LL << 20, 90LL << 20, 3100LL << 20},
+                            {QStringLiteral("steam.exe"), QStringLiteral("C:/Program Files (x86)/Steam/steamapps/common/Steamworks Shared/steam.exe"), 190LL << 20, 11200LL << 20, 150LL << 20, 9800LL << 20},
+                            {QStringLiteral("Telegram.exe"), QStringLiteral("C:/Users/demo/AppData/Roaming/Telegram Desktop/tdata/user_data/Telegram.exe"), 640LL << 20, 7900LL << 20, 0, 0},
+                            {QStringLiteral("DemoChat.exe"), QStringLiteral("C:/Program Files/WindowsApps/DemoChat_1.46388.4.0_x64__pzs8sxrjxfjjc/app/DemoChat.exe"), 210LL << 20, 4100LL << 20, 210LL << 20, 4100LL << 20},
                         };
                         usage.servers = {
-                            {QStringLiteral("Demo North"), QStringLiteral("Demo subscription"), 1200LL << 20, 33000LL << 20},
-                            {QStringLiteral("Direct"), {}, 560LL << 20, 8600LL << 20},
+                            {QStringLiteral("Demo North"), QStringLiteral("Demo subscription"), 1200LL << 20, 33000LL << 20, 0, 0},
+                            {QStringLiteral("Direct"), {}, 560LL << 20, 8600LL << 20, 560LL << 20, 8600LL << 20},
                         };
                         const auto today = QDateTime::currentSecsSinceEpoch() / 86400 * 86400;
                         const qint64 shape[] = {5600, 7400, 3800, 8800, 4600, 6400, 3000};
                         for (int day = 0; day < 7; ++day)
                             usage.series.append({today - (6 - day) * 86400, shape[day] << 17, shape[day] << 20,
+                                                 (shape[day] << 17) / 5, (shape[day] << 20) / 4,
                                                  QDateTime::fromSecsSinceEpoch(today - (6 - day) * 86400).toString(QStringLiteral("dd.MM"))});
+                        // Deliberately a different shape from the app series: the servers
+                        // tab used to draw the app aggregation under its own totals, and
+                        // only two distinguishable curves show that it no longer does.
+                        const qint64 serverShape[] = {8200, 3100, 6900, 4200, 7600, 2800, 5400};
+                        for (int day = 0; day < 7; ++day)
+                            usage.serverSeries.append({today - (6 - day) * 86400, serverShape[day] << 17, serverShape[day] << 20,
+                                                       (serverShape[day] << 17) / 3, (serverShape[day] << 20) / 3,
+                                                       QDateTime::fromSecsSinceEpoch(today - (6 - day) * 86400).toString(QStringLiteral("dd.MM"))});
                         dialog->applyUsage(usage);
                         statsRail->click();
                         dialog->applyUsage(usage);
                         QTimer::singleShot(120, dialog, [dialog, prefix, reportRail] {
                             dialog->grab().save(prefix + QStringLiteral("-diagnostics-stats.png"), "PNG");
+                            // The same page with the tunnel bypass filtered out, which is
+                            // the state the split bar exists to explain.
+                            if (auto *proxyOnly = dialog->findChild<QPushButton *>(QStringLiteral("diagnosticUsageProxyOnly"))) {
+                                // Every posted event, not just the deletions: rebuilt rows
+                                // are only shown once their ChildAdded and layout requests
+                                // are delivered, and a grab before that photographs a hole.
+                                // Two passes, and both are needed: the generic queue never
+                                // carries DeferredDelete, so the replaced rows only leave
+                                // on the typed pass while the new ones are only shown on
+                                // the generic one. Skipping either photographs both sets.
+                                const auto settle = [] {
+                                    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+                                    QCoreApplication::sendPostedEvents();
+                                };
+                                proxyOnly->setChecked(true);
+                                settle();
+                                dialog->grab().save(prefix + QStringLiteral("-diagnostics-stats-proxyonly.png"), "PNG");
+                                proxyOnly->setChecked(false);
+                                settle();
+                                // The servers tab, whose chart and totals now describe the
+                                // same aggregation.
+                                if (auto *serversTab = dialog->findChildren<QPushButton *>(
+                                        QStringLiteral("diagnosticUsageTab")).value(1)) {
+                                    serversTab->click();
+                                    settle();
+                                    dialog->grab().save(prefix + QStringLiteral("-diagnostics-stats-servers.png"), "PNG");
+                                    dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticUsageTab")).value(0)->click();
+                                    settle();
+                                }
+                            }
                             // The smallest window the dialog allows, once per section. This
                             // is where a page that cannot scroll stops dropping what does
                             // not fit and starts stacking it instead, and only a render of

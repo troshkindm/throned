@@ -607,6 +607,30 @@
         <translation>Экспорт CSV</translation>
     </message>
     <message>
+        <source>Proxy only</source>
+        <translation>Только через прокси</translation>
+    </message>
+    <message>
+        <source>Leaves out what went around the tunnel, in the totals, the chart and the export.</source>
+        <translation>Убирает то, что прошло мимо туннеля, — из итогов, графика и экспорта.</translation>
+    </message>
+    <message>
+        <source>Through the proxy %1 · directly %2</source>
+        <translation>Через прокси %1 · напрямую %2</translation>
+    </message>
+    <message>
+        <source>All of it through the proxy</source>
+        <translation>Целиком через прокси</translation>
+    </message>
+    <message>
+        <source>The proxy and direct split was not recorded for this period.</source>
+        <translation>За этот период разделение на прокси и напрямую не записывалось.</translation>
+    </message>
+    <message>
+        <source>%1 went around the tunnel</source>
+        <translation>мимо туннеля %1</translation>
+    </message>
+    <message>
         <source>Downloaded</source>
         <translation>Получено (↓)</translation>
     </message>

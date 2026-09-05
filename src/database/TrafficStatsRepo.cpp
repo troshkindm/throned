@@ -17,6 +17,12 @@ namespace Configs {
         return "((bucket_start + (" + off + ")) / " + b + ") * " + b + " - (" + off + ")";
     }
 
+    // The tags generate.cpp gives the outbounds that leave without a tunnel. One place,
+    // because the row query and the series query have to agree on what "direct" means.
+    std::string TrafficStatsRepo::bypassExpr() {
+        return "outbound IN ('direct', 'l3-direct')";
+    }
+
     void TrafficStatsRepo::createTables() {
         write("createTables", [&] {
             db.execThrow(R"(
@@ -41,18 +47,20 @@ namespace Configs {
                 CREATE TABLE IF NOT EXISTS app_traffic_minute (
                     bucket_start INTEGER NOT NULL,
                     process_name TEXT NOT NULL,
+                    outbound     TEXT NOT NULL DEFAULT '',
                     up           INTEGER NOT NULL DEFAULT 0,
                     down         INTEGER NOT NULL DEFAULT 0,
-                    PRIMARY KEY (bucket_start, process_name)
+                    PRIMARY KEY (bucket_start, process_name, outbound)
                 )
             )");
             db.execThrow(R"(
                 CREATE TABLE IF NOT EXISTS app_traffic_hour (
                     bucket_start INTEGER NOT NULL,
                     process_name TEXT NOT NULL,
+                    outbound     TEXT NOT NULL DEFAULT '',
                     up           INTEGER NOT NULL DEFAULT 0,
                     down         INTEGER NOT NULL DEFAULT 0,
-                    PRIMARY KEY (bucket_start, process_name)
+                    PRIMARY KEY (bucket_start, process_name, outbound)
                 )
             )");
             db.execThrow(R"(
@@ -75,6 +83,43 @@ namespace Configs {
                 )
             )");
         });
+        migrateAppOutbound();
+    }
+
+    // The outbound column arrived after the tables shipped, and a primary key cannot be
+    // widened in place. Existing rows keep their bytes and get an empty tag, which the
+    // reads report as "not recorded" rather than folding into either side of the split.
+    void TrafficStatsRepo::migrateAppOutbound() {
+        for (const char* table : {"app_traffic_minute", "app_traffic_hour"}) {
+            bool needed = false;
+            read("checkAppOutbound", [&] {
+                auto q = db.queryThrow(std::string("PRAGMA table_info(") + table + ")");
+                bool found = false;
+                bool any = false;
+                while (q->executeStep()) {
+                    any = true;
+                    if (std::string(q->getColumn(1).getText()) == "outbound") found = true;
+                }
+                needed = any && !found;
+            });
+            if (!needed) continue;
+            const std::string name = table;
+            write("migrateAppOutbound", [&] {
+                db.execThrow("ALTER TABLE " + name + " RENAME TO " + name + "_pre_outbound");
+                db.execThrow(
+                    "CREATE TABLE " + name + " ("
+                    "bucket_start INTEGER NOT NULL,"
+                    "process_name TEXT NOT NULL,"
+                    "outbound     TEXT NOT NULL DEFAULT '',"
+                    "up           INTEGER NOT NULL DEFAULT 0,"
+                    "down         INTEGER NOT NULL DEFAULT 0,"
+                    "PRIMARY KEY (bucket_start, process_name, outbound))");
+                db.execThrow(
+                    "INSERT INTO " + name + " (bucket_start, process_name, outbound, up, down) "
+                    "SELECT bucket_start, process_name, '', up, down FROM " + name + "_pre_outbound");
+                db.execThrow("DROP TABLE " + name + "_pre_outbound");
+            });
+        }
     }
 
     void TrafficStatsRepo::UpsertConfigMinuteBatch(const QList<ConfigTrafficRow>& rows) {
@@ -96,11 +141,11 @@ namespace Configs {
         write("UpsertAppMinuteBatch", [&] {
             for (const auto& r : rows) {
                 db.execThrow(
-                    "INSERT INTO app_traffic_minute (bucket_start, process_name, up, down) "
-                    "VALUES (?, ?, ?, ?) "
-                    "ON CONFLICT(bucket_start, process_name) DO UPDATE SET "
+                    "INSERT INTO app_traffic_minute (bucket_start, process_name, outbound, up, down) "
+                    "VALUES (?, ?, ?, ?, ?) "
+                    "ON CONFLICT(bucket_start, process_name, outbound) DO UPDATE SET "
                     "up = up + excluded.up, down = down + excluded.down",
-                    r.bucket_start, r.process_name.toStdString(), r.up, r.down);
+                    r.bucket_start, r.process_name.toStdString(), r.outbound.toStdString(), r.up, r.down);
             }
         });
     }
@@ -143,11 +188,11 @@ namespace Configs {
                 olderThanSecs);
             db.execThrow("DELETE FROM config_traffic_minute WHERE bucket_start < ?", olderThanSecs);
             db.execThrow(
-                "INSERT INTO app_traffic_hour (bucket_start, process_name, up, down) "
-                "SELECT (bucket_start / 3600) * 3600, process_name, SUM(up), SUM(down) "
+                "INSERT INTO app_traffic_hour (bucket_start, process_name, outbound, up, down) "
+                "SELECT (bucket_start / 3600) * 3600, process_name, outbound, SUM(up), SUM(down) "
                 "FROM app_traffic_minute WHERE bucket_start < ? "
-                "GROUP BY (bucket_start / 3600) * 3600, process_name "
-                "ON CONFLICT(bucket_start, process_name) DO UPDATE SET "
+                "GROUP BY (bucket_start / 3600) * 3600, process_name, outbound "
+                "ON CONFLICT(bucket_start, process_name, outbound) DO UPDATE SET "
                 "up = up + excluded.up, down = down + excluded.down",
                 olderThanSecs);
             db.execThrow("DELETE FROM app_traffic_minute WHERE bucket_start < ?", olderThanSecs);
@@ -188,11 +233,15 @@ namespace Configs {
         QList<AppUsage> out;
         read("QueryAppUsage", [&] {
             auto q = db.queryThrow(
-                "SELECT process_name, SUM(u), SUM(d) FROM ("
-                "  SELECT process_name, up AS u, down AS d FROM app_traffic_minute "
+                "SELECT process_name, SUM(u), SUM(d),"
+                "  SUM(CASE WHEN " + bypassExpr() + " THEN u ELSE 0 END),"
+                "  SUM(CASE WHEN " + bypassExpr() + " THEN d ELSE 0 END),"
+                "  SUM(CASE WHEN outbound = '' THEN u ELSE 0 END),"
+                "  SUM(CASE WHEN outbound = '' THEN d ELSE 0 END) FROM ("
+                "  SELECT process_name, outbound, up AS u, down AS d FROM app_traffic_minute "
                 "    WHERE bucket_start >= ? AND bucket_start < ? "
                 "  UNION ALL "
-                "  SELECT process_name, up AS u, down AS d FROM app_traffic_hour "
+                "  SELECT process_name, outbound, up AS u, down AS d FROM app_traffic_hour "
                 "    WHERE bucket_start >= ? AND bucket_start < ? "
                 ") GROUP BY process_name",
                 fromSecs, toSecs, fromSecs, toSecs);
@@ -201,24 +250,33 @@ namespace Configs {
                 u.process_name = QString::fromUtf8(q->getColumn(0).getText());
                 u.up = q->getColumn(1).getInt64();
                 u.down = q->getColumn(2).getInt64();
+                u.direct_up = q->getColumn(3).getInt64();
+                u.direct_down = q->getColumn(4).getInt64();
+                u.unknown_up = q->getColumn(5).getInt64();
+                u.unknown_down = q->getColumn(6).getInt64();
                 out.append(u);
             }
         });
         return out;
     }
 
-    QList<TrafficSeriesPoint> TrafficStatsRepo::QueryConfigSeries(long long fromSecs, long long toSecs, long long bucketSecs, long long utcOffsetSecs) {
+    QList<TrafficSeriesPoint> TrafficStatsRepo::QueryConfigSeries(long long fromSecs, long long toSecs, long long bucketSecs, long long utcOffsetSecs, int directProfileId) {
         QList<TrafficSeriesPoint> out;
         if (bucketSecs <= 0) return out;
         // bucketSecs/utcOffsetSecs are internal numbers, safe to inline; shifting before the floor-divide snaps each bucket to the local calendar boundary, subtracting back returns that boundary's epoch.
         const std::string bkt = bucketExpr(bucketSecs, utcOffsetSecs);
         read("QueryConfigSeries", [&] {
+            // The caller names the pseudo-profile that stands for direct egress; the repo
+            // has no business knowing that id, and 0 is never a real one.
+            const std::string bypass = "pid = " + std::to_string(directProfileId);
             auto q = db.queryThrow(
-                "SELECT " + bkt + " AS bkt, SUM(u), SUM(d) FROM ("
-                "  SELECT bucket_start, up AS u, down AS d FROM config_traffic_minute "
+                "SELECT " + bkt + " AS bkt, SUM(u), SUM(d),"
+                "  SUM(CASE WHEN " + bypass + " THEN u ELSE 0 END),"
+                "  SUM(CASE WHEN " + bypass + " THEN d ELSE 0 END) FROM ("
+                "  SELECT bucket_start, profile_id AS pid, up AS u, down AS d FROM config_traffic_minute "
                 "    WHERE bucket_start >= ? AND bucket_start < ? "
                 "  UNION ALL "
-                "  SELECT bucket_start, up AS u, down AS d FROM config_traffic_hour "
+                "  SELECT bucket_start, profile_id AS pid, up AS u, down AS d FROM config_traffic_hour "
                 "    WHERE bucket_start >= ? AND bucket_start < ? "
                 ") GROUP BY bkt ORDER BY bkt",
                 fromSecs, toSecs, fromSecs, toSecs);
@@ -227,6 +285,8 @@ namespace Configs {
                 p.bucket_start = q->getColumn(0).getInt64();
                 p.up = q->getColumn(1).getInt64();
                 p.down = q->getColumn(2).getInt64();
+                p.direct_up = q->getColumn(3).getInt64();
+                p.direct_down = q->getColumn(4).getInt64();
                 out.append(p);
             }
         });
@@ -239,11 +299,13 @@ namespace Configs {
         const std::string bkt = bucketExpr(bucketSecs, utcOffsetSecs);
         read("QueryAppSeries", [&] {
             auto q = db.queryThrow(
-                "SELECT " + bkt + " AS bkt, SUM(u), SUM(d) FROM ("
-                "  SELECT bucket_start, up AS u, down AS d FROM app_traffic_minute "
+                "SELECT " + bkt + " AS bkt, SUM(u), SUM(d),"
+                "  SUM(CASE WHEN " + bypassExpr() + " THEN u ELSE 0 END),"
+                "  SUM(CASE WHEN " + bypassExpr() + " THEN d ELSE 0 END) FROM ("
+                "  SELECT bucket_start, outbound, up AS u, down AS d FROM app_traffic_minute "
                 "    WHERE bucket_start >= ? AND bucket_start < ? "
                 "  UNION ALL "
-                "  SELECT bucket_start, up AS u, down AS d FROM app_traffic_hour "
+                "  SELECT bucket_start, outbound, up AS u, down AS d FROM app_traffic_hour "
                 "    WHERE bucket_start >= ? AND bucket_start < ? "
                 ") GROUP BY bkt ORDER BY bkt",
                 fromSecs, toSecs, fromSecs, toSecs);
@@ -252,6 +314,8 @@ namespace Configs {
                 p.bucket_start = q->getColumn(0).getInt64();
                 p.up = q->getColumn(1).getInt64();
                 p.down = q->getColumn(2).getInt64();
+                p.direct_up = q->getColumn(3).getInt64();
+                p.direct_down = q->getColumn(4).getInt64();
                 out.append(p);
             }
         });

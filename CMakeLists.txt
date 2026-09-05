@@ -794,6 +794,25 @@ if (Qt6Test_FOUND)
     qt_import_plugins(throned_diagnostics_tests INCLUDE Qt6::QOffscreenIntegrationPlugin)
     add_test(NAME throned_diagnostics_tests COMMAND throned_diagnostics_tests -platform offscreen)
     set_tests_properties(throned_diagnostics_tests PROPERTIES TIMEOUT 30)
+    # Links the real repo and a real SQLite file: the migration widens a primary key over
+    # a user's existing records, and only an actual database can show it kept them.
+    qt_add_executable(throned_traffic_stats_tests
+            tests/test_traffic_stats.cpp
+            src/database/TrafficStatsRepo.cpp
+            include/database/TrafficStatsRepo.h
+            src/database/Database.cpp
+            3rdparty/SQLiteCpp/src/Backup.cpp
+            3rdparty/SQLiteCpp/src/Column.cpp
+            3rdparty/SQLiteCpp/src/Database.cpp
+            3rdparty/SQLiteCpp/src/Exception.cpp
+            3rdparty/SQLiteCpp/src/Statement.cpp
+            3rdparty/SQLiteCpp/src/Transaction.cpp
+            3rdparty/SQLiteCpp/src/sqlite3.c
+    )
+    set_target_properties(throned_traffic_stats_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
+    target_link_libraries(throned_traffic_stats_tests PRIVATE Qt6::Test Qt6::Widgets)
+    add_test(NAME throned_traffic_stats_tests COMMAND throned_traffic_stats_tests)
+    set_tests_properties(throned_traffic_stats_tests PROPERTIES TIMEOUT 30)
     qt_add_executable(throned_site_reachability_tests
             tests/test_site_reachability.cpp
             src/ui/stats/dialog_site_reachability.cpp

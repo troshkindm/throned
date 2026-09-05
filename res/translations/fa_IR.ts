@@ -332,6 +332,30 @@
         <translation>خروجی CSV</translation>
     </message>
     <message>
+        <source>Proxy only</source>
+        <translation>فقط از راه پروکسی</translation>
+    </message>
+    <message>
+        <source>Leaves out what went around the tunnel, in the totals, the chart and the export.</source>
+        <translation>آنچه از کنار تونل گذشته را کنار می‌گذارد — در جمع‌ها، نمودار و خروجی.</translation>
+    </message>
+    <message>
+        <source>Through the proxy %1 · directly %2</source>
+        <translation>از راه پروکسی %1 · مستقیم %2</translation>
+    </message>
+    <message>
+        <source>All of it through the proxy</source>
+        <translation>همه‌اش از راه پروکسی</translation>
+    </message>
+    <message>
+        <source>The proxy and direct split was not recorded for this period.</source>
+        <translation>در این بازه، تفکیک پروکسی و مستقیم ثبت نشده است.</translation>
+    </message>
+    <message>
+        <source>%1 went around the tunnel</source>
+        <translation>%1 از کنار تونل گذشت</translation>
+    </message>
+    <message>
         <source>Downloaded</source>
         <translation>دریافت‌شده</translation>
     </message>

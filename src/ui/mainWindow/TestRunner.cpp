@@ -583,7 +583,9 @@ void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile,
         if (dUp <= 0 && dDown <= 0) return;
 
         Stats::trafficStatsManager->AddConfigDelta(profile->id, dUp, dDown);
-        Stats::trafficStatsManager->AddAppDelta(Stats::SPEEDTEST_APP_NAME, "", dUp, dDown);
+        // The tag under test is the outbound these bytes took, so the speed test lands on
+        // the proxied side of the split instead of poisoning the range as "not recorded".
+        Stats::trafficStatsManager->AddAppDelta(Stats::SPEEDTEST_APP_NAME, "", tag, dUp, dDown);
 
         profile->traffic_uplink += dUp;
         profile->traffic_downlink += dDown;

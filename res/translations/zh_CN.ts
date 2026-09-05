@@ -332,6 +332,30 @@
         <translation>导出 CSV</translation>
     </message>
     <message>
+        <source>Proxy only</source>
+        <translation>仅经代理</translation>
+    </message>
+    <message>
+        <source>Leaves out what went around the tunnel, in the totals, the chart and the export.</source>
+        <translation>在合计、图表和导出中都排除绕过隧道的流量。</translation>
+    </message>
+    <message>
+        <source>Through the proxy %1 · directly %2</source>
+        <translation>经代理 %1 · 直连 %2</translation>
+    </message>
+    <message>
+        <source>All of it through the proxy</source>
+        <translation>全部经由代理</translation>
+    </message>
+    <message>
+        <source>The proxy and direct split was not recorded for this period.</source>
+        <translation>该时间段未记录代理与直连的区分。</translation>
+    </message>
+    <message>
+        <source>%1 went around the tunnel</source>
+        <translation>绕过隧道 %1</translation>
+    </message>
+    <message>
         <source>Downloaded</source>
         <translation>下载 (↓)</translation>
     </message>

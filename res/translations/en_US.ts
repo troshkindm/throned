@@ -535,6 +535,30 @@
         <translation>Export CSV</translation>
     </message>
     <message>
+        <source>Proxy only</source>
+        <translation>Proxy only</translation>
+    </message>
+    <message>
+        <source>Leaves out what went around the tunnel, in the totals, the chart and the export.</source>
+        <translation>Leaves out what went around the tunnel, in the totals, the chart and the export.</translation>
+    </message>
+    <message>
+        <source>Through the proxy %1 · directly %2</source>
+        <translation>Through the proxy %1 · directly %2</translation>
+    </message>
+    <message>
+        <source>All of it through the proxy</source>
+        <translation>All of it through the proxy</translation>
+    </message>
+    <message>
+        <source>The proxy and direct split was not recorded for this period.</source>
+        <translation>The proxy and direct split was not recorded for this period.</translation>
+    </message>
+    <message>
+        <source>%1 went around the tunnel</source>
+        <translation>%1 went around the tunnel</translation>
+    </message>
+    <message>
         <source>Downloaded</source>
         <translation>Downloaded</translation>
     </message>
