@@ -105,6 +105,8 @@ enum class ExitReason {
     RestartWithDns,
 };
 
+class DiagnosticsWindow;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -172,6 +174,8 @@ public:
     QString collectDiagnostics();
 
     void copyDiagnostics();
+    void openDiagnostics(const QString &processKey = {});
+    void openDiagnosticsHelper(bool routingRules);
 
     // Refresh the routing segment of the status bar from the active profile.
     void refreshRoutingStatus();
@@ -351,6 +355,7 @@ private:
     // submenu, because a tray submenu isn't painted by Qt on Linux (SNI/DBusMenu) or macOS
     // (native NSMenu) and so can't reliably expand a dynamic list. Recreated on each open.
     QPointer<TrayProfileSelector> traySelector;
+    QPointer<DiagnosticsWindow> diagnosticsWindow;
     void openTraySelector(bool routing);
     QPointer<RoutingQuickMenu> routingQuickMenu;
     void openRoutingQuickMenu(const QPoint &globalPos);

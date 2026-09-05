@@ -31,6 +31,8 @@ service LibcoreService {
   rpc QueryUDPTest(EmptyReq) returns (QueryUDPTestResponse);
   rpc SiteTest(SiteTestRequest) returns (SiteTestResp);
   rpc QuerySiteTest(EmptyReq) returns (QuerySiteTestResponse);
+  rpc DiagnoseSite(DiagnoseSiteRequest) returns (DiagnoseSiteResponse);
+  rpc PreviewRoute(PreviewRouteRequest) returns (PreviewRouteResponse);
   //
   rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
 
@@ -227,6 +229,40 @@ message ConnectionMetaData {
   repeated string chain = 12;                        // outbound chain, for later use
   optional int64 closed_at = 13 [default = 0];       // 0 while live
   optional string source = 14 [default = ""];        // client address "ip:port", empty when unknown
+  optional string matched_rule = 15 [default = ""];
+}
+
+// A fresh request through a running outbound, not a replay of an application's traffic.
+message DiagnoseSiteRequest {
+  optional string url = 1 [default = ""];
+  optional string outbound_tag = 2 [default = ""]; // empty = running default outbound
+}
+
+// Which rule the running route table would pick for an address, without sending
+// anything: the rules are replayed against synthetic metadata.
+message PreviewRouteRequest {
+  optional string url = 1 [default = ""];
+  optional string process_path = 2 [default = ""]; // empty leaves process rules unmatched
+  optional string network = 3 [default = "tcp"];
+}
+
+message PreviewRouteResponse {
+  optional string outbound_tag = 1 [default = ""];
+  optional string matched_rule = 2 [default = ""];  // empty = no rule matched
+  optional string action = 3 [default = ""];        // route, reject, hijack-dns, bypass
+  optional bool address_resolved = 4 [default = false]; // false = IP-based rules were skipped
+  optional string error = 5 [default = ""];
+}
+
+message DiagnoseSiteResponse {
+  optional string outbound_tag = 1 [default = ""];
+  optional int64 connect_ms = 2 [default = -1]; // includes DNS / proxy establishment
+  optional int64 tls_ms = 3 [default = -1];
+  optional int64 http_ms = 4 [default = -1];
+  optional int32 status = 5 [default = 0];
+  optional string tls_version = 6 [default = ""];
+  optional string error_stage = 7 [default = ""];
+  optional string error = 8 [default = ""];
 }
 
 // Ids come from a previous QueryConnections; ones that already closed are a

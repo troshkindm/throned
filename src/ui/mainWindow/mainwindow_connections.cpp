@@ -187,6 +187,13 @@ void MainWindow::showConnectionMenu(const QPoint &pos)
     const QString outbound = conn->outbound;
 
     QMenu menu(this);
+    const QString diagnosticProcess = processPath.isEmpty() ? conn->process : processPath;
+    if (!diagnosticProcess.isEmpty()) {
+        auto *diagnose = menu.addAction(MaterialIcon::icon(MaterialIcon::Glyph::Search,
+            themeManager()->Colors().accent, 18), tr("Diagnose this application"));
+        connect(diagnose, &QAction::triggered, this, [this, diagnosticProcess] { openDiagnostics(diagnosticProcess); });
+        menu.addSeparator();
+    }
     auto *verdict = menu.addAction(tr("%1 → %2")
         .arg(domain.isEmpty() ? dest : domain, outbound.isEmpty() ? tr("unknown") : outbound));
     verdict->setEnabled(false);

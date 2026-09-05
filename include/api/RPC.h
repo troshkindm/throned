@@ -49,12 +49,16 @@ namespace API {
 
         libcore::QuerySiteTestResponse QuerySiteTest(bool *rpcOK);
 
+        libcore::DiagnoseSiteResponse DiagnoseSite(bool *rpcOK, const libcore::DiagnoseSiteRequest &request, QString *coreError = nullptr);
+
+        libcore::PreviewRouteResponse PreviewRoute(bool *rpcOK, const libcore::PreviewRouteRequest &request, QString *coreError = nullptr);
+
         QString SetSystemDNS(bool *rpcOK, bool clear) const;
         // WFP block held across a core restart so the gap between Stop and Start
         // does not fall through to the physical interface. Windows only.
         QString SetTransitionGuard(bool *rpcOK, bool enabled) const;
 
-        [[nodiscard]] libcore::QueryConnectionsResp QueryConnections() const;
+        [[nodiscard]] libcore::QueryConnectionsResp QueryConnections(bool *rpcOK = nullptr) const;
 
         // Ids already gone are a no-op; closedCount (optional) receives how many were actually live.
         QString CloseConnections(bool *rpcOK, const QStringList &ids, int *closedCount = nullptr) const;

@@ -872,6 +872,10 @@ func (s *server) QueryStats(ctx context.Context, in *gen.EmptyReq) (out *gen.Que
 }
 
 func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData {
+	matchedRule := ""
+	if c.Rule != nil {
+		matchedRule = c.Rule.String() + " => " + c.Rule.Action().String()
+	}
 	process := ""
 	processPath := ""
 	if c.Metadata.ProcessInfo != nil {
@@ -902,6 +906,7 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 		Chain:       c.Chain,
 		ClosedAt:    To(closedAt),
 		Source:      To(source),
+		MatchedRule: To(matchedRule),
 	}
 }
 

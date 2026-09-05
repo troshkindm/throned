@@ -245,6 +245,9 @@ set(PROJECT_SOURCES
         src/ui/mainWindow/mainwindow_groups.cpp
         src/ui/mainWindow/mainwindow_view.cpp
         src/ui/mainWindow/mainwindow_connections.cpp
+        src/ui/mainWindow/mainwindow_diagnostics.cpp
+        include/ui/stats/diagnostics_window.h
+        src/ui/stats/diagnostics_window.cpp
         src/ui/mainWindow/mainwindow_profiles.cpp
         src/ui/mainWindow/mainwindow_deeplink.cpp
         src/ui/mainWindow/mainwindow_system.cpp
@@ -776,6 +779,19 @@ qt_finalize_executable(Throned)
 # QtCore alone, so `ctest` stays runnable without a display or a built app.
 if (Qt6Test_FOUND)
     enable_testing()
+    qt_add_executable(throned_diagnostics_tests
+            tests/test_diagnostics.cpp
+            src/ui/stats/diagnostics_window.cpp
+            include/ui/stats/diagnostics_window.h
+            src/ui/widget/MaterialIcon.cpp
+            src/ui/widget/ThronedTitleBar.cpp
+            include/ui/setting/ThemeManager.hpp
+    )
+    set_target_properties(throned_diagnostics_tests PROPERTIES UNITY_BUILD OFF AUTOMOC ON)
+    target_link_libraries(throned_diagnostics_tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network Qt6::Svg myproto)
+    qt_import_plugins(throned_diagnostics_tests INCLUDE Qt6::QOffscreenIntegrationPlugin)
+    add_test(NAME throned_diagnostics_tests COMMAND throned_diagnostics_tests -platform offscreen)
+    set_tests_properties(throned_diagnostics_tests PROPERTIES TIMEOUT 30)
     qt_add_executable(throned_site_reachability_tests
             tests/test_site_reachability.cpp
             src/ui/stats/dialog_site_reachability.cpp

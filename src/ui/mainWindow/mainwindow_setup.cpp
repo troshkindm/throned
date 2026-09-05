@@ -494,6 +494,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     commandLayout->addStretch(1);
 
+    auto *openDiagnosticsAction = new QAction(tr("Diagnostics"), this);
+    openDiagnosticsAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+D")));
+    ui->menu_program->insertAction(ui->menu_exit, openDiagnosticsAction);
+    connect(openDiagnosticsAction, &QAction::triggered, this, [this] { openDiagnostics(); });
+    auto *diagnosticsButton = new QToolButton(redesignedCentral);
+    diagnosticsButton->setObjectName(QStringLiteral("diagnosticsButton"));
+    diagnosticsButton->setDefaultAction(openDiagnosticsAction);
+    diagnosticsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    diagnosticsButton->setIconSize(QSize(19, 19));
+    diagnosticsButton->setFixedHeight(38);
+    diagnosticsButton->setCursor(Qt::PointingHandCursor);
+    diagnosticsButton->setToolTip(tr("Website and application diagnostics (Ctrl+Shift+D)"));
+    const auto retintDiagnostics = [openDiagnosticsAction] {
+        openDiagnosticsAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Search, themeManager()->Colors().accent, 19));
+    };
+    retintDiagnostics();
+    connect(themeManager(), &ThemeManager::themeChanged, this, retintDiagnostics);
+
     auto addToggle = [commandBar, commandLayout](const QString &text, QCheckBox *toggle) {
         auto *label = new QLabel(text, commandBar);
         label->setObjectName(QStringLiteral("controlLabel"));
@@ -981,6 +999,11 @@ QToolButton#groupAddButton {
     margin-bottom: 5px;
 }
 QToolButton#groupAddButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#diagnosticsButton {
+    background: #222529; color: #F1F3F5; border: 1px solid #3E454F; border-radius: 7px;
+    margin-bottom: 5px; padding: 0 10px;
+}
+QToolButton#diagnosticsButton:hover { background: #292D33; border-color: #237AE9; }
 QToolButton#groupAddButton:pressed { background: #182530; border-color: #237AE9; }
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
@@ -1379,6 +1402,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     tableToolsLayout->setContentsMargins(0, 0, 0, 0);
     tableToolsLayout->setSpacing(7);
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    // Keep the labelled entry visible without increasing the command bar's
+    // minimum width (especially with translated navigation labels).
+    tableToolsLayout->addWidget(diagnosticsButton);
 
     groupAddButton = new QToolButton(tableTools);
     groupAddButton->setObjectName(QStringLiteral("groupAddButton"));

@@ -581,14 +581,44 @@ namespace API {
         }
     }
 
-    libcore::QueryConnectionsResp Client::QueryConnections() const
+    libcore::DiagnoseSiteResponse Client::DiagnoseSite(bool *rpcOK, const libcore::DiagnoseSiteRequest &request, QString *coreError) {
+        *rpcOK = false;
+        libcore::DiagnoseSiteResponse reply;
+        std::vector<uint8_t> resp;
+        const auto status = channel->Call("DiagnoseSite", spb::pb::serialize<std::string>(request), resp);
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        if (coreError) *coreError = resp.empty() ? QStringLiteral("IPC error")
+            : QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        return {};
+    }
+
+    libcore::PreviewRouteResponse Client::PreviewRoute(bool *rpcOK, const libcore::PreviewRouteRequest &request, QString *coreError) {
+        *rpcOK = false;
+        libcore::PreviewRouteResponse reply;
+        std::vector<uint8_t> resp;
+        const auto status = channel->Call("PreviewRoute", spb::pb::serialize<std::string>(request), resp);
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        if (coreError) *coreError = resp.empty() ? QStringLiteral("IPC error")
+            : QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        return {};
+    }
+
+    libcore::QueryConnectionsResp Client::QueryConnections(bool *rpcOK) const
     {
+        if (rpcOK) *rpcOK = false;
         libcore::EmptyReq request;
         libcore::QueryConnectionsResp reply;
         std::vector<uint8_t> resp;
         auto status = channel->Call("QueryConnections", spb::pb::serialize<std::string>(request), resp);
 
         if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            if (rpcOK) *rpcOK = true;
             return reply;
         }
         if (status != LocalSocketChannel::CallOK) MW_show_log("Failed to query connections: IPC error");

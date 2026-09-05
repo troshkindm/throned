@@ -40,6 +40,7 @@
 #include <QTextBrowser>
 #include <QTemporaryDir>
 #include <QToolButton>
+#include <QTreeWidget>
 #include <QVBoxLayout>
 #include <3rdparty/WinCommander.hpp>
 
@@ -62,6 +63,7 @@
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/setting/dialog_basic_settings.h"
 #include "include/ui/stats/dialog_site_reachability.h"
+#include "include/ui/stats/diagnostics_window.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/control/ThronedControl.h"
@@ -1270,6 +1272,70 @@ briefly interrupts traffic.
                         dialog->grab().save(prefix + QStringLiteral("-settings.png"), "PNG");
                         dialog->close();
                         qApp->exit(0);
+                    });
+                });
+                return;
+            }
+            if (arguments.contains(QStringLiteral("-ui-preview-diagnostics"))) {
+                window->grab().save(prefix + QStringLiteral("-diagnostics-entry.png"), "PNG");
+                auto *dialog = new DiagnosticsWindow(window);
+                if (arguments.contains(QStringLiteral("-ui-preview-diagnostics-light"))) {
+                    // Exercise live restyling with a deterministic light system palette,
+                    // even when the Windows desktop itself uses dark mode.
+                    themeManager()->system_palette = QPalette(QColor(QStringLiteral("#efefef")));
+                    qApp->setPalette(themeManager()->system_palette);
+                    themeManager()->ApplyTheme(QStringLiteral("System"), true);
+                }
+                dialog->setWindowTitle(QStringLiteral("Throned · Diagnostics preview"));
+                // These are the widgets the preview drives; a missing one is a real
+                // regression, so it exits 2 instead of dereferencing a null child.
+                auto *previewAddress = dialog->findChild<QLineEdit *>(QStringLiteral("diagnosticAddress"));
+                auto *previewConnections = dialog->findChild<QTreeWidget *>(QStringLiteral("diagnosticConnections"));
+                auto *previewRuleButton = dialog->findChild<QToolButton *>(QStringLiteral("diagnosticRuleButton"));
+                if (previewAddress == nullptr || previewConnections == nullptr || previewRuleButton == nullptr) {
+                    qWarning() << "Diagnostics preview is missing a widget it drives";
+                    qApp->exit(2);
+                    return;
+                }
+                previewAddress->setText(QStringLiteral("https://example.org"));
+                // Same production widgets, isolated synthetic data. No RPC is connected.
+                libcore::PreviewRouteResponse route;
+                route.outbound_tag = "demo-proxy";
+                route.matched_rule = "domain_suffix=example.org => route(demo-proxy)";
+                route.action = "route";
+                dialog->applyRoutePreview(route);
+                libcore::DiagnoseSiteResponse result;
+                result.outbound_tag = "demo-proxy";
+                result.connect_ms = 86; result.tls_ms = 115; result.http_ms = 68;
+                result.status = 403; result.tls_version = "TLS 1.3";
+                dialog->applySiteResult(result);
+                dialog->show();
+                QTimer::singleShot(250, window, [dialog, prefix, previewConnections, previewRuleButton] {
+                    dialog->grab().save(prefix + QStringLiteral("-diagnostics-site.png"), "PNG");
+                    dialog->showApplication();
+                    libcore::QueryConnectionsResp snapshot;
+                    for (int i = 0; i < 4; ++i) {
+                        libcore::ConnectionMetaData c;
+                        c.id = std::to_string(i); c.process = "DemoChat.exe"; c.process_path = "C:/Demo/DemoChat.exe";
+                        c.domain = i == 2 ? "" : "gateway.example.org";
+                        c.dest = i == 2 ? "203.0.113.24:50005" : "203.0.113.10:443";
+                        c.network = i == 2 ? "udp" : "tcp";
+                        c.outbound = i == 2 ? "direct" : "demo-proxy";
+                        c.matched_rule = i == 2 ? "network=udp => route(direct)" : "process_name=DemoChat.exe => route(demo-proxy)";
+                        c.upload = 8192; c.download = i == 2 ? 0 : 47104;
+                        snapshot.active.push_back(c);
+                    }
+                    dialog->applyConnections(snapshot);
+                    if (previewConnections->topLevelItemCount() < 3) {
+                        qWarning() << "Diagnostics preview did not list the synthetic connections";
+                        qApp->exit(2);
+                        return;
+                    }
+                    previewConnections->setCurrentItem(previewConnections->topLevelItem(2));
+                    previewRuleButton->setChecked(true);
+                    QTimer::singleShot(200, dialog, [dialog, prefix] {
+                        dialog->grab().save(prefix + QStringLiteral("-diagnostics-app.png"), "PNG");
+                        dialog->close(); qApp->exit(0);
                     });
                 });
                 return;

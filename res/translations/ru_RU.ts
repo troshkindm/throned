@@ -69,6 +69,405 @@
     </message>
 </context>
 <context>
+    <name>DiagnosticsWindow</name>
+    <message>
+        <source>Unknown process</source>
+        <translation>Процесс неизвестен</translation>
+    </message>
+    <message>
+        <source>Unknown outbound</source>
+        <translation>Неизвестный выход</translation>
+    </message>
+    <message>
+        <source>Default route (no rule reported)</source>
+        <translation>Маршрут по умолчанию (правило не передано)</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>Диагностика</translation>
+    </message>
+    <message>
+        <source>Site</source>
+        <translation>Сайт</translation>
+    </message>
+    <message>
+        <source>Check a website</source>
+        <translation>Проверить сайт</translation>
+    </message>
+    <message>
+        <source>A fresh request through the running connection</source>
+        <translation>Отдельный запрос через работающее подключение</translation>
+    </message>
+    <message>
+        <source>Website address</source>
+        <translation>Адрес сайта</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>Проверить</translation>
+    </message>
+    <message>
+        <source>Enter an address to begin</source>
+        <translation>Введите адрес для проверки</translation>
+    </message>
+    <message>
+        <source>Start a connection in Throned, then check where the request stops.</source>
+        <translation>Подключитесь в Throned, затем проверьте, на каком этапе останавливается запрос.</translation>
+    </message>
+    <message>
+        <source>Request path</source>
+        <translation>Путь запроса</translation>
+    </message>
+    <message>
+        <source>Connection and DNS · not checked</source>
+        <translation>Соединение и DNS · не проверено</translation>
+    </message>
+    <message>
+        <source>DNS may be resolved by the proxy. Its time is included in connection establishment.</source>
+        <translation>DNS может разрешаться на прокси. Его время входит в установление соединения.</translation>
+    </message>
+    <message>
+        <source>TLS · not checked</source>
+        <translation>TLS · не проверено</translation>
+    </message>
+    <message>
+        <source>Certificate and hostname verification remain enabled.</source>
+        <translation>Проверка сертификата и имени сайта включена.</translation>
+    </message>
+    <message>
+        <source>HTTP · not checked</source>
+        <translation>HTTP · не проверено</translation>
+    </message>
+    <message>
+        <source>One HEAD request, without following redirects or sending account credentials.</source>
+        <translation>Один запрос HEAD без переходов по перенаправлениям и без данных учётной записи.</translation>
+    </message>
+    <message>
+        <source>This test does not reproduce browser DNS, extensions, application login or UDP traffic.</source>
+        <translation>Проверка не повторяет DNS браузера, расширения, авторизацию приложения или UDP-трафик.</translation>
+    </message>
+    <message>
+        <source>Application</source>
+        <translation>Приложение</translation>
+    </message>
+    <message>
+        <source>Application connections</source>
+        <translation>Соединения приложения</translation>
+    </message>
+    <message>
+        <source>Observe traffic passing through Throned while reproducing the problem.</source>
+        <translation>Наблюдение за трафиком через Throned во время воспроизведения проблемы.</translation>
+    </message>
+    <message>
+        <source>All applications</source>
+        <translation>Все приложения</translation>
+    </message>
+    <message>
+        <source>Start observation</source>
+        <translation>Начать наблюдение</translation>
+    </message>
+    <message>
+        <source>Current connections. Start observation to retain completed connections.</source>
+        <translation>Текущие соединения. Начните наблюдение, чтобы сохранять завершённые.</translation>
+    </message>
+    <message>
+        <source>Address / protocol</source>
+        <translation>Адрес / протокол</translation>
+    </message>
+    <message>
+        <source>Outbound</source>
+        <translation>Выход</translation>
+    </message>
+    <message>
+        <source>Traffic / state</source>
+        <translation>Трафик / состояние</translation>
+    </message>
+    <message>
+        <source>Select a connection</source>
+        <translation>Выберите соединение</translation>
+    </message>
+    <message>
+        <source>The list includes only connections visible to the core.</source>
+        <translation>В списке только соединения, которые видит ядро.</translation>
+    </message>
+    <message>
+        <source>Check this address</source>
+        <translation>Проверить этот адрес</translation>
+    </message>
+    <message>
+        <source>Matched rule</source>
+        <translation>Совпавшее правило</translation>
+    </message>
+    <message>
+        <source>HTTPS contents are not recorded. Byte counters cover the connection&apos;s lifetime; no reply does not by itself prove a failure.</source>
+        <translation>Содержимое HTTPS не записывается. Счётчики — за всё время соединения; отсутствие ответа само по себе не означает сбой.</translation>
+    </message>
+    <message>
+        <source>Copy report</source>
+        <translation>Скопировать отчёт</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>Enter a valid HTTP or HTTPS address</source>
+        <translation>Введите корректный адрес HTTP или HTTPS</translation>
+    </message>
+    <message>
+        <source>Do not include credentials or a URL fragment.</source>
+        <translation>Не указывайте логин, пароль или фрагмент адреса после #.</translation>
+    </message>
+    <message>
+        <source>Checking %1…</source>
+        <translation>Проверяем %1…</translation>
+    </message>
+    <message>
+        <source>Waiting for result…</source>
+        <translation>Ожидание результата…</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>The address is matched against your routing rules first, then requested through the outbound they choose.</source>
+        <translation>Сначала адрес проверяется по вашим правилам маршрутизации, затем запрос идёт через выбранный ими выход.</translation>
+    </message>
+    <message>
+        <source>Any application</source>
+        <translation>Любое приложение</translation>
+    </message>
+    <message>
+        <source>Route · not checked</source>
+        <translation>Маршрут · не проверялся</translation>
+    </message>
+    <message>
+        <source>The routing rules decide the outbound before anything is sent.</source>
+        <translation>Выход выбирают правила маршрутизации ещё до отправки запроса.</translation>
+    </message>
+    <message>
+        <source>Rules are matched as if %1 opened the address. Application login is not reproduced.</source>
+        <translation>Правила проверяются так, будто адрес открыло %1. Авторизация приложения не повторяется.</translation>
+    </message>
+    <message>
+        <source>Request path · %1 ms in total</source>
+        <translation>Путь запроса · %1 мс всего</translation>
+    </message>
+    <message>
+        <source>Route, connection, TLS and HTTP · up to 15 seconds</source>
+        <translation>Маршрут, соединение, TLS и HTTP · до 15 секунд</translation>
+    </message>
+    <message>
+        <source>Route: blocked by a rule</source>
+        <translation>Маршрут: заблокирован правилом</translation>
+    </message>
+    <message>
+        <source>Route unavailable</source>
+        <translation>Маршрут недоступен</translation>
+    </message>
+    <message>
+        <source>A routing rule blocks this address</source>
+        <translation>Этот адрес блокирует правило маршрутизации</translation>
+    </message>
+    <message>
+        <source>The route could not be resolved</source>
+        <translation>Не удалось определить маршрут</translation>
+    </message>
+    <message>
+        <source>Matched rule: %1. Nothing was sent — remove or narrow the rule to allow it.</source>
+        <translation>Совпавшее правило: %1. Запрос не отправлялся — чтобы разрешить его, удалите или сузьте правило.</translation>
+    </message>
+    <message>
+        <source>No rule matched, so the default outbound is used.</source>
+        <translation>Ни одно правило не совпало, используется выход по умолчанию.</translation>
+    </message>
+    <message>
+        <source>Matched rule: %1</source>
+        <translation>Совпавшее правило: %1</translation>
+    </message>
+    <message>
+        <source>Rules that match on IP are not evaluated for a hostname.</source>
+        <translation>Правила по IP для доменного имени не проверяются.</translation>
+    </message>
+    <message>
+        <source>Process rules are only matched when an application is selected.</source>
+        <translation>Правила по процессу проверяются, только если выбрано приложение.</translation>
+    </message>
+    <message>
+        <source>Route: %1</source>
+        <translation>Маршрут: %1</translation>
+    </message>
+    <message>
+        <source>Open routing rules</source>
+        <translation>Открыть правила маршрутизации</translation>
+    </message>
+    <message>
+        <source>Try the other servers</source>
+        <translation>Проверить на других серверах</translation>
+    </message>
+    <message>
+        <source>%1 · not checked</source>
+        <translation>%1 · не проверено</translation>
+    </message>
+    <message>
+        <source>Outbound: %1</source>
+        <translation>Выход: %1</translation>
+    </message>
+    <message>
+        <source>Connection and DNS</source>
+        <translation>Соединение и DNS</translation>
+    </message>
+    <message>
+        <source>TLS</source>
+        <translation>TLS</translation>
+    </message>
+    <message>
+        <source>Certificate and hostname verified.</source>
+        <translation>Сертификат и имя сайта проверены.</translation>
+    </message>
+    <message>
+        <source>TLS · not used for HTTP</source>
+        <translation>TLS · не используется для HTTP</translation>
+    </message>
+    <message>
+        <source>This URL uses unencrypted HTTP.</source>
+        <translation>Этот адрес использует незашифрованный HTTP.</translation>
+    </message>
+    <message>
+        <source>HTTP %1</source>
+        <translation>HTTP %1</translation>
+    </message>
+    <message>
+        <source>HTTP</source>
+        <translation>HTTP</translation>
+    </message>
+    <message>
+        <source>Could not run the check</source>
+        <translation>Не удалось запустить проверку</translation>
+    </message>
+    <message>
+        <source>The site responded</source>
+        <translation>Сайт ответил</translation>
+    </message>
+    <message>
+        <source>Throned · website diagnostics</source>
+        <translation>Throned · диагностика сайта</translation>
+    </message>
+    <message>
+        <source>DNS may be resolved by the proxy; it has no separate timing.</source>
+        <translation>DNS может резолвиться на прокси, отдельного времени у него нет.</translation>
+    </message>
+    <message>
+        <source>HEAD request, no redirects, no login.</source>
+        <translation>Запрос HEAD, без перенаправлений и авторизации.</translation>
+    </message>
+    <message>
+        <source>The outbound %1 did not answer</source>
+        <translation>Выход %1 не ответил</translation>
+    </message>
+    <message>
+        <source>The request never left Throned, so this is the connection to the server, not the site. %1</source>
+        <translation>Запрос так и не вышел из Throned — дело в соединении с сервером, а не в сайте. %1</translation>
+    </message>
+    <message>
+        <source>TLS failed on the way to the site</source>
+        <translation>TLS не прошёл по пути к сайту</translation>
+    </message>
+    <message>
+        <source>The server accepted the connection but the handshake did not verify. %1</source>
+        <translation>Сервер принял соединение, но рукопожатие не прошло проверку. %1</translation>
+    </message>
+    <message>
+        <source>The outbound connected but the site stayed silent</source>
+        <translation>Выход подключился, но сайт не ответил</translation>
+    </message>
+    <message>
+        <source>A connection through %1 was established and nothing answered. %2</source>
+        <translation>Соединение через %1 было установлено, ответа не пришло. %2</translation>
+    </message>
+    <message>
+        <source>The site answered — with an error</source>
+        <translation>Сайт ответил — ошибкой</translation>
+    </message>
+    <message>
+        <source>HTTP %1 came from the site itself over a working connection through %2, so Throned delivered the request.</source>
+        <translation>HTTP %1 вернул сам сайт по рабочему соединению через %2 — значит, Throned доставил запрос.</translation>
+    </message>
+    <message>
+        <source>The site redirected</source>
+        <translation>Сайт вернул перенаправление</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2. Routing, connection and TLS all work for this address.</source>
+        <translation>HTTP %1 через %2. Маршрутизация, соединение и TLS для этого адреса работают.</translation>
+    </message>
+    <message>
+        <source>Stop observation</source>
+        <translation>Остановить наблюдение</translation>
+    </message>
+    <message>
+        <source>Could not read connections: %1</source>
+        <translation>Не удалось получить соединения: %1</translation>
+    </message>
+    <message>
+        <source>Closed</source>
+        <translation>Закрыто</translation>
+    </message>
+    <message>
+        <source>Tracked</source>
+        <translation>Отслеживается</translation>
+    </message>
+    <message>
+        <source>Connections: %1 · sent %2 · received %3</source>
+        <translation>Соединений: %1 · отправлено %2 · получено %3</translation>
+    </message>
+    <message>
+        <source>Observing · %1 s. Reproduce the problem in the application.</source>
+        <translation>Наблюдаем · %1 с. Воспроизведите проблему в приложении.</translation>
+    </message>
+    <message>
+        <source>Observation stopped · %1 s.</source>
+        <translation>Наблюдение остановлено · %1 с.</translation>
+    </message>
+    <message>
+        <source> Limit reached: the first 1000 connections are retained.</source>
+        <translation> Достигнут лимит: сохранены первые 1000 соединений.</translation>
+    </message>
+    <message>
+        <source>No connections yet. Start Throned and open the application; process detection depends on the inbound and platform.</source>
+        <translation>Соединений пока нет. Подключитесь в Throned и откройте приложение. Определение процесса зависит от режима подключения и платформы.</translation>
+    </message>
+    <message>
+        <source>No return traffic recorded. This alone does not identify the cause.</source>
+        <translation>Ответный трафик не зафиксирован. Причину по этому признаку определить нельзя.</translation>
+    </message>
+    <message>
+        <source>An HTTP check does not test this UDP or other non-TCP flow.</source>
+        <translation>HTTP-проверка не проверяет этот UDP-поток или другой трафик без TCP.</translation>
+    </message>
+    <message>
+        <source>No usable destination address was reported.</source>
+        <translation>Ядро не передало адрес, пригодный для проверки.</translation>
+    </message>
+    <message>
+        <source>Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.</source>
+        <translation>Для проверки используется HTTPS, для порта 80 — HTTP. Перед запуском адрес можно изменить.</translation>
+    </message>
+    <message>
+        <source>Throned · application connections</source>
+        <translation>Throned · соединения приложения</translation>
+    </message>
+    <message>
+        <source>Copied</source>
+        <translation>Скопировано</translation>
+    </message>
+    <message>
+        <source>Not checked</source>
+        <translation>Не проверено</translation>
+    </message>
+</context>
+<context>
     <name>DialogAutoSelector</name>
     <message>
         <source>Auto Selector Stats</source>

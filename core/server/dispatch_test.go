@@ -19,6 +19,88 @@ func TestDispatchCoversProtobufService(t *testing.T) {
 	}
 }
 
+func TestDispatchDiagnoseSiteUsesRunningOutbound(t *testing.T) {
+	previous, previousCancel := currentInstance()
+	defer setBoxInstance(previous, previousCancel)
+	setBoxInstance(nil, nil)
+	payload, _ := proto.Marshal(&gen.DiagnoseSiteRequest{Url: To("http://127.0.0.1")})
+	if _, err := dispatch("DiagnoseSite", payload); err == nil {
+		t.Fatal("a stopped instance must return an explicit error")
+	}
+	env, err := prepareTestEnv(false, false, "", nil,
+		`{"outbounds":[{"type":"direct","tag":"diagnostic-direct"}]}`, nil, true, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer env.close()
+	setBoxInstance(env.box, nil)
+	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusForbidden) }))
+	defer site.Close()
+	for _, tag := range []string{"", "diagnostic-direct"} {
+		payload, _ = proto.Marshal(&gen.DiagnoseSiteRequest{Url: To(site.URL), OutboundTag: To(tag)})
+		response, err := dispatch("DiagnoseSite", payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var result gen.DiagnoseSiteResponse
+		if err := proto.Unmarshal(response, &result); err != nil {
+			t.Fatal(err)
+		}
+		if result.GetStatus() != 403 || result.GetOutboundTag() != "diagnostic-direct" || result.GetError() != "" {
+			t.Fatalf("unexpected response: %v", &result)
+		}
+	}
+	payload, _ = proto.Marshal(&gen.DiagnoseSiteRequest{Url: To(site.URL), OutboundTag: To("removed-outbound")})
+	if _, err := dispatch("DiagnoseSite", payload); err == nil {
+		t.Fatal("must not fall back silently when an outbound disappears")
+	}
+}
+
+func TestDispatchPreviewRouteReplaysTheRunningRules(t *testing.T) {
+	previous, previousCancel := currentInstance()
+	defer setBoxInstance(previous, previousCancel)
+	setBoxInstance(nil, nil)
+	payload, _ := proto.Marshal(&gen.PreviewRouteRequest{Url: To("https://preview.example")})
+	if _, err := dispatch("PreviewRoute", payload); err == nil {
+		t.Fatal("a stopped instance must return an explicit error")
+	}
+	env, err := prepareTestEnv(false, false, "", nil, `{
+		"outbounds": [{"type":"direct","tag":"fallback"},{"type":"direct","tag":"rule-target"}],
+		"route": {"rules":[{"domain_suffix":["preview.example"],"outbound":"rule-target"}],"final":"fallback"}
+	}`, nil, true, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer env.close()
+	setBoxInstance(env.box, nil)
+
+	preview := func(url string) *gen.PreviewRouteResponse {
+		t.Helper()
+		payload, _ := proto.Marshal(&gen.PreviewRouteRequest{Url: To(url)})
+		response, err := dispatch("PreviewRoute", payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var result gen.PreviewRouteResponse
+		if err := proto.Unmarshal(response, &result); err != nil {
+			t.Fatal(err)
+		}
+		return &result
+	}
+	matched := preview("https://preview.example")
+	if matched.GetOutboundTag() != "rule-target" || matched.GetAction() != "route" || matched.GetMatchedRule() == "" {
+		t.Fatalf("the rule was not replayed: %v", matched)
+	}
+	// Nothing matches, so the answer has to be the default outbound and no rule.
+	unmatched := preview("https://elsewhere.example")
+	if unmatched.GetOutboundTag() != "fallback" || unmatched.GetMatchedRule() != "" || unmatched.GetAction() != "" {
+		t.Fatalf("unmatched address did not fall through to the default: %v", unmatched)
+	}
+	if bad := preview("not a url"); bad.GetError() == "" {
+		t.Fatalf("invalid input was accepted: %v", bad)
+	}
+}
+
 func TestDispatchSiteTestReturnsHTTPResults(t *testing.T) {
 	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/blocked" {
