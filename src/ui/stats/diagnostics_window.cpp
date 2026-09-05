@@ -3,6 +3,7 @@
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedTitleBar.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
+#include "include/database/entities/RouteProfile.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -16,6 +17,8 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QHostAddress>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -35,10 +38,54 @@
 #include <QUrl>
 #include <QVBoxLayout>
 #include <algorithm>
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <tlhelp32.h>
+#elif defined(Q_OS_LINUX)
+#include <QDir>
+#include <QFile>
+#endif
 
 namespace {
 QString text(const std::optional<std::string> &value) { return QString::fromStdString(value.value_or("")); }
 QString processKey(const libcore::ConnectionMetaData &c) { return text(c.process_path).isEmpty() ? text(c.process) : text(c.process_path); }
+// sing-box attributes a connection to the process that opened the socket, and an
+// application that spawns helpers shows up as several unrelated programs. It has no
+// parent matcher either, so the tree has to be resolved here to be shown at all.
+QHash<quint32, QPair<quint32, QString>> processTree() {
+    QHash<quint32, QPair<quint32, QString>> tree;
+#ifdef Q_OS_WIN
+    const HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE) return tree;
+    PROCESSENTRY32W entry{};
+    entry.dwSize = sizeof(entry);
+    if (Process32FirstW(snapshot, &entry)) {
+        do {
+            tree.insert(entry.th32ProcessID,
+                        {entry.th32ParentProcessID, QString::fromWCharArray(entry.szExeFile)});
+        } while (Process32NextW(snapshot, &entry));
+    }
+    CloseHandle(snapshot);
+#elif defined(Q_OS_LINUX)
+    for (const auto &name : QDir(QStringLiteral("/proc")).entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+        bool numeric = false;
+        const auto pid = name.toUInt(&numeric);
+        if (!numeric) continue;
+        QFile stat(QStringLiteral("/proc/") + name + QStringLiteral("/stat"));
+        if (!stat.open(QIODevice::ReadOnly | QIODevice::Text)) continue;
+        // "pid (comm) state ppid ...", and comm may itself contain spaces and brackets.
+        const auto line = QString::fromUtf8(stat.readAll());
+        const int close = line.lastIndexOf(QLatin1Char(')'));
+        if (close < 0) continue;
+        const auto fields = line.mid(close + 1).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+        if (fields.size() < 2) continue;
+        const auto comm = line.mid(line.indexOf(QLatin1Char('(')) + 1, close - line.indexOf(QLatin1Char('(')) - 1);
+        tree.insert(pid, {fields[1].toUInt(), comm});
+    }
+#endif
+    return tree;
+}
+
 QString sourceHost(const libcore::ConnectionMetaData &c) {
     const auto endpoint = text(c.source);
     const int colon = endpoint.lastIndexOf(QLatin1Char(':'));
@@ -453,16 +500,17 @@ QDialog#diagnosticsWindow QPushButton#diagnosticRail:checked {
 }
 QLabel#diagnosticStamp { padding: 6px 10px; }
 QStackedWidget#diagnosticPages { background: #1B1E23; }
+QScrollArea#diagnosticDetailScroll { background: transparent; }
 QFrame#diagnosticVerdict, QFrame#diagnosticConnectionDetail, QFrame#diagnosticCard {
     background: #171B21; border: 1px solid #2F3136; border-radius: 8px;
 }
 QFrame#diagnosticPath { background: #171B21; border: 1px solid #2F3136; border-radius: 8px; }
 QWidget#diagnosticHealthRow { border-top: 1px solid #2F3136; }
 QWidget#diagnosticHealthRow[attention="true"] { background: #3A2227; }
-QDialog#diagnosticsWindow QPushButton, QToolButton#diagnosticRuleButton {
+QDialog#diagnosticsWindow QPushButton, QToolButton#diagnosticRuleButton, QToolButton#diagnosticAddRule {
     background: #222529; border: 1px solid #2F3136; border-radius: 6px; padding: 8px 12px; color: #F1F3F5;
 }
-QDialog#diagnosticsWindow QPushButton:hover, QToolButton#diagnosticRuleButton:hover { background: #292D33; border-color: #4A4F57; }
+QDialog#diagnosticsWindow QPushButton:hover, QToolButton#diagnosticRuleButton:hover, QToolButton#diagnosticAddRule:hover { background: #292D33; border-color: #4A4F57; }
 QDialog#diagnosticsWindow QPushButton[primary="true"] { background: #193452; border-color: #237AE9; }
 QDialog#diagnosticsWindow QPushButton:checked { background: #193452; border-color: #237AE9; }
 QDialog#diagnosticsWindow QPushButton:disabled { color: #747C86; border-color: #2F3136; }
@@ -712,40 +760,52 @@ void DiagnosticsWindow::buildApplicationsPage() {
     summary = label({}, "title");
     layout->addWidget(summary);
 
+    // The list needs height, the detail needs almost none, so they sit side by side
+    // instead of stacked: vertical space was the scarce axis, not horizontal.
+    auto *columns = new QHBoxLayout;
+    columns->setSpacing(14);
+
     connections = new QTreeWidget;
     connections->setObjectName(QStringLiteral("diagnosticConnections"));
-    connections->setHeaderLabels({tr("Address / protocol"), tr("Outbound"), tr("Traffic / state")});
+    connections->setHeaderLabels({tr("Destination"), tr("Traffic")});
     connections->setRootIsDecorated(false);
     connections->setUniformRowHeights(true);
     connections->setSelectionMode(QAbstractItemView::SingleSelection);
-    // The page does not scroll, so the list is what gives up room when the status or
-    // the detail card grows; everything else must keep its own height.
-    connections->setMinimumHeight(104);
+    connections->setMinimumHeight(160);
+    // On by default, and it would hand the whole surplus to the traffic column.
+    connections->header()->setStretchLastSection(false);
     connections->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    connections->header()->setSectionResizeMode(1, QHeaderView::Interactive);
-    connections->header()->setSectionResizeMode(2, QHeaderView::Interactive);
-    connections->setColumnWidth(1, 150);
-    connections->setColumnWidth(2, 165);
-    layout->addWidget(connections, 1);
+    connections->header()->setSectionResizeMode(1, QHeaderView::Fixed);
+    connections->setColumnWidth(1, 112);
+    columns->addWidget(connections, 1);
 
+    // How much the card holds depends on the connection — a blocked UDP flow explains
+    // itself in six lines, a healthy one in two — so the sidebar scrolls rather than
+    // compressing its own children on top of each other.
+    auto *detailScroll = new QScrollArea;
+    detailScroll->setObjectName(QStringLiteral("diagnosticDetailScroll"));
+    detailScroll->setWidgetResizable(true);
+    detailScroll->setFrameShape(QFrame::NoFrame);
+    detailScroll->setFixedWidth(DetailWidth);
+    detailScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     auto *detailFrame = new QFrame;
     detailFrame->setObjectName(QStringLiteral("diagnosticConnectionDetail"));
-    detailFrame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     auto *detailLayout = new QVBoxLayout(detailFrame);
-    detailLayout->setContentsMargins(16, 14, 16, 14);
-    detailLayout->setSpacing(10);
-    auto *titleRow = new QHBoxLayout;
+    detailLayout->setContentsMargins(15, 14, 15, 14);
+    detailLayout->setSpacing(9);
+    detailScroll->setWidget(detailFrame);
+    columns->addWidget(detailScroll);
+    layout->addLayout(columns, 1);
     connectionTitle = label(tr("Select a connection"), "title");
     connectionTitle->setObjectName(QStringLiteral("diagnosticConnectionTitle"));
-    titleRow->addWidget(connectionTitle, 1);
+    detailLayout->addWidget(connectionTitle);
     // One readable chart for the selected destination rather than a thumbnail in every
     // row: an item widget in the tree dictates the row height and clips the text.
     connectionSpark = new Sparkline;
-    titleRow->addWidget(connectionSpark, 0, Qt::AlignRight);
-    detailLayout->addLayout(titleRow);
+    detailLayout->addWidget(connectionSpark);
     connectionDetail = label(tr("The list includes only connections visible to the core."), "muted");
     detailLayout->addWidget(connectionDetail);
-    auto *detailActions = new QHBoxLayout;
+    // Stacked, because a 268 px sidebar cannot hold three buttons in a row.
     diagnoseAddress = button(tr("Check this address"), "diagnosticConnectionCheck");
     diagnoseAddress->setEnabled(false);
     dropConnections = button(tr("Drop connections"), "diagnosticDrop");
@@ -756,16 +816,24 @@ void DiagnosticsWindow::buildApplicationsPage() {
     explainRule->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     explainRule->setCheckable(true);
     explainRule->setEnabled(false);
-    detailActions->addWidget(diagnoseAddress);
-    detailActions->addWidget(dropConnections);
-    detailActions->addWidget(explainRule);
-    detailActions->addStretch();
-    detailLayout->addLayout(detailActions);
+    explainRule->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    detailLayout->addWidget(diagnoseAddress);
+    addRule = new QToolButton;
+    addRule->setObjectName(QStringLiteral("diagnosticAddRule"));
+    addRule->setText(tr("Route this…"));
+    addRule->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    addRule->setPopupMode(QToolButton::InstantPopup);
+    addRule->setEnabled(false);
+    addRule->setMenu(new QMenu(addRule));
+    addRule->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    detailLayout->addWidget(addRule);
+    detailLayout->addWidget(dropConnections);
+    detailLayout->addWidget(explainRule);
     ruleDetail = label({}, "muted");
     ruleDetail->setObjectName(QStringLiteral("diagnosticRuleDetail"));
     ruleDetail->hide();
     detailLayout->addWidget(ruleDetail);
-    layout->addWidget(detailFrame);
+    detailLayout->addStretch(1);
     layout->addWidget(label(tr("HTTPS contents are not recorded. Byte counters cover the connection's lifetime; no reply does not by itself prove a failure."), "subtle"));
 
     connect(observe, &QPushButton::clicked, this, &DiagnosticsWindow::toggleObservation);
@@ -856,6 +924,7 @@ void DiagnosticsWindow::refreshTheme() {
     dropConnections->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, c.textMuted, 18));
     onlyProblems->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, c.textMuted, 18));
     explainRule->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Routes, c.textMuted, 18));
+    addRule->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune, c.textMuted, 18));
     reportCopy->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Copy, c.textMuted, 18));
     recheck->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Reload, c.text, 18));
     compareToggle->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, c.textMuted, 18));
@@ -1332,6 +1401,7 @@ void DiagnosticsWindow::rebuildConnections() {
             group.key = key; group.host = host; group.domain = text(c.domain); group.dest = text(c.dest);
             group.process = processName(c); group.processPath = processKey(c);
             group.source = sourceHost(c);
+            group.pid = c.process_id.value_or(0);
             group.outbound = text(c.outbound); group.network = text(c.network);
         }
         if (group.matchedRule.isEmpty()) group.matchedRule = text(c.matched_rule);
@@ -1360,6 +1430,7 @@ void DiagnosticsWindow::rebuildConnections() {
         while (history.size() > HistorySamples) history.removeFirst();
         lastDownload[group.key] = group.download;
     }
+    resolveAncestry();
     if (problemsOnly)
         groups.erase(std::remove_if(groups.begin(), groups.end(),
                                     [](const ConnectionGroup &g) { return g.suspicion == 0; }), groups.end());
@@ -1409,19 +1480,112 @@ void DiagnosticsWindow::syncConnectionRows() {
         } else if (connections->indexOfTopLevelItem(item) != i) {
             connections->insertTopLevelItem(i, connections->takeTopLevelItem(connections->indexOfTopLevelItem(item)));
         }
-        QString subtitle = group.process + QStringLiteral(" · ") + group.network.toUpper();
-        if (group.count > 1) subtitle += QStringLiteral(" · ") + tr("%1 connections").arg(group.count);
-        item->setText(0, group.host + QStringLiteral("\n") + subtitle);
-        item->setText(1, group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound);
-        item->setText(2, QStringLiteral("↑ %1  ↓ %2\n").arg(bytes(group.upload), bytes(group.download))
-            + (group.closed >= group.count ? tr("Closed") : tr("Tracked")));
-        item->setToolTip(0, group.dest + QStringLiteral("\n") + group.processPath);
-        item->setToolTip(1, group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule);
+        // Two columns rather than four: the outbound and the count read fine on the
+        // second line, and the width they used to take is what the list was short of.
+        QStringList facts{group.process, group.network.toUpper(),
+                          group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound};
+        if (group.count > 1) facts.insert(2, tr("×%1").arg(group.count));
+        if (group.closed >= group.count) facts << tr("Closed");
+        item->setText(0, group.host + QStringLiteral("\n") + facts.join(QStringLiteral(" · ")));
+        item->setText(1, QStringLiteral("↑ %1\n↓ %2").arg(bytes(group.upload), bytes(group.download)));
+        item->setTextAlignment(1, Qt::AlignRight | Qt::AlignVCenter);
+        item->setToolTip(0, group.dest + QStringLiteral("\n") + group.processPath + QStringLiteral("\n")
+            + (group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule));
     }
     for (auto *stale : existing) delete connections->takeTopLevelItem(connections->indexOfTopLevelItem(stale));
     if (!connections->currentItem() && connections->topLevelItemCount())
         connections->setCurrentItem(connections->topLevelItem(0));
     connections->verticalScrollBar()->setValue(scroll);
+}
+
+// A snapshot of the whole process table costs a millisecond, so it is taken at most
+// twice a second and shared by every group rather than walked per connection.
+void DiagnosticsWindow::resolveAncestry() {
+    bool needed = false;
+    for (const auto &group : groups) needed = needed || group.pid != 0;
+    if (!needed) return;
+    const auto now = QDateTime::currentMSecsSinceEpoch();
+    if (now - ancestryTakenAt > 2000 || ancestry.isEmpty()) {
+        ancestry = processTree();
+        ancestryTakenAt = now;
+    }
+    for (auto &group : groups) {
+        if (group.pid == 0 || !ancestry.contains(group.pid)) continue;
+        const auto own = QFileInfo(group.processPath).fileName();
+        quint32 pid = ancestry.value(group.pid).first;
+        // Stop at the first ancestor that is a different program: helpers of helpers
+        // still belong to the application the user recognises.
+        for (int depth = 0; depth < 12 && pid > 4 && ancestry.contains(pid); ++depth) {
+            const auto name = ancestry.value(pid).second;
+            if (!name.isEmpty() && name.compare(own, Qt::CaseInsensitive) != 0) {
+                group.parentProcess = name;
+                break;
+            }
+            pid = ancestry.value(pid).first;
+        }
+    }
+}
+
+// The same rule entries the connections table offers, so a rule added from either
+// screen lands in the active routing profile in exactly the same shape.
+void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
+    auto *menu = addRule->menu();
+    menu->clear();
+    struct Candidate { QString label; QString entry; };
+    QList<Candidate> candidates;
+    if (!group.domain.isEmpty()) {
+        candidates.append({tr("This domain — %1").arg(group.domain), QStringLiteral("domain:") + group.domain});
+        candidates.append({tr("Domain and subdomains — *.%1").arg(group.domain), QStringLiteral("suffix:") + group.domain});
+    }
+    if (!group.processPath.isEmpty()) {
+        const auto name = QFileInfo(group.processPath).fileName();
+        candidates.append({tr("This process — %1").arg(name), QStringLiteral("processName:") + name});
+        candidates.append({tr("This executable — %1").arg(name), QStringLiteral("processPath:") + group.processPath});
+    }
+    const auto address = group.dest.contains(QLatin1Char(']'))
+        ? group.dest.section(QLatin1Char(']'), 0, 0).mid(1)
+        : group.dest.section(QLatin1Char(':'), 0, 0);
+    if (!address.isEmpty() && !QHostAddress(address).isNull())
+        candidates.append({tr("This address — %1").arg(address), QStringLiteral("ip:") + address});
+    // The whole family: every executable currently seen under the same parent. sing-box
+    // has no parent matcher, so this is one rule per program, and a helper that starts
+    // later under a new name is not covered until it appears here too.
+    QStringList family;
+    if (!group.parentProcess.isEmpty()) {
+        family << group.parentProcess;
+        for (const auto &other : groups)
+            if (other.parentProcess == group.parentProcess && !other.processPath.isEmpty())
+                family << QFileInfo(other.processPath).fileName();
+        family.removeDuplicates();
+    }
+    addRule->setEnabled(!candidates.isEmpty() || family.size() > 1);
+    for (const auto &candidate : candidates) {
+        auto *sub = menu->addMenu(candidate.label);
+        const struct { int action; QString label; } targets[] = {
+            {Configs::proxy, tr("Through proxy")},
+            {Configs::bypass, tr("Directly")},
+            {Configs::block, tr("Block")},
+        };
+        for (const auto &target : targets) {
+            const auto entry = candidate.entry;
+            const int action = target.action;
+            connect(sub->addAction(target.label), &QAction::triggered, this,
+                    [this, entry, action] { emit ruleRequested(entry, action); });
+        }
+    }
+    if (family.size() < 2) return;
+    menu->addSeparator();
+    auto *whole = menu->addMenu(tr("The whole application — %1 and %n helper(s)", "", family.size() - 1)
+                                    .arg(group.parentProcess));
+    for (const auto &target : {QPair<int, QString>{Configs::proxy, tr("Through proxy")},
+                               {Configs::bypass, tr("Directly")},
+                               {Configs::block, tr("Block")}}) {
+        const auto names = family;
+        const int action = target.first;
+        connect(whole->addAction(target.second), &QAction::triggered, this, [this, names, action] {
+            for (const auto &name : names) emit ruleRequested(QStringLiteral("processName:") + name, action);
+        });
+    }
 }
 
 const DiagnosticsWindow::ConnectionGroup *DiagnosticsWindow::currentGroup() const {
@@ -1441,16 +1605,20 @@ void DiagnosticsWindow::showConnection() {
     if (!item) {
         connectionTitle->setText(tr("Select a connection"));
         connectionDetail->setText(tr("The list includes only connections visible to the core."));
-        connectionSpark->setSamples({}, true);
+        connectionSpark->hide();
         ruleDetail->clear();
         return;
     }
     const auto *group = currentGroup();
     if (group == nullptr) return;
-    connectionSpark->setSamples(downHistory.value(group->key), group->suspicion == 0);
+    const auto history = downHistory.value(group->key);
+    connectionSpark->setSamples(history, group->suspicion == 0);
+    connectionSpark->setVisible(history.size() >= 2); // an empty chart is just a hole
     connectionTitle->setText(group->dest.isEmpty() ? group->host : group->dest);
     QString detail = group->process + QStringLiteral(" · ") + group->network.toUpper()
         + QStringLiteral("\n") + tr("Outbound: %1").arg(group->outbound.isEmpty() ? tr("Unknown outbound") : group->outbound);
+    if (!group->parentProcess.isEmpty())
+        detail += QStringLiteral("\n") + tr("Started by %1 — a helper of that application.").arg(group->parentProcess);
     if (group->processPath.isEmpty())
         detail += QStringLiteral("\n") + (group->source.isEmpty()
             ? tr("The core did not report an owning program, so process rules cannot match this traffic.")
@@ -1468,10 +1636,13 @@ void DiagnosticsWindow::showConnection() {
         detail += QStringLiteral("\n") + tr("Address check uses HTTPS unless the destination port is 80. You can edit the URL before checking.");
     }
     dropConnections->setEnabled(!group->ids.isEmpty());
+    rebuildRuleMenu(*group);
     connectionDetail->setText(detail);
-    // A wrapping QLabel reports one line as its minimum, so the layout would squeeze the
-    // card down to that when the page is tight. Hold a floor for the lines it actually has.
-    connectionDetail->setMinimumHeight(connectionDetail->fontMetrics().lineSpacing() * (detail.count(QLatin1Char('\n')) + 1) + 4);
+    // A wrapping QLabel reports one line as its minimum, so the layout squeezes it and
+    // clips the text. Measure against the sidebar's own width, which is fixed: the
+    // widget's current width is still the unlaid-out default the first time through.
+    connectionDetail->setMinimumHeight(connectionDetail->fontMetrics()
+        .boundingRect(QRect(0, 0, DetailWidth - 46, 0), Qt::TextWordWrap, detail).height() + 4);
     ruleDetail->setText(group->matchedRule.isEmpty()
         ? tr("No rule matched, so the default outbound is used.")
         : group->matchedRule + QStringLiteral("\n") + explainRuleText(group->matchedRule));

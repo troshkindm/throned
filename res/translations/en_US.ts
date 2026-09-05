@@ -108,16 +108,8 @@
         <translation>Current connections. Start observation to retain completed connections.</translation>
     </message>
     <message>
-        <source>Address / protocol</source>
-        <translation>Address / protocol</translation>
-    </message>
-    <message>
         <source>Outbound</source>
         <translation>Outbound</translation>
-    </message>
-    <message>
-        <source>Traffic / state</source>
-        <translation>Traffic / state</translation>
     </message>
     <message>
         <source>Select a connection</source>
@@ -248,10 +240,6 @@
         <translation>%1 destinations · %2 connections · sent %3 · received %4</translation>
     </message>
     <message>
-        <source>%1 connections</source>
-        <translation>%1 connections</translation>
-    </message>
-    <message>
         <source>Outbound: %1</source>
         <translation>Outbound: %1</translation>
     </message>
@@ -345,15 +333,14 @@
     </message>
     <message numerus="yes">
         <source>%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.</source>
-        <translation><numerusform>%n connection reports no application</numerusform><numerusform>%n connections report no application</numerusform></translation>
+        <translation>
+            <numerusform>%n connection reports no application</numerusform>
+            <numerusform>%n connections report no application</numerusform>
+        </translation>
     </message>
     <message>
         <source>Closed</source>
         <translation>Closed</translation>
-    </message>
-    <message>
-        <source>Tracked</source>
-        <translation>Tracked</translation>
     </message>
     <message>
         <source>Observing · %1 s. Reproduce the problem in the application.</source>
@@ -498,6 +485,18 @@
     <message>
         <source>No application reported · %1</source>
         <translation>No application reported · %1</translation>
+    </message>
+    <message>
+        <source>Destination</source>
+        <translation>Destination</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>Traffic</translation>
+    </message>
+    <message>
+        <source>Route this…</source>
+        <translation>Route this…</translation>
     </message>
     <message>
         <source>%1 · %2 min</source>
@@ -710,6 +709,50 @@
     <message>
         <source> Limit reached: the first 1000 connections are retained.</source>
         <translation> Limit reached: the first 1000 connections are retained.</translation>
+    </message>
+    <message>
+        <source>×%1</source>
+        <translation>×%1</translation>
+    </message>
+    <message>
+        <source>This domain — %1</source>
+        <translation>This domain — %1</translation>
+    </message>
+    <message>
+        <source>Domain and subdomains — *.%1</source>
+        <translation>Domain and subdomains — *.%1</translation>
+    </message>
+    <message>
+        <source>This process — %1</source>
+        <translation>This process — %1</translation>
+    </message>
+    <message>
+        <source>This executable — %1</source>
+        <translation>This executable — %1</translation>
+    </message>
+    <message>
+        <source>This address — %1</source>
+        <translation>This address — %1</translation>
+    </message>
+    <message>
+        <source>Through proxy</source>
+        <translation>Through proxy</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>Directly</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>Block</translation>
+    </message>
+    <message numerus="yes">
+        <source>The whole application — %1 and %n helper(s)</source>
+        <translation><numerusform>%1 and %n helper</numerusform><numerusform>%1 and %n helpers</numerusform></translation>
+    </message>
+    <message>
+        <source>Started by %1 — a helper of that application.</source>
+        <translation>Started by %1 — a helper of that application.</translation>
     </message>
     <message>
         <source>The core did not report an owning program, so process rules cannot match this traffic.</source>

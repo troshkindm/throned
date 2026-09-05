@@ -175,16 +175,8 @@
         <translation>Текущие соединения. Начните наблюдение, чтобы сохранять завершённые.</translation>
     </message>
     <message>
-        <source>Address / protocol</source>
-        <translation>Адрес / протокол</translation>
-    </message>
-    <message>
         <source>Outbound</source>
         <translation>Выход</translation>
-    </message>
-    <message>
-        <source>Traffic / state</source>
-        <translation>Трафик / состояние</translation>
     </message>
     <message>
         <source>Select a connection</source>
@@ -315,10 +307,6 @@
         <translation>Назначений: %1 · соединений: %2 · отправлено %3 · получено %4</translation>
     </message>
     <message>
-        <source>%1 connections</source>
-        <translation>соединений: %1</translation>
-    </message>
-    <message>
         <source>Outbound: %1</source>
         <translation>Выход: %1</translation>
     </message>
@@ -416,14 +404,11 @@
             <numerusform>%n соединение не сообщает приложение — трафик с другого устройства или сокет, закрывшийся до определения.</numerusform>
             <numerusform>%n соединения не сообщают приложение — трафик с другого устройства или сокеты, закрывшиеся до определения.</numerusform>
             <numerusform>%n соединений не сообщают приложение — трафик с другого устройства или сокеты, закрывшиеся до определения.</numerusform>
-        </translation>    </message>
+        </translation>
+    </message>
     <message>
         <source>Closed</source>
         <translation>Закрыто</translation>
-    </message>
-    <message>
-        <source>Tracked</source>
-        <translation>Отслеживается</translation>
     </message>
     <message>
         <source>Observing · %1 s. Reproduce the problem in the application.</source>
@@ -568,6 +553,18 @@
     <message>
         <source>No application reported · %1</source>
         <translation>Приложение не определено · %1</translation>
+    </message>
+    <message>
+        <source>Destination</source>
+        <translation>Назначение</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>Трафик</translation>
+    </message>
+    <message>
+        <source>Route this…</source>
+        <translation>Направить это…</translation>
     </message>
     <message>
         <source>%1 · %2 min</source>
@@ -780,6 +777,53 @@
     <message>
         <source> Limit reached: the first 1000 connections are retained.</source>
         <translation> Достигнут лимит: сохранены первые 1000 соединений.</translation>
+    </message>
+    <message>
+        <source>×%1</source>
+        <translation>×%1</translation>
+    </message>
+    <message>
+        <source>This domain — %1</source>
+        <translation>Этот домен — %1</translation>
+    </message>
+    <message>
+        <source>Domain and subdomains — *.%1</source>
+        <translation>Домен и поддомены — *.%1</translation>
+    </message>
+    <message>
+        <source>This process — %1</source>
+        <translation>Этот процесс — %1</translation>
+    </message>
+    <message>
+        <source>This executable — %1</source>
+        <translation>Этот исполняемый файл — %1</translation>
+    </message>
+    <message>
+        <source>This address — %1</source>
+        <translation>Этот адрес — %1</translation>
+    </message>
+    <message>
+        <source>Through proxy</source>
+        <translation>Через прокси</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>Блокировать</translation>
+    </message>
+    <message numerus="yes">
+        <source>The whole application — %1 and %n helper(s)</source>
+        <translation>
+            <numerusform>Всё приложение — %1 и %n вспомогательный процесс</numerusform>
+            <numerusform>Всё приложение — %1 и %n вспомогательных процесса</numerusform>
+            <numerusform>Всё приложение — %1 и %n вспомогательных процессов</numerusform>
+        </translation>    </message>
+    <message>
+        <source>Started by %1 — a helper of that application.</source>
+        <translation>Запущен из %1 — вспомогательный процесс этого приложения.</translation>
     </message>
     <message>
         <source>The core did not report an owning program, so process rules cannot match this traffic.</source>

@@ -231,6 +231,7 @@ message ConnectionMetaData {
   optional int64 closed_at = 13 [default = 0];       // 0 while live
   optional string source = 14 [default = ""];        // client address "ip:port", empty when unknown
   optional string matched_rule = 15 [default = ""];
+  optional uint32 process_id = 16 [default = 0];    // 0 when the core did not attribute it
 }
 
 // A fresh request through a running outbound, not a replay of an application's traffic.

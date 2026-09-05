@@ -11,6 +11,9 @@
 #include <QTreeWidget>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QMenu>
 #include <QLocale>
 #include <QPlainTextEdit>
 #include <QTest>
@@ -133,7 +136,7 @@ private slots:
         QCOMPARE(tree->topLevelItemCount(), 2);
         // Nothing came back on the three-connection group, so it sorts above the healthy one.
         QVERIFY(tree->topLevelItem(0)->text(0).contains("example.org"));
-        QVERIFY(tree->topLevelItem(0)->text(0).contains("3 connections"));
+        QVERIFY(tree->topLevelItem(0)->text(0).contains(QString::fromUtf8("×3")));
         QVERIFY(tree->topLevelItem(1)->text(0).contains("elsewhere.example"));
     }
     void aPollReusesRowsInsteadOfRebuildingThem() {
@@ -149,7 +152,7 @@ private slots:
         window.applyConnections(snapshot);
         // Same widget instance: a clear()/rebuild would drop the selection and the scroll.
         QCOMPARE(tree->topLevelItem(0), first);
-        QVERIFY(tree->topLevelItem(0)->text(2).contains(QLocale().formattedDataSize(4096)));
+        QVERIFY(tree->topLevelItem(0)->text(1).contains(QLocale().formattedDataSize(4096)));
     }
     void splitDNSIsReportedAsAProblemNotAsAFailure() {
         DiagnosticsWindow window;
@@ -237,6 +240,39 @@ private slots:
         auto *filter = window.findChild<QComboBox *>("diagnosticApps");
         QVERIFY(filter->findData(QStringLiteral("?no-process")) > 0);
     }
+    void aHelperProcessOffersAWholeApplicationRule() {
+        DiagnosticsWindow window;
+        // The parent chain is resolved from the live process table, so the test uses
+        // this test's own process: its executable is a real child of a real parent.
+        libcore::QueryConnectionsResp snapshot;
+        auto c = connection("1");
+        c.process_id = QCoreApplication::applicationPid();
+        c.process_path = QCoreApplication::applicationFilePath().toStdString();
+        c.process = QFileInfo(QCoreApplication::applicationFilePath()).fileName().toStdString();
+        snapshot.active.push_back(c);
+        window.applyConnections(snapshot);
+        auto *rule = window.findChild<QToolButton *>("diagnosticAddRule");
+        QVERIFY(rule->isEnabled());
+        // The per-process entries are always offered; the family entry only when a
+        // different parent was actually found, which depends on how the test was run.
+        bool hasProcessEntry = false;
+        for (const auto *action : rule->menu()->actions())
+            hasProcessEntry = hasProcessEntry || action->text().contains("This process");
+        QVERIFY(hasProcessEntry);
+    }
+    void ruleEntriesMatchTheConnectionsTableFormat() {
+        DiagnosticsWindow window;
+        QStringList emitted;
+        connect(&window, &DiagnosticsWindow::ruleRequested, &window,
+                [&](const QString &entry, int) { emitted << entry; });
+        libcore::QueryConnectionsResp snapshot;
+        snapshot.active.push_back(connection("1"));
+        window.applyConnections(snapshot);
+        for (auto *action : window.findChild<QToolButton *>("diagnosticAddRule")->menu()->actions())
+            if (action->menu() != nullptr && action->text().contains("Domain and subdomains"))
+                action->menu()->actions().first()->trigger();
+        QCOMPARE(emitted, QStringList{QStringLiteral("suffix:example.org")});
+    }
     void observationRetainsClosedAndIgnoresLatePollAfterStop() {
         DiagnosticsWindow window;
         auto *observe = window.findChild<QPushButton *>("diagnosticObserve");
@@ -250,7 +286,7 @@ private slots:
         snapshot.closed.push_back(c);
         window.applyConnections(snapshot);
         QCOMPARE(tree->topLevelItemCount(), 1);
-        QVERIFY(tree->topLevelItem(0)->text(2).contains("Closed"));
+        QVERIFY(tree->topLevelItem(0)->text(0).contains("Closed"));
         observe->click();
         snapshot.active.push_back(connection("2"));
         window.applyConnections(snapshot);

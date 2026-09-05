@@ -121,6 +121,7 @@ void MainWindow::openDiagnostics(const QString &processKey) {
             API::defaultClient->CloseConnections(&ok, ids);
         });
         connect(window, &DiagnosticsWindow::navigateRequested, this, &MainWindow::openDiagnosticsTarget);
+        connect(window, &DiagnosticsWindow::ruleRequested, this, &MainWindow::addRuleFromConnection);
     }
     diagnosticsWindow->applyLocalState(diagnosticsLocalState());
     if (!processKey.isEmpty()) diagnosticsWindow->showApplication(processKey);

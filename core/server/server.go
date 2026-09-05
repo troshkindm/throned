@@ -878,7 +878,9 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 	}
 	process := ""
 	processPath := ""
+	var processID uint32
 	if c.Metadata.ProcessInfo != nil {
+		processID = c.Metadata.ProcessInfo.ProcessID
 		processPath = c.Metadata.ProcessInfo.ProcessPath
 		spl := strings.Split(processPath, string(os.PathSeparator))
 		process = spl[len(spl)-1]
@@ -907,6 +909,7 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 		ClosedAt:    To(closedAt),
 		Source:      To(source),
 		MatchedRule: To(matchedRule),
+		ProcessId:   To(processID),
 	}
 }
 

@@ -62,6 +62,7 @@ signals:
     void matrixRequested(const QString &url, const QStringList &outbounds);
     void connectionsRequested();
     void closeConnectionsRequested(const QStringList &ids);
+    void ruleRequested(const QString &entry, int action);
     // "rules", "dns", "profile", "dpi", "log", "reachability", "interception"
     void navigateRequested(const QString &target);
 
@@ -76,6 +77,8 @@ private:
         QString process;
         QString processPath;
         QString source;
+        QString parentProcess;
+        quint32 pid = 0;
         QString outbound;
         QString network;
         QString matchedRule;
@@ -103,6 +106,8 @@ private:
     void rebuildConnections();
     void syncConnectionRows();
     [[nodiscard]] const ConnectionGroup *currentGroup() const;
+    void resolveAncestry();
+    void rebuildRuleMenu(const ConnectionGroup &group);
     void showConnection();
     void setStep(int index, const QString &title, const QString &detail, const QString &tone, qint64 ms = -1);
     void rescaleSteps();
@@ -160,6 +165,7 @@ private:
     QPushButton *observe;
     QPushButton *onlyProblems;
     QPushButton *dropConnections;
+    QToolButton *addRule;
     QLabel *captureStatus;
     QLabel *summary;
     QTreeWidget *connections;
@@ -175,6 +181,8 @@ private:
     QList<ConnectionGroup> groups;
     QHash<QString, QList<qint64>> downHistory;
     QHash<QString, qint64> lastDownload;
+    QHash<quint32, QPair<quint32, QString>> ancestry;
+    qint64 ancestryTakenAt = 0;
     QString desiredProcess;
     bool recording = false;
     bool pollBusy = false;
@@ -192,6 +200,7 @@ private:
 
     // Sentinel for the "no application" entry of the filter; a real path can never be this.
     static inline const QString NoProcessFilter = QStringLiteral("?no-process");
+    static constexpr int DetailWidth = 268;
     static constexpr int MaxConnections = 1000;
     static constexpr int HistorySamples = 40;
 };
