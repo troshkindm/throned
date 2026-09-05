@@ -187,6 +187,7 @@ private:
     QCheckBox *redactToggle;
     QPlainTextEdit *reportPreview;
     QPushButton *reportCopy;
+    QPushButton *reportSave;
 
     static constexpr int MaxConnections = 1000;
     static constexpr int HistorySamples = 40;

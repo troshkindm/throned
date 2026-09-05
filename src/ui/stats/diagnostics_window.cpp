@@ -28,6 +28,7 @@
 #include <QScrollBar>
 #include <QSignalBlocker>
 #include <QStackedWidget>
+#include <QStyle>
 #include <QTimer>
 #include <QToolButton>
 #include <QTreeWidget>
@@ -251,21 +252,21 @@ public:
     HealthRow(const QString &caption, QWidget *parent = nullptr) : QWidget(parent) {
         setObjectName(QStringLiteral("diagnosticHealthRow"));
         auto *row = new QHBoxLayout(this);
-        row->setContentsMargins(14, 10, 12, 10);
-        row->setSpacing(12);
+        row->setContentsMargins(14, 9, 12, 9);
+        row->setSpacing(13);
         pip = new QLabel;
-        pip->setFixedSize(10, 10);
-        row->addWidget(pip, 0, Qt::AlignTop);
-        pip->setContentsMargins(0, 4, 0, 0);
+        pip->setFixedSize(12, 12);
+        pip->setAlignment(Qt::AlignCenter);
+        row->addWidget(pip);
         name = label(caption, "title");
         name->setWordWrap(false);
-        name->setMinimumWidth(150);
+        name->setMinimumWidth(148);
         row->addWidget(name);
         value = label({}, "muted");
         row->addWidget(value, 1);
         action = button({}, "diagnosticHealthAction");
         action->hide();
-        row->addWidget(action, 0, Qt::AlignTop);
+        row->addWidget(action);
     }
     void set(const QString &tone, const QString &description) {
         state = tone;
@@ -352,12 +353,14 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     railPanel->setObjectName(QStringLiteral("diagnosticRailPanel"));
     railPanel->setFixedWidth(178);
     auto *railLayout = new QVBoxLayout(railPanel);
-    railLayout->setContentsMargins(9, 12, 9, 10);
-    railLayout->setSpacing(2);
+    railLayout->setContentsMargins(10, 13, 10, 10);
+    railLayout->setSpacing(3);
     auto *railCaption = label(tr("SECTIONS"), "railCaption");
     railLayout->addWidget(railCaption);
     for (const auto &caption : {tr("Overview"), tr("Address"), tr("Applications"), tr("Report")}) {
         auto *item = new RailButton(caption, railPanel);
+        // Fixed, so the bolder checked entry does not push the ones below it out of step.
+        item->setFixedHeight(38);
         railLayout->addWidget(item);
         rail.append(item);
     }
@@ -384,12 +387,22 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
             if (i == 2) { poll->start(); requestConnections(); }
             else if (!recording) poll->stop();
             if (i == 3) refreshReport();
+            reportSave->setVisible(i == 3);
+            reportCopy->setProperty("primary", i == 3);
+            reportCopy->style()->unpolish(reportCopy);
+            reportCopy->style()->polish(reportCopy);
         });
     }
     rail[0]->setChecked(true);
 
+    // Saving belongs beside copying, not stranded at the bottom of one page; it only
+    // appears on the section that produces a file.
     auto *footer = new QHBoxLayout;
     footer->setContentsMargins(20, 11, 20, 13);
+    footer->setSpacing(9);
+    reportSave = button(tr("Save to file"), "diagnosticSaveReport");
+    reportSave->hide();
+    footer->addWidget(reportSave);
     reportCopy = button(tr("Copy report"), "diagnosticCopyReport");
     footer->addWidget(reportCopy);
     footer->addStretch();
@@ -398,6 +411,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     root->addLayout(footer);
     connect(close, &QPushButton::clicked, this, &QDialog::close);
     connect(reportCopy, &QPushButton::clicked, this, &DiagnosticsWindow::copyReport);
+    connect(reportSave, &QPushButton::clicked, this, &DiagnosticsWindow::saveReport);
 
     poll = new QTimer(this);
     poll->setInterval(1000);
@@ -410,17 +424,21 @@ QDialog#diagnosticsWindow QLabel[diagnosticRole="muted"] { color: #A4ABB4; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="subtle"] { color: #747C86; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="heading"] { font-size: 20px; font-weight: 600; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="title"] { font-weight: 600; }
-QDialog#diagnosticsWindow QLabel[diagnosticRole="railCaption"] { color: #747C86; padding: 4px 8px 8px; }
+QDialog#diagnosticsWindow QLabel[diagnosticRole="railCaption"] { color: #747C86; padding: 2px 10px 7px; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="stepTitle"] { color: #F1F3F5; }
 QDialog#diagnosticsWindow QLabel[diagnosticRole="stepTime"] { color: #747C86; }
 QFrame#diagnosticRailPanel { background: #171B21; border: 0; border-right: 1px solid #2F3136; }
-QPushButton#diagnosticRail {
-    text-align: left; padding: 8px 9px; border: 1px solid transparent; border-radius: 6px;
+/* Scoped through the dialog so it outweighs the generic button rule below, which
+   otherwise fills every rail entry and makes the whole rail look like a keypad. */
+QDialog#diagnosticsWindow QPushButton#diagnosticRail {
+    text-align: left; padding: 9px 10px; border: 1px solid transparent; border-radius: 6px;
     background: transparent; color: #A4ABB4;
 }
-QPushButton#diagnosticRail:hover { background: #222529; }
-QPushButton#diagnosticRail:checked { background: #193452; border-color: #237AE9; color: #F1F3F5; font-weight: 600; }
-QLabel#diagnosticStamp { padding: 6px 9px; }
+QDialog#diagnosticsWindow QPushButton#diagnosticRail:hover { background: #222529; border-color: #2F3136; }
+QDialog#diagnosticsWindow QPushButton#diagnosticRail:checked {
+    background: #193452; border-color: #237AE9; color: #F1F3F5; font-weight: 600;
+}
+QLabel#diagnosticStamp { padding: 6px 10px; }
 QStackedWidget#diagnosticPages { background: #1B1E23; }
 QFrame#diagnosticVerdict, QFrame#diagnosticConnectionDetail, QFrame#diagnosticCard {
     background: #171B21; border: 1px solid #2F3136; border-radius: 8px;
@@ -789,7 +807,9 @@ void DiagnosticsWindow::buildReportPage() {
     redactToggle = new QCheckBox(tr("Hide personal data"));
     redactToggle->setChecked(true);
     choices->addWidget(redactToggle);
-    choices->addWidget(label(tr("Masks the profile name, the visible address and paths to programs."), "subtle"));
+    auto *redactHint = label(tr("Masks the profile name, the visible address and paths to programs."), "subtle");
+    redactHint->setContentsMargins(23, 1, 0, 0); // under the checkbox text, not under its box
+    choices->addWidget(redactHint);
     choices->addStretch(1);
     connect(redactToggle, &QCheckBox::toggled, this, &DiagnosticsWindow::refreshReport);
     auto *choicesHost = new QWidget;
@@ -807,13 +827,6 @@ void DiagnosticsWindow::buildReportPage() {
     reportPreview->setFont(mono);
     split->addWidget(reportPreview, 1);
     layout->addLayout(split, 1);
-
-    auto *actions = new QHBoxLayout;
-    auto *save = button(tr("Save to file"), "diagnosticSaveReport");
-    actions->addWidget(save);
-    actions->addStretch();
-    layout->addLayout(actions);
-    connect(save, &QPushButton::clicked, this, &DiagnosticsWindow::saveReport);
     pages->addWidget(page);
 }
 
