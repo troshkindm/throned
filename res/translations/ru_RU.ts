@@ -331,8 +331,28 @@
         <translation>Сайт ответил</translation>
     </message>
     <message>
-        <source>HEAD request, no redirects, no login.</source>
-        <translation>Запрос HEAD, без перенаправлений и авторизации.</translation>
+        <source>A browser-like request without redirects or login.</source>
+        <translation>Запрос как из браузера, без перенаправлений и авторизации.</translation>
+    </message>
+    <message>
+        <source>Matches real time</source>
+        <translation>Совпадают с реальным временем</translation>
+    </message>
+    <message>
+        <source>The site returned a temporary or restricted response</source>
+        <translation>Сайт вернул временный ответ или ограничил доступ</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2 confirms that routing, connection and TLS work. This code can mean an access policy, rate limit, maintenance, or automated-request filtering.</source>
+        <translation>HTTP %1 через %2 подтверждает, что маршрутизация, соединение и TLS работают. Этот код может означать ограничение доступа, лимит запросов, технические работы или фильтрацию автоматических запросов.</translation>
+    </message>
+    <message numerus="yes">
+        <source>+%n more</source>
+        <translation>
+            <numerusform>+ещё %n</numerusform>
+            <numerusform>+ещё %n</numerusform>
+            <numerusform>+ещё %n</numerusform>
+        </translation>
     </message>
     <message>
         <source>The outbound %1 did not answer</source>
@@ -563,8 +583,8 @@
         <translation>Трафик</translation>
     </message>
     <message>
-        <source>Route this…</source>
-        <translation>Направить это…</translation>
+        <source>Route</source>
+        <translation>Направить</translation>
     </message>
     <message>
         <source>Day</source>
@@ -5306,12 +5326,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
-        <translation>Диагностика сайтов и приложений (Ctrl+Shift+D)</translation>
-    </message>
-    <message>
-        <source>Traffic statistics by program and server</source>
-        <translation>Статистика трафика по программам и серверам</translation>
+        <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
+        <translation>Диагностика и статистика трафика (Ctrl+Shift+D)</translation>
     </message>
     <message>
         <source>Traffic statistics</source>

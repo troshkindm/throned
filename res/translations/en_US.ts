@@ -264,8 +264,24 @@
         <translation>The site responded</translation>
     </message>
     <message>
-        <source>HEAD request, no redirects, no login.</source>
-        <translation>HEAD request, no redirects, no login.</translation>
+        <source>A browser-like request without redirects or login.</source>
+        <translation>A browser-like request without redirects or login.</translation>
+    </message>
+    <message>
+        <source>Matches real time</source>
+        <translation>Matches real time</translation>
+    </message>
+    <message>
+        <source>The site returned a temporary or restricted response</source>
+        <translation>The site returned a temporary or restricted response</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2 confirms that routing, connection and TLS work. This code can mean an access policy, rate limit, maintenance, or automated-request filtering.</source>
+        <translation>HTTP %1 through %2 confirms that routing, connection and TLS work. This code can mean an access policy, rate limit, maintenance, or automated-request filtering.</translation>
+    </message>
+    <message numerus="yes">
+        <source>+%n more</source>
+        <translation><numerusform>+%n</numerusform><numerusform>+%n</numerusform></translation>
     </message>
     <message>
         <source>The outbound %1 did not answer</source>
@@ -495,8 +511,8 @@
         <translation>Traffic</translation>
     </message>
     <message>
-        <source>Route this…</source>
-        <translation>Route this…</translation>
+        <source>Route</source>
+        <translation>Route</translation>
     </message>
     <message>
         <source>Day</source>
@@ -961,12 +977,8 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
-        <translation>Website and application diagnostics (Ctrl+Shift+D)</translation>
-    </message>
-    <message>
-        <source>Traffic statistics by program and server</source>
-        <translation>Traffic statistics by program and server</translation>
+        <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
+        <translation>Diagnostics and traffic statistics (Ctrl+Shift+D)</translation>
     </message>
     <message>
         <source>Traffic statistics</source>

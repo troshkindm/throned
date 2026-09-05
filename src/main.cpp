@@ -34,6 +34,7 @@
 #include <QMenu>
 #include <QTabBar>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSpinBox>
 #include <QTableView>
 #include <QTabWidget>
@@ -1313,7 +1314,7 @@ briefly interrupts traffic.
                 health.outbounds = {"demo-proxy", "demo-eu", "demo-backup", "direct"};
                 health.external_ip = "198.51.100.24";
                 health.external_country = "FI";
-                health.clock_known = true; health.clock_skew_ms = 400;
+                health.clock_known = true; health.clock_skew_ms = 0;
                 health.udp_checked = true; health.udp_ok = false;
                 health.udp_error = "i/o timeout";
                 health.dns_domain = "example.org";
@@ -1353,7 +1354,13 @@ briefly interrupts traffic.
                         c.dest = kind == 2 ? "203.0.113.24:50005" : kind == 1 ? "203.0.113.60:443" : "203.0.113.10:443";
                         c.network = kind == 2 ? "udp" : "tcp";
                         c.outbound = kind == 2 ? "direct" : "demo-proxy";
-                        c.matched_rule = kind == 2 ? "network=udp => route(direct)" : "process_name=DemoChat.exe => route(demo-proxy)";
+                        // A real geosite rule, not a one-liner: the detail card has to
+                        // hold the routes people actually write.
+                        c.matched_rule = kind == 2 ? "network=udp => route(direct)"
+                            : "domain=[*.demo.example gateway.example.org cdn.example.org] "
+                              "domain_suffix=[example.org example.net example.com] "
+                              "rule_set=[geosite-demo geosite-demo-chat geosite-demo-cdn geoip-demo geosite-demo-media "
+                              "geosite-demo-updates geosite-demo-auth] => route(demo-proxy)";
                         c.upload = 8192; c.download = kind == 2 ? 0 : 47104;
                         c.source = "127.0.0.1:5510";
                         snapshot.active.push_back(c);
@@ -1378,8 +1385,19 @@ briefly interrupts traffic.
                     // Row 0 is whatever the window ranked most suspicious, which is the case worth showing.
                     previewConnections->setCurrentItem(previewConnections->topLevelItem(0));
 
-                    QTimer::singleShot(200, dialog, [dialog, prefix] {
+                    QTimer::singleShot(200, dialog, [dialog, prefix, previewConnections] {
                         dialog->grab().save(prefix + QStringLiteral("-diagnostics-app.png"), "PNG");
+                        // The row carrying the geosite rule, which is what the detail card
+                        // has to condense rather than print in full. The replaced fact
+                        // labels leave the card only once deleteLater runs, so the capture
+                        // drains those first instead of photographing both sets at once.
+                        previewConnections->setCurrentItem(previewConnections->topLevelItem(1));
+                        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+                        if (auto *detail = dialog->findChild<QScrollArea *>(QStringLiteral("diagnosticDetailScroll"))) {
+                            detail->widget()->adjustSize();
+                            detail->verticalScrollBar()->setValue(detail->verticalScrollBar()->maximum());
+                        }
+                        dialog->grab().save(prefix + QStringLiteral("-diagnostics-app-rule.png"), "PNG");
                         auto *reportRail = dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(4);
                         if (reportRail == nullptr) {
                             qWarning() << "Diagnostics preview lost the report section";
@@ -1397,11 +1415,14 @@ briefly interrupts traffic.
                         usage.bucketSecs = 86400;
                         usage.daysStored = 7;
                         usage.databaseBytes = 4404019;
+                        // Paths as long as the ones a store-installed program really has:
+                        // the row has to survive them without pushing the bar and the
+                        // share off its own card.
                         usage.apps = {
-                            {QStringLiteral("chrome.exe"), QStringLiteral("C:/Program Files/Google/Chrome"), 720LL << 20, 18400LL << 20},
-                            {QStringLiteral("steam.exe"), QStringLiteral("C:/Program Files (x86)/Steam"), 190LL << 20, 11200LL << 20},
-                            {QStringLiteral("Telegram.exe"), QStringLiteral("C:/Users/demo/AppData/Roaming/Telegram"), 640LL << 20, 7900LL << 20},
-                            {QStringLiteral("DemoChat.exe"), QStringLiteral("C:/Demo"), 210LL << 20, 4100LL << 20},
+                            {QStringLiteral("chrome.exe"), QStringLiteral("C:/Program Files/Google/Chrome/Application/chrome.exe"), 720LL << 20, 18400LL << 20},
+                            {QStringLiteral("steam.exe"), QStringLiteral("C:/Program Files (x86)/Steam/steamapps/common/Steamworks Shared/steam.exe"), 190LL << 20, 11200LL << 20},
+                            {QStringLiteral("Telegram.exe"), QStringLiteral("C:/Users/demo/AppData/Roaming/Telegram Desktop/tdata/user_data/Telegram.exe"), 640LL << 20, 7900LL << 20},
+                            {QStringLiteral("DemoChat.exe"), QStringLiteral("C:/Program Files/WindowsApps/DemoChat_1.46388.4.0_x64__pzs8sxrjxfjjc/app/DemoChat.exe"), 210LL << 20, 4100LL << 20},
                         };
                         usage.servers = {
                             {QStringLiteral("Demo North"), QStringLiteral("Demo subscription"), 1200LL << 20, 33000LL << 20},
@@ -1417,10 +1438,23 @@ briefly interrupts traffic.
                         dialog->applyUsage(usage);
                         QTimer::singleShot(120, dialog, [dialog, prefix, reportRail] {
                             dialog->grab().save(prefix + QStringLiteral("-diagnostics-stats.png"), "PNG");
-                            reportRail->click();
-                            QTimer::singleShot(120, dialog, [dialog, prefix] {
-                                dialog->grab().save(prefix + QStringLiteral("-diagnostics-report.png"), "PNG");
-                                dialog->close(); qApp->exit(0);
+                            // The smallest window the dialog allows, once per section. This
+                            // is where a page that cannot scroll stops dropping what does
+                            // not fit and starts stacking it instead, and only a render of
+                            // every section shows which one has stopped coping.
+                            dialog->resize(dialog->minimumSize());
+                            QTimer::singleShot(120, dialog, [dialog, prefix, reportRail] {
+                                for (int section = 0; section < 5; ++section) {
+                                    dialog->findChildren<QPushButton *>(QStringLiteral("diagnosticRail")).value(section)->click();
+                                    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+                                    dialog->grab().save(prefix + QStringLiteral("-diagnostics-short-%1.png").arg(section), "PNG");
+                                }
+                                dialog->resize(940, 800);
+                                reportRail->click();
+                                QTimer::singleShot(120, dialog, [dialog, prefix] {
+                                    dialog->grab().save(prefix + QStringLiteral("-diagnostics-report.png"), "PNG");
+                                    dialog->close(); qApp->exit(0);
+                                });
                             });
                         });
                     });
@@ -1833,7 +1867,9 @@ int main(int argc, char* argv[]) {
     enable_core_dumps();
 #endif
 
-    QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+    // Inherited blanket flag. It costs every file picker in the application the platform
+    // dialog — the one with the sidebar, the recent places and the search the user already
+    // knows — and buys nothing: nothing here depends on the Qt widget dialog's behaviour.
     QApplication::setQuitOnLastWindowClosed(false);
     QApplication a(argc, argv);
 

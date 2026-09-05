@@ -27,6 +27,7 @@
 #include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QScreen>
 #include <QScrollArea>
@@ -116,6 +117,64 @@ QLabel *label(const QString &value, const char *role = nullptr) {
     widget->setTextInteractionFlags(Qt::TextSelectableByMouse);
     if (role) widget->setProperty("diagnosticRole", role);
     return widget;
+}
+// A program's full path must not decide how wide its row is: the label keeps the whole
+// string for the tooltip and paints only as much of it as the column actually got.
+class ElidedLabel final : public QLabel {
+public:
+    ElidedLabel(const QString &value, Qt::TextElideMode mode, const char *role)
+        : full(value), elide(mode) {
+        setTextFormat(Qt::PlainText);
+        setWordWrap(false);
+        setToolTip(value);
+        if (role) setProperty("diagnosticRole", role);
+        // Ignored, not Preferred: with Preferred the full width still enters the layout's
+        // minimum and a long path pushes the columns beside it off the card.
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+        apply();
+    }
+    [[nodiscard]] QSize minimumSizeHint() const override { return {0, QLabel::minimumSizeHint().height()}; }
+
+protected:
+    void resizeEvent(QResizeEvent *event) override {
+        QLabel::resizeEvent(event);
+        apply();
+    }
+
+private:
+    void apply() {
+        const auto shown = fontMetrics().elidedText(full, elide, qMax(0, width()));
+        if (shown != text()) QLabel::setText(shown); // unconditional setText would re-enter the layout
+    }
+    QString full;
+    Qt::TextElideMode elide;
+};
+// sing-box prints a matched rule with every literal it contains, so one rule_set line
+// can be fifteen entries wide. The shape of the rule is what identifies it; the bulk is
+// kept in the tooltip and in the report.
+QString shortenRule(const QString &rule, int keep = 2) {
+    static const QRegularExpression list(QStringLiteral(R"(\[([^\]]*)\])"));
+    QString out;
+    int at = 0;
+    auto matches = list.globalMatch(rule);
+    while (matches.hasNext()) {
+        const auto match = matches.next();
+        out += rule.mid(at, match.capturedStart() - at);
+        at = match.capturedEnd();
+        auto items = match.captured(1).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+        // sing-box already ends an over-long list with "..."; that is not one more entry.
+        const bool truncated = !items.isEmpty() && items.constLast().endsWith(QStringLiteral("..."));
+        if (truncated) items.removeLast();
+        if (items.size() <= keep && !truncated) {
+            out += QLatin1Char('[') + items.join(QLatin1Char(' ')) + QLatin1Char(']');
+            continue;
+        }
+        const auto rest = items.size() - keep;
+        out += QLatin1Char('[') + items.mid(0, keep).join(QLatin1Char(' ')) + QLatin1Char(' ')
+            + (rest > 0 ? DiagnosticsWindow::tr("+%n more", "", rest) : QStringLiteral("…")) + QLatin1Char(']');
+    }
+    out += rule.mid(at);
+    return out;
 }
 QPushButton *button(const QString &value, const char *name) {
     auto *widget = new QPushButton(value);
@@ -546,7 +605,7 @@ QDialog#diagnosticsWindow QPushButton#diagnosticRail:checked {
 }
 QLabel#diagnosticStamp { padding: 6px 10px; }
 QStackedWidget#diagnosticPages { background: #1B1E23; }
-QScrollArea#diagnosticDetailScroll { background: transparent; }
+QDialog#diagnosticsWindow QScrollArea { background: transparent; }
 QFrame#diagnosticVerdict, QFrame#diagnosticConnectionDetail, QFrame#diagnosticCard {
     background: #171B21; border: 1px solid #2F3136; border-radius: 8px;
 }
@@ -597,9 +656,25 @@ QDialog#diagnosticsWindow QProgressBar::chunk { background: #237AE9; }
 
 // ---------------------------------------------------------------- pages
 
+// Every page that can outgrow a short window gets one of these. A squeezed layout does
+// not drop what does not fit, it stacks it: rows an ellipsis thick, a detail card cut to
+// a title strip. Scrolling is the only outcome that keeps the section readable.
+namespace {
+QScrollArea *scrollingPage(const char *name, QWidget *page) {
+    auto *scroll = new QScrollArea;
+    scroll->setObjectName(QLatin1String(name));
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll->setWidget(page);
+    return scroll;
+}
+} // namespace
+
 void DiagnosticsWindow::buildOverviewPage() {
     auto *page = new QWidget;
     page->setObjectName(QStringLiteral("diagnosticPage"));
+    auto *scroll = scrollingPage("diagnosticOverviewScroll", page);
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(24, 18, 24, 16);
     layout->setSpacing(11);
@@ -637,7 +712,7 @@ void DiagnosticsWindow::buildOverviewPage() {
     });
     layout->addWidget(label(tr("Rows with an action open the screen that fixes that cause. Nothing here changes settings on its own."), "subtle"));
     layout->addStretch(1);
-    pages->addWidget(page);
+    pages->addWidget(scroll);
 }
 
 void DiagnosticsWindow::buildAddressPage() {
@@ -778,6 +853,7 @@ void DiagnosticsWindow::buildAddressPage() {
 void DiagnosticsWindow::buildApplicationsPage() {
     auto *page = new QWidget;
     page->setObjectName(QStringLiteral("diagnosticPage"));
+    auto *scroll = scrollingPage("diagnosticAppsScroll", page);
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(24, 18, 24, 16);
     layout->setSpacing(11);
@@ -837,6 +913,9 @@ void DiagnosticsWindow::buildApplicationsPage() {
     detailScroll->setWidgetResizable(true);
     detailScroll->setFrameShape(QFrame::NoFrame);
     detailScroll->setFixedWidth(DetailWidth);
+    // Without a floor the card is the first thing a short window takes space from, and it
+    // collapses to its title bar while the list beside it keeps its own minimum.
+    detailScroll->setMinimumHeight(150);
     detailScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     auto *detailFrame = new QFrame;
     detailFrame->setObjectName(QStringLiteral("diagnosticConnectionDetail"));
@@ -883,7 +962,9 @@ void DiagnosticsWindow::buildApplicationsPage() {
     diagnoseAddress->setEnabled(false);
     // A push button rather than a tool button: the tool button left-aligns its label
     // while the two beside it centre theirs, and the three have to read as one set.
-    addRule = button(tr("Route this…"), "diagnosticAddRule");
+    // No ellipsis: the menu behind it names the target and the action in full, so the
+    // button has nothing left to promise.
+    addRule = button(tr("Route"), "diagnosticAddRule");
     addRule->setEnabled(false);
     addRule->setMenu(new QMenu(addRule));
     dropConnections = button(tr("Drop connections"), "diagnosticDrop");
@@ -918,12 +999,13 @@ void DiagnosticsWindow::buildApplicationsPage() {
         rail[1]->click();
         address->setFocus();
     });
-    pages->addWidget(page);
+    pages->addWidget(scroll);
 }
 
 void DiagnosticsWindow::buildStatisticsPage() {
     auto *page = new QWidget;
     page->setObjectName(QStringLiteral("diagnosticPage"));
+    auto *scroll = scrollingPage("diagnosticStatsScroll", page);
     auto *layout = new QVBoxLayout(page);
     layout->setContentsMargins(24, 18, 24, 16);
     layout->setSpacing(11);
@@ -1026,7 +1108,7 @@ void DiagnosticsWindow::buildStatisticsPage() {
 
     usageFootnote = label({}, "subtle");
     layout->addWidget(usageFootnote);
-    pages->addWidget(page);
+    pages->addWidget(scroll);
 }
 
 void DiagnosticsWindow::buildReportPage() {
@@ -1207,12 +1289,15 @@ void DiagnosticsWindow::refreshOverview() {
     if (!health.clock_known.value_or(false)) {
         healthRows[6]->set({}, healthBusy ? tr("Checking…") : tr("Not checked yet"));
     } else {
+        // The core already reports 0 for anything the measurement cannot separate from
+        // being correct, so a number here is a real offset rather than round-trip noise.
         const auto skew = health.clock_skew_ms.value_or(0);
         const auto seconds = qAbs(skew) / 1000.0;
         healthRows[6]->set(qAbs(skew) > 300000 ? "error" : qAbs(skew) > 60000 ? "warning" : "ok",
-            qAbs(skew) > 300000
-                ? tr("Off by %1 s — TLS will fail everywhere until the clock is corrected").arg(seconds, 0, 'f', 0)
-                : tr("Off by %1 s — TLS is unaffected").arg(seconds, 0, 'f', 1));
+            skew == 0 ? tr("Matches real time")
+                : qAbs(skew) > 300000
+                    ? tr("Off by %1 s — TLS will fail everywhere until the clock is corrected").arg(seconds, 0, 'f', 0)
+                    : tr("Off by %1 s — TLS is unaffected").arg(seconds, 0, 'f', 1));
     }
     healthRows[6]->setAction({}, {});
 
@@ -1384,7 +1469,7 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
     render(3, cut ? tr("TLS · connection cut") : tr("TLS"), r.tls_ms.value_or(-1), tlsDetail, "tls");
     if (QUrl(requestURL).scheme() == "http") setStep(3, tr("TLS · not used for HTTP"), tr("This URL uses unencrypted HTTP."), {});
     render(4, status > 0 ? tr("HTTP %1").arg(status) : tr("HTTP"), r.http_ms.value_or(-1),
-           tr("HEAD request, no redirects, no login."), "http");
+           tr("A browser-like request without redirects or login."), "http");
 
     if (stage == "tls" && cut)
         setVerdict("error", tr("The connection is cut right after the site name"),
@@ -1403,6 +1488,12 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
                    {QStringLiteral("matrix")});
     else if (!error.isEmpty())
         setVerdict("error", tr("Could not run the check"), error, {});
+    // These responses prove the network path works, but the status alone cannot separate
+    // access policy, rate limiting, maintenance and automated-request filtering.
+    else if (status == 403 || status == 429 || status == 503)
+        setVerdict("warning", tr("The site returned a temporary or restricted response"),
+                   tr("HTTP %1 through %2 confirms that routing, connection and TLS work. This code can mean an access policy, rate limit, maintenance, or automated-request filtering.").arg(status).arg(outbound),
+                   {QStringLiteral("matrix")});
     else if (status >= 400)
         setVerdict("warning", tr("The site answered — with an error"),
                    tr("HTTP %1 came from the site itself over a working connection through %2, so Throned delivered the request.").arg(status).arg(outbound),
@@ -1850,6 +1941,7 @@ void DiagnosticsWindow::showConnection() {
         connectionSpark->hide();
         setFacts({}, {});
         ruleDetail->clear();
+        ruleDetail->setToolTip({});
         return;
     }
     const auto *group = currentGroup();
@@ -1889,9 +1981,12 @@ void DiagnosticsWindow::showConnection() {
 
     dropConnections->setEnabled(!group->ids.isEmpty());
     rebuildRuleMenu(*group);
+    // What caught the connection first, the rule itself condensed after it: a geosite
+    // rule quoted in full is a paragraph of literals nobody reads in a 268 px card.
     ruleDetail->setText(group->matchedRule.isEmpty()
         ? tr("No rule matched, so the default outbound is used.")
-        : group->matchedRule + QStringLiteral("\n") + explainRuleText(group->matchedRule));
+        : explainRuleText(group->matchedRule) + QStringLiteral("\n") + shortenRule(group->matchedRule));
+    ruleDetail->setToolTip(group->matchedRule);
 }
 
 // ---------------------------------------------------------------- report
@@ -1987,14 +2082,10 @@ void DiagnosticsWindow::refreshUsage() {
         swatch->setFixedSize(10, 10);
         swatch->setPixmap(dotPixmap(swatches[qMin<int>(i, 5)], 10));
         grid->addWidget(swatch, 0, 0, 2, 1);
-        auto *name = label(row.name, "factValue");
-        name->setWordWrap(false);
-        grid->addWidget(name, 0, 1);
-        if (!row.detail.isEmpty()) {
-            auto *detail = label(row.detail, "factName");
-            detail->setWordWrap(false);
-            grid->addWidget(detail, 1, 1);
-        }
+        grid->addWidget(new ElidedLabel(row.name, Qt::ElideRight, "factValue"), 0, 1);
+        // The middle of a path is the part that repeats; the drive and the executable
+        // are what tell two entries apart.
+        if (!row.detail.isEmpty()) grid->addWidget(new ElidedLabel(row.detail, Qt::ElideMiddle, "factName"), 1, 1);
         auto *bar = new QProgressBar;
         bar->setObjectName(QStringLiteral("diagnosticUsageBar"));
         bar->setTextVisible(false);
@@ -2010,6 +2101,9 @@ void DiagnosticsWindow::refreshUsage() {
         share->setAlignment(Qt::AlignRight | Qt::AlignTop);
         grid->addWidget(share, 1, 3);
         grid->setColumnStretch(1, 1);
+        // Elided labels claim no width of their own, so without a floor the name column
+        // gives everything to the bar and the value and shows one ellipsis.
+        grid->setColumnMinimumWidth(1, 130);
         usageRows->addWidget(line);
     }
     usageRows->addStretch(1);

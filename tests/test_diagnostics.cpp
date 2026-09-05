@@ -158,8 +158,9 @@ private slots:
         window.applyConnections(snapshot);
         QVERIFY(!window.findChild<QPushButton *>("diagnosticConnectionCheck")->isEnabled());
         const auto rule = window.findChild<QLabel *>("diagnosticRuleDetail")->text();
-        QVERIFY(rule.startsWith(QString::fromStdString(snapshot.active[0].matched_rule.value())));
-        QVERIFY(rule.contains("Chosen by the program that opened the connection."));
+        // What caught the connection leads; the rule itself follows it.
+        QVERIFY(rule.startsWith("Chosen by the program that opened the connection."));
+        QVERIFY(rule.contains(QString::fromStdString(snapshot.active[0].matched_rule.value())));
     }
     void connectionsToOneDestinationCollapseIntoOneRow() {
         DiagnosticsWindow window;
@@ -212,6 +213,40 @@ private slots:
         for (const auto *text : labels) mentionsTLS = mentionsTLS || text->text().contains("TLS will fail");
         QVERIFY(mentionsTLS);
     }
+    void aClockInsideTheMeasurementNoiseReportsNoNumber() {
+        DiagnosticsWindow window;
+        libcore::HealthResponse health;
+        health.clock_known = true;
+        // The core reports 0 for everything a Date header cannot separate from correct.
+        // Printing "off by 0.4 s" there made an unchanged clock look like it wandered.
+        health.clock_skew_ms = 0;
+        window.applyHealth(health);
+        const auto labels = window.findChildren<QWidget *>("diagnosticHealthRow")[6]->findChildren<QLabel *>();
+        bool statesNumber = false;
+        for (const auto *text : labels) statesNumber = statesNumber || text->text().contains(QStringLiteral("0,0"))
+            || text->text().contains(QStringLiteral("0.0"));
+        QVERIFY(!statesNumber);
+    }
+    void aGeositeRuleIsCondensedInTheCardAndWholeInTheTooltip() {
+        DiagnosticsWindow window;
+        auto *tree = window.findChild<QTreeWidget *>("diagnosticConnections");
+        auto entry = connection("1");
+        const std::string rule =
+            "domain=[a.example b.example c.example d.example] "
+            "rule_set=[geosite-one geosite-two geosite-three geosite-four geosite-five] => route(chosen-proxy)";
+        entry.matched_rule = rule;
+        libcore::QueryConnectionsResp snapshot;
+        snapshot.active.push_back(entry);
+        window.applyConnections(snapshot);
+        tree->setCurrentItem(tree->topLevelItem(0));
+        auto *detail = window.findChild<QLabel *>("diagnosticRuleDetail");
+        QVERIFY(!detail->text().contains(QStringLiteral("d.example")));
+        QVERIFY(!detail->text().contains(QStringLiteral("geosite-five")));
+        QVERIFY(detail->text().contains(QStringLiteral("geosite-one")));
+        QVERIFY(detail->text().contains(QStringLiteral("route(chosen-proxy)")));
+        // Nothing is lost: the card is a summary and the tooltip is the rule.
+        QCOMPARE(detail->toolTip(), QString::fromStdString(rule));
+    }
     void fakeDNSDifferenceIsExpected() {
         DiagnosticsWindow window;
         DiagnosticsWindow::LocalState state;
@@ -251,6 +286,8 @@ private slots:
         site.dns_compared = true;
         site.dns_agrees = true;
         window.applySiteResult(site);
+        QCOMPARE(window.findChild<QLabel *>("diagnosticVerdictTitle")->text(),
+                 QString("The site returned a temporary or restricted response"));
         for (auto *action : window.findChildren<QPushButton *>("diagnosticVerdictAction"))
             if (action->property("target").toString() == QStringLiteral("matrix")) action->click();
         auto *matrix = window.findChild<QTreeWidget *>("diagnosticMatrix");

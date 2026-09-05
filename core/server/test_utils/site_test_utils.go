@@ -71,16 +71,24 @@ func BatchSiteTest(ctx context.Context, i *boxbox.Box, outboundTags []string, ta
 
 func siteProbe(ctx context.Context, client *http.Client, target SiteTarget) SiteProbe {
 	begin := time.Now()
-	// HEAD keeps the body off the wire; sites that reject it are retried with GET below.
+	// HEAD keeps the body off the wire; sites that refuse it are retried with GET below.
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, target.URL, nil)
 	if err != nil {
 		return SiteProbe{Name: target.Name, Error: err}
 	}
+	req.Header.Set("User-Agent", ProbeUserAgent)
+	req.Header.Set("Accept", "*/*")
 	resp, err := client.Do(req)
-	if err == nil && resp.StatusCode == http.StatusMethodNotAllowed {
+	// A front end that answers 403 to an unrecognised HEAD is describing the request, not
+	// the node's ability to reach the site, and every node would be marked failing alike.
+	if err == nil && ShouldRetryWithGet(resp.StatusCode) {
 		_ = resp.Body.Close()
 		if getReq, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, target.URL, nil); reqErr == nil {
-			resp, err = client.Do(getReq)
+			getReq.Header = req.Header.Clone()
+			retry, retryErr := client.Do(getReq)
+			if retryErr == nil {
+				resp, err = retry, nil
+			}
 		}
 	}
 	if err != nil {

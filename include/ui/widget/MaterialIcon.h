@@ -34,6 +34,7 @@ enum class Glyph {
     More,
     Process,
     Public,
+    Pulse,
     Reload,
     Routes,
     Search,

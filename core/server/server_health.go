@@ -59,7 +59,7 @@ func (s *server) Health(ctx context.Context, in *gen.HealthRequest) (*gen.Health
 
 	def := outbounds.Default()
 	var info test_utils.IPInfo
-	var served time.Time
+	var clock test_utils.ClockReading
 	var externalErr error
 	var udp *test_utils.UDPTestResult
 	var comparison test_utils.DNSComparison
@@ -70,7 +70,7 @@ func (s *server) Health(ctx context.Context, in *gen.HealthRequest) (*gen.Health
 		go func() {
 			defer probes.Done()
 			client := test_utils.OutboundHTTPClient(ctx, def, healthTimeout)
-			info, served, externalErr = test_utils.ExternalAddress(ctx, client)
+			info, clock, externalErr = test_utils.ExternalAddress(ctx, client)
 		}()
 		go func() {
 			defer probes.Done()
@@ -92,9 +92,9 @@ func (s *server) Health(ctx context.Context, in *gen.HealthRequest) (*gen.Health
 			out.ExternalIp = To(info.IP)
 			out.ExternalCountry = To(info.CountryCode)
 		}
-		if !served.IsZero() {
+		if skew, known := clock.SkewMs(); known {
 			out.ClockKnown = To(true)
-			out.ClockSkewMs = To(time.Since(served).Milliseconds())
+			out.ClockSkewMs = To(skew)
 		}
 		out.UdpChecked = To(true)
 		out.UdpOk = To(udp != nil && udp.Received > 0)

@@ -66,6 +66,18 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M20 4H4a2 2 0 0 0-2 2v12c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6a2 2 0 0 0-2-2zm0 14H4V8h16v10zm-2-1h-6v-2h6v2zM7.5 17l-1.41-1.41L8.67 13l-2.59-2.59L7.5 9l4 4-4 4z";
     case Glyph::Public:
         return "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM4 12c0-.61.08-1.21.21-1.78L9 15v1a2 2 0 0 0 2 2v1.93A8 8 0 0 1 4 12zm13.89 5.4A2 2 0 0 0 16 16h-1v-3a1 1 0 0 0-1-1H8v-2h2a1 1 0 0 0 1-1V7h2a2 2 0 0 0 2-2v-.41A8 8 0 0 1 17.89 17.4z";
+    // A traced ECG line: five quads for the strokes, four discs for the joints, all
+    // wound the same way so the overlaps fill instead of punching holes.
+    case Glyph::Pulse:
+        return "M2 10.9h5v2.2H2z"
+               "M5.99 11.57 8.99 4.57l2.02.86-3 7z"
+               "M11.08 4.77l3 14-2.16.46-3-14z"
+               "M11.99 18.57l3-7 2.02.86-3 7z"
+               "M16 10.9h6v2.2h-6z"
+               "M5.9 12a1.1 1.1 0 1 1 2.2 0 1.1 1.1 0 1 1-2.2 0z"
+               "M8.9 5a1.1 1.1 0 1 1 2.2 0 1.1 1.1 0 1 1-2.2 0z"
+               "M11.9 19a1.1 1.1 0 1 1 2.2 0 1.1 1.1 0 1 1-2.2 0z"
+               "M14.9 12a1.1 1.1 0 1 1 2.2 0 1.1 1.1 0 1 1-2.2 0z";
     case Glyph::Reload:
         return "M17.65 6.35C16.2 4.9 14.21 4 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z";
     // Deliberately not the swap arrows: the routing status sits next to the
@@ -126,6 +138,7 @@ const char *glyphName(MaterialIcon::Glyph glyph) {
     case Glyph::More: return "more";
     case Glyph::Process: return "process";
     case Glyph::Public: return "public";
+    case Glyph::Pulse: return "pulse";
     case Glyph::Reload: return "reload";
     case Glyph::Routes: return "routes";
     case Glyph::Search: return "search";

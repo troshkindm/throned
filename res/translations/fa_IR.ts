@@ -296,8 +296,8 @@
         <translation>بررسی این نشانی</translation>
     </message>
     <message>
-        <source>Route this…</source>
-        <translation>مسیریابی این…</translation>
+        <source>Route</source>
+        <translation>مسیریابی</translation>
     </message>
     <message>
         <source>Drop connections</source>
@@ -648,8 +648,24 @@
         <translation>HTTP %1</translation>
     </message>
     <message>
-        <source>HEAD request, no redirects, no login.</source>
-        <translation>درخواست HEAD، بدون تغییر مسیر، بدون ورود.</translation>
+        <source>A browser-like request without redirects or login.</source>
+        <translation>درخواستی شبیه مرورگر، بدون تغییر مسیر و بدون ورود.</translation>
+    </message>
+    <message>
+        <source>Matches real time</source>
+        <translation>با زمان واقعی مطابقت دارد</translation>
+    </message>
+    <message>
+        <source>The site returned a temporary or restricted response</source>
+        <translation>سایت پاسخی موقت یا محدودشده برگرداند</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2 confirms that routing, connection and TLS work. This code can mean an access policy, rate limit, maintenance, or automated-request filtering.</source>
+        <translation>HTTP %1 از طریق %2 تأیید می‌کند که مسیریابی، اتصال و TLS کار می‌کنند. این کد می‌تواند ناشی از سیاست دسترسی، محدودیت نرخ درخواست، تعمیرات یا فیلتر کردن درخواست‌های خودکار باشد.</translation>
+    </message>
+    <message numerus="yes">
+        <source>+%n more</source>
+        <translation><numerusform>+%n مورد دیگر</numerusform></translation>
     </message>
     <message>
         <source>The connection is cut right after the site name</source>
@@ -2984,12 +3000,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
-        <translation>عیب‌یابی وب‌سایت و برنامه (Ctrl+Shift+D)</translation>
-    </message>
-    <message>
-        <source>Traffic statistics by program and server</source>
-        <translation>آمار ترافیک بر اساس برنامه و سرور</translation>
+        <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
+        <translation>عیب‌یابی و آمار ترافیک (Ctrl+Shift+D)</translation>
     </message>
     <message>
         <source>Traffic statistics</source>

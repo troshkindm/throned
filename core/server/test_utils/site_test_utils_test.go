@@ -45,6 +45,36 @@ func TestSiteProbeFallsBackToGetWhenHeadIsRejected(t *testing.T) {
 	}
 }
 
+func TestSiteProbeRetriesARefusalAsABrowserWould(t *testing.T) {
+	var methods []string
+	var agents []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		methods = append(methods, r.Method)
+		agents = append(agents, r.Header.Get("User-Agent"))
+		if r.Method == http.MethodHead {
+			// What a bot filter answers a bare HEAD with. It describes the request, and
+			// marking every node failing over it was the whole bug.
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	probe := siteProbe(context.Background(), server.Client(), SiteTarget{Name: "guarded", URL: server.URL})
+	if probe.Status != http.StatusOK {
+		t.Fatalf("status = %d, want %d", probe.Status, http.StatusOK)
+	}
+	if len(methods) != 2 || methods[0] != http.MethodHead || methods[1] != http.MethodGet {
+		t.Fatalf("methods = %v, want HEAD then GET", methods)
+	}
+	for _, agent := range agents {
+		if agent != ProbeUserAgent {
+			t.Fatalf("user agent = %q, want the browser-like one on every attempt", agent)
+		}
+	}
+}
+
 func TestSiteProbeReportsSilenceAsNoStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
 	url := server.URL

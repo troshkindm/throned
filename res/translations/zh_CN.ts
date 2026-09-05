@@ -296,8 +296,8 @@
         <translation>检查此地址</translation>
     </message>
     <message>
-        <source>Route this…</source>
-        <translation>为其设置路由…</translation>
+        <source>Route</source>
+        <translation>设置路由</translation>
     </message>
     <message>
         <source>Drop connections</source>
@@ -648,8 +648,24 @@
         <translation>HTTP %1</translation>
     </message>
     <message>
-        <source>HEAD request, no redirects, no login.</source>
-        <translation>HEAD 请求，不跟随重定向，不登录。</translation>
+        <source>A browser-like request without redirects or login.</source>
+        <translation>与浏览器类似的请求，不跟随重定向，不登录。</translation>
+    </message>
+    <message>
+        <source>Matches real time</source>
+        <translation>与真实时间一致</translation>
+    </message>
+    <message>
+        <source>The site returned a temporary or restricted response</source>
+        <translation>站点返回了临时响应或限制了访问</translation>
+    </message>
+    <message>
+        <source>HTTP %1 through %2 confirms that routing, connection and TLS work. This code can mean an access policy, rate limit, maintenance, or automated-request filtering.</source>
+        <translation>通过 %2 收到 HTTP %1，说明路由、连接和 TLS 正常。此状态码可能表示访问策略、速率限制、维护或自动请求过滤。</translation>
+    </message>
+    <message numerus="yes">
+        <source>+%n more</source>
+        <translation><numerusform>+另外 %n 项</numerusform></translation>
     </message>
     <message>
         <source>The connection is cut right after the site name</source>
@@ -4669,12 +4685,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Website and application diagnostics (Ctrl+Shift+D)</source>
-        <translation>网站与应用诊断 (Ctrl+Shift+D)</translation>
-    </message>
-    <message>
-        <source>Traffic statistics by program and server</source>
-        <translation>按程序和服务器统计流量</translation>
+        <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
+        <translation>诊断与流量统计 (Ctrl+Shift+D)</translation>
     </message>
     <message>
         <source>Traffic statistics</source>
