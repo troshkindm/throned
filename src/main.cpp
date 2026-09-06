@@ -43,7 +43,6 @@
 #include <QToolButton>
 #include <QTreeWidget>
 #include <QVBoxLayout>
-#include <WinCommander.hpp>
 
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
@@ -71,6 +70,7 @@
 
 #ifdef Q_OS_WIN
 #include <windows.h>
+#include <WinCommander.hpp>
 #include "include/sys/windows/MiniDump.h"
 #include "include/sys/windows/eventHandler.h"
 #include "include/sys/windows/WinVersion.h"
