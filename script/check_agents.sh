@@ -48,6 +48,16 @@ for stub in .claude/skills/*/SKILL.md; do
     fi
 done
 
+
+# A script committed without its executable bit fails CI with a bare "Permission
+# denied", and Windows checkouts do not carry the mode, so it is easy to miss.
+while read -r mode _ _ path; do
+    if [ "$mode" != "100755" ]; then
+        echo "error: $path is committed as $mode; run: git update-index --chmod=+x $path"
+        status=1
+    fi
+done < <(git ls-files -s 'script/*.sh')
+
 for required in AGENTS.md CLAUDE.md; do
     if [ ! -f "$required" ]; then
         echo "error: $required is missing"
