@@ -5362,6 +5362,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>All groups — find one by name</source>
+        <translation>Все группы — найти по имени</translation>
+    </message>
+    <message>
         <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
         <translation>Диагностика и статистика трафика (Ctrl+Shift+D)</translation>
     </message>
@@ -8560,6 +8564,13 @@ goes to the default above.</source>
     <message>
         <source>Test error: %1</source>
         <translation>Ошибка проверки: %1</translation>
+    </message>
+</context>
+<context>
+    <name>GroupOverflowMenu</name>
+    <message>
+        <source>Find a group</source>
+        <translation>Найти группу</translation>
     </message>
 </context>
 </TS>

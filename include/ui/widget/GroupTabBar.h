@@ -43,14 +43,22 @@ signals:
     void meterHovered(int index);
     void meterHoverLeft();
 
+    // The strip no longer fits its tabs, or fits them again. Emitted rather than
+    // polled because it changes on resize, on rename and on every add or remove.
+    void overflowChanged(bool overflowing);
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void leaveEvent(QEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void tabLayoutChange() override;
 
 private:
+    void reportOverflow();
+
     struct Meter {
         double fraction = 0;
         Urgency urgency = Urgency::Normal;
@@ -59,6 +67,7 @@ private:
     QSet<int> subscriptions_;
     bool selectionVisible_ = true;
     int hoveredSubscription_ = -1;
+    bool overflowing_ = false;
 };
 
 // Exists only to install GroupTabBar: QTabWidget::setTabBar is protected.

@@ -30,6 +30,8 @@
 #include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/stats/dialog_traffic_stats.h"
 #include "include/ui/stats/dialog_runtime_stats.h"
+#include "include/ui/widget/GroupOverflowMenu.h"
+#include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedTitleBar.h"
@@ -1024,11 +1026,11 @@ QToolButton#groupAddButton {
     margin-bottom: 5px;
 }
 QToolButton#groupAddButton:hover { background: #292D33; border-color: #4A4F57; }
-QToolButton#diagnosticsButton {
+QToolButton#groupOverflowButton, QToolButton#diagnosticsButton {
     background: #222529; border: 1px solid #3E454F; border-radius: 7px; margin-bottom: 5px;
 }
-QToolButton#diagnosticsButton:hover { background: #292D33; border-color: #4A4F57; }
-QToolButton#diagnosticsButton:pressed { background: #182530; border-color: #237AE9; }
+QToolButton#groupOverflowButton:hover, QToolButton#diagnosticsButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#groupOverflowButton:pressed, QToolButton#diagnosticsButton:pressed { background: #182530; border-color: #237AE9; }
 QToolButton#groupAddButton:pressed { background: #182530; border-color: #237AE9; }
 QPushButton#logToolButton {
     background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
@@ -1436,6 +1438,44 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     // Keep the labelled entry visible without increasing the command bar's
     // minimum width (especially with translated navigation labels).
+    // Reaching a group the strip cannot show is the whole point, so this appears
+    // exactly when something is out of reach and costs nothing otherwise. The
+    // separator is what keeps it reading as part of the strip instead of a third
+    // action crowding diagnostics and add into one blob.
+    auto *groupOverflowButton = new QToolButton(tableTools);
+    groupOverflowButton->setObjectName(QStringLiteral("groupOverflowButton"));
+    groupOverflowButton->setCursor(Qt::PointingHandCursor);
+    groupOverflowButton->setFocusPolicy(Qt::NoFocus);
+    groupOverflowButton->setIconSize(QSize(18, 18));
+    groupOverflowButton->setFixedSize(33, 38);
+    groupOverflowButton->setToolTip(tr("All groups — find one by name"));
+    groupOverflowButton->hide();
+    auto *groupOverflowSeparator = new QFrame(tableTools);
+    groupOverflowSeparator->setObjectName(QStringLiteral("vSeparator"));
+    groupOverflowSeparator->setFixedSize(1, 24);
+    groupOverflowSeparator->hide();
+    const auto retintGroupOverflow = [groupOverflowButton] {
+        groupOverflowButton->setIcon(
+            MaterialIcon::icon(MaterialIcon::Glyph::ChevronDown, themeManager()->Colors().textMuted, 18));
+    };
+    retintGroupOverflow();
+    connect(themeManager(), &ThemeManager::themeChanged, this, retintGroupOverflow);
+    connect(groupOverflowButton, &QToolButton::clicked, this, [this, groupOverflowButton] {
+        auto *menu = new GroupOverflowMenu([this](int gid) {
+            setFavoritesView(false);
+            ui->tabWidget->setCurrentIndex(groupId2TabIndex(gid));
+        });
+        menu->popupAt(groupOverflowButton->mapToGlobal(QPoint(0, groupOverflowButton->height())));
+    });
+    if (auto *groupBar = qobject_cast<GroupTabBar *>(ui->tabWidget->tabBar())) {
+        connect(groupBar, &GroupTabBar::overflowChanged, this,
+                [groupOverflowButton, groupOverflowSeparator](bool overflowing) {
+                    groupOverflowButton->setVisible(overflowing);
+                    groupOverflowSeparator->setVisible(overflowing);
+                });
+    }
+    tableToolsLayout->addWidget(groupOverflowButton);
+    tableToolsLayout->addWidget(groupOverflowSeparator);
     tableToolsLayout->addWidget(diagnosticsButton);
 
     groupAddButton = new QToolButton(tableTools);

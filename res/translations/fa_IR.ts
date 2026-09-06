@@ -3036,6 +3036,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>All groups — find one by name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
         <translation>عیب‌یابی و آمار ترافیک (Ctrl+Shift+D)</translation>
     </message>
@@ -4114,6 +4118,13 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>%1 of %2 profiles answered. Green answered, amber refused, dash never answered.</source>
         <translation>%1 از %2 نمایه پاسخ دادند. سبز یعنی پاسخ داد، زرد یعنی رد کرد، خط تیره یعنی پاسخی نداد.</translation>
+    </message>
+</context>
+<context>
+    <name>GroupOverflowMenu</name>
+    <message>
+        <source>Find a group</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

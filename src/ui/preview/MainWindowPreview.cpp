@@ -17,6 +17,8 @@
 #include <QTabWidget>
 #include <QTextBrowser>
 #include <QTimer>
+#include <QPainter>
+#include <QPixmap>
 #include <QToolButton>
 #include <QTreeWidget>
 
@@ -785,6 +787,34 @@ void RunMainWindow(const QString &prefix) {
                                    << favorites->isChecked() << groupBar->isSelectionVisible();
                     qApp->exit(restored ? 0 : 2);
                 });
+            });
+            return;
+        }
+        // The overflow list is the whole reason the button exists, so the catalogue
+        // has to show it open rather than only the button that opens it.
+        if (arguments.contains(QStringLiteral("-ui-preview-group-menu"))) {
+            auto *overflow = window->findChild<QToolButton *>(QStringLiteral("groupOverflowButton"));
+            if (overflow == nullptr || !overflow->isVisible()) {
+                qWarning() << "The group overflow button is missing or hidden; the strip did not overflow";
+                qApp->exit(2);
+                return;
+            }
+            overflow->click();
+            QTimer::singleShot(350, window, [window, prefix] {
+                QWidget *menu = nullptr;
+                for (QWidget *top: QApplication::topLevelWidgets())
+                    if (top->isVisible() && top->inherits("GroupOverflowMenu")) menu = top;
+                if (menu == nullptr) {
+                    qWarning() << "The group overflow list did not open";
+                    qApp->exit(2);
+                    return;
+                }
+                QPixmap composed = window->grab();
+                QPainter painter(&composed);
+                painter.drawPixmap(window->mapFromGlobal(menu->mapToGlobal(QPoint(0, 0))), menu->grab());
+                painter.end();
+                composed.save(prefix + QStringLiteral("-group-menu.png"), "PNG");
+                qApp->exit(0);
             });
             return;
         }

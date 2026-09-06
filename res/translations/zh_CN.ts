@@ -4721,6 +4721,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>All groups — find one by name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
         <translation>诊断与流量统计 (Ctrl+Shift+D)</translation>
     </message>
@@ -7153,6 +7157,13 @@ Deleted %3 Profiles:
     <message>
         <source>Scan QR Code</source>
         <translation>扫描 QR 码</translation>
+    </message>
+</context>
+<context>
+    <name>GroupOverflowMenu</name>
+    <message>
+        <source>Find a group</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

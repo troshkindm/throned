@@ -3,6 +3,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <QMouseEvent>
+#include <QResizeEvent>
 #include <QPainter>
 #include <QStylePainter>
 #include <QStyleOptionTab>
@@ -170,32 +171,74 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
         }
     }
 
-    // A tab clipped at the edge reads as a rendering fault; the same tab under a
-    // fade reads as "there is more this way". Drawn only on the side that actually
-    // has something beyond the edge, so a strip that fits stays untouched.
+    // The strip scrolls, the button beside it does not; without this the last pill
+    // ends in a hard edge hard against that button and the two read as one control.
+    // Drawn only on a side that actually has something beyond it.
     if (count() > 0) {
         const bool moreLeft = tabRect(0).left() < 0;
         const bool moreRight = tabRect(count() - 1).right() > width();
         if (moreLeft || moreRight) {
-            constexpr int kFadeWidth = 28;
+            constexpr int kFadeWidth = 130;
             const QColor ground = themeManager()->Colors().window;
-            QColor transparent = ground;
-            transparent.setAlpha(0);
+            QColor clear = ground;
+            clear.setAlpha(0);
+            // Eased rather than linear: a straight ramp has a visible start line, which
+            // is the very edge the fade exists to hide.
+            const auto ease = [](QLinearGradient &gradient, bool towardsEdge, const QColor &ground, QColor clear) {
+                QColor faint = ground;
+                faint.setAlphaF(0.06f);
+                QColor soft = ground;
+                soft.setAlphaF(0.28f);
+                QColor mid = ground;
+                mid.setAlphaF(0.70f);
+                if (towardsEdge) {
+                    gradient.setColorAt(0.00, clear);
+                    gradient.setColorAt(0.45, faint);
+                    gradient.setColorAt(0.72, soft);
+                    gradient.setColorAt(0.90, mid);
+                    gradient.setColorAt(1.00, ground);
+                } else {
+                    gradient.setColorAt(0.00, ground);
+                    gradient.setColorAt(0.10, mid);
+                    gradient.setColorAt(0.28, soft);
+                    gradient.setColorAt(0.55, faint);
+                    gradient.setColorAt(1.00, clear);
+                }
+            };
             QPainter fade(this);
             if (moreLeft) {
                 QLinearGradient gradient(0, 0, kFadeWidth, 0);
-                gradient.setColorAt(0.0, ground);
-                gradient.setColorAt(1.0, transparent);
+                ease(gradient, false, ground, clear);
                 fade.fillRect(QRect(0, 0, kFadeWidth, height()), gradient);
             }
             if (moreRight) {
                 QLinearGradient gradient(width() - kFadeWidth, 0, width(), 0);
-                gradient.setColorAt(0.0, transparent);
-                gradient.setColorAt(1.0, ground);
+                ease(gradient, true, ground, clear);
                 fade.fillRect(QRect(width() - kFadeWidth, 0, kFadeWidth, height()), gradient);
             }
         }
     }
+}
+
+void GroupTabBar::resizeEvent(QResizeEvent *event) {
+    QTabBar::resizeEvent(event);
+    reportOverflow();
+}
+
+void GroupTabBar::tabLayoutChange() {
+    QTabBar::tabLayoutChange();
+    reportOverflow();
+}
+
+// Asked of the laid-out tabs rather than of their summed width: Qt has already
+// applied elision and the strip's own margins by this point, and those decide
+// whether anything is actually out of reach.
+void GroupTabBar::reportOverflow() {
+    const bool overflowing =
+        count() > 0 && (tabRect(0).left() < 0 || tabRect(count() - 1).right() > width());
+    if (overflowing == overflowing_) return;
+    overflowing_ = overflowing;
+    emit overflowChanged(overflowing_);
 }
 
 GroupTabWidget::GroupTabWidget(QWidget *parent) : QTabWidget(parent) {
