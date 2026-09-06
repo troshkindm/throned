@@ -13,7 +13,6 @@
 #include <QMap>
 #include <QPainter>
 #include <QProxyStyle>
-#include <QStandardPaths>
 #include <QStyleFactory>
 #include <QStyleOption>
 #include <QWidget>
@@ -51,8 +50,14 @@ QString chevronAssetPath(const QColor &color, const QString &skinId) {
     static QMap<QString, QString> generated;
     const QString key = color.name(QColor::HexRgb).mid(1) + (skinId.isEmpty() ? QString() : QLatin1Char('-') + skinId);
     if (const auto it = generated.constFind(key); it != generated.constEnd()) return *it;
-    const QString dir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-    if (dir.isEmpty() || !QDir().mkpath(dir)) return {};
+    // Follows Configs::GetBasePath() so a portable copy keeps its cache beside
+    // the exe instead of leaking into %LOCALAPPDATA%\Throned\cache. Preview
+    // modes apply a theme before initDB(), so fall back to the exe dir then.
+    const QString base = Configs::dataManager != nullptr
+        ? Configs::GetBasePath()
+        : (qApp ? qApp->applicationDirPath() : QString());
+    const QString dir = base + QStringLiteral("/cache");
+    if (base.isEmpty() || !QDir().mkpath(dir)) return {};
     const QString path = dir + QStringLiteral("/chevron-down-") + key + QStringLiteral(".png");
     if (!QFileInfo::exists(path) && !MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronDown, color, 28).save(path, "PNG")) return {};
     generated.insert(key, path);
