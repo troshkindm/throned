@@ -12,20 +12,42 @@ ten-second grep would answer.
 
 ## Shape
 
-| Path | What it is |
-| --- | --- |
-| `src/`, `include/` | First-party C++. The two trees mirror each other; a file added to either is picked up by CMake automatically. |
-| `src/sys/{windows,linux,macos}` | Operating-system code. Listed explicitly in the matching `cmake/<platform>` file, not globbed. |
-| `src/ui/preview/` | Screenshot and preview modes of the production widgets. Not a mock. |
-| `core/server/`, `updater/` | Go modules: the proxy core process and the updater. `gen/*.pb.go` is generated, not committed. |
-| `3rdparty/` | Vendored C and C++. Each dependency is its own CMake target in `cmake/ThronedDependencies.cmake`. |
-| `res/`, `skins/` | Compiled Qt resources and loose skin packages. |
-| `tests/` | Qt Test targets plus the UI snapshot baselines. |
-| `script/` | Build, packaging, lint, format and snapshot helpers. |
-| `.github/workflows/` | The authoritative clean builds. |
+| Path                            | What it is                                                                                                    |
+|---------------------------------|---------------------------------------------------------------------------------------------------------------|
+| `src/`, `include/`              | First-party C++. The two trees mirror each other; a file added to either is picked up by CMake automatically. |
+| `src/sys/{windows,linux,macos}` | Operating-system code. Listed explicitly in the matching `cmake/<platform>` file, not globbed.                |
+| `src/ui/preview/`               | Screenshot and preview modes of the production widgets. Not a mock.                                           |
+| `core/server/`, `updater/`      | Go modules: the proxy core process and the updater. `gen/*.pb.go` is generated, not committed.                |
+| `3rdparty/`                     | Vendored C and C++. Each dependency is its own CMake target in `cmake/ThronedDependencies.cmake`.             |
+| `res/`, `skins/`                | Compiled Qt resources and loose skin packages.                                                                |
+| `tests/`                        | Qt Test targets plus the UI snapshot baselines.                                                               |
+| `script/`                       | Build, packaging, lint, format and snapshot helpers.                                                          |
+| `.github/workflows/`            | The authoritative clean builds.                                                                               |
 
-Everything lands on `dev`. Pull requests are the exception, not the rule, so a
-change is expected to be complete and checked before it is pushed.
+## Remotes and upstream
+
+`origin` is `troshkindm/throned`. `upstream` is `throneproj/Throne`, the project
+this forked from, and it is fetch-only: its push URL is set to `DISABLED` on
+purpose, so `git push upstream` fails loudly instead of aiming a branch at
+somebody else's repository. Restore that if a fresh clone loses it:
+
+```sh
+git remote set-url --push upstream DISABLED
+```
+
+Everything lands on `origin/dev`, the default branch here. Pull requests are the
+exception, not the rule, so a change is expected to be complete and checked
+before it is pushed. Plain `git push` from `dev` goes to the right place; naming
+a remote by hand is how it goes to the wrong one.
+
+Upstream arrives by merge, never by rebase, committed as `chore: merge upstream
+Throne updates`. That merge is a review, not a formality: upstream and Throned
+have solved several of the same problems in different ways, so a clean automatic
+merge can silently revert work done here. Theming is the standing example — this
+repository keeps `ThronedPalette.hpp` and its own `ThemeManager`, and upstream's
+`ThemeTokens` must not land, while genuine fixes inside upstream's theme code
+are still worth taking. Resolve in favour of this repository, then build and run
+the checks; do not trust the absence of conflicts.
 
 ## Build
 
