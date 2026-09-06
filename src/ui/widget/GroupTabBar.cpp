@@ -141,32 +141,59 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
         painter.drawControl(QStyle::CE_TabBarTab, option);
     }
 
-    if (usage_.isEmpty()) return;
+    if (!usage_.isEmpty()) {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, false);
+        painter.setPen(Qt::NoPen);
+        for (int i = 0; i < count(); ++i) {
+            const auto it = usage_.constFind(i);
+            if (it == usage_.constEnd()) continue;
+            const QRect rect = tabRect(i);
+            if (rect.isEmpty()) continue;
 
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setPen(Qt::NoPen);
-    for (int i = 0; i < count(); ++i) {
-        const auto it = usage_.constFind(i);
-        if (it == usage_.constEnd()) continue;
-        const QRect rect = tabRect(i);
-        if (rect.isEmpty()) continue;
+            // Inset so the line reads as part of the tab rather than the strip's own edge.
+            const QRect track(rect.left() + 7, rect.bottom() - kBottomInset, rect.width() - 14, kLineHeight);
+            if (track.width() <= 0) continue;
 
-        // Inset so the line reads as part of the tab rather than the strip's own edge.
-        const QRect track(rect.left() + 7, rect.bottom() - kBottomInset, rect.width() - 14, kLineHeight);
-        if (track.width() <= 0) continue;
+            QColor spent = usageColor(it->urgency);
+            QColor rest = spent;
+            rest.setAlpha(45);
+            painter.setBrush(rest);
+            painter.drawRect(track);
 
-        QColor spent = usageColor(it->urgency);
-        QColor rest = spent;
-        rest.setAlpha(45);
-        painter.setBrush(rest);
-        painter.drawRect(track);
+            QRect filled = track;
+            filled.setWidth(qRound(track.width() * it->fraction));
+            if (filled.width() > 0) {
+                painter.setBrush(spent);
+                painter.drawRect(filled);
+            }
+        }
+    }
 
-        QRect filled = track;
-        filled.setWidth(qRound(track.width() * it->fraction));
-        if (filled.width() > 0) {
-            painter.setBrush(spent);
-            painter.drawRect(filled);
+    // A tab clipped at the edge reads as a rendering fault; the same tab under a
+    // fade reads as "there is more this way". Drawn only on the side that actually
+    // has something beyond the edge, so a strip that fits stays untouched.
+    if (count() > 0) {
+        const bool moreLeft = tabRect(0).left() < 0;
+        const bool moreRight = tabRect(count() - 1).right() > width();
+        if (moreLeft || moreRight) {
+            constexpr int kFadeWidth = 28;
+            const QColor ground = themeManager()->Colors().window;
+            QColor transparent = ground;
+            transparent.setAlpha(0);
+            QPainter fade(this);
+            if (moreLeft) {
+                QLinearGradient gradient(0, 0, kFadeWidth, 0);
+                gradient.setColorAt(0.0, ground);
+                gradient.setColorAt(1.0, transparent);
+                fade.fillRect(QRect(0, 0, kFadeWidth, height()), gradient);
+            }
+            if (moreRight) {
+                QLinearGradient gradient(width() - kFadeWidth, 0, width(), 0);
+                gradient.setColorAt(0.0, transparent);
+                gradient.setColorAt(1.0, ground);
+                fade.fillRect(QRect(width() - kFadeWidth, 0, kFadeWidth, height()), gradient);
+            }
         }
     }
 }

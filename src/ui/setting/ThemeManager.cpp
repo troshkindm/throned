@@ -94,6 +94,17 @@ public:
         }
         QProxyStyle::drawPrimitive(element, option, painter, widget);
     }
+
+    // The group strip drives Qt's scrollers from the wheel but shows none of its
+    // chrome, so the arrows must take no room at all. QTabBar sizes them from this
+    // metric rather than from the buttons' own size hint, which is why a stylesheet
+    // width cannot do it. Named rather than typed to keep the style off widget headers.
+    int pixelMetric(PixelMetric metric, const QStyleOption *option,
+                    const QWidget *widget) const override {
+        if (metric == PM_TabBarScrollButtonWidth && widget != nullptr && widget->inherits("GroupTabBar"))
+            return 0;
+        return QProxyStyle::pixelMetric(metric, option, widget);
+    }
 };
 
 } // namespace

@@ -126,6 +126,43 @@ void RunMainWindow(const QString &prefix) {
                     Configs::dataManager->settingsRepo->started_id = profile->id;
             }
         }
+
+        // Enough groups to overflow the strip at every supported window width, so the
+        // scroll affordance and the wheel handler have something to act on.
+        if (arguments.contains(QStringLiteral("-ui-preview-many-groups"))) {
+            static const char *const groupNames[] = {
+                "Frankfurt",
+                "Amsterdam",
+                "Helsinki",
+                "Stockholm",
+                "Warsaw",
+                "Prague",
+                "Vienna",
+                "Zurich",
+                "Milan",
+                "Madrid",
+                "Lisbon",
+                "Dublin",
+                "London",
+                "Reykjavik",
+                "Toronto",
+                "Chicago",
+                "Dallas",
+                "Seattle",
+                "Tokyo",
+                "Osaka",
+                "Singapore",
+                "Sydney",
+                "Auckland",
+                "Cape Town",
+            };
+            for (const char *const name: groupNames) {
+                auto extra = Configs::GroupsRepo::NewGroup();
+                if (!extra) continue;
+                extra->name = QString::fromLatin1(name);
+                if (!Configs::dataManager->groupsRepo->AddGroup(extra)) continue;
+            }
+        }
         window->refresh_groups();
         window->refresh_proxy_list({}, true);
         if (!emptyPreview) {

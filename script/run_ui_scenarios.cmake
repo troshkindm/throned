@@ -109,6 +109,9 @@ add_ui_scenario(subscription GROUPS all
         subscription-subscription-in-place.png subscription-subscription-muted.png
         subscription-announce-dismissed.png subscription-group-editor.png
         subscription-program-menu.png subscription-start-with.png)
+add_ui_scenario(many-groups GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-many-groups
+    EXPECTED many-groups-window.png)
 add_ui_scenario(favorites GROUPS all
     ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-favorites
     EXPECTED favorites-favorites.png)
