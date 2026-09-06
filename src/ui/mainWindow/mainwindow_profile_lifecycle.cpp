@@ -230,7 +230,7 @@ void MainWindow::profile_start(int _id) {
 
     const auto result = Configs::BuildSingBoxConfig(ent, Configs::ConfigBuildPurpose::Connect);
     if (!result->error.isEmpty()) {
-        MessageBoxWarning(tr("BuildConfig return error"), result->error);
+        PostPassiveWarning(tr("BuildConfig return error"), result->error);
         return;
     }
     coreLogLevelRank_ = Configs::SingBox::LogLevelRank(Configs::dataManager->settingsRepo->log_level);
@@ -291,14 +291,11 @@ void MainWindow::profile_start(int _id) {
                 return false;
             }
             if (error.contains("Fwpm", Qt::CaseInsensitive)) {
-                runOnUiThread([=, this] {
-                    MessageBoxWarning(
-                        tr("Strict routing unavailable"),
-                        tr("Windows could not enable strict routing. Open Tun Settings, "
-                           "disable Strict Route, and start the profile again.\n\n"
-                           "Disabling Strict Route may cause DNS leaks.\n\nError: %1")
-                            .arg(error));
-                });
+                PostPassiveWarning(tr("Strict routing unavailable"),
+                                   tr("Windows could not enable strict routing. Open Tun Settings, "
+                                      "disable Strict Route, and start the profile again.\n\n"
+                                      "Disabling Strict Route may cause DNS leaks.\n\nError: %1")
+                                       .arg(error));
                 return false;
             }
             if (error.contains("configure tun interface")) {
@@ -322,7 +319,7 @@ void MainWindow::profile_start(int _id) {
                 });
                 return false;
             }
-            runOnUiThread([=, this] { MessageBoxWarning("LoadConfig return error", error); });
+            PostPassiveWarning(QStringLiteral("LoadConfig return error"), error);
             return false;
         }
         // Building and validating a config must not consume an HOTP code. Advance
@@ -332,7 +329,7 @@ void MainWindow::profile_start(int _id) {
             if (const auto otpError = result->otpCodes->Commit(); !otpError.isEmpty()) {
                 bool stopOK = false;
                 defaultClient->Stop(&stopOK);
-                runOnUiThread([=, this] { MessageBoxWarning(tr("Could not advance HOTP"), otpError); });
+                PostPassiveWarning(tr("Could not advance HOTP"), otpError);
                 return false;
             }
         }
@@ -400,11 +397,11 @@ void MainWindow::profile_start(int _id) {
     };
 
     if (!mu_starting.tryLock()) {
-        MessageBoxWarning(software_name, tr("Another profile is starting..."));
+        PostPassiveWarning(software_name, tr("Another profile is starting..."));
         return;
     }
     if (!mu_stopping.tryLock()) {
-        MessageBoxWarning(software_name, tr("Another profile is stopping..."));
+        PostPassiveWarning(software_name, tr("Another profile is stopping..."));
         mu_starting.unlock();
         return;
     }
@@ -495,7 +492,7 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             bool rpcOK;
             const QString error = defaultClient->Stop(&rpcOK);
             if (rpcOK && !error.isEmpty()) {
-                runOnUiThread([=, this] { MessageBoxWarning(tr("Stop return error"), error); });
+                PostPassiveWarning(tr("Stop return error"), error);
                 return false;
             } else if (!rpcOK) {
                 return false;

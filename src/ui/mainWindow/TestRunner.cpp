@@ -394,9 +394,9 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         return;
     }
     if (!session_.tryLock()) {
-        MessageBoxWarning(software_name, isUrl
-                                             ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
-                                             : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
+        PostPassiveWarning(software_name, isUrl
+                                              ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
+                                              : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
         finish();
         return;
     }
@@ -499,7 +499,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
         return;
     }
     if (!session_.tryLock()) {
-        MessageBoxWarning(software_name, MainWindow::tr("The last test did not finish completely, please wait. If it persists, please restart the program."));
+        PostPassiveWarning(software_name, MainWindow::tr("The last test did not finish completely, please wait. If it persists, please restart the program."));
         return;
     }
     sessionGen_.fetch_add(1);
@@ -790,8 +790,8 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
         return;
     }
     if (!session_.tryLock()) {
-        MessageBoxWarning(software_name, MainWindow::tr(
-                                             "The last test did not exit completely, please wait. If it persists, please restart the program."));
+        PostPassiveWarning(software_name, MainWindow::tr(
+                                              "The last test did not exit completely, please wait. If it persists, please restart the program."));
         initialReport.error = MainWindow::tr("Another test is still running. Wait for it to finish.");
         if (onFinished) onFinished(initialReport);
         return;
