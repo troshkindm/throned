@@ -32,11 +32,16 @@ jobs:
   checks:
     runs-on: ubuntu-22.04
     steps:
+      # Full history: the translation check diffs against the base commit.
       - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
       - name: Lint Qt idioms
         run: ./script/lint_qt_idioms.sh
       - name: Check agent instructions
         run: ./script/check_agents.sh
+      - name: Check translations
+        run: ./script/check_translations.sh "${{ github.event.pull_request.base.sha || github.event.before }}"
       # Pinned deliberately: clang-format reformats differently between major
       # versions, so an unpinned CI formatter disagrees with every workstation.
       - name: Install clang-format

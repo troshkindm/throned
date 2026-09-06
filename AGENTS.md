@@ -130,8 +130,16 @@ proxy core, no system proxy change, no TUN.
   add a PNG per button, colour, state or density.
 - `.ui` files stay. Existing screens keep their designer file; only genuinely
   new screens are built in code.
-- Translations: edit `res/translations/*.ts` by hand. The `lupdate` target
-  rewrites all four files and buries the change.
+- Translations: edit `res/translations/*.ts` by hand — the `lupdate` target
+  rewrites all four files and buries the change. A new user-visible string goes
+  into `ru_RU`, `zh_CN` and `fa_IR`; where you cannot translate it, add the entry
+  with `<translation type="unfinished"></translation>` rather than leaving it
+  out. Qt falls back to the source text either way, so an absent string is
+  invisible to whoever could translate it, while an unfinished one is a tracked
+  gap. `en_US.ts` is only for plural forms — Qt cannot derive an English plural
+  from a single source string — so ordinary strings do not belong there.
+  `./script/check_translations.sh` gates strings added since `origin/dev`; the
+  several-hundred-string backlog is reported, not gated.
 - Do not weaken or delete a test to make a change pass. When behaviour changes
   on purpose, update the test and state the new contract.
 

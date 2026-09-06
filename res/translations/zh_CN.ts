@@ -1130,6 +1130,18 @@ It stays a preference, not a lock: if that profile stops working the selector st
 <context>
     <name>DialogBasicSettings</name>
     <message>
+        <source>Direct test URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetched without any proxy, so the auto selector can tell a dead connection from dead servers; empty uses the operating system&apos;s network state</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>optional — use the OS network state</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Basic Settings</source>
         <translation>基本设置</translation>
     </message>
