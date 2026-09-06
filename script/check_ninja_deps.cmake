@@ -57,6 +57,12 @@ foreach (_line IN LISTS _lines)
     if (NOT EXISTS "${BUILD_DIR}/${_object}")
         continue()
     endif ()
+    # Qt generates these, and several of them legitimately include nothing at all:
+    # rcc emits pure data, and mocs_compilation.cpp is a stub when a target has no
+    # Q_OBJECT header. Their inputs are tracked through the autogen target instead.
+    if (_object MATCHES "_autogen/")
+        continue()
+    endif ()
     if (_count GREATER 0)
         math(EXPR _tracked "${_tracked} + 1")
     else ()

@@ -40,14 +40,13 @@ exception, not the rule, so a change is expected to be complete and checked
 before it is pushed. Plain `git push` from `dev` goes to the right place; naming
 a remote by hand is how it goes to the wrong one.
 
-Upstream arrives by merge, never by rebase, committed as `chore: merge upstream
-Throne updates`. That merge is a review, not a formality: upstream and Throned
-have solved several of the same problems in different ways, so a clean automatic
-merge can silently revert work done here. Theming is the standing example — this
-repository keeps `ThronedPalette.hpp` and its own `ThemeManager`, and upstream's
-`ThemeTokens` must not land, while genuine fixes inside upstream's theme code
-are still worth taking. Resolve in favour of this repository, then build and run
-the checks; do not trust the absence of conflicts.
+Upstream arrives by merge, never by rebase. That merge is a review, not a
+formality: upstream and this fork have solved several of the same problems in
+different ways, so a clean automatic merge can silently revert work done here,
+and the repository-wide reformat means every merge now also reports whitespace
+conflicts that carry no meaning. The survey commands, the standing theme and
+`.ui` rules and the verification steps are in
+`.agents/skills/upstream-merge/SKILL.md`.
 
 ## Build
 
