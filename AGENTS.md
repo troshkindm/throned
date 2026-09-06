@@ -122,8 +122,13 @@ proxy core, no system proxy change, no TUN.
 
 - Follow `.clang-format` and `.clang-tidy`. Vendored and generated code is
   excluded on purpose; do not reformat `3rdparty/` or `core/server/gen/`.
-- Comments earn their place by explaining a decision that is not obvious from
-  the code. One line is usually enough. Do not narrate what the next line does.
+- A comment says what the code cannot: why this way, what broke last time, which
+  trap is being avoided. **One line.** It has to be readable at a glance or it
+  will not be read at all, and a paragraph above a function is documentation —
+  put it in `docs/` and leave a pointer. Never restate the line below it, and
+  never add a comment to a change merely to show the change was thought about.
+  The few long blocks that already exist earned it by carrying something that
+  cost someone a day; new code does not get that presumption.
 - Prefer a small feature-specific translation unit over adding unrelated logic
   to `src/main.cpp` or another already-large file.
 - Monochrome interface actions are `MaterialIcon::Glyph` vector paths. Do not

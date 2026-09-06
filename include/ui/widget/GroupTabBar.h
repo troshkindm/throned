@@ -43,8 +43,7 @@ signals:
     void meterHovered(int index);
     void meterHoverLeft();
 
-    // The strip no longer fits its tabs, or fits them again. Emitted rather than
-    // polled because it changes on resize, on rename and on every add or remove.
+    // The strip stopped fitting its tabs, or fits them again. Changes on resize, rename, add and remove.
     void overflowChanged(bool overflowing);
 
 protected:

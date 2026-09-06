@@ -99,9 +99,7 @@ void GroupTabBar::leaveEvent(QEvent *event) {
 }
 
 void GroupTabBar::wheelEvent(QWheelEvent *event) {
-    // Scroll by driving Qt's own scroll buttons, which the groupsCard stylesheet
-    // keeps zero-width: the strip slides without switching the current group and
-    // without duplicating any of QTabBar's scroll bookkeeping here.
+    // Drives Qt's own scrollers: the strip slides without changing the current group or copying QTabBar's bookkeeping.
     constexpr int kWheelStep = 120; // one detent of a regular mouse wheel
     const QPoint delta = event->angleDelta();
     Qt::ArrowType direction;
@@ -173,9 +171,7 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
         }
     }
 
-    // The strip scrolls, the button beside it does not; without this the last pill
-    // ends in a hard edge hard against that button and the two read as one control.
-    // Drawn only on a side that actually has something beyond it.
+    // The strip scrolls and the button beside it does not; without this the last pill ends hard against it.
     if (count() > 0) {
         const bool moreLeft = tabRect(0).left() < 0;
         const bool moreRight = tabRect(count() - 1).right() > width();
@@ -183,9 +179,7 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
             constexpr int kFadeWidth = 150;
             const QColor ground = themeManager()->Colors().window;
             const auto ease = [](QLinearGradient &gradient, bool towardsEdge, const QColor &ground) {
-                // Alpha rises steadily across the whole run. Back-loading it wastes the
-                // distance: the ramp is only as long as the part where something visibly
-                // changes, however wide the rectangle is.
+                // Even rise across the whole run: back-loading it makes a wide gradient look short.
                 static constexpr float kStops[] = {0.00f, 0.12f, 0.26f, 0.42f, 0.58f, 0.74f, 0.88f, 1.00f};
                 const int count = int(std::size(kStops));
                 for (int i = 0; i < count; ++i) {
@@ -220,9 +214,7 @@ void GroupTabBar::tabLayoutChange() {
     reportOverflow();
 }
 
-// Asked of the laid-out tabs rather than of their summed width: Qt has already
-// applied elision and the strip's own margins by this point, and those decide
-// whether anything is actually out of reach.
+// Asked of the laid-out tabs: Qt has applied elision and margins by now, and those decide what is out of reach.
 void GroupTabBar::reportOverflow() {
     const bool overflowing =
         count() > 0 && (tabRect(0).left() < 0 || tabRect(count() - 1).right() > width());

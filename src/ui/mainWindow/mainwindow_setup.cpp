@@ -577,10 +577,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     statsPanelHost->setObjectName(QStringLiteral("statsPanelHost"));
     statsPanelHost->setAttribute(Qt::WA_StyledBackground, true);
     if (statsPanelHost->layout() != nullptr) statsPanelHost->layout()->setContentsMargins(0, 0, 0, 0);
-    // The group strip needs Qt's scroll machinery so the mouse wheel can slide
-    // it once groups overflow the window (GroupTabBar::wheelEvent). The buttons
-    // stay zero-width via the groupsCard stylesheet, so the pill row looks
-    // unchanged until it actually has somewhere to scroll.
+    // Qt's scroll machinery is what the wheel handler drives; the buttons are sized to nothing, so the pill row is unchanged.
     ui->tabWidget->tabBar()->setUsesScrollButtons(true);
     ui->stats_widget->tabBar()->setUsesScrollButtons(false);
     auto *logTools = new QWidget(ui->stats_widget);
@@ -1438,10 +1435,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     tableTools->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     // Keep the labelled entry visible without increasing the command bar's
     // minimum width (especially with translated navigation labels).
-    // Reaching a group the strip cannot show is the whole point, so this appears
-    // exactly when something is out of reach and costs nothing otherwise. The
-    // separator is what keeps it reading as part of the strip instead of a third
-    // action crowding diagnostics and add into one blob.
+    // Shown only when a group is out of reach; the separator keeps it with the strip instead of crowding diagnostics and add.
     auto *groupOverflowButton = new QToolButton(tableTools);
     groupOverflowButton->setObjectName(QStringLiteral("groupOverflowButton"));
     groupOverflowButton->setCursor(Qt::PointingHandCursor);
@@ -1544,7 +1538,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         }
     }
 
-    // software_name
     software_name = "Throned";
     software_core_name = "sing-box";
     if (auto dashDir = QDir("dashboard"); !dashDir.exists() && QDir().mkdir("dashboard")) {

@@ -6,9 +6,7 @@
 
 class QListWidgetItem;
 
-// Every group in one searchable list. Finding a name among thirty pills is a
-// linear search with a mouse, and a group the strip cannot show at all is not
-// reachable by scrolling either; this is two keystrokes for both.
+// Every group in one searchable list: the strip cannot show them all, and scanning thirty pills is slower than typing.
 class GroupOverflowMenu : public TrayPopupFrame {
     Q_OBJECT
 

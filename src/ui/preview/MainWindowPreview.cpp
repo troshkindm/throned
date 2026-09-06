@@ -129,8 +129,7 @@ void RunMainWindow(const QString &prefix) {
             }
         }
 
-        // Enough groups to overflow the strip at every supported window width, so the
-        // scroll affordance and the wheel handler have something to act on.
+        // Enough groups to overflow the strip at any supported window width.
         if (arguments.contains(QStringLiteral("-ui-preview-many-groups"))) {
             static const char *const groupNames[] = {
                 "Frankfurt",
@@ -790,8 +789,7 @@ void RunMainWindow(const QString &prefix) {
             });
             return;
         }
-        // The overflow list is the whole reason the button exists, so the catalogue
-        // has to show it open rather than only the button that opens it.
+        // The list is the point of the button, so the catalogue shows it open.
         if (arguments.contains(QStringLiteral("-ui-preview-group-menu"))) {
             auto *overflow = window->findChild<QToolButton *>(QStringLiteral("groupOverflowButton"));
             if (overflow == nullptr || !overflow->isVisible()) {

@@ -344,7 +344,6 @@ public:
     QString xray_geoip_url = "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat";
     QString xray_geosite_url = "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geosite.dat";
 
-    // Extra Core Paths
     QStringList extraCorePaths = {};
 
     // Last 5 custom entries per field.

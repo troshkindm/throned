@@ -3,9 +3,11 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QPushButton>
 
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/MaterialIcon.h"
 
 namespace {
 constexpr int kGroupIdRole = Qt::UserRole + 1;
@@ -30,11 +32,8 @@ GroupOverflowMenu::GroupOverflowMenu(std::function<void(int)> chooseGroup, QWidg
     });
     connect(m_list, &QListWidget::itemClicked, this, [this](QListWidgetItem *item) { activateItem(item); });
 
-    // The list opens directly under a themed strip, so it cannot take its colours
-    // from the platform palette the way the tray popups do: beside the pills, a
-    // system-coloured card reads as a different application.
-    // The base class paints its card and search box from the platform palette; clear
-    // those so the registered template below is what actually applies.
+    // Beside the themed pills, a palette-coloured card reads as a different application.
+    // The base paints from the platform palette; clear that so the template below wins.
     m_card->setStyleSheet({});
     m_search->setStyleSheet({});
     m_card->setObjectName(QStringLiteral("groupOverflowCard"));
@@ -65,6 +64,15 @@ QListWidget#groupOverflowList QScrollBar::sub-line:vertical { height: 0px; }
 QListWidget#groupOverflowList QScrollBar::add-page:vertical,
 QListWidget#groupOverflowList QScrollBar::sub-page:vertical { background: transparent; }
 )"));
+    if (auto *close = m_card->findChild<QPushButton *>()) {
+        close->setObjectName(QStringLiteral("groupOverflowClose"));
+        close->setText({});
+        close->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, themeManager()->Colors().textMuted, 15));
+        close->setIconSize(QSize(15, 15));
+        close->setFixedSize(32, 32);
+        close->setCursor(Qt::PointingHandCursor);
+    }
+    m_search->setFixedHeight(32);
 }
 
 void GroupOverflowMenu::preparePopup() {
