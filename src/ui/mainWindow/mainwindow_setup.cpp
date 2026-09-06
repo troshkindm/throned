@@ -575,7 +575,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     statsPanelHost->setObjectName(QStringLiteral("statsPanelHost"));
     statsPanelHost->setAttribute(Qt::WA_StyledBackground, true);
     if (statsPanelHost->layout() != nullptr) statsPanelHost->layout()->setContentsMargins(0, 0, 0, 0);
-    ui->tabWidget->tabBar()->setUsesScrollButtons(false);
+    // The group strip needs Qt's scroll machinery so the mouse wheel can slide
+    // it once groups overflow the window (GroupTabBar::wheelEvent). The buttons
+    // stay zero-width via the groupsCard stylesheet, so the pill row looks
+    // unchanged until it actually has somewhere to scroll.
+    ui->tabWidget->tabBar()->setUsesScrollButtons(true);
     ui->stats_widget->tabBar()->setUsesScrollButtons(false);
     auto *logTools = new QWidget(ui->stats_widget);
     logTools->setObjectName(QStringLiteral("logTools"));
@@ -1069,6 +1073,11 @@ QTabWidget#groupsCard QTabBar::tab {
 }
 QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
 QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #182530; border-color: #237AE9; }
+/* The scroll buttons exist only so Qt can slide an overflowing strip; the mouse
+   wheel drives them (GroupTabBar::wheelEvent), so they occupy no space. */
+QTabWidget#groupsCard QTabBar QToolButton {
+    width: 0px; height: 0px; border: none; background: transparent; padding: 0px; margin: 0px;
+}
 /* Same pill as a group tab, square: the fixed height carries the bottom margin
    so the painted box comes out square and lines up with the tabs. */
 QToolButton#favoritesTabButton {

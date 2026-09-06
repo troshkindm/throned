@@ -6,6 +6,8 @@
 #include <QPainter>
 #include <QStylePainter>
 #include <QStyleOptionTab>
+#include <QToolButton>
+#include <QWheelEvent>
 
 namespace {
 constexpr int kLineHeight = 2;
@@ -92,6 +94,38 @@ void GroupTabBar::leaveEvent(QEvent *event) {
     hoveredSubscription_ = -1;
     emit meterHoverLeft();
 }
+
+void GroupTabBar::wheelEvent(QWheelEvent *event) {
+    // Scroll by driving Qt's own scroll buttons, which the groupsCard stylesheet
+    // keeps zero-width: the strip slides without switching the current group and
+    // without duplicating any of QTabBar's scroll bookkeeping here.
+    constexpr int kWheelStep = 120; // one detent of a regular mouse wheel
+    const QPoint delta = event->angleDelta();
+    Qt::ArrowType direction;
+    int magnitude;
+    if (qAbs(delta.x()) > qAbs(delta.y())) {
+        magnitude = delta.x();
+        direction = delta.x() > 0 ? Qt::RightArrow : Qt::LeftArrow;
+    } else {
+        magnitude = delta.y();
+        direction = delta.y() < 0 ? Qt::RightArrow : Qt::LeftArrow;
+    }
+    if (magnitude == 0) {
+        event->ignore();
+        return;
+    }
+    const int steps = qMax(1, qAbs(magnitude) / kWheelStep);
+    const auto scrollers = findChildren<QToolButton *>();
+    for (auto *scroller : scrollers) {
+        if (scroller->arrowType() != direction || scroller->isHidden()) continue;
+        for (int i = 0; i < steps; ++i) scroller->click();
+        event->accept();
+        return;
+    }
+    // No visible scroller means every tab already fits: nothing to scroll.
+    event->ignore();
+}
+
 void GroupTabBar::paintEvent(QPaintEvent *event) {
     QTabBar::paintEvent(event);
 
