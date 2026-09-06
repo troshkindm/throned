@@ -23,53 +23,51 @@
 #include <QVBoxLayout>
 
 namespace {
-    constexpr int kCardWidth = 340;
-    constexpr double kQuotaWarnFrom = 0.75;
-    constexpr double kQuotaCriticalFrom = 0.90;
+constexpr int kCardWidth = 340;
+constexpr double kQuotaWarnFrom = 0.75;
+constexpr double kQuotaCriticalFrom = 0.90;
 
-    // Same reading the tab meter uses, so the popover and the hairline never disagree.
-    QColor stateColor(double usedFraction, int days) {
-        const auto colors = themeManager()->Colors();
-        if (days >= 0 && days <= 2) return colors.danger;
-        if (usedFraction >= kQuotaCriticalFrom) return colors.danger;
-        if (days >= 0 && days <= 7) return colors.warning;
-        if (usedFraction >= kQuotaWarnFrom) return colors.warning;
-        return colors.success;
-    }
-
-
-
-    // QLabel breaks a wrapped line only where the text already allows it, so an
-    // announcement sent as one long run is silently clipped to a single line.
-    // Zero-width spaces give the layout somewhere to break without changing what is drawn.
-    QString withBreakOpportunities(const QString &text) {
-        constexpr int kLongestRun = 24;
-        QString out;
-        out.reserve(text.size() + text.size() / kLongestRun);
-        int run = 0;
-        for (const QChar ch : text) {
-            // Qt already breaks after these, so a run only counts what it cannot.
-            if (ch.isSpace() || ch == u'/' || ch == u'-' || ch == u'.' || ch == u',') {
-                run = 0;
-            } else if (++run > kLongestRun) {
-                out += QChar(0x200B);
-                run = 1;
-            }
-            out += ch;
-        }
-        return out;
-    }
-    // Time of day says nothing about a plan that is measured in days.
-    QString shortDate(qint64 seconds) {
-        return QLocale().toString(QDateTime::fromSecsSinceEpoch(seconds).date(), QLocale::ShortFormat);
-    }
-    void openProviderLink(const QString &url) {
-        const QUrl target(url);
-        const auto scheme = target.scheme().toLower();
-        if (!target.isValid() || (scheme != "http" && scheme != "https")) return;
-        QDesktopServices::openUrl(target);
-    }
+// Same reading the tab meter uses, so the popover and the hairline never disagree.
+QColor stateColor(double usedFraction, int days) {
+    const auto colors = themeManager()->Colors();
+    if (days >= 0 && days <= 2) return colors.danger;
+    if (usedFraction >= kQuotaCriticalFrom) return colors.danger;
+    if (days >= 0 && days <= 7) return colors.warning;
+    if (usedFraction >= kQuotaWarnFrom) return colors.warning;
+    return colors.success;
 }
+
+// QLabel breaks a wrapped line only where the text already allows it, so an
+// announcement sent as one long run is silently clipped to a single line.
+// Zero-width spaces give the layout somewhere to break without changing what is drawn.
+QString withBreakOpportunities(const QString &text) {
+    constexpr int kLongestRun = 24;
+    QString out;
+    out.reserve(text.size() + text.size() / kLongestRun);
+    int run = 0;
+    for (const QChar ch: text) {
+        // Qt already breaks after these, so a run only counts what it cannot.
+        if (ch.isSpace() || ch == u'/' || ch == u'-' || ch == u'.' || ch == u',') {
+            run = 0;
+        } else if (++run > kLongestRun) {
+            out += QChar(0x200B);
+            run = 1;
+        }
+        out += ch;
+    }
+    return out;
+}
+// Time of day says nothing about a plan that is measured in days.
+QString shortDate(qint64 seconds) {
+    return QLocale().toString(QDateTime::fromSecsSinceEpoch(seconds).date(), QLocale::ShortFormat);
+}
+void openProviderLink(const QString &url) {
+    const QUrl target(url);
+    const auto scheme = target.scheme().toLower();
+    if (!target.isValid() || (scheme != "http" && scheme != "https")) return;
+    QDesktopServices::openUrl(target);
+}
+} // namespace
 
 SubscriptionPopover::SubscriptionPopover(std::function<void(int)> updateNow, QWidget *parent)
     : QFrame(parent), m_updateNow(std::move(updateNow)) {
@@ -173,7 +171,6 @@ SubscriptionPopover::SubscriptionPopover(std::function<void(int)> updateNow, QWi
     footer->addWidget(m_refresh);
     root->addLayout(footer);
 
-
     connect(m_mute, &QToolButton::toggled, this, [this](bool muted) {
         applyMuteIcon(!muted);
         const auto group = m_gid < 0 ? nullptr : Configs::dataManager->groupsRepo->GetGroup(m_gid);
@@ -204,7 +201,6 @@ QToolButton#subPopoverMute:hover { background: #222529; border-color: #4A4F57; }
 QToolButton#subPopoverMute:checked { background: #222529; }
 )"));
 }
-
 
 void SubscriptionPopover::applyMuteIcon(bool notify) {
     const auto colors = themeManager()->Colors();
@@ -245,7 +241,9 @@ void SubscriptionPopover::fill(const std::shared_ptr<Configs::Group> &group) {
     rest.setAlpha(45);
     m_meterSpent->setStyleSheet(QStringLiteral("background: %1; border: none;").arg(state.name()));
     m_meterRest->setStyleSheet(QStringLiteral("background: rgba(%1,%2,%3,45); border: none;")
-                                   .arg(state.red()).arg(state.green()).arg(state.blue()));
+                                   .arg(state.red())
+                                   .arg(state.green())
+                                   .arg(state.blue()));
     // Stretch carries the split, so the bar follows the card width without a repaint of ours.
     auto *meterLayout = qobject_cast<QHBoxLayout *>(m_meterSpent->parentWidget()->layout());
     meterLayout->setStretch(0, qRound(used * 1000));

@@ -39,27 +39,32 @@ void from_node(const fkyaml::node& node, WgReserved& w) {
     }
 }
 
-template <typename Target>
+template<typename Target>
 inline void load_opt(const fkyaml::node& node, const char* key, Target& target) {
     if (node.is_mapping() && node.contains(key)) {
         target = node[key].get_value<Target>();
     }
 }
 
-template <>
+template<>
 inline void load_opt<std::string>(const fkyaml::node& node, const char* key, std::string& target) {
     if (node.is_mapping() && node.contains(key)) {
-        if (node[key].is_string()) target = node[key].get_value<std::string>();
-        else if (node[key].is_integer()) target = std::to_string(node[key].get_value<long long>());
-        else if (node[key].is_boolean()) target = node[key].get_value<bool>() ? "true" : "false";
+        if (node[key].is_string())
+            target = node[key].get_value<std::string>();
+        else if (node[key].is_integer())
+            target = std::to_string(node[key].get_value<long long>());
+        else if (node[key].is_boolean())
+            target = node[key].get_value<bool>() ? "true" : "false";
     }
 }
 
-template <>
+template<>
 inline void load_opt<bool>(const fkyaml::node& node, const char* key, bool& target) {
     if (node.is_mapping() && node.contains(key)) {
-        if (node[key].is_boolean()) target = node[key].get_value<bool>();
-        else if (node[key].is_integer()) target = node[key].get_value<long long>() == 1;
+        if (node[key].is_boolean())
+            target = node[key].get_value<bool>();
+        else if (node[key].is_integer())
+            target = node[key].get_value<long long>() == 1;
         else if (node[key].is_string()) {
             std::string s = node[key].get_value<std::string>();
             target = (s == "true" || s == "1");

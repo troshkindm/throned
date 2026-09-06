@@ -36,49 +36,49 @@ void enable_autorun() {
     QString runLevel = (Configs::IsAdmin() && !Configs::dataManager->settingsRepo->disable_run_admin) ? "HighestAvailable" : "LeastPrivilege";
 
     QString xmlContent = QString(
-        "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n"
-        "<Task version=\"1.2\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">\n"
-        "  <RegistrationInfo>\n"
-        "    <Author>%1</Author>\n"
-        "  </RegistrationInfo>\n"
-        "  <Triggers>\n"
-        "    <LogonTrigger>\n"
-        "      <Enabled>true</Enabled>\n"
-        "    </LogonTrigger>\n"
-        "  </Triggers>\n"
-        "  <Principals>\n"
-        "    <Principal id=\"Author\">\n"
-        "      <GroupId>S-1-5-32-545</GroupId>\n"
-        "      <RunLevel>%2</RunLevel>\n"
-        "    </Principal>\n"
-        "  </Principals>\n"
-        "  <Settings>\n"
-        "    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\n"
-        "    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\n"
-        "    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\n"
-        "    <AllowHardTerminate>false</AllowHardTerminate>\n"
-        "    <StartWhenAvailable>false</StartWhenAvailable>\n"
-        "    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>\n"
-        "    <IdleSettings>\n"
-        "      <StopOnIdleEnd>true</StopOnIdleEnd>\n"
-        "      <RestartOnIdle>false</RestartOnIdle>\n"
-        "    </IdleSettings>\n"
-        "    <AllowStartOnDemand>true</AllowStartOnDemand>\n"
-        "    <Enabled>true</Enabled>\n"
-        "    <Hidden>false</Hidden>\n"
-        "    <RunOnlyIfIdle>false</RunOnlyIfIdle>\n"
-        "    <WakeToRun>false</WakeToRun>\n"
-        "    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>\n"
-        // Task Scheduler's default of 7 is BELOW_NORMAL_PRIORITY_CLASS, which the core process inherits from us; 4-6 are the interactive band.
-        "    <Priority>5</Priority>\n"
-        "  </Settings>\n"
-        "  <Actions Context=\"Author\">\n"
-        "    <Exec>\n"
-        "      <Command>\"%3\"</Command>\n"
-        "    </Exec>\n"
-        "  </Actions>\n"
-        "</Task>"
-    ).arg(userId, runLevel, exePath);
+                             "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n"
+                             "<Task version=\"1.2\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">\n"
+                             "  <RegistrationInfo>\n"
+                             "    <Author>%1</Author>\n"
+                             "  </RegistrationInfo>\n"
+                             "  <Triggers>\n"
+                             "    <LogonTrigger>\n"
+                             "      <Enabled>true</Enabled>\n"
+                             "    </LogonTrigger>\n"
+                             "  </Triggers>\n"
+                             "  <Principals>\n"
+                             "    <Principal id=\"Author\">\n"
+                             "      <GroupId>S-1-5-32-545</GroupId>\n"
+                             "      <RunLevel>%2</RunLevel>\n"
+                             "    </Principal>\n"
+                             "  </Principals>\n"
+                             "  <Settings>\n"
+                             "    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>\n"
+                             "    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>\n"
+                             "    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>\n"
+                             "    <AllowHardTerminate>false</AllowHardTerminate>\n"
+                             "    <StartWhenAvailable>false</StartWhenAvailable>\n"
+                             "    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>\n"
+                             "    <IdleSettings>\n"
+                             "      <StopOnIdleEnd>true</StopOnIdleEnd>\n"
+                             "      <RestartOnIdle>false</RestartOnIdle>\n"
+                             "    </IdleSettings>\n"
+                             "    <AllowStartOnDemand>true</AllowStartOnDemand>\n"
+                             "    <Enabled>true</Enabled>\n"
+                             "    <Hidden>false</Hidden>\n"
+                             "    <RunOnlyIfIdle>false</RunOnlyIfIdle>\n"
+                             "    <WakeToRun>false</WakeToRun>\n"
+                             "    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>\n"
+                             // Task Scheduler's default of 7 is BELOW_NORMAL_PRIORITY_CLASS, which the core process inherits from us; 4-6 are the interactive band.
+                             "    <Priority>5</Priority>\n"
+                             "  </Settings>\n"
+                             "  <Actions Context=\"Author\">\n"
+                             "    <Exec>\n"
+                             "      <Command>\"%3\"</Command>\n"
+                             "    </Exec>\n"
+                             "  </Actions>\n"
+                             "</Task>")
+                             .arg(userId, runLevel, exePath);
 
     QString xmlFilePath = QDir::toNativeSeparators(QDir::tempPath() + "\\Throned_Task.xml");
     QFile xmlFile(xmlFilePath);
@@ -205,7 +205,7 @@ void AutoRun_MigrateIfNeeded() {
     }
     legacyExecutables.removeDuplicates();
 
-    for (const auto &legacyExe : legacyExecutables) {
+    for (const auto &legacyExe: legacyExecutables) {
         const QString legacyTask = taskNameFor(legacyExe, "Throne");
         QProcess query;
         query.start("schtasks.exe", QStringList() << "/query" << "/tn" << legacyTask);

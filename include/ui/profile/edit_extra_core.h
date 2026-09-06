@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditExtraCore;
+class EditExtraCore;
 }
 QT_END_NAMESPACE
 

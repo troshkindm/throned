@@ -7,7 +7,7 @@
 #include <QMap>
 
 namespace Configs {
-    const QMap<QString, QString> &ruleLineAliases() {
+const QMap<QString, QString> &ruleLineAliases() {
     static const QMap<QString, QString> aliases{
         {QStringLiteral("domain"), QStringLiteral("domain")},
         {QStringLiteral("full"), QStringLiteral("domain")},
@@ -31,7 +31,7 @@ namespace Configs {
     return aliases;
 }
 
-    QString guessRuleKind(const QString &value) {
+QString guessRuleKind(const QString &value) {
     // Paths first: the only kind allowed to contain spaces.
     if (value.contains(QLatin1Char('\\')) || value.startsWith(QLatin1Char('/')))
         return QStringLiteral("processPath");

@@ -6,50 +6,51 @@
 #include <memory>
 
 namespace Configs {
-    class RoutesRepo;
-    class GroupsRepo;
-    class ProfilesRepo;
-    class OtpProfilesRepo;
-    class TrafficStatsRepo;
+class RoutesRepo;
+class GroupsRepo;
+class ProfilesRepo;
+class OtpProfilesRepo;
+class TrafficStatsRepo;
 
-    void initDB(const std::string& dbPath);
+void initDB(const std::string& dbPath);
 
-    class DatabaseManager {
-    private:
-        Database db;
-        Database statsDb;
+class DatabaseManager {
+private:
+    Database db;
+    Database statsDb;
 
-        static void createEntityIdsTable(Database& db);
-        static bool entityIdsColumnExists(Database& db, const char* columnName);
-        static std::string deriveStatsDbPath(const std::string& dbPath);
-        // Quarantines a stats file the previous session flagged, or one that would open read-only or as garbage.
-        static std::string prepareStatsDb(const std::string& path);
-        static QString statsDbUnusableReason(const std::string& path);
-        static void quarantineDbFile(const std::string& path);
-        void initializeRepos();
-    public:
-        std::unique_ptr<ProfilesRepo> profilesRepo;
-        std::unique_ptr<GroupsRepo> groupsRepo;
-        std::unique_ptr<RoutesRepo> routesRepo;
-        std::unique_ptr<OtpProfilesRepo> otpProfilesRepo;
-        std::unique_ptr<SettingsRepo> settingsRepo;
-        std::unique_ptr<TrafficStatsRepo> trafficStatsRepo;
+    static void createEntityIdsTable(Database& db);
+    static bool entityIdsColumnExists(Database& db, const char* columnName);
+    static std::string deriveStatsDbPath(const std::string& dbPath);
+    // Quarantines a stats file the previous session flagged, or one that would open read-only or as garbage.
+    static std::string prepareStatsDb(const std::string& path);
+    static QString statsDbUnusableReason(const std::string& path);
+    static void quarantineDbFile(const std::string& path);
+    void initializeRepos();
 
-        explicit DatabaseManager(const std::string& dbPath);
-        ~DatabaseManager() = default;
+public:
+    std::unique_ptr<ProfilesRepo> profilesRepo;
+    std::unique_ptr<GroupsRepo> groupsRepo;
+    std::unique_ptr<RoutesRepo> routesRepo;
+    std::unique_ptr<OtpProfilesRepo> otpProfilesRepo;
+    std::unique_ptr<SettingsRepo> settingsRepo;
+    std::unique_ptr<TrafficStatsRepo> trafficStatsRepo;
 
-        // Call once, after the UI is up.
-        void RunDeferredMaintenance();
+    explicit DatabaseManager(const std::string& dbPath);
+    ~DatabaseManager() = default;
 
-        // So the statistics screen can tell the user how much history is on disk.
-        [[nodiscard]] QString StatsDatabasePath() const { return QString::fromStdString(statsDb.Path()); }
-        
-        DatabaseManager(const DatabaseManager&) = delete;
-        DatabaseManager& operator=(const DatabaseManager&) = delete;
-        
-        Database& getDatabase() { return db; }
-        const Database& getDatabase() const { return db; }
-    };
+    // Call once, after the UI is up.
+    void RunDeferredMaintenance();
 
-    inline DatabaseManager* dataManager;
-}
+    // So the statistics screen can tell the user how much history is on disk.
+    [[nodiscard]] QString StatsDatabasePath() const { return QString::fromStdString(statsDb.Path()); }
+
+    DatabaseManager(const DatabaseManager&) = delete;
+    DatabaseManager& operator=(const DatabaseManager&) = delete;
+
+    Database& getDatabase() { return db; }
+    const Database& getDatabase() const { return db; }
+};
+
+inline DatabaseManager* dataManager;
+} // namespace Configs

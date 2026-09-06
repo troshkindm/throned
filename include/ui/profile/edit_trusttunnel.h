@@ -4,7 +4,7 @@
 #include "ui_edit_trusttunnel.h"
 
 namespace Ui {
-    class EditTrustTunnel;
+class EditTrustTunnel;
 }
 
 class EditTrustTunnel : public QWidget, public ProfileEditor {

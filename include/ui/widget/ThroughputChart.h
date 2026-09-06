@@ -11,7 +11,11 @@
 class ThroughputChart : public QWidget {
     Q_OBJECT
 public:
-    enum Series { ProxyDown, ProxyUp, DirectDown, DirectUp, SeriesCount };
+    enum Series { ProxyDown,
+                  ProxyUp,
+                  DirectDown,
+                  DirectUp,
+                  SeriesCount };
 
     explicit ThroughputChart(QWidget *parent = nullptr);
 
@@ -23,7 +27,9 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    struct Sample { qint64 value[SeriesCount] = {0, 0, 0, 0}; };
+    struct Sample {
+        qint64 value[SeriesCount] = {0, 0, 0, 0};
+    };
 
     [[nodiscard]] qint64 peak() const;
     [[nodiscard]] QList<qint64> buckets(int series, int count) const;

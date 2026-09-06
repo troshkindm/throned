@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogEditOtp;
+class DialogEditOtp;
 }
 QT_END_NAMESPACE
 

@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class ProxyItem;
+class ProxyItem;
 }
 QT_END_NAMESPACE
 

@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditChain;
+class EditChain;
 }
 QT_END_NAMESPACE
 

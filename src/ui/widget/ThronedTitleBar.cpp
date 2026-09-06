@@ -69,7 +69,8 @@ void ThronedCaptionButton::paintEvent(QPaintEvent *) {
     style()->drawPrimitive(QStyle::PE_Widget, &option, &painter, this);
 
     const QColor tint = glyph_ == Glyph::Close && underMouse()
-        ? QColor(Qt::white) : palette().color(QPalette::ButtonText);
+                            ? QColor(Qt::white)
+                            : palette().color(QPalette::ButtonText);
     QPen pen(tint);
     pen.setWidthF(1.1);
     painter.setPen(pen);
@@ -79,25 +80,25 @@ void ThronedCaptionButton::paintEvent(QPaintEvent *) {
     const QPointF centre(qRound(width() / 2.0) - 0.5, qRound(height() / 2.0) - 0.5);
     constexpr qreal half = 5.0;
     switch (glyph_) {
-    case Glyph::Minimize:
-        painter.drawLine(QPointF(centre.x() - half, centre.y()), QPointF(centre.x() + half, centre.y()));
-        break;
-    case Glyph::Maximize:
-        painter.drawRect(QRectF(centre.x() - half, centre.y() - half, half * 2, half * 2));
-        break;
-    case Glyph::Restore:
-        painter.drawRect(QRectF(centre.x() - half, centre.y() - half + 2, half * 2 - 2, half * 2 - 2));
-        painter.drawPolyline(QPolygonF{
-            QPointF(centre.x() - half + 2, centre.y() - half),
-            QPointF(centre.x() + half, centre.y() - half),
-            QPointF(centre.x() + half, centre.y() + half - 2),
-        });
-        break;
-    case Glyph::Close:
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.drawLine(QPointF(centre.x() - half, centre.y() - half), QPointF(centre.x() + half, centre.y() + half));
-        painter.drawLine(QPointF(centre.x() + half, centre.y() - half), QPointF(centre.x() - half, centre.y() + half));
-        break;
+        case Glyph::Minimize:
+            painter.drawLine(QPointF(centre.x() - half, centre.y()), QPointF(centre.x() + half, centre.y()));
+            break;
+        case Glyph::Maximize:
+            painter.drawRect(QRectF(centre.x() - half, centre.y() - half, half * 2, half * 2));
+            break;
+        case Glyph::Restore:
+            painter.drawRect(QRectF(centre.x() - half, centre.y() - half + 2, half * 2 - 2, half * 2 - 2));
+            painter.drawPolyline(QPolygonF{
+                QPointF(centre.x() - half + 2, centre.y() - half),
+                QPointF(centre.x() + half, centre.y() - half),
+                QPointF(centre.x() + half, centre.y() + half - 2),
+            });
+            break;
+        case Glyph::Close:
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.drawLine(QPointF(centre.x() - half, centre.y() - half), QPointF(centre.x() + half, centre.y() + half));
+            painter.drawLine(QPointF(centre.x() + half, centre.y() - half), QPointF(centre.x() - half, centre.y() + half));
+            break;
     }
 }
 

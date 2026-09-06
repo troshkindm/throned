@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogManageGroups;
+class DialogManageGroups;
 }
 QT_END_NAMESPACE
 

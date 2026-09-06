@@ -18,13 +18,15 @@
 #include "include/database/SettingsRepo.h"
 
 namespace {
-    constexpr int kPerPage = 12;
-    constexpr int kSearchDebounceMs = 200;
+constexpr int kPerPage = 12;
+constexpr int kSearchDebounceMs = 200;
 
-    enum ItemKind { KindGroup = 1, KindProfile, KindRoute };
-    constexpr int RoleKind = Qt::UserRole;
-    constexpr int RoleId = Qt::UserRole + 1;
-}
+enum ItemKind { KindGroup = 1,
+                KindProfile,
+                KindRoute };
+constexpr int RoleKind = Qt::UserRole;
+constexpr int RoleId = Qt::UserRole + 1;
+} // namespace
 
 TrayProfileSelector::TrayProfileSelector(Mode mode, Callbacks cb, QWidget *parent)
     : TrayPopupFrame(parent), m_mode(mode), m_cb(std::move(cb)) {
@@ -92,7 +94,7 @@ void TrayProfileSelector::ensureServerCache() {
     if (m_serverCacheBuilt) return;
     m_serverCacheBuilt = true;
     QList<int> allIds;
-    for (auto gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+    for (auto gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
         if (!group || group->archive) continue;
         allIds.append(group->Profiles());
@@ -101,16 +103,16 @@ void TrayProfileSelector::ensureServerCache() {
     m_serverCache = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(allIds);
     m_serverCache = FixProfileDisplayName(m_serverCache);
     m_serverCacheLower.reserve(m_serverCache.size());
-    for (const auto &[id, name] : m_serverCache) m_serverCacheLower.append(name.toLower());
+    for (const auto &[id, name]: m_serverCache) m_serverCacheLower.append(name.toLower());
 }
 
 void TrayProfileSelector::ensureRouteCache() {
     if (m_routeCacheBuilt) return;
     m_routeCacheBuilt = true;
-    for (const auto &route : Configs::dataManager->routesRepo->GetAllRouteProfiles())
+    for (const auto &route: Configs::dataManager->routesRepo->GetAllRouteProfiles())
         m_routeCache.append({route->id, route->name});
     m_routeCacheLower.reserve(m_routeCache.size());
-    for (const auto &[id, name] : m_routeCache) m_routeCacheLower.append(name.toLower());
+    for (const auto &[id, name]: m_routeCache) m_routeCacheLower.append(name.toLower());
 }
 
 void TrayProfileSelector::rebuild() {
@@ -161,7 +163,7 @@ void TrayProfileSelector::rebuild() {
                 stopText = tr("Stop: %1").arg(m_cb.runningName ? m_cb.runningName() : QString());
             }
             const int rgid = (running && m_cb.runningGid) ? m_cb.runningGid() : -1;
-            for (auto gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+            for (auto gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
                 auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
                 if (!group || group->archive || group->Profiles().isEmpty()) continue;
                 entries.append({KindGroup, gid, group->name, true, gid == rgid});
@@ -177,7 +179,7 @@ void TrayProfileSelector::rebuild() {
             title = group->name;
             auto mapped = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(group->Profiles());
             mapped = FixProfileDisplayName(mapped);
-            for (const auto &[id, name] : mapped) {
+            for (const auto &[id, name]: mapped) {
                 entries.append({KindProfile, id, name, true, id == rid});
             }
             if (entries.isEmpty()) entries.append({0, -1, tr("No servers"), false, false});

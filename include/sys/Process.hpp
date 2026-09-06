@@ -5,40 +5,39 @@
 #include <QProcess>
 
 namespace Configs_sys {
-    class CoreProcess : public QProcess
-    {
-    public:
-        QString tag;
-        QString program;
-        QStringList arguments;
+class CoreProcess : public QProcess {
+public:
+    QString tag;
+    QString program;
+    QStringList arguments;
 
-        ~CoreProcess();
+    ~CoreProcess();
 
-        // start & kill is one time
+    // start & kill is one time
 
-        void Start();
+    void Start();
 
-        void Kill();
+    void Kill();
 
-        CoreProcess(const QString &core_path, const QString &socketName, bool debugMode);
+    CoreProcess(const QString &core_path, const QString &socketName, bool debugMode);
 
-        void Restart();
+    void Restart();
 
-        int start_profile_when_core_is_up = -1;
+    int start_profile_when_core_is_up = -1;
 
-    private:
-        QString m_socketName;
-        bool m_debugMode = false;
-        bool show_stderr = false;
-        bool failed_to_start = false;
-        bool restarting = false;
+private:
+    QString m_socketName;
+    bool m_debugMode = false;
+    bool show_stderr = false;
+    bool failed_to_start = false;
+    bool restarting = false;
 
-        QElapsedTimer coreRestartTimer;
+    QElapsedTimer coreRestartTimer;
 
-    protected:
-        bool started = false;
-        bool crashed = false;
-    };
+protected:
+    bool started = false;
+    bool crashed = false;
+};
 
-    inline QAtomicInt logCounter;
+inline QAtomicInt logCounter;
 } // namespace Configs_sys

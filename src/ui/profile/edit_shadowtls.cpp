@@ -3,7 +3,6 @@
 EditShadowTLS::EditShadowTLS(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditShadowTLS) {
-
     ui->setupUi(this);
 }
 

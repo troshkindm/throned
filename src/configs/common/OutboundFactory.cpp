@@ -27,38 +27,36 @@
 #include "include/configs/outbounds/naive.h"
 #include "include/configs/outbounds/direct.h"
 
-namespace Configs
-{
-    outbound* NewOutboundByType(const QString& type)
-    {
-        if (type == "socks") return new socks();
-        if (type == "http") return new http();
-        if (type == "shadowsocks") return new shadowsocks();
-        if (type == "chain") return new chain();
-        if (type == "autoselector") return new autoSelector();
-        if (type == "vmess") return new vmess();
-        if (type == "trojan") return new Trojan();
-        if (type == "vless") return new vless();
-        if (type == "xrayvless") return new xrayVless();
-        if (type == "hysteria" || type == "hysteria2") return new hysteria();
-        if (type == "tuic") return new tuic();
-        if (type == "juicity") return new juicity();
-        if (type == "trusttunnel") return new trusttunnel();
-        if (type == "anytls") return new anyTLS();
-        if (type == "mieru") return new mieru();
-        if (type == "snell") return new snell();
-        if (type == "shadowtls") return new shadowtls();
-        if (type == "wireguard") return new wireguard();
-        if (type == "openvpn") return new openvpn();
-        if (type == "openconnect") return new openconnect();
-        if (type == "tailscale") return new tailscale();
-        if (type == "ssh") return new ssh();
-        if (type == "custom") return new Custom();
-        if (type == "extracore") return new extracore();
-        if (type == "naive") return new naive();
-        if (type == "direct") return new direct();
-        auto* ob = new outbound();
-        ob->invalid = true;
-        return ob;
-    }
+namespace Configs {
+outbound* NewOutboundByType(const QString& type) {
+    if (type == "socks") return new socks();
+    if (type == "http") return new http();
+    if (type == "shadowsocks") return new shadowsocks();
+    if (type == "chain") return new chain();
+    if (type == "autoselector") return new autoSelector();
+    if (type == "vmess") return new vmess();
+    if (type == "trojan") return new Trojan();
+    if (type == "vless") return new vless();
+    if (type == "xrayvless") return new xrayVless();
+    if (type == "hysteria" || type == "hysteria2") return new hysteria();
+    if (type == "tuic") return new tuic();
+    if (type == "juicity") return new juicity();
+    if (type == "trusttunnel") return new trusttunnel();
+    if (type == "anytls") return new anyTLS();
+    if (type == "mieru") return new mieru();
+    if (type == "snell") return new snell();
+    if (type == "shadowtls") return new shadowtls();
+    if (type == "wireguard") return new wireguard();
+    if (type == "openvpn") return new openvpn();
+    if (type == "openconnect") return new openconnect();
+    if (type == "tailscale") return new tailscale();
+    if (type == "ssh") return new ssh();
+    if (type == "custom") return new Custom();
+    if (type == "extracore") return new extracore();
+    if (type == "naive") return new naive();
+    if (type == "direct") return new direct();
+    auto* ob = new outbound();
+    ob->invalid = true;
+    return ob;
 }
+} // namespace Configs

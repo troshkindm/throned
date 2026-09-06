@@ -14,16 +14,14 @@
 #include <QStyleHints>
 #endif
 
-enum osType
-{
+enum osType {
     unknown = 0,
     Linux = 1,
     Windows = 2,
     Darwin = 3,
 };
 
-inline osType getOS()
-{
+inline osType getOS() {
 #ifdef Q_OS_MACOS
     return Darwin;
 #endif
@@ -64,38 +62,38 @@ inline QWidget *mainwindow;
 inline std::function<void(QString)> MW_show_log;
 
 enum class MwMessage {
-    UpdateSettings,       // args: MwArg settings-change tokens
+    UpdateSettings, // args: MwArg settings-change tokens
     RestartProgram,
     Raise,
     UpdateShortcuts,
-    ProfileChanged,       // arg MwArg::RestartProxy when the saved profile is running
+    ProfileChanged, // arg MwArg::RestartProxy when the saved profile is running
     GroupsChanged,
     SubscriptionFinished, // arg MwArg::Quiet skips the import-count line
     SubscriptionNewGroup,
     // args: { group id, then the id of every profile it deleted or replaced in place }
     SubscriptionGroupChanged,
     CoreCrashed,
-    CoreStarted,          // args: { startedProfileId }
+    CoreStarted, // args: { startedProfileId }
 };
 
 // String tokens carried in a MwMessage's argument list.
 namespace MwArg {
-    // UpdateSettings args.
-    inline const QString Route        = QStringLiteral("route");
-    inline const QString Vpn          = QStringLiteral("vpn");
-    inline const QString NeedRestart  = QStringLiteral("needRestart");
-    inline const QString ChoosePort   = QStringLiteral("choosePort");
-    inline const QString DisableTray  = QStringLiteral("disableTray");
-    inline const QString SystemDns    = QStringLiteral("systemDns");
-    inline const QString TrayIcon     = QStringLiteral("trayIcon");
-    inline const QString MaxLogLines  = QStringLiteral("maxLogLines");
-    inline const QString DisableAdmin = QStringLiteral("disableAdmin");
-    inline const QString ProfileListDisplay = QStringLiteral("profileListDisplay");
-    // ProfileChanged arg.
-    inline const QString RestartProxy = QStringLiteral("restartProxy");
-    // SubscriptionFinished arg.
-    inline const QString Quiet        = QStringLiteral("quiet");
-}
+// UpdateSettings args.
+inline const QString Route = QStringLiteral("route");
+inline const QString Vpn = QStringLiteral("vpn");
+inline const QString NeedRestart = QStringLiteral("needRestart");
+inline const QString ChoosePort = QStringLiteral("choosePort");
+inline const QString DisableTray = QStringLiteral("disableTray");
+inline const QString SystemDns = QStringLiteral("systemDns");
+inline const QString TrayIcon = QStringLiteral("trayIcon");
+inline const QString MaxLogLines = QStringLiteral("maxLogLines");
+inline const QString DisableAdmin = QStringLiteral("disableAdmin");
+inline const QString ProfileListDisplay = QStringLiteral("profileListDisplay");
+// ProfileChanged arg.
+inline const QString RestartProxy = QStringLiteral("restartProxy");
+// SubscriptionFinished arg.
+inline const QString Quiet = QStringLiteral("quiet");
+} // namespace MwArg
 
 inline std::function<void(MwMessage, QStringList)> MW_dialog_message;
 // Set by MainWindow; marshals to the UI thread.
@@ -138,7 +136,7 @@ QString QStringList2Command(const QStringList &list);
 
 QStringList SplitLines(const QString &_string);
 
-QStringList SplitAndTrim(const QString& raw, const QString& seperator, bool keepEmpty = true);
+QStringList SplitAndTrim(const QString &raw, const QString &seperator, bool keepEmpty = true);
 
 QByteArray DecodeB64IfValid(const QString &input, QByteArray::Base64Options options = QByteArray::Base64Option::Base64Encoding);
 
@@ -163,7 +161,7 @@ QJsonArray QListStr2QJsonArray(const QList<QString> &list);
 
 QList<int> QJsonArray2QListInt(const QJsonArray &arr);
 
-QJsonObject QMapString2QJsonObject(const QMap<QString,QString> &mp);
+QJsonObject QMapString2QJsonObject(const QMap<QString, QString> &mp);
 
 QList<QString> QListInt2QListString(const QList<int> &list);
 
@@ -180,7 +178,7 @@ QList<int> QStringList2QListInt(const QList<QString> &list);
 
 QList<QString> QJsonArray2QListString(const QJsonArray &arr);
 
-QJsonArray QString2QJsonArray(const QString& str);
+QJsonArray QString2QJsonArray(const QString &str);
 
 QByteArray ReadFile(const QString &path);
 
@@ -206,8 +204,7 @@ inline QString DisplayAddress(QString serverAddress, int serverPort) {
     return WrapIPV6Host(serverAddress) + ":" + Int2String(serverPort);
 }
 
-inline QString DisplayDest(const QString& dest, QString domain)
-{
+inline QString DisplayDest(const QString &dest, QString domain) {
     if (domain.isEmpty() || dest.split(":").first() == domain) return dest;
     return dest + " (" + domain + ")";
 }
@@ -247,7 +244,9 @@ int MessageBoxCheck(const QString &title, const QString &text, const QString &ch
 
 void FitWindowToScreen(QWidget *window, QSize preferred = {});
 
-enum class UpdatePromptChoice { Dismissed, Update, OpenInBrowser };
+enum class UpdatePromptChoice { Dismissed,
+                                Update,
+                                OpenInBrowser };
 
 UpdatePromptChoice ShowUpdatePrompt(QWidget *parent, const QString &title, const QString &assetName,
                                     const QString &releaseNote, bool allowUpdater);

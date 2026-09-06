@@ -140,10 +140,14 @@ int actionBucket(const std::shared_ptr<Configs::RouteRule> &rule) {
 
 QString actionFilterTitle(int action) {
     switch (action) {
-    case 0: return RouteItem::tr("Direct");
-    case 1: return RouteItem::tr("Block");
-    case 3: return RouteItem::tr("WARP bypass");
-    default: return RouteItem::tr("Proxy");
+        case 0:
+            return RouteItem::tr("Direct");
+        case 1:
+            return RouteItem::tr("Block");
+        case 3:
+            return RouteItem::tr("WARP bypass");
+        default:
+            return RouteItem::tr("Proxy");
     }
 }
 
@@ -170,7 +174,7 @@ QString get_outbound_name(int id) {
     return "INVALID OUTBOUND";
 }
 
-RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfile>& routeChain)
+RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfile> &routeChain)
     : QDialog(parent), ui(new Ui::RouteItem) {
     ui->setupUi(this);
 
@@ -214,19 +218,19 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     outboundMap[2] = Configs::warpBypassID;
     auto proxyListRaw = Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped();
     QMap<int, QString> idToName;
-    for (const auto& [id, name] : proxyListRaw) idToName.insert(id, name);
+    for (const auto &[id, name]: proxyListRaw) idToName.insert(id, name);
     auto groupIDs = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
-    for (auto groupID : groupIDs) {
+    for (auto groupID: groupIDs) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
-        for (int profileID : group->profiles) {
+        for (int profileID: group->profiles) {
             if (!idToName.contains(profileID)) continue;
             outboundMap[static_cast<int>(outboundMap.size())] = profileID;
             outbounds << QString("[" + group->name + "] ") + idToName[profileID];
         }
     }
 
-    for (const auto& item : ruleSetList) {
+    for (const auto &item: ruleSetList) {
         geo_items.append(QString::fromUtf8(item.first.data(), item.first.size()));
     }
 
@@ -244,7 +248,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     connect(ui->rule_attr_tabs, &QTabWidget::currentChanged, this, [this](int index) {
         if (currentIndex >= 0 && !currentRuleIsEndpoint() && index >= 0 && index < ui->rule_attr_tabs->count())
             chain->Rules[currentIndex]->uiActiveAttributeTabLabel = ui->rule_attr_tabs->tabText(index);
-        if (QWidget* w = ui->rule_attr_tabs->currentWidget()) {
+        if (QWidget *w = ui->rule_attr_tabs->currentWidget()) {
             w->updateGeometry();
             w->adjustSize();
         }
@@ -256,7 +260,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
 
     QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
-    for (const auto& item : ruleSetList) {
+    for (const auto &item: ruleSetList) {
         ruleItems.append("ruleset:" + QString::fromUtf8(item.first.data(), item.first.size()));
     }
     simpleDirect = new AutoCompleteTextEdit("", ruleItems, this);
@@ -298,7 +302,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     int advancedRules = 0;
     QStringList advancedRuleNames;
     bool localProxyTraffic = false;
-    for (const auto& rule : chain->Rules) {
+    for (const auto &rule: chain->Rules) {
         if (rule->type == Configs::custom && !Configs::IsLocalProxyTrafficRule(rule)) {
             ++advancedRules;
             advancedRuleNames.append(rule->name);
@@ -307,17 +311,26 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     }
     simpleEditor->setAdvancedRules(advancedRuleNames);
     simpleEditor->setLocalProxyTrafficEnabled(localProxyTraffic);
-    connect(simpleEditor, &RouteProfileSimpleEditor::rulesChanged, this, [this](int action, const QString& rules) {
+    connect(simpleEditor, &RouteProfileSimpleEditor::rulesChanged, this, [this](int action, const QString &rules) {
         if (RouteProfileSimpleEditor::isViaAction(action)) {
             viaBucketRules_[RouteProfileSimpleEditor::viaProfileOf(action)] = rules;
             return;
         }
         switch (static_cast<Configs::simpleAction>(action)) {
-        case Configs::bypass: simpleDirect->setPlainText(rules); break;
-        case Configs::block: simpleBlock->setPlainText(rules); break;
-        case Configs::proxy: simpleProxy->setPlainText(rules); break;
-        case Configs::warpBypass: simpleWarpBypass->setPlainText(rules); break;
-        case Configs::viaProfile: break;
+            case Configs::bypass:
+                simpleDirect->setPlainText(rules);
+                break;
+            case Configs::block:
+                simpleBlock->setPlainText(rules);
+                break;
+            case Configs::proxy:
+                simpleProxy->setPlainText(rules);
+                break;
+            case Configs::warpBypass:
+                simpleWarpBypass->setPlainText(rules);
+                break;
+            case Configs::viaProfile:
+                break;
         }
     });
     connect(simpleEditor, &RouteProfileSimpleEditor::viaBucketAdded, this, [this](int profileID) {
@@ -389,7 +402,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         {1, QT_TR_NOOP("Block"), MaterialIcon::Glyph::Block, RouteRed},
         {3, QT_TR_NOOP("WARP bypass"), MaterialIcon::Glyph::SwapVertical, RoutePurple},
     };
-    for (const auto &item : sidebarActions) {
+    for (const auto &item: sidebarActions) {
         auto *button = new RouteActionFilterButton(item.glyph, tr(item.title), QColor(item.tone), advancedSidebar);
         advancedActionButtons[item.action] = button;
         connect(button, &QAbstractButton::clicked, this, [this, action = item.action] {
@@ -576,7 +589,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     // Dispatch on page identity: literal tab indices misroute as soon as a page is inserted.
     lastTabPage = ui->tabWidget->currentWidget();
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, [=, this]() {
-        QWidget* from = lastTabPage;
+        QWidget *from = lastTabPage;
         lastTabPage = ui->tabWidget->currentWidget();
 
         if (from == ui->tab_2) {
@@ -621,7 +634,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         });
     });
 
-    connect(ui->rule_name, &QLineEdit::textChanged, this, [=, this](const QString& text) {
+    connect(ui->rule_name, &QLineEdit::textChanged, this, [=, this](const QString &text) {
         if (currentIndex == -1 || currentRuleIsEndpoint()) return;
         chain->Rules[currentIndex]->name = QString(text);
         auto ruleNameCursorPosition = ui->rule_name->cursorPosition();
@@ -643,7 +656,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         updateRuleSection();
     });
 
-    connect(ui->rule_action_combo, &QComboBox::currentTextChanged, this, [=, this](const QString& text) {
+    connect(ui->rule_action_combo, &QComboBox::currentTextChanged, this, [=, this](const QString &text) {
         if (currentIndex < 0 || currentRuleIsEndpoint()) return;
         chain->Rules[currentIndex]->set_field_value(QStringLiteral("action"), {text});
         updateRulePreview();
@@ -653,7 +666,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         accept();
     });
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, [=, this] {
-       QDialog::reject();
+        QDialog::reject();
     });
 
     deleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
@@ -698,11 +711,11 @@ void RouteItem::rebuildAdvancedSummary() {
     }
 
     std::map<int, int> actionCounts{{0, 0}, {1, 0}, {2, 0}, {3, 0}};
-    for (const auto &rule : chain->Rules) {
+    for (const auto &rule: chain->Rules) {
         const int bucket = actionBucket(rule);
         if (actionCounts.contains(bucket)) ++actionCounts[bucket];
     }
-    for (const auto &[action, button] : advancedActionButtons) {
+    for (const auto &[action, button]: advancedActionButtons) {
         auto *filterButton = static_cast<RouteActionFilterButton *>(button);
         filterButton->setCount(actionCounts[action]);
         filterButton->setChecked(action == advancedActionFilter);
@@ -779,15 +792,16 @@ void RouteItem::rebuildAdvancedSummary() {
     noticeIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::Shield, QColor(QStringLiteral("#237AE9")), 17));
     noticeLayout->addWidget(noticeIcon);
     auto *noticeText = new QLabel(advancedShowAllActions
-        ? tr("All actions are shown in their original global order; unknown JSON fields are preserved.")
-        : tr("Showing %1 rules · original global positions are preserved").arg(actionFilterTitle(advancedActionFilter)),
-        notice);
+                                      ? tr("All actions are shown in their original global order; unknown JSON fields are preserved.")
+                                      : tr("Showing %1 rules · original global positions are preserved").arg(actionFilterTitle(advancedActionFilter)),
+                                  notice);
     noticeText->setObjectName(QStringLiteral("routeMuted"));
     noticeText->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     noticeLayout->addWidget(noticeText, 1);
     auto *showAllButton = new QPushButton(advancedShowAllActions
-        ? tr("Show %1 only").arg(actionFilterTitle(advancedActionFilter))
-        : tr("Show all actions"), notice);
+                                              ? tr("Show %1 only").arg(actionFilterTitle(advancedActionFilter))
+                                              : tr("Show all actions"),
+                                          notice);
     showAllButton->setObjectName(QStringLiteral("routeLinkButton"));
     showAllButton->setMinimumWidth(132);
     showAllButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
@@ -974,8 +988,7 @@ void RouteItem::fetchRemote(bool applyToChain) {
     }
     if (applyToChain && !chain->IsEmpty()) {
         if (QMessageBox::question(this, tr("Fetch from remote"),
-                                  tr("This will replace the current rules with the ones fetched from the URL. Continue?"))
-            != QMessageBox::StandardButton::Yes) {
+                                  tr("This will replace the current rules with the ones fetched from the URL. Continue?")) != QMessageBox::StandardButton::Yes) {
             return;
         }
     }
@@ -1008,28 +1021,29 @@ void RouteItem::fetchRemote(bool applyToChain) {
             if (applyToChain) {
                 reloadRuleViewsFromChain();
                 const QString msg = tr("Loaded %1 rule(s) from the remote URL.").arg(target->Rules.size());
-                if (warnings.isEmpty()) MessageBoxInfo(tr("Fetched"), msg);
-                else MessageBoxInfo(tr("Fetched with warnings"), msg + "\n\n" + warnings);
+                if (warnings.isEmpty())
+                    MessageBoxInfo(tr("Fetched"), msg);
+                else
+                    MessageBoxInfo(tr("Fetched with warnings"), msg + "\n\n" + warnings);
             } else {
-                auto* dlg = new QDialog(this);
+                auto *dlg = new QDialog(this);
                 dlg->setAttribute(Qt::WA_DeleteOnClose);
                 dlg->setWindowTitle(tr("Remote routing profile preview"));
-                auto* lay = new QVBoxLayout(dlg);
-                auto* header = new QLabel(tr("%1 — %2 rule(s)").arg(target->name.isEmpty() ? tr("(unnamed)") : target->name)
-                                              .arg(target->Rules.size()), dlg);
+                auto *lay = new QVBoxLayout(dlg);
+                auto *header = new QLabel(tr("%1 — %2 rule(s)").arg(target->name.isEmpty() ? tr("(unnamed)") : target->name).arg(target->Rules.size()), dlg);
                 lay->addWidget(header);
                 if (!warnings.isEmpty()) {
-                    auto* warn = new QLabel(warnings, dlg);
+                    auto *warn = new QLabel(warnings, dlg);
                     warn->setStyleSheet(QStringLiteral("color: %1;").arg(themeManager()->Colors().danger.name()));
                     warn->setWordWrap(true);
                     lay->addWidget(warn);
                 }
-                auto* view = new QPlainTextEdit(dlg);
+                auto *view = new QPlainTextEdit(dlg);
                 view->setReadOnly(true);
                 view->setPlainText(QJsonObject2QString(target->ToShareObject(), false));
                 view->setLineWrapMode(QPlainTextEdit::NoWrap);
                 lay->addWidget(view, 1);
-                auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, dlg);
+                auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, dlg);
                 connect(buttons, &QDialogButtonBox::rejected, dlg, &QDialog::reject);
                 connect(buttons, &QDialogButtonBox::accepted, dlg, &QDialog::accept);
                 lay->addWidget(buttons);
@@ -1045,19 +1059,19 @@ static QList<QPair<QString, int>> routeItemEndpointCandidates() {
     QList<int> ids = Configs::dataManager->profilesRepo->GetProfileIdsByType("openvpn");
     ids += Configs::dataManager->profilesRepo->GetProfileIdsByType("openconnect");
     ids += Configs::dataManager->profilesRepo->GetProfileIdsByType("chain");
-    for (const int id : ids) {
+    for (const int id: ids) {
         const auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
         if (ent == nullptr || ent->outbound == nullptr) continue;
         if (!Configs::CanBeAuxEndpoint(ent)) continue;
         candidates.append({ent->outbound->DisplayTypeAndName(), id});
     }
-    std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) {
+    std::sort(candidates.begin(), candidates.end(), [](const auto &a, const auto &b) {
         return QString::localeAwareCompare(a.first, b.first) < 0;
     });
     return candidates;
 }
 
-static bool routeItemIsEndpointRule(const std::shared_ptr<Configs::RouteRule>& rule) {
+static bool routeItemIsEndpointRule(const std::shared_ptr<Configs::RouteRule> &rule) {
     return rule != nullptr && rule->type == Configs::endpointPreferredBy;
 }
 
@@ -1067,7 +1081,7 @@ static QString routeItemEndpointName(int profileId) {
     return ent->outbound->DisplayName();
 }
 
-static QString routeItemUniqueRuleName(const QString& base, const QSet<QString>& taken) {
+static QString routeItemUniqueRuleName(const QString &base, const QSet<QString> &taken) {
     QString name = base;
     for (int n = 2; taken.contains(name); n++) name = base + " (" + Int2String(n) + ")";
     return name;
@@ -1085,7 +1099,7 @@ static std::shared_ptr<Configs::RouteRule> routeItemMakeEndpointRule(int profile
 void RouteItem::setupEndpointsSection() {
     endpointCandidates = routeItemEndpointCandidates();
     QSet<int> listed;
-    for (const int profileId : chain->endpointProfileIDs) {
+    for (const int profileId: chain->endpointProfileIDs) {
         if (listed.contains(profileId)) continue;
         listed.insert(profileId);
         addEndpointRow(profileId);
@@ -1123,7 +1137,7 @@ void RouteItem::refreshEndpointCandidates() const {
         used.insert(ui->endpointList->item(i)->data(Qt::UserRole).toInt());
 
     ui->endpointPicker->clear();
-    for (const auto& [label, id] : endpointCandidates) {
+    for (const auto &[label, id]: endpointCandidates) {
         if (used.contains(id)) continue;
         ui->endpointPicker->addItem(label, id);
     }
@@ -1135,7 +1149,7 @@ void RouteItem::refreshEndpointCandidates() const {
 }
 
 void RouteItem::addEndpointRow(int profileId) const {
-    auto* row = new QListWidgetItem(ui->endpointList);
+    auto *row = new QListWidgetItem(ui->endpointList);
     row->setData(Qt::UserRole, profileId);
     const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileId);
     if (ent != nullptr && ent->outbound != nullptr) {
@@ -1177,7 +1191,7 @@ void RouteItem::syncEndpointRules() {
     QSet<int> paired;
     QSet<QString> names;
     QList<std::shared_ptr<Configs::RouteRule>> kept;
-    for (const auto& rule : chain->Rules) {
+    for (const auto &rule: chain->Rules) {
         if (routeItemIsEndpointRule(rule)) {
             if (!listed.contains(rule->outboundID) || paired.contains(rule->outboundID)) continue;
             paired.insert(rule->outboundID);
@@ -1188,11 +1202,11 @@ void RouteItem::syncEndpointRules() {
     }
     chain->Rules = kept;
 
-    for (const int id : listed) {
+    for (const int id: listed) {
         if (!paired.contains(id)) chain->Rules << routeItemMakeEndpointRule(id);
     }
 
-    for (const auto& rule : chain->Rules) {
+    for (const auto &rule: chain->Rules) {
         if (!routeItemIsEndpointRule(rule)) continue;
         rule->name = routeItemUniqueRuleName(
             RouteItem::tr("%1 route prefer").arg(routeItemEndpointName(rule->outboundID)), names);
@@ -1205,8 +1219,7 @@ void RouteItem::syncEndpointRules() {
 }
 
 bool RouteItem::currentRuleIsEndpoint() const {
-    return currentIndex >= 0 && currentIndex < chain->Rules.size()
-        && routeItemIsEndpointRule(chain->Rules[currentIndex]);
+    return currentIndex >= 0 && currentIndex < chain->Rules.size() && routeItemIsEndpointRule(chain->Rules[currentIndex]);
 }
 
 void RouteItem::applyRuleEditLock() {
@@ -1307,7 +1320,7 @@ void RouteItem::syncRouteProfileToSimpleEditors() {
     pushViaBuckets();
     QStringList advancedRuleNames;
     bool localProxyTraffic = false;
-    for (const auto& rule : chain->Rules) {
+    for (const auto &rule: chain->Rules) {
         if (rule->type == Configs::custom && !Configs::IsLocalProxyTrafficRule(rule)) advancedRuleNames.append(rule->name);
         if (Configs::IsLocalProxyTrafficRule(rule)) localProxyTraffic = true;
     }
@@ -1320,10 +1333,10 @@ void RouteItem::updateRouteItemsView() {
     ui->route_items->clear();
     if (chain->IsEmpty()) return;
 
-    for (const auto& item: chain->Rules) {
+    for (const auto &item: chain->Rules) {
         ui->route_items->addItem(item->name);
         if (!routeItemIsEndpointRule(item)) continue;
-        auto* row = ui->route_items->item(ui->route_items->count() - 1);
+        auto *row = ui->route_items->item(ui->route_items->count() - 1);
         QFont font = row->font();
         font.setItalic(true);
         row->setFont(font);
@@ -1348,21 +1361,21 @@ void RouteItem::syncRuleActionCombo() {
     ui->rule_action_combo->blockSignals(false);
 }
 
-QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
-    auto* container = new QWidget(ui->rule_attr_tabs);
-    auto* lay = new QVBoxLayout(container);
+QWidget *RouteItem::makeAttributeEditorPage(const QString &attr) {
+    auto *container = new QWidget(ui->rule_attr_tabs);
+    auto *lay = new QVBoxLayout(container);
     lay->setContentsMargins(8, 8, 8, 8);
     const auto rule = chain->Rules[currentIndex];
     const bool editable = rule->canEditAttr(attr);
 
-    const auto addDisabled = [editable](QWidget* w) { w->setEnabled(editable); };
+    const auto addDisabled = [editable](QWidget *w) { w->setEnabled(editable); };
 
     switch (Configs::RouteRule::get_input_type(attr)) {
         case Configs::trufalse: {
-            auto* cb = new QComboBox(container);
+            auto *cb = new QComboBox(container);
             cb->addItems({QStringLiteral("false"), QStringLiteral("true")});
             cb->setCurrentText(rule->get_current_value_bool(attr));
-            connect(cb, &QComboBox::currentTextChanged, this, [this, attr](const QString& t) {
+            connect(cb, &QComboBox::currentTextChanged, this, [this, attr](const QString &t) {
                 if (currentIndex < 0) return;
                 chain->Rules[currentIndex]->set_field_value(attr, {t});
                 updateRulePreview();
@@ -1372,21 +1385,21 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
             break;
         }
         case Configs::select: {
-            auto* cb = new QComboBox(container);
+            auto *cb = new QComboBox(container);
             if (attr == QStringLiteral("outbound")) {
                 cb->addItems(outbounds);
                 cb->setCurrentText(get_outbound_name(rule->outboundID));
                 connect(cb, &QComboBox::currentTextChanged, this, [this, cb] {
                     if (currentIndex < 0) return;
                     chain->Rules[currentIndex]->set_field_value(QStringLiteral("outbound"),
-                        {QString::number(outboundMap[cb->currentIndex()])});
+                                                                {QString::number(outboundMap[cb->currentIndex()])});
                     updateRulePreview();
                 });
             } else {
                 cb->addItems(Configs::RouteRule::get_values_for_field(attr));
                 const auto cur = rule->get_current_value_string(attr);
                 cb->setCurrentText(cur.isEmpty() ? QString() : cur[0]);
-                connect(cb, &QComboBox::currentTextChanged, this, [this, attr](const QString& t) {
+                connect(cb, &QComboBox::currentTextChanged, this, [this, attr](const QString &t) {
                     if (currentIndex < 0) return;
                     chain->Rules[currentIndex]->set_field_value(attr, {t});
                     updateRulePreview();
@@ -1399,7 +1412,7 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
         }
         case Configs::text: {
             if (attr == QStringLiteral("rule_set")) {
-                auto* ed = new AutoCompleteTextEdit("", geo_items, container);
+                auto *ed = new AutoCompleteTextEdit("", geo_items, container);
                 ed->setPlainText(rule->get_current_value_string(attr).join('\n'));
                 ed->setMinimumHeight(100);
                 ed->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1411,7 +1424,7 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
                 addDisabled(ed);
                 lay->addWidget(ed, 1);
             } else {
-                auto* te = new QPlainTextEdit(container);
+                auto *te = new QPlainTextEdit(container);
                 te->setPlainText(rule->get_current_value_string(attr).join('\n'));
                 te->setMinimumHeight(100);
                 te->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1434,19 +1447,19 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
 void RouteItem::ensurePlusTabBuiltOnce() {
     if (ruleAttrPlusList) return;
 
-    auto* container = new QWidget(ui->rule_attr_tabs);
-    auto* lay = new QVBoxLayout(container);
+    auto *container = new QWidget(ui->rule_attr_tabs);
+    auto *lay = new QVBoxLayout(container);
     lay->setContentsMargins(8, 8, 8, 8);
 
-    auto* hint = new QLabel(tr("Check attributes to show as tabs; unchecking clears their values."), container);
+    auto *hint = new QLabel(tr("Check attributes to show as tabs; unchecking clears their values."), container);
     hint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     ruleAttrPlusList = new QListWidget(container);
     ruleAttrPlusList->setMinimumHeight(100);
     ruleAttrPlusList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     ruleAttrPlusList->setObjectName(QStringLiteral("route_rule_attr_plus_list"));
     ruleAttrPlusList->viewport()->installEventFilter(this);
-    for (const QString& attr : Configs::RouteRule::tab_attributes()) {
-        auto* it = new QListWidgetItem(attr);
+    for (const QString &attr: Configs::RouteRule::tab_attributes()) {
+        auto *it = new QListWidgetItem(attr);
         it->setFlags(it->flags() | Qt::ItemIsUserCheckable);
         it->setCheckState(Qt::Unchecked);
         ruleAttrPlusList->addItem(it);
@@ -1477,7 +1490,7 @@ void RouteItem::syncPlusListCheckStatesFromRule() {
     ruleAttrPlusList->setEnabled(true);
     const auto rule = chain->Rules[currentIndex];
     for (int i = 0; i < ruleAttrPlusList->count(); ++i) {
-        auto* it = ruleAttrPlusList->item(i);
+        auto *it = ruleAttrPlusList->item(i);
         it->setCheckState(rule->uiVisibleAttributes.contains(it->text()) ? Qt::Checked : Qt::Unchecked);
         if (!rule->canEditAttr(it->text())) {
             it->setHidden(true);
@@ -1497,7 +1510,7 @@ void RouteItem::persistCurrentRuleAttrTabLabel() {
 void RouteItem::applyStoredRuleAttrTabSelection() {
     int sel = 0;
     if (currentIndex >= 0) {
-        const QString& pref = chain->Rules[currentIndex]->uiActiveAttributeTabLabel;
+        const QString &pref = chain->Rules[currentIndex]->uiActiveAttributeTabLabel;
         if (!pref.isEmpty()) {
             for (int i = 0; i < ui->rule_attr_tabs->count(); ++i) {
                 if (ui->rule_attr_tabs->tabText(i) == pref) {
@@ -1510,7 +1523,7 @@ void RouteItem::applyStoredRuleAttrTabSelection() {
     ui->rule_attr_tabs->setCurrentIndex(sel);
 }
 
-void RouteItem::applyAttributeVisibilityChange(const QString& attr, bool visible) {
+void RouteItem::applyAttributeVisibilityChange(const QString &attr, bool visible) {
     if (currentIndex < 0 || currentRuleIsEndpoint()) return;
     persistCurrentRuleAttrTabLabel();
     auto r = chain->Rules[currentIndex];
@@ -1525,15 +1538,15 @@ void RouteItem::applyAttributeVisibilityChange(const QString& attr, bool visible
     updateRulePreview();
 }
 
-bool RouteItem::eventFilter(QObject* watched, QEvent* event) {
+bool RouteItem::eventFilter(QObject *watched, QEvent *event) {
     if (event->type() == QEvent::MouseButtonRelease) {
-        auto* vp = qobject_cast<QWidget*>(watched);
+        auto *vp = qobject_cast<QWidget *>(watched);
         if (vp && vp->parentWidget()) {
-            auto* lw = qobject_cast<QListWidget*>(vp->parentWidget());
+            auto *lw = qobject_cast<QListWidget *>(vp->parentWidget());
             if (lw && lw->objectName() == QLatin1String("route_rule_attr_plus_list")) {
-                auto* me = static_cast<QMouseEvent*>(event);
+                auto *me = static_cast<QMouseEvent *>(event);
                 if (me->button() == Qt::LeftButton) {
-                    if (QListWidgetItem* item = lw->itemAt(me->pos())) {
+                    if (QListWidgetItem *item = lw->itemAt(me->pos())) {
                         lw->setCurrentItem(item);
                         const bool toChecked = (item->checkState() != Qt::Checked);
                         {
@@ -1565,7 +1578,7 @@ void RouteItem::rebuildRuleAttributeTabs() {
 
     const auto rule = chain->Rules[currentIndex];
     if (!routeItemIsEndpointRule(rule)) {
-        for (const QString& attr : Configs::RouteRule::tab_attributes()) {
+        for (const QString &attr: Configs::RouteRule::tab_attributes()) {
             if (!rule->uiVisibleAttributes.contains(attr)) continue;
             const int beforePlus = ui->rule_attr_tabs->count() - 1;
             ui->rule_attr_tabs->insertTab(beforePlus, makeAttributeEditorPage(attr), attr);
@@ -1662,15 +1675,15 @@ void RouteItem::on_delete_route_item_clicked() {
         if (QMessageBox::question(this, tr("Endpoint rule"),
                                   tr("This rule belongs to the endpoint \"%1\" and cannot be deleted on its own.\n\n"
                                      "Remove that endpoint from this routing profile as well?")
-                                      .arg(routeItemEndpointName(endpointID)))
-            != QMessageBox::StandardButton::Yes) {
+                                      .arg(routeItemEndpointName(endpointID))) != QMessageBox::StandardButton::Yes) {
             return;
         }
         removeEndpointRow(endpointID);
         return;
     }
     chain->Rules.removeAt(currentIndex);
-    if (chain->Rules.empty()) currentIndex = -1;
+    if (chain->Rules.empty())
+        currentIndex = -1;
     else {
         currentIndex--;
         if (currentIndex == -1) currentIndex = 0;
@@ -1683,7 +1696,7 @@ void RouteItem::on_delete_route_item_clicked() {
 // rules aim at are exactly the buckets that should be on the sidebar.
 void RouteItem::reloadViaBuckets() {
     viaBucketRules_.clear();
-    for (int profileID : chain->GetSimpleViaProfileIDs())
+    for (int profileID: chain->GetSimpleViaProfileIDs())
         viaBucketRules_[profileID] = chain->GetSimpleRules(Configs::viaProfile, profileID);
     pushViaBuckets();
 }
@@ -1692,7 +1705,7 @@ void RouteItem::pushViaBuckets() {
     QList<QPair<int, QString>> buckets;
     for (auto it = viaBucketRules_.begin(); it != viaBucketRules_.end(); ++it) {
         QString label = QString::number(it.key());
-        for (const auto &entry : viaCatalog_) {
+        for (const auto &entry: viaCatalog_) {
             if (entry.first != it.key()) continue;
             label = entry.second;
             break;

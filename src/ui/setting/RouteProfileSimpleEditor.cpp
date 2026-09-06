@@ -55,7 +55,6 @@ constexpr auto Red = "#FF4D56";
 constexpr auto Purple = "#A66CFF";
 constexpr auto Muted = "#A4ABB4";
 
-
 // Same footprint as an action, drawn as an outline so it reads as "make one"
 // rather than as another action sitting in the list.
 class AddActionButton final : public QAbstractButton {
@@ -110,10 +109,14 @@ ActionPresentation actionPresentation(int action, const QString &viaLabel = {}) 
                 QColor(Cyan), MaterialIcon::Glyph::Public};
     }
     switch (action) {
-    case 0: return {RouteProfileSimpleEditor::tr("Direct rules"), RouteProfileSimpleEditor::tr("Traffic that should bypass the proxy."), QColor(Green), MaterialIcon::Glyph::Direct};
-    case 1: return {RouteProfileSimpleEditor::tr("Block rules"), RouteProfileSimpleEditor::tr("Traffic that should be rejected."), QColor(Red), MaterialIcon::Glyph::Block};
-    case 3: return {RouteProfileSimpleEditor::tr("WARP bypass rules"), RouteProfileSimpleEditor::tr("Traffic that should bypass the WARP outbound."), QColor(Purple), MaterialIcon::Glyph::SwapVertical};
-    default: return {RouteProfileSimpleEditor::tr("Proxy rules"), RouteProfileSimpleEditor::tr("Traffic that should be routed through a proxy outbound."), QColor(Blue), MaterialIcon::Glyph::Shield};
+        case 0:
+            return {RouteProfileSimpleEditor::tr("Direct rules"), RouteProfileSimpleEditor::tr("Traffic that should bypass the proxy."), QColor(Green), MaterialIcon::Glyph::Direct};
+        case 1:
+            return {RouteProfileSimpleEditor::tr("Block rules"), RouteProfileSimpleEditor::tr("Traffic that should be rejected."), QColor(Red), MaterialIcon::Glyph::Block};
+        case 3:
+            return {RouteProfileSimpleEditor::tr("WARP bypass rules"), RouteProfileSimpleEditor::tr("Traffic that should bypass the WARP outbound."), QColor(Purple), MaterialIcon::Glyph::SwapVertical};
+        default:
+            return {RouteProfileSimpleEditor::tr("Proxy rules"), RouteProfileSimpleEditor::tr("Traffic that should be routed through a proxy outbound."), QColor(Blue), MaterialIcon::Glyph::Shield};
     }
 }
 
@@ -129,7 +132,7 @@ QString ruleDisplayValue(const QString &rule) {
     const QString value = ruleValue(rule);
     if (rule.startsWith("processPath:")) return QFileInfo(value).fileName();
     if (rule.startsWith("ruleset:")) {
-        for (const auto &prefix : {QStringLiteral("geosite-"), QStringLiteral("geoip-")})
+        for (const auto &prefix: {QStringLiteral("geosite-"), QStringLiteral("geoip-")})
             if (value.startsWith(prefix)) return value.mid(prefix.size());
     }
     return value;
@@ -182,8 +185,7 @@ protected:
         } else if (rule_.startsWith("ip:")) {
             border = QColor("#46402E");
             fill = QColor("#25231D");
-        }
-        else if (rule_.startsWith("suffix:") || rule_.startsWith("keyword:") || rule_.startsWith("regex:")) {
+        } else if (rule_.startsWith("suffix:") || rule_.startsWith("keyword:") || rule_.startsWith("regex:")) {
             border = QColor("#2B3F4A");
             fill = QColor("#1A242A");
         }
@@ -296,7 +298,7 @@ private:
         }
         const QString needle = filter_ ? filter_->text().trimmed() : QString();
         QStringList matching;
-        for (const QString &rule : rules_)
+        for (const QString &rule: rules_)
             if (needle.isEmpty() || rule.contains(needle, Qt::CaseInsensitive)) matching.append(rule);
         std::sort(matching.begin(), matching.end(), [](const QString &left, const QString &right) {
             const QString leftKind = rulePrefix(left);
@@ -353,7 +355,6 @@ private:
     bool showAll_ = false;
 };
 
-
 QString ruleKindLabel(const QString &kind) {
     if (kind == QStringLiteral("domain")) return RouteProfileSimpleEditor::tr("domains");
     if (kind == QStringLiteral("suffix")) return RouteProfileSimpleEditor::tr("suffixes");
@@ -366,7 +367,7 @@ QString ruleKindLabel(const QString &kind) {
 
 QStringList cleanedRules(const QString &rules) {
     QStringList result;
-    for (const QString &line : rules.split('\n')) {
+    for (const QString &line: rules.split('\n')) {
         const QString clean = line.trimmed();
         if (!clean.isEmpty() && !result.contains(clean)) result.append(clean);
     }
@@ -518,7 +519,7 @@ RouteProfileSimpleEditor::RouteProfileSimpleEditor(QWidget *parent) : QWidget(pa
         quickDetails->setVisible(show);
         quickHeadingSubtitle->setVisible(show);
         quickExpander->setIcon(MaterialIcon::icon(show ? MaterialIcon::Glyph::ChevronDown : MaterialIcon::Glyph::ChevronRight,
-                                                   QColor(Muted), 18));
+                                                  QColor(Muted), 18));
     });
     quickOptionsCard_ = quick;
 
@@ -862,7 +863,7 @@ void RouteProfileSimpleEditor::setAdvancedRuleCount(int count) {
 
 void RouteProfileSimpleEditor::setAdvancedRules(const QStringList &names) {
     advancedRules_.clear();
-    for (const QString &name : names) advancedRules_.append(QStringLiteral("raw:") + name);
+    for (const QString &name: names) advancedRules_.append(QStringLiteral("raw:") + name);
     advancedRuleCount_ = advancedRules_.size();
     updateTotalCount();
     rebuild();
@@ -885,7 +886,7 @@ void RouteProfileSimpleEditor::setLocalProxyTrafficEnabled(bool enabled) {
 QString RouteProfileSimpleEditor::viaLabelFor(int action) const {
     if (!isViaAction(action)) return {};
     const int profileID = viaProfileOf(action);
-    for (const auto &[id, label] : viaBuckets_) {
+    for (const auto &[id, label]: viaBuckets_) {
         if (id == profileID) return label;
     }
     return {};
@@ -901,8 +902,10 @@ void RouteProfileSimpleEditor::setViaBuckets(const QList<QPair<int, QString>> &b
     viaBuckets_ = buckets;
     rebuildSidebar();
     // The selected bucket may have just been removed from under the selection.
-    if (isViaAction(selectedAction_) && !actionButtons_.contains(selectedAction_)) selectAction(2);
-    else rebuild();
+    if (isViaAction(selectedAction_) && !actionButtons_.contains(selectedAction_))
+        selectAction(2);
+    else
+        rebuild();
 }
 
 void RouteProfileSimpleEditor::setViaCatalog(const QList<QPair<int, QString>> &profiles) {
@@ -918,13 +921,18 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
     }
     actionButtons_.clear();
 
-    const struct { int action; const char *title; MaterialIcon::Glyph glyph; const char *tone; } actions[] = {
+    const struct {
+        int action;
+        const char *title;
+        MaterialIcon::Glyph glyph;
+        const char *tone;
+    } actions[] = {
         {0, QT_TR_NOOP("Direct"), MaterialIcon::Glyph::Direct, Green},
         {2, QT_TR_NOOP("Proxy"), MaterialIcon::Glyph::Shield, Blue},
         {1, QT_TR_NOOP("Block"), MaterialIcon::Glyph::Block, Red},
         {3, QT_TR_NOOP("WARP bypass"), MaterialIcon::Glyph::SwapVertical, Purple},
     };
-    for (const auto &item : actions) {
+    for (const auto &item: actions) {
         auto *button = new ActionButton(item.glyph, tr(item.title), QColor(item.tone), sidebar_);
         actionButtons_[item.action] = button;
         connect(button, &QAbstractButton::clicked, this, [this, action = item.action] { selectAction(action); });
@@ -937,7 +945,7 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
         divider->setFixedHeight(1);
         sideLayout_->addWidget(divider);
     }
-    for (const auto &[profileID, label] : viaBuckets_) {
+    for (const auto &[profileID, label]: viaBuckets_) {
         const int action = viaAction(profileID);
         auto *button = new ActionButton(MaterialIcon::Glyph::Public, label, QColor(Cyan), sidebar_);
         button->setScrollsWhenTooLong(true);
@@ -947,8 +955,7 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
         connect(button, &QAbstractButton::clicked, this, [this, action] { selectAction(action); });
         connect(button, &QWidget::customContextMenuRequested, this, [this, profileID, label](const QPoint &) {
             if (QMessageBox::question(this, tr("Remove action"),
-                                      tr("Remove the action for %1 and every rule in it?").arg(label))
-                != QMessageBox::Yes)
+                                      tr("Remove the action for %1 and every rule in it?").arg(label)) != QMessageBox::Yes)
                 return;
             emit viaBucketRemoved(profileID);
         });
@@ -960,7 +967,7 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
 
 void RouteProfileSimpleEditor::addViaBucket() {
     QList<QPair<int, QString>> available;
-    for (const auto &entry : viaCatalog_) {
+    for (const auto &entry: viaCatalog_) {
         const bool taken = std::any_of(viaBuckets_.begin(), viaBuckets_.end(),
                                        [&entry](const auto &b) { return b.first == entry.first; });
         if (!taken) available << entry;
@@ -973,7 +980,7 @@ void RouteProfileSimpleEditor::addViaBucket() {
 
     QStringList labels;
     labels.reserve(available.size());
-    for (const auto &[id, label] : available) labels << label;
+    for (const auto &[id, label]: available) labels << label;
     bool picked = false;
     const auto choice = QInputDialog::getItem(this, tr("Add profile"),
                                               tr("Rules in the new action leave through this profile:"),
@@ -1009,29 +1016,28 @@ void RouteProfileSimpleEditor::rebuild() {
     QStringList domains;
     QStringList ruleSets;
     QStringList network;
-    for (const QString &rule : rules_.value(selectedAction_)) {
+    for (const QString &rule: rules_.value(selectedAction_)) {
         const QString prefix = rulePrefix(rule);
-        if (prefix == "processName" || prefix == "processPath") applications.append(rule);
-        else if (prefix == "ip" || (prefix == "ruleset" && ruleValue(rule).startsWith("geoip-"))) network.append(rule);
-        else if (prefix == "ruleset") ruleSets.append(rule);
-        else domains.append(rule);
+        if (prefix == "processName" || prefix == "processPath")
+            applications.append(rule);
+        else if (prefix == "ip" || (prefix == "ruleset" && ruleValue(rule).startsWith("geoip-")))
+            network.append(rule);
+        else if (prefix == "ruleset")
+            ruleSets.append(rule);
+        else
+            domains.append(rule);
     }
     const auto remove = [this](const QString &rule) { removeRule(rule); };
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-        new RuleCard(tr("Applications"), tr("Match by installed app, running process, or executable."), MaterialIcon::Glyph::Apps,
-                      QColor(Blue), applications, true, remove, [this] { addApplicationRules(); }, this));
+                               new RuleCard(tr("Applications"), tr("Match by installed app, running process, or executable."), MaterialIcon::Glyph::Apps, QColor(Blue), applications, true, remove, [this] { addApplicationRules(); }, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-        new RuleCard(tr("Domains"), tr("Match domain names, suffixes, keywords, and regexes."), MaterialIcon::Glyph::Public,
-                      QColor(Cyan), domains, true, remove, [this] { addRule(QStringLiteral("domain")); }, this));
+                               new RuleCard(tr("Domains"), tr("Match domain names, suffixes, keywords, and regexes."), MaterialIcon::Glyph::Public, QColor(Cyan), domains, true, remove, [this] { addRule(QStringLiteral("domain")); }, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-        new RuleCard(tr("Rule sets"), tr("Remote geosite lists, matched as a whole."), MaterialIcon::Glyph::List,
-                      QColor(Purple), ruleSets, true, remove, [this] { addRule(QStringLiteral("ruleset")); }, this));
+                               new RuleCard(tr("Rule sets"), tr("Remote geosite lists, matched as a whole."), MaterialIcon::Glyph::List, QColor(Purple), ruleSets, true, remove, [this] { addRule(QStringLiteral("ruleset")); }, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-        new RuleCard(tr("IP addresses & ranges"), tr("Match destination IP addresses, CIDR ranges, and geoip lists."), MaterialIcon::Glyph::Process,
-                      QColor(Green), network, false, remove, [this] { addRule(QStringLiteral("network")); }, this));
+                               new RuleCard(tr("IP addresses & ranges"), tr("Match destination IP addresses, CIDR ranges, and geoip lists."), MaterialIcon::Glyph::Process, QColor(Green), network, false, remove, [this] { addRule(QStringLiteral("network")); }, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-        new RuleCard(tr("Advanced / raw rules"), tr("Ordered conditions, exact priority, and lossless JSON."), MaterialIcon::Glyph::List,
-                      QColor(Cyan), advancedRules_, false, {}, [this] { emit advancedEditorRequested(); }, this));
+                               new RuleCard(tr("Advanced / raw rules"), tr("Ordered conditions, exact priority, and lossless JSON."), MaterialIcon::Glyph::List, QColor(Cyan), advancedRules_, false, {}, [this] { emit advancedEditorRequested(); }, this));
 }
 
 void RouteProfileSimpleEditor::bulkEdit() {
@@ -1043,20 +1049,24 @@ void RouteProfileSimpleEditor::bulkEdit() {
     layout->setSpacing(9);
 
     auto *hint = new QLabel(tr("Every rule of “%1”, one per line. Editing here replaces the whole list, "
-                               "and each entry lands in its own card automatically.").arg(presentation.title), &dialog);
+                               "and each entry lands in its own card automatically.")
+                                .arg(presentation.title),
+                            &dialog);
     hint->setObjectName("routeMuted");
     hint->setWordWrap(true);
     layout->addWidget(hint);
     auto *legend = new QLabel(tr("Prefixes: domain:  suffix:  keyword:  regex:  ruleset:  ip:  processName:  processPath:\n"
                                  "A line without a prefix is recognised on its own — sing-box spellings "
-                                 "(domain_suffix, process_name, rule_set…) are accepted too."), &dialog);
+                                 "(domain_suffix, process_name, rule_set…) are accepted too."),
+                              &dialog);
     legend->setObjectName("routeEmpty");
     legend->setWordWrap(true);
     layout->addWidget(legend);
 
     auto *editor = new QPlainTextEdit(&dialog);
-    editor->setPlaceholderText(QStringLiteral("domain:example.com\nsuffix:example.org\nprocessName:Discord.exe\n"
-                                              "ruleset:geosite-openai\nip:198.51.100.0/24"));
+    editor->setPlaceholderText(QStringLiteral(
+        "domain:example.com\nsuffix:example.org\nprocessName:Discord.exe\n"
+        "ruleset:geosite-openai\nip:198.51.100.0/24"));
     QStringList sorted = rules_.value(selectedAction_);
     std::sort(sorted.begin(), sorted.end(), [](const QString &left, const QString &right) {
         const QString leftKind = rulePrefix(left);
@@ -1081,20 +1091,22 @@ void RouteProfileSimpleEditor::bulkEdit() {
     const auto parse = [editor] {
         QStringList parsed;
         QStringList rejected;
-        for (const QString &line : editor->toPlainText().split('\n')) {
+        for (const QString &line: editor->toPlainText().split('\n')) {
             const QString clean = line.trimmed();
             if (clean.isEmpty() || clean.startsWith(QLatin1Char('#')) || clean.startsWith(QStringLiteral("//")))
                 continue;
             const QString rule = Configs::NormalizeRuleLine(clean);
-            if (rule.isEmpty()) rejected.append(clean);
-            else if (!parsed.contains(rule)) parsed.append(rule);
+            if (rule.isEmpty())
+                rejected.append(clean);
+            else if (!parsed.contains(rule))
+                parsed.append(rule);
         }
         return std::pair{parsed, rejected};
     };
     const auto refreshSummary = [parse, summary, warning] {
         const auto [parsed, rejected] = parse();
         QMap<QString, int> counts;
-        for (const QString &rule : parsed) {
+        for (const QString &rule: parsed) {
             QString kind = rulePrefix(rule);
             if (kind == QStringLiteral("processPath")) kind = QStringLiteral("processName");
             ++counts[kind];
@@ -1107,7 +1119,8 @@ void RouteProfileSimpleEditor::bulkEdit() {
         warning->setVisible(!rejected.isEmpty());
         if (!rejected.isEmpty())
             warning->setText(RouteProfileSimpleEditor::tr("%1 line(s) will be dropped — add a prefix to keep them: %2")
-                                 .arg(rejected.size()).arg(rejected.mid(0, 3).join(QStringLiteral(", "))));
+                                 .arg(rejected.size())
+                                 .arg(rejected.mid(0, 3).join(QStringLiteral(", "))));
     };
     connect(editor, &QPlainTextEdit::textChanged, &dialog, refreshSummary);
     refreshSummary();
@@ -1136,7 +1149,7 @@ void RouteProfileSimpleEditor::addApplicationRules() {
     themeManager()->RegisterStyle(&picker, RouteProfileSimpleEditor::dialogStyleSheet());
     if (picker.exec() != QDialog::Accepted) return;
     bool changed = false;
-    for (const QString &rule : picker.selectedRules()) {
+    for (const QString &rule: picker.selectedRules()) {
         if (!rules_[selectedAction_].contains(rule)) {
             rules_[selectedAction_].append(rule);
             changed = true;
@@ -1154,10 +1167,11 @@ void RouteProfileSimpleEditor::addRule(const QString &section) {
     dialog.setObjectName("routeAddDialog");
     auto *layout = new QVBoxLayout(&dialog);
     auto *hint = new QLabel(section == QStringLiteral("network")
-        ? tr("Paste one or more destination IP addresses or CIDR ranges, one per line.")
-        : section == QStringLiteral("ruleset")
-        ? tr("Pick one or more geosite lists. Each is matched as a whole.")
-        : tr("Paste one or more values, one per line, or choose several rule sets."), &dialog);
+                                ? tr("Paste one or more destination IP addresses or CIDR ranges, one per line.")
+                            : section == QStringLiteral("ruleset")
+                                ? tr("Pick one or more geosite lists. Each is matched as a whole.")
+                                : tr("Paste one or more values, one per line, or choose several rule sets."),
+                            &dialog);
     hint->setObjectName("routeMuted");
     layout->addWidget(hint);
     auto *type = new QComboBox(&dialog);
@@ -1207,7 +1221,7 @@ void RouteProfileSimpleEditor::addRule(const QString &section) {
         catalogList->clear();
         if (!showCatalog) return;
         const QString prefix = kind + '-';
-        for (const QString &name : ruleSetCatalog_) {
+        for (const QString &name: ruleSetCatalog_) {
             if (!name.startsWith(prefix, Qt::CaseInsensitive)) continue;
             auto *item = new QListWidgetItem(name.mid(prefix.size()), catalogList);
             item->setData(Qt::UserRole, name);
@@ -1219,8 +1233,7 @@ void RouteProfileSimpleEditor::addRule(const QString &section) {
     connect(catalogSearch, &QLineEdit::textChanged, &dialog, [catalogList](const QString &needle) {
         for (int row = 0; row < catalogList->count(); ++row) {
             auto *item = catalogList->item(row);
-            const bool visible = item->text().contains(needle, Qt::CaseInsensitive)
-                || item->data(Qt::UserRole).toString().contains(needle, Qt::CaseInsensitive);
+            const bool visible = item->text().contains(needle, Qt::CaseInsensitive) || item->data(Qt::UserRole).toString().contains(needle, Qt::CaseInsensitive);
             item->setHidden(!visible);
         }
     });
@@ -1232,14 +1245,16 @@ void RouteProfileSimpleEditor::addRule(const QString &section) {
     dialog.setStyleSheet(styleSheet());
     dialog.setMinimumWidth(460);
     updateCatalog();
-    if (section == QStringLiteral("ruleset")) catalogSearch->setFocus();
-    else value->setFocus();
+    if (section == QStringLiteral("ruleset"))
+        catalogSearch->setFocus();
+    else
+        value->setFocus();
     if (dialog.exec() != QDialog::Accepted) return;
     const QString kind = type->currentData().toString();
     const bool selectedRuleSet = kind == QStringLiteral("geosite") || kind == QStringLiteral("geoip");
     QStringList values;
     if (selectedRuleSet) {
-        for (QListWidgetItem *item : catalogList->selectedItems())
+        for (QListWidgetItem *item: catalogList->selectedItems())
             values.append(item->data(Qt::UserRole).toString());
     } else {
         values = cleanedRules(value->toPlainText());
@@ -1247,7 +1262,7 @@ void RouteProfileSimpleEditor::addRule(const QString &section) {
     if (values.isEmpty()) return;
     const QString prefix = selectedRuleSet ? QStringLiteral("ruleset") : kind;
     bool changed = false;
-    for (const QString &entry : values) {
+    for (const QString &entry: values) {
         const QString rule = prefix + ':' + entry;
         if (rules_[selectedAction_].contains(rule)) continue;
         rules_[selectedAction_].append(rule);

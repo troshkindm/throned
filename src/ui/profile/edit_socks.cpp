@@ -3,7 +3,6 @@
 EditSocks::EditSocks(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditSocks) {
-
     ui->setupUi(this);
 }
 

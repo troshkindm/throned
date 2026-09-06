@@ -15,10 +15,10 @@
 #include "include/ui/setting/OtpItem.h"
 
 namespace {
-    constexpr int TICK_MS = 1000;
-    constexpr int LIST_MIN_HEIGHT = 280;
-    constexpr int POPUP_MIN_WIDTH = 380;
-}
+constexpr int TICK_MS = 1000;
+constexpr int LIST_MIN_HEIGHT = 280;
+constexpr int POPUP_MIN_WIDTH = 380;
+} // namespace
 
 TrayOtpCodes::TrayOtpCodes(QWidget *parent) : TrayPopupFrame(parent) {
     setMinimumWidth(POPUP_MIN_WIDTH);
@@ -57,8 +57,7 @@ void TrayOtpCodes::rebuild() {
     shown.clear();
     for (int i = 0; i < profiles.size(); ++i) {
         const auto &profile = profiles[i];
-        if (!query.isEmpty() && !profile->name.toLower().contains(query)
-            && !profile->issuer.toLower().contains(query))
+        if (!query.isEmpty() && !profile->name.toLower().contains(query) && !profile->issuer.toLower().contains(query))
             continue;
         shown.append(i);
         auto *item = new QListWidgetItem(m_list);

@@ -33,7 +33,7 @@ class TestTrafficStats : public QObject {
     }
 
     static Configs::AppUsage usageFor(const QList<Configs::AppUsage> &rows, const QString &name) {
-        for (const auto &row : rows)
+        for (const auto &row: rows)
             if (row.process_name == name) return row;
         return {};
     }

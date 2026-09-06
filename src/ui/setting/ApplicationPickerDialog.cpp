@@ -121,9 +121,9 @@ QList<ApplicationEntry> installedApplications() {
         QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall"),
         QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"),
     };
-    for (const QString &rootName : uninstallRoots) {
+    for (const QString &rootName: uninstallRoots) {
         QSettings root(rootName, QSettings::NativeFormat);
-        for (const QString &group : root.childGroups()) {
+        for (const QString &group: root.childGroups()) {
             root.beginGroup(group);
             const QString name = root.value(QStringLiteral("DisplayName")).toString();
             const QString path = normalizedExecutablePath(root.value(QStringLiteral("DisplayIcon")).toString());
@@ -136,9 +136,9 @@ QList<ApplicationEntry> installedApplications() {
         QStringLiteral("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths"),
         QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths"),
     };
-    for (const QString &rootName : appPathRoots) {
+    for (const QString &rootName: appPathRoots) {
         QSettings root(rootName, QSettings::NativeFormat);
-        for (const QString &group : root.childGroups()) {
+        for (const QString &group: root.childGroups()) {
             root.beginGroup(group);
             const QString path = normalizedExecutablePath(root.value(QString()).toString());
             root.endGroup();
@@ -189,18 +189,18 @@ QList<ApplicationEntry> installedApplications() {
     QSet<QString> seen;
 #ifdef Q_OS_MACOS
     const QStringList roots = {QStringLiteral("/Applications"), QDir::homePath() + QStringLiteral("/Applications")};
-    for (const QString &root : roots) {
+    for (const QString &root: roots) {
         QDir directory(root);
-        for (const QFileInfo &bundle : directory.entryInfoList({QStringLiteral("*.app")}, QDir::Dirs | QDir::NoDotAndDotDot))
+        for (const QFileInfo &bundle: directory.entryInfoList({QStringLiteral("*.app")}, QDir::Dirs | QDir::NoDotAndDotDot))
             appendUnique(result, seen, bundle.completeBaseName(), bundle.absoluteFilePath());
     }
 #else
     QStringList roots = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
     roots << QStringLiteral("/usr/share/applications") << QStringLiteral("/usr/local/share/applications");
     roots.removeDuplicates();
-    for (const QString &root : roots) {
+    for (const QString &root: roots) {
         QDir directory(root);
-        for (const QFileInfo &desktopFile : directory.entryInfoList({QStringLiteral("*.desktop")}, QDir::Files)) {
+        for (const QFileInfo &desktopFile: directory.entryInfoList({QStringLiteral("*.desktop")}, QDir::Files)) {
             QSettings desktop(desktopFile.absoluteFilePath(), QSettings::IniFormat);
             desktop.beginGroup(QStringLiteral("Desktop Entry"));
             if (desktop.value(QStringLiteral("NoDisplay")).toBool()) {
@@ -223,7 +223,7 @@ QList<ApplicationEntry> runningApplications() {
     QSet<QString> seen;
 #ifdef Q_OS_LINUX
     QDir proc(QStringLiteral("/proc"));
-    for (const QString &pid : proc.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+    for (const QString &pid: proc.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
         bool numeric = false;
         pid.toUInt(&numeric);
         if (!numeric) continue;
@@ -234,7 +234,7 @@ QList<ApplicationEntry> runningApplications() {
     QProcess process;
     process.start(QStringLiteral("ps"), {QStringLiteral("-axo"), QStringLiteral("comm=")});
     if (process.waitForFinished(5000)) {
-        for (const QByteArray &line : process.readAllStandardOutput().split('\n')) {
+        for (const QByteArray &line: process.readAllStandardOutput().split('\n')) {
             const QString path = QString::fromUtf8(line).trimmed();
             if (!path.isEmpty()) appendRunningUnique(result, seen, QFileInfo(path).fileName(), path);
         }
@@ -374,9 +374,12 @@ public:
 
     void updateAcceptState() const {
         bool enabled = false;
-        if (tabs->currentIndex() == 0) enabled = installedTable->selectionModel()->hasSelection();
-        else if (tabs->currentIndex() == 1) enabled = runningTable->selectionModel()->hasSelection();
-        else enabled = !filePath->text().trimmed().isEmpty();
+        if (tabs->currentIndex() == 0)
+            enabled = installedTable->selectionModel()->hasSelection();
+        else if (tabs->currentIndex() == 1)
+            enabled = runningTable->selectionModel()->hasSelection();
+        else
+            enabled = !filePath->text().trimmed().isEmpty();
         accept->setEnabled(enabled);
     }
 
@@ -398,12 +401,12 @@ public:
         const bool exactPath = matcher->currentData().toString() == QStringLiteral("processPath");
         QModelIndexList rows = table->selectionModel()->selectedRows(0);
         std::ranges::sort(rows, {}, [](const QModelIndex &index) { return index.row(); });
-        for (const QModelIndex &index : rows) {
+        for (const QModelIndex &index: rows) {
             const QString path = index.data(PathRole).toString();
             const QString executableName = index.data(ExecutableNameRole).toString();
             const QString rule = exactPath && !path.isEmpty()
-                ? QStringLiteral("processPath:") + path
-                : QStringLiteral("processName:") + executableName;
+                                     ? QStringLiteral("processPath:") + path
+                                     : QStringLiteral("processName:") + executableName;
             if (!result.contains(rule)) result.append(rule);
         }
         return result;
@@ -546,8 +549,8 @@ QHash<QString, QString> buildExecutableIndex() {
     QHash<QString, QString> index;
     // Running processes win over installed applications: they name the binary
     // that a process rule will actually match.
-    for (const QList<ApplicationEntry> &entries : {runningApplications(), installedApplications()}) {
-        for (const ApplicationEntry &entry : entries) {
+    for (const QList<ApplicationEntry> &entries: {runningApplications(), installedApplications()}) {
+        for (const ApplicationEntry &entry: entries) {
             if (entry.path.isEmpty()) continue;
             const QString key = QFileInfo(entry.path).fileName().toCaseFolded();
             if (!key.isEmpty() && !index.contains(key)) index.insert(key, entry.path);
@@ -597,7 +600,7 @@ void resolve(const QString &executableName, QObject *context, std::function<void
             g_indexReady = true;
             g_indexBuilding = false;
             const QList<std::function<void()>> waiting = std::exchange(g_waiting, {});
-            for (const auto &callback : waiting) callback();
+            for (const auto &callback: waiting) callback();
         });
     });
 }

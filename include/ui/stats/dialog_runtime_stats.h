@@ -14,7 +14,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogRuntimeStats;
+class DialogRuntimeStats;
 }
 QT_END_NAMESPACE
 

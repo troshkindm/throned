@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditTailScale;
+class EditTailScale;
 }
 QT_END_NAMESPACE
 

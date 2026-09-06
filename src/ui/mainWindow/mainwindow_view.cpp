@@ -43,11 +43,14 @@
 
 void MainWindow::applyTopBarMetrics() {
     // MainPreview deliberately lets each compact nav item fit its own label.
-    const QList<QToolButton*> menuButtons = {
-        ui->toolButton_program, ui->toolButton_preferences, ui->toolButton_testing,
-        ui->toolButton_routing, ui->toolButton_tools,
+    const QList<QToolButton *> menuButtons = {
+        ui->toolButton_program,
+        ui->toolButton_preferences,
+        ui->toolButton_testing,
+        ui->toolButton_routing,
+        ui->toolButton_tools,
     };
-    for (auto *button : menuButtons) {
+    for (auto *button: menuButtons) {
         button->setMinimumWidth(0);
         button->setMaximumWidth(QWIDGETSIZE_MAX);
         button->updateGeometry();
@@ -59,11 +62,9 @@ void MainWindow::applyTopBarMetrics() {
     FitWindowToScreen(this);
 }
 
-void MainWindow::UpdateDataView(bool force)
-{
+void MainWindow::UpdateDataView(bool force) {
     const auto now = QDateTime::currentMSecsSinceEpoch();
-    if (!force && now - lastUpdatedMs.load() < 100)
-    {
+    if (!force && now - lastUpdatedMs.load() < 100) {
         return;
     }
     auto html = dataViewHtmlGenerator_.buildHtml();
@@ -72,25 +73,23 @@ void MainWindow::UpdateDataView(bool force)
         const bool hasTransientStatus = !html.trimmed().isEmpty();
         ui->data_view->setFixedHeight(hasTransientStatus ? 72 : 0);
         ui->data_view->setVisible(hasTransientStatus);
-        const bool hasBatchSelection = ui->profilesTableView->selectionModel()
-            && ui->profilesTableView->selectionModel()->selectedRows().size() > 1;
+        const bool hasBatchSelection = ui->profilesTableView->selectionModel() && ui->profilesTableView->selectionModel()->selectedRows().size() > 1;
         if (auto *connectedStatus = findChild<QFrame *>(QStringLiteral("statusCard"))) {
             connectedStatus->setVisible(!hasTransientStatus && !hasBatchSelection);
         }
         if (auto *selectionStatus = findChild<QFrame *>(QStringLiteral("selectionCard"))) {
             selectionStatus->setVisible(!hasTransientStatus && hasBatchSelection);
         }
-    }, true);
+    },
+                  true);
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }
 
-void MainWindow::setDownloadReport(const DownloadProgressReport& report, bool show)
-{
+void MainWindow::setDownloadReport(const DownloadProgressReport &report, bool show) {
     dataViewHtmlGenerator_.setDownloadReport(report, show);
 }
 
-void MainWindow::refresh_auto_selector_view()
-{
+void MainWindow::refresh_auto_selector_view() {
     const auto view = Stats::autoSelectorMonitor->Snapshot();
     dataViewHtmlGenerator_.setAutoSelectorStatus(view.valid ? view.summary() : QString(),
                                                  view.valid ? view.detail() : QString());
@@ -102,7 +101,7 @@ void MainWindow::refresh_auto_selector_view()
 void MainWindow::updateLogFilterFields() {
     const auto level = Configs::SingBox::NormalizeLogLevel(Configs::dataManager->settingsRepo->log_level);
     if (logLevelActions != nullptr) {
-        for (QAction *action : logLevelActions->actions()) {
+        for (QAction *action: logLevelActions->actions()) {
             const QSignalBlocker blocker(action);
             action->setChecked(action->data().toString() == level);
         }
@@ -115,8 +114,8 @@ void MainWindow::updateLogFilterFields() {
         minLogLevelRank = rank;
         includeKeywords.clear();
         excludeKeywords.clear();
-        for (const auto& inKeyword : Configs::dataManager->settingsRepo->log_include_keyword) includeKeywords.append(inKeyword);
-        for (const auto& exKeyword : Configs::dataManager->settingsRepo->log_exclude_keyword) excludeKeywords.append(exKeyword);
+        for (const auto &inKeyword: Configs::dataManager->settingsRepo->log_include_keyword) includeKeywords.append(inKeyword);
+        for (const auto &exKeyword: Configs::dataManager->settingsRepo->log_exclude_keyword) excludeKeywords.append(exKeyword);
         includeCombined.setPattern(Configs::dataManager->settingsRepo->log_include_regex.join("|"));
         excludeCombined.setPattern(Configs::dataManager->settingsRepo->log_exclude_regex.join("|"));
         includeCombined.optimize();
@@ -130,21 +129,18 @@ void MainWindow::updateLogFilterFields() {
         // Raising hides lines at once, but lowering cannot invent what the core never
         // emitted: it keeps writing at the level it started with until it restarts.
         if (Configs::dataManager->settingsRepo->started_id >= 0 && coreLogLevelRank_ >= 0 && rank < coreLogLevelRank_) {
-            notice += QLatin1Char(' ')
-                + tr("The running core writes at %1 - restart it to get more.")
-                      .arg(Configs::SingBox::LogLevels.value(coreLogLevelRank_));
+            notice += QLatin1Char(' ') + tr("The running core writes at %1 - restart it to get more.")
+                                             .arg(Configs::SingBox::LogLevels.value(coreLogLevelRank_));
         }
         MW_show_log(notice);
     }
 }
 
 bool MainWindow::searchesEveryGroup() const {
-    return Configs::dataManager->settingsRepo->profiles_search_all_groups
-        && !globalFilterString.isEmpty();
+    return Configs::dataManager->settingsRepo->profiles_search_all_groups && !globalFilterString.isEmpty();
 }
 
-void MainWindow::applyProfileFilters()
-{
+void MainWindow::applyProfileFilters() {
     if (!profilesFilterModel) return;
     profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, countryFilterString);
     profilesFilterModel->setSearch(globalFilterString);
@@ -183,14 +179,13 @@ void MainWindow::setStatusText(QLabel *label, const QString &text) {
 }
 
 void MainWindow::refresh_status(const QString &traffic_update) {
-    const auto* settings = Configs::dataManager->settingsRepo.get();
+    const auto *settings = Configs::dataManager->settingsRepo.get();
 
-    auto refresh_speed_label = [=,this] {
+    auto refresh_speed_label = [=, this] {
         if (settings->disable_traffic_stats) {
             setStatusText(ui->label_speed, "");
             setStatusText(statusDirectSpeed, "");
-        }
-        else if (traffic_update_cache == "") {
+        } else if (traffic_update_cache == "") {
             // Same shape as the populated state so the status bar does not
             // reflow, but with a placeholder instead of a dangling number.
             const QString idle = QStringLiteral("↑ —   ↓ —");
@@ -268,7 +263,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
     const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
 
-    auto make_title = [=,this](bool isTray) {
+    auto make_title = [=, this](bool isTray) {
         QStringList tt;
         if (!isTray && Configs::IsAdmin()) tt << "[Admin]";
         if (select_mode) tt << "[" + tr("Select") + "]";
@@ -326,16 +321,20 @@ void MainWindow::refresh_startstop_button() {
     const auto &settings = Configs::dataManager->settingsRepo;
 
     StartStopButton::State state;
-    if (m_profileConnecting) state = StartStopButton::State::Connecting;
-    else if (m_profileDisconnecting) state = StartStopButton::State::Disconnecting;
-    else if (running != nullptr) state = StartStopButton::State::Running;
-    else if (get_profile_to_start() >= 0) state = StartStopButton::State::Idle;
-    else state = StartStopButton::State::Disabled;
+    if (m_profileConnecting)
+        state = StartStopButton::State::Connecting;
+    else if (m_profileDisconnecting)
+        state = StartStopButton::State::Disconnecting;
+    else if (running != nullptr)
+        state = StartStopButton::State::Running;
+    else if (get_profile_to_start() >= 0)
+        state = StartStopButton::State::Idle;
+    else
+        state = StartStopButton::State::Disabled;
     btn->setState(state);
 }
 
-void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp)
-{
+void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp) {
     if (speedChartWidget) {
         speedChartWidget->addSample(proxyDl, proxyUp, directDl, directUp);
     }
@@ -345,7 +344,7 @@ void MainWindow::refresh_proxy_list_column_size() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (!group || !ui->profilesTableView->isVisible()) return;
 
-    auto *hHeader = dynamic_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
+    auto *hHeader = dynamic_cast<ProfilesTableFilterHeader *>(ui->profilesTableView->horizontalHeader());
     QTimer::singleShot(0, ui->profilesTableView, [=, this]() {
         // The resizeSection / scrollbar-policy changes below re-enter here via valueChanged.
         if (m_adjustingColumns) return;
@@ -359,15 +358,14 @@ void MainWindow::refresh_proxy_list_column_size() {
         if (!group->column_width.isEmpty() && group->column_width.size() != columnCount) {
             group->column_width.clear();
         }
-        const bool comfortable = profilesTableModel != nullptr
-            && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable;
+        const bool comfortable = profilesTableModel != nullptr && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable;
         // Comfortable columns are stretch + fixed, never user-dragged, so a width
         // saved by an older build must not freeze them.
         if (comfortable) {
             group->column_width.clear();
             hHeader->setSectionResizeMode(ProfilesTableModel::ColcServer, QHeaderView::Stretch);
-            for (int col : {ProfilesTableModel::ColcPing, ProfilesTableModel::ColcSpeed,
-                            ProfilesTableModel::ColcTraffic}) {
+            for (int col: {ProfilesTableModel::ColcPing, ProfilesTableModel::ColcSpeed,
+                           ProfilesTableModel::ColcTraffic}) {
                 hHeader->setSectionResizeMode(col, QHeaderView::Fixed);
                 hHeader->resizeSection(col, ProfileRowDelegate::metricColumnWidth(
                                                 col, ui->profilesTableView->font()));
@@ -382,8 +380,8 @@ void MainWindow::refresh_proxy_list_column_size() {
             hHeader->setSectionResizeMode(ProfilesTableModel::ColTestResult, QHeaderView::ResizeToContents);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColTraffic, QHeaderView::ResizeToContents);
             // ResizeToContents only measures on-screen rows, so pin these or they jitter while scrolling.
-            for (int col : {ProfilesTableModel::ColType,
-                            ProfilesTableModel::ColTestResult, ProfilesTableModel::ColTraffic}) {
+            for (int col: {ProfilesTableModel::ColType,
+                           ProfilesTableModel::ColTestResult, ProfilesTableModel::ColTraffic}) {
                 if (group->calculated_column_width.size() > col &&
                     group->calculated_column_width[col] > hHeader->sectionSize(col)) {
                     hHeader->setSectionResizeMode(col, QHeaderView::Fixed);
@@ -419,13 +417,14 @@ void MainWindow::refresh_proxy_list_column_size() {
     });
 }
 
-void MainWindow::refresh_proxy_list(const QList<int>& ids, bool mayNeedReset, RefreshAnchor anchor) {
+void MainWindow::refresh_proxy_list(const QList<int> &ids, bool mayNeedReset, RefreshAnchor anchor) {
     // A finished UDP test flips the setting; this is where the column catches up.
     refreshUdpColumnVisibility();
     // show_group() suppresses the save because it restores the scroll itself, but the
     // restore below still runs -- so without this the group hands back a selection the
     // user had already dismissed.
-    if (!Configs::dataManager->settingsRepo->refreshing_group) saveProfileFocusState();
+    if (!Configs::dataManager->settingsRepo->refreshing_group)
+        saveProfileFocusState();
     else if (auto *selection = ui->profilesTableView->selectionModel();
              selection != nullptr && !selection->hasSelection())
         if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup())
@@ -434,10 +433,9 @@ void MainWindow::refresh_proxy_list(const QList<int>& ids, bool mayNeedReset, Re
     if (mayNeedReset) restoreProfileFocusState(anchor);
 }
 
-void MainWindow::refresh_proxy_list_impl(const QList<int>& ids, bool mayNeedReset) {
+void MainWindow::refresh_proxy_list_impl(const QList<int> &ids, bool mayNeedReset) {
     const auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
-    if (currentGroup == nullptr)
-    {
+    if (currentGroup == nullptr) {
         MW_show_log("Could not find current group!");
         return;
     }
@@ -445,11 +443,11 @@ void MainWindow::refresh_proxy_list_impl(const QList<int>& ids, bool mayNeedRese
     refresh_proxy_list_column_size();
 }
 
-void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, bool mayNeedReset) {
+void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int> &ids, bool mayNeedReset) {
     const auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
     if (currentGroup == nullptr) return;
     if (!ids.isEmpty()) {
-        for (auto id:ids) profilesTableModel->refreshProfileId(id);
+        for (auto id: ids) profilesTableModel->refreshProfileId(id);
     } else if (Configs::dataManager->settingsRepo->profiles_favorites_view) {
         profilesTableModel->refreshTable(
             Configs::dataManager->profilesRepo->GetFavoriteProfileIds(), mayNeedReset);
@@ -468,9 +466,7 @@ void MainWindow::setFavoritesView(bool on) {
     // A hidden button must never leave an invisible cross-group view behind,
     // including after restoring an older or interrupted settings write.
     if (on && !settings->profiles_favorites_button) on = false;
-    if (settings->profiles_favorites_view == on && favoritesButton != nullptr
-        && favoritesButton->isChecked() == on
-        && ui->tabWidget->groupTabBar()->isSelectionVisible() == !on) {
+    if (settings->profiles_favorites_view == on && favoritesButton != nullptr && favoritesButton->isChecked() == on && ui->tabWidget->groupTabBar()->isSelectionVisible() == !on) {
         return;
     }
     settings->profiles_favorites_view = on;
@@ -594,7 +590,7 @@ void MainWindow::addProfileColumnsMenu(QMenu &menu) {
         {tr("Speed"), &settings->profiles_show_speed},
         {tr("Traffic"), &settings->profiles_show_traffic},
     };
-    for (const auto &[label, flag] : entries) {
+    for (const auto &[label, flag]: entries) {
         QAction *action = columns->addAction(label);
         action->setCheckable(true);
         action->setChecked(*flag);
@@ -625,19 +621,24 @@ void MainWindow::toggleFavorite(const QList<int> &ids) {
     if (ids.isEmpty()) return;
     // One click sets them all the same way; mixed selections turn on.
     bool allFavorite = true;
-    for (const int id : ids) {
+    for (const int id: ids) {
         const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
-        if (profile != nullptr && !profile->favorite) { allFavorite = false; break; }
+        if (profile != nullptr && !profile->favorite) {
+            allFavorite = false;
+            break;
+        }
     }
-    for (const int id : ids) {
+    for (const int id: ids) {
         auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (profile == nullptr) continue;
         profile->favorite = !allFavorite;
         Configs::dataManager->profilesRepo->Save(profile);
     }
     // Un-starring inside the favourites view removes the row, so rebuild the list.
-    if (Configs::dataManager->settingsRepo->profiles_favorites_view) refresh_proxy_list({}, true);
-    else refresh_proxy_list(ids, false);
+    if (Configs::dataManager->settingsRepo->profiles_favorites_view)
+        refresh_proxy_list({}, true);
+    else
+        refresh_proxy_list(ids, false);
 }
 
 std::shared_ptr<Configs::Profile> MainWindow::vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent) {
@@ -733,7 +734,8 @@ void MainWindow::flashProfileRow(int proxyRow) {
     animation->setDuration(900);
     animation->setEasingCurve(QEasingCurve::OutCubic);
     connect(animation, &QVariantAnimation::valueChanged, this, [this, proxyRow](const QVariant &value) {
-        Q_UNUSED(proxyRow); Q_UNUSED(value);
+        Q_UNUSED(proxyRow);
+        Q_UNUSED(value);
         ui->profilesTableView->viewport()->update();
     });
     connect(animation, &QVariantAnimation::finished, this, [this, animation] {
@@ -750,7 +752,7 @@ void MainWindow::url_test_current() {
     last_test_time = QDateTime::currentSecsSinceEpoch();
     setStatusText(ui->label_running, tr("Testing"));
 
-    runOnNewThread([=,this] {
+    runOnNewThread([=, this] {
         libcore::TestReq req;
         req.test_current = true;
         req.url = Configs::dataManager->settingsRepo->test_latency_url.toStdString();
@@ -764,7 +766,7 @@ void MainWindow::url_test_current() {
         // Blocking RPC, so it has to resolve here rather than on the UI thread.
         const auto vpnText = latency <= 0 ? liveVpnStateText() : QString();
 
-        runOnUiThread([=,this] {
+        runOnUiThread([=, this] {
             if (!result.results[0].error.value().empty()) {
                 MW_show_log(QString("UrlTest error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
@@ -779,23 +781,23 @@ void MainWindow::url_test_current() {
 }
 
 namespace {
-    // Multiple targets run concurrently; one probe per tick keeps the monitor
-    // cheap while the rolling graph supplies the longer-term signal.
-    constexpr int kPingProbeCount = 1;
-    constexpr int kPingTimeoutMs = 2000;
-    constexpr int kPingHistoryCap = 300; // ten minutes at the two-second tick
-    // A spike has to clear both bars: the multiplier alone fires constantly on a
-    // fast link where 8 ms to 25 ms is noise, the flat margin alone never fires
-    // on a slow one.
-    constexpr int kPingSpikeFactor = 3;
-    constexpr int kPingSpikeMarginMs = 150;
+// Multiple targets run concurrently; one probe per tick keeps the monitor
+// cheap while the rolling graph supplies the longer-term signal.
+constexpr int kPingProbeCount = 1;
+constexpr int kPingTimeoutMs = 2000;
+constexpr int kPingHistoryCap = 300; // ten minutes at the two-second tick
+// A spike has to clear both bars: the multiplier alone fires constantly on a
+// fast link where 8 ms to 25 ms is noise, the flat margin alone never fires
+// on a slow one.
+constexpr int kPingSpikeFactor = 3;
+constexpr int kPingSpikeMarginMs = 150;
 
-    int medianOf(QList<int> values) {
-        if (values.isEmpty()) return -1;
-        std::sort(values.begin(), values.end());
-        return values.at(values.size() / 2);
-    }
+int medianOf(QList<int> values) {
+    if (values.isEmpty()) return -1;
+    std::sort(values.begin(), values.end());
+    return values.at(values.size() / 2);
 }
+} // namespace
 
 void MainWindow::recordPingSample(const QStringList &targets, const QList<int> &proxyMs, const int directMs) {
     if (targets.isEmpty() || proxyMs.size() != targets.size()) return;
@@ -806,7 +808,7 @@ void MainWindow::recordPingSample(const QStringList &targets, const QList<int> &
         // Keep loss distinct from latency. The chart renders negative samples as
         // ceiling markers, but excludes them from the dynamic scale.
         QList<double> values;
-        for (const auto value : proxyMs) values << value;
+        for (const auto value: proxyMs) values << value;
         values << directMs;
         pingChartWidget->pushValues(values);
     }
@@ -841,7 +843,9 @@ void MainWindow::recordPingSample(const QStringList &targets, const QList<int> &
             verdict = tr("the direct path is fine (%1 ms), so this is the proxy or the route to it").arg(directValue);
         }
         MW_show_log(tr("UDP latency to %1 spiked: %2 against a %3 ms baseline - %4")
-                        .arg(targets.first(), proxyText).arg(baseline).arg(verdict));
+                        .arg(targets.first(), proxyText)
+                        .arg(baseline)
+                        .arg(verdict));
     } else if (!bad && pingSpikeActive_) {
         pingSpikeActive_ = false;
         MW_show_log(tr("UDP latency to %1 back to normal (%2 ms).").arg(targets.first()).arg(primaryMs));
@@ -856,12 +860,17 @@ QString MainWindow::pingHistoryReport() const {
     for (int targetIndex = 0; targetIndex < targets.size(); ++targetIndex) {
         QList<int> samples;
         int lost = 0;
-        for (const auto &sample : pingHistory_) {
+        for (const auto &sample: pingHistory_) {
             const int value = sample.proxyMs.value(targetIndex, -1);
-            if (value >= 0) samples << value; else ++lost;
+            if (value >= 0)
+                samples << value;
+            else
+                ++lost;
         }
         out << QString("  %1: %2 lost, median %3 ms")
-                   .arg(targets.at(targetIndex)).arg(lost).arg(medianOf(samples));
+                   .arg(targets.at(targetIndex))
+                   .arg(lost)
+                   .arg(medianOf(samples));
     }
     out << QString("  direct baseline: %1").arg(targets.value(0));
     // Only the tail is worth pasting; the interesting part is always the recent past.
@@ -914,12 +923,12 @@ void MainWindow::pollPingMonitor() {
 
         std::vector<std::future<int>> proxyFutures;
         proxyFutures.reserve(targets.size());
-        for (const auto &target : targets)
+        for (const auto &target: targets)
             proxyFutures.emplace_back(std::async(std::launch::async, probe, target, false));
         auto directFuture = std::async(std::launch::async, probe, targets.first(), true);
 
         QList<int> proxyMs;
-        for (auto &future : proxyFutures) proxyMs << future.get();
+        for (auto &future: proxyFutures) proxyMs << future.get();
         const int directMs = directFuture.get();
 
         runOnUiThread([this, targets, proxyMs, directMs] {
@@ -980,7 +989,7 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
 
     const auto colors = themeManager()->Colors();
     if (auto *tools = ui->stats_widget->cornerWidget(Qt::TopRightCorner))
-        for (auto *menuButton : tools->findChildren<QToolButton *>(QStringLiteral("panelIconButton")))
+        for (auto *menuButton: tools->findChildren<QToolButton *>(QStringLiteral("panelIconButton")))
             if (menuButton->menu() != nullptr)
                 menuButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::More,
                                                        colors.textMuted, 18));
@@ -1023,7 +1032,8 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
 
     const QList<int> startSizes = ui->splitter->sizes();
     const int startTotal = startSizes.size() == 2
-        ? startSizes[0] + startSizes[1] : ui->splitter->height();
+                               ? startSizes[0] + startSizes[1]
+                               : ui->splitter->height();
     const int targetPanel = qBound(140, settings->stats_panel_height,
                                    qMax(140, startTotal - 200));
     int panelStart = panel->isVisible() && startSizes.size() == 2 ? startSizes[1] : 0;
@@ -1050,42 +1060,43 @@ void MainWindow::setStatsPanelOpen(bool open, bool save) {
     connect(animation, &QVariantAnimation::valueChanged, this,
             [this, panel, panelStart, panelEnd, stripStart, stripEnd,
              progressStart, progressEnd](const QVariant &value) {
-        const qreal t = value.toReal();
-        const int panelHeight = qRound(panelStart + (panelEnd - panelStart) * t);
-        const int stripHeight = qRound(stripStart + (stripEnd - stripStart) * t);
-        panel->setMaximumHeight(qMax(0, panelHeight));
-        statsStrip->setMaximumHeight(qMax(0, stripHeight));
-        const int total = ui->splitter->height();
-        if (total > 0)
-            ui->splitter->setSizes({qMax(0, total - panelHeight), qMax(0, panelHeight)});
-        updateStatsPanelChevron(progressStart + (progressEnd - progressStart) * t);
-    });
+                const qreal t = value.toReal();
+                const int panelHeight = qRound(panelStart + (panelEnd - panelStart) * t);
+                const int stripHeight = qRound(stripStart + (stripEnd - stripStart) * t);
+                panel->setMaximumHeight(qMax(0, panelHeight));
+                statsStrip->setMaximumHeight(qMax(0, stripHeight));
+                const int total = ui->splitter->height();
+                if (total > 0)
+                    ui->splitter->setSizes({qMax(0, total - panelHeight), qMax(0, panelHeight)});
+                updateStatsPanelChevron(progressStart + (progressEnd - progressStart) * t);
+            });
     connect(animation, &QVariantAnimation::finished, this,
             [this, animation, panel, open, applyOpenSplit] {
-        if (statsPanelAnimation != animation) return;
-        statsPanelAnimation = nullptr;
-        panel->setMinimumHeight(0);
-        panel->setMaximumHeight(QWIDGETSIZE_MAX);
-        statsStrip->setFixedHeight(statsStripHeight);
-        if (open) {
-            panel->show();
-            statsStrip->hide();
-            applyOpenSplit();
-        } else {
-            panel->hide();
-            statsStrip->show();
-        }
-        updateStatsPanelChevron(open ? 1.0 : 0.0);
-        animation->deleteLater();
-    });
+                if (statsPanelAnimation != animation) return;
+                statsPanelAnimation = nullptr;
+                panel->setMinimumHeight(0);
+                panel->setMaximumHeight(QWIDGETSIZE_MAX);
+                statsStrip->setFixedHeight(statsStripHeight);
+                if (open) {
+                    panel->show();
+                    statsStrip->hide();
+                    applyOpenSplit();
+                } else {
+                    panel->hide();
+                    statsStrip->show();
+                }
+                updateStatsPanelChevron(open ? 1.0 : 0.0);
+                animation->deleteLater();
+            });
     animation->start();
 }
 
 void MainWindow::refreshStatsPanelTools() {
     const bool open = Configs::dataManager->settingsRepo->stats_panel_open;
     const QString currentPage = ui->stats_widget->currentWidget() != nullptr
-        ? ui->stats_widget->currentWidget()->objectName() : QString();
-    for (QWidget *tool : statsPanelTools) {
+                                    ? ui->stats_widget->currentWidget()->objectName()
+                                    : QString();
+    for (QWidget *tool: statsPanelTools) {
         if (tool == nullptr) continue;
         const QString page = tool->property("statsPage").toString();
         tool->setVisible(open && (page.isEmpty() || page == currentPage));

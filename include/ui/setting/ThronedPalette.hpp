@@ -17,24 +17,24 @@
 // chroma budget on accents keeps the same theme identity while the type stays
 // crisp.
 struct ThronedThemeColors {
-    QColor window;          // page background
-    QColor surface;         // recessed wells: cards, tables, log
-    QColor surfaceRaised;   // buttons, inputs, chips
+    QColor window;        // page background
+    QColor surface;       // recessed wells: cards, tables, log
+    QColor surfaceRaised; // buttons, inputs, chips
     QColor surfaceHover;
-    QColor border;          // hairlines between planes
-    QColor borderStrong;    // hover/focus borders
+    QColor border;       // hairlines between planes
+    QColor borderStrong; // hover/focus borders
     QColor text;
     QColor textMuted;
     QColor textSubtle;
     QColor accent;
     QColor accentHover;
-    QColor accentSoft;      // accent-tinted background
+    QColor accentSoft; // accent-tinted background
     QColor selection;
     QColor selectionBorder;
     QColor success;
-    QColor warning;         // degraded but working: connecting, slow latency, quota low
-    QColor danger;          // destructive: close the window, drop a connection
-    QColor dangerSoft;      // its tinted hover ground
+    QColor warning;    // degraded but working: connecting, slow latency, quota low
+    QColor danger;     // destructive: close the window, drop a connection
+    QColor dangerSoft; // its tinted hover ground
     QColor controlInactive;
     QColor scrollBar;
     QColor scrollBarHover;
@@ -49,12 +49,12 @@ struct ThronedThemeColors {
 // fragment, a font, and a folder of icons. Bundled skins use Qt resources while
 // optional user skins can still be dropped on disk without rebuilding.
 struct ThronedSkin {
-    QString id;             // folder name
-    QString name;           // shown in the theme list
+    QString id;   // folder name
+    QString name; // shown in the theme list
     ThronedThemeColors colors;
-    QString styleOverlay;   // appended after the resolved base sheet, so it wins
-    QString fontFamily;     // empty leaves the application font alone
-    QString iconDir;        // disk or :/ resource path; empty uses built-in glyphs
+    QString styleOverlay; // appended after the resolved base sheet, so it wins
+    QString fontFamily;   // empty leaves the application font alone
+    QString iconDir;      // disk or :/ resource path; empty uses built-in glyphs
 };
 
 namespace ThronedPalette {
@@ -87,7 +87,6 @@ inline const QMap<QString, QColor ThronedThemeColors::*> &ColorFields() {
     return fields;
 }
 
-
 // Lightness ladder shared by every theme, so panels separate by the same amount
 // whichever theme is active:
 //   surface (-7) < window < surfaceRaised (+8) < surfaceHover (+9) < border (+7)
@@ -95,59 +94,129 @@ inline const QMap<QString, ThronedThemeColors> &Themes() {
     static const QMap<QString, ThronedThemeColors> themes{
         // Cool neutral ground, blue accent. The default.
         {QStringLiteral("throned midnight"), {
-            .window = "#1A1C20", .surface = "#131519", .surfaceRaised = "#22252A",
-            .surfaceHover = "#2B2F35", .border = "#33363D", .borderStrong = "#4B4F58",
-            .text = "#F2F3F5", .textMuted = "#ADB1B8", .textSubtle = "#7C8089",
-            .accent = "#3B82F6", .accentHover = "#5C99FF", .accentSoft = "#16243A",
-            .selection = "#1B3253", .selectionBorder = "#3D6DA8", .success = "#3ECF8E",
-            .warning = "#D9A441", .danger = "#D2434E", .dangerSoft = "#3A2227",
-            .controlInactive = "#3B3F47", .scrollBar = "#454951", .scrollBarHover = "#5A5F69",
-            .dark = true,
-        }},
+                                                 .window = "#1A1C20",
+                                                 .surface = "#131519",
+                                                 .surfaceRaised = "#22252A",
+                                                 .surfaceHover = "#2B2F35",
+                                                 .border = "#33363D",
+                                                 .borderStrong = "#4B4F58",
+                                                 .text = "#F2F3F5",
+                                                 .textMuted = "#ADB1B8",
+                                                 .textSubtle = "#7C8089",
+                                                 .accent = "#3B82F6",
+                                                 .accentHover = "#5C99FF",
+                                                 .accentSoft = "#16243A",
+                                                 .selection = "#1B3253",
+                                                 .selectionBorder = "#3D6DA8",
+                                                 .success = "#3ECF8E",
+                                                 .warning = "#D9A441",
+                                                 .danger = "#D2434E",
+                                                 .dangerSoft = "#3A2227",
+                                                 .controlInactive = "#3B3F47",
+                                                 .scrollBar = "#454951",
+                                                 .scrollBarHover = "#5A5F69",
+                                                 .dark = true,
+                                             }},
         // Pure neutral ground, indigo accent.
         {QStringLiteral("throned graphite"), {
-            .window = "#1C1D1F", .surface = "#151518", .surfaceRaised = "#242528",
-            .surfaceHover = "#2D2E32", .border = "#35363A", .borderStrong = "#4C4E54",
-            .text = "#F3F3F4", .textMuted = "#B0B1B5", .textSubtle = "#7F8085",
-            .accent = "#6366F1", .accentHover = "#7E80F6", .accentSoft = "#22233C",
-            .selection = "#292A46", .selectionBorder = "#4F51B8", .success = "#3ECF8E",
-            .warning = "#D9A441", .danger = "#D2434E", .dangerSoft = "#3B2326",
-            .controlInactive = "#3C3D42", .scrollBar = "#47484E", .scrollBarHover = "#5C5D64",
-            .dark = true,
-        }},
+                                                 .window = "#1C1D1F",
+                                                 .surface = "#151518",
+                                                 .surfaceRaised = "#242528",
+                                                 .surfaceHover = "#2D2E32",
+                                                 .border = "#35363A",
+                                                 .borderStrong = "#4C4E54",
+                                                 .text = "#F3F3F4",
+                                                 .textMuted = "#B0B1B5",
+                                                 .textSubtle = "#7F8085",
+                                                 .accent = "#6366F1",
+                                                 .accentHover = "#7E80F6",
+                                                 .accentSoft = "#22233C",
+                                                 .selection = "#292A46",
+                                                 .selectionBorder = "#4F51B8",
+                                                 .success = "#3ECF8E",
+                                                 .warning = "#D9A441",
+                                                 .danger = "#D2434E",
+                                                 .dangerSoft = "#3B2326",
+                                                 .controlInactive = "#3C3D42",
+                                                 .scrollBar = "#47484E",
+                                                 .scrollBarHover = "#5C5D64",
+                                                 .dark = true,
+                                             }},
         // Neutral ground with a cool cast, cyan accent.
         {QStringLiteral("throned ocean"), {
-            .window = "#191D1F", .surface = "#121618", .surfaceRaised = "#202629",
-            .surfaceHover = "#2A3134", .border = "#32393C", .borderStrong = "#495155",
-            .text = "#F1F4F5", .textMuted = "#ACB3B6", .textSubtle = "#7B8386",
-            .accent = "#12B5CB", .accentHover = "#2FCBE0", .accentSoft = "#0E2E36",
-            .selection = "#113B47", .selectionBorder = "#1E7E93", .success = "#3ECF8E",
-            .warning = "#D6A63F", .danger = "#D14550", .dangerSoft = "#382225",
-            .controlInactive = "#394144", .scrollBar = "#444C50", .scrollBarHover = "#596266",
-            .dark = true,
-        }},
+                                              .window = "#191D1F",
+                                              .surface = "#121618",
+                                              .surfaceRaised = "#202629",
+                                              .surfaceHover = "#2A3134",
+                                              .border = "#32393C",
+                                              .borderStrong = "#495155",
+                                              .text = "#F1F4F5",
+                                              .textMuted = "#ACB3B6",
+                                              .textSubtle = "#7B8386",
+                                              .accent = "#12B5CB",
+                                              .accentHover = "#2FCBE0",
+                                              .accentSoft = "#0E2E36",
+                                              .selection = "#113B47",
+                                              .selectionBorder = "#1E7E93",
+                                              .success = "#3ECF8E",
+                                              .warning = "#D6A63F",
+                                              .danger = "#D14550",
+                                              .dangerSoft = "#382225",
+                                              .controlInactive = "#394144",
+                                              .scrollBar = "#444C50",
+                                              .scrollBarHover = "#596266",
+                                              .dark = true,
+                                          }},
         // Neutral ground with a violet cast, purple accent.
         {QStringLiteral("throned violet"), {
-            .window = "#1D1B20", .surface = "#161419", .surfaceRaised = "#26232B",
-            .surfaceHover = "#302C36", .border = "#38343E", .borderStrong = "#4F4A58",
-            .text = "#F4F2F6", .textMuted = "#B2AEB9", .textSubtle = "#817D89",
-            .accent = "#A277FF", .accentHover = "#B593FF", .accentSoft = "#2A2140",
-            .selection = "#332954", .selectionBorder = "#6E56B8", .success = "#3ECF8E",
-            .warning = "#DCA84A", .danger = "#D6444F", .dangerSoft = "#3D242C",
-            .controlInactive = "#3F3A47", .scrollBar = "#4A4553", .scrollBarHover = "#5F5A69",
-            .dark = true,
-        }},
+                                               .window = "#1D1B20",
+                                               .surface = "#161419",
+                                               .surfaceRaised = "#26232B",
+                                               .surfaceHover = "#302C36",
+                                               .border = "#38343E",
+                                               .borderStrong = "#4F4A58",
+                                               .text = "#F4F2F6",
+                                               .textMuted = "#B2AEB9",
+                                               .textSubtle = "#817D89",
+                                               .accent = "#A277FF",
+                                               .accentHover = "#B593FF",
+                                               .accentSoft = "#2A2140",
+                                               .selection = "#332954",
+                                               .selectionBorder = "#6E56B8",
+                                               .success = "#3ECF8E",
+                                               .warning = "#DCA84A",
+                                               .danger = "#D6444F",
+                                               .dangerSoft = "#3D242C",
+                                               .controlInactive = "#3F3A47",
+                                               .scrollBar = "#4A4553",
+                                               .scrollBarHover = "#5F5A69",
+                                               .dark = true,
+                                           }},
         // Neutral ground with a warm cast, coral accent.
         {QStringLiteral("throned ember"), {
-            .window = "#201C1B", .surface = "#181514", .surfaceRaised = "#2A2523",
-            .surfaceHover = "#342E2C", .border = "#3C3634", .borderStrong = "#544C49",
-            .text = "#F6F3F2", .textMuted = "#B7B0AE", .textSubtle = "#86807D",
-            .accent = "#F2555F", .accentHover = "#FF7480", .accentSoft = "#3B1F22",
-            .selection = "#45242A", .selectionBorder = "#A34450", .success = "#3ECF8E",
-            .warning = "#E3A83C", .danger = "#E04B4B", .dangerSoft = "#452627",
-            .controlInactive = "#443C3A", .scrollBar = "#504846", .scrollBarHover = "#665D5A",
-            .dark = true,
-        }},
+                                              .window = "#201C1B",
+                                              .surface = "#181514",
+                                              .surfaceRaised = "#2A2523",
+                                              .surfaceHover = "#342E2C",
+                                              .border = "#3C3634",
+                                              .borderStrong = "#544C49",
+                                              .text = "#F6F3F2",
+                                              .textMuted = "#B7B0AE",
+                                              .textSubtle = "#86807D",
+                                              .accent = "#F2555F",
+                                              .accentHover = "#FF7480",
+                                              .accentSoft = "#3B1F22",
+                                              .selection = "#45242A",
+                                              .selectionBorder = "#A34450",
+                                              .success = "#3ECF8E",
+                                              .warning = "#E3A83C",
+                                              .danger = "#E04B4B",
+                                              .dangerSoft = "#452627",
+                                              .controlInactive = "#443C3A",
+                                              .scrollBar = "#504846",
+                                              .scrollBarHover = "#665D5A",
+                                              .dark = true,
+                                          }},
     };
     return themes;
 }
@@ -219,9 +288,9 @@ inline QString Resolve(const QString &styleSheetTemplate, const ThronedThemeColo
         {&scrollBarTokens, &colors.scrollBar},
         {&scrollBarHoverTokens, &colors.scrollBarHover},
     };
-    for (const auto &[tokens, color] : groups) {
+    for (const auto &[tokens, color]: groups) {
         const QString value = color->name(QColor::HexRgb).toUpper();
-        for (const QString &token : *tokens) result.replace(token, value, Qt::CaseInsensitive);
+        for (const QString &token: *tokens) result.replace(token, value, Qt::CaseInsensitive);
     }
     return result;
 }

@@ -27,30 +27,44 @@ QJsonObject ok(const QJsonObject &data = {}) {
 
 QString outboundName(int outboundID) {
     switch (outboundID) {
-    case Configs::directID: return QStringLiteral("direct");
-    case Configs::proxyID: return QStringLiteral("proxy");
-    case Configs::blockID: return QStringLiteral("block");
-    case Configs::warpBypassID: return QStringLiteral("warp");
-    default: return QString::number(outboundID);
+        case Configs::directID:
+            return QStringLiteral("direct");
+        case Configs::proxyID:
+            return QStringLiteral("proxy");
+        case Configs::blockID:
+            return QStringLiteral("block");
+        case Configs::warpBypassID:
+            return QStringLiteral("warp");
+        default:
+            return QString::number(outboundID);
     }
 }
 
 // Returns false for anything that is not one of the four named outbounds, so a
 // typo becomes an error instead of silently routing somewhere unintended.
 bool outboundFromName(const QString &name, int *out) {
-    if (name == QStringLiteral("direct")) *out = Configs::directID;
-    else if (name == QStringLiteral("proxy")) *out = Configs::proxyID;
-    else if (name == QStringLiteral("block")) *out = Configs::blockID;
-    else if (name == QStringLiteral("warp")) *out = Configs::warpBypassID;
-    else return false;
+    if (name == QStringLiteral("direct"))
+        *out = Configs::directID;
+    else if (name == QStringLiteral("proxy"))
+        *out = Configs::proxyID;
+    else if (name == QStringLiteral("block"))
+        *out = Configs::blockID;
+    else if (name == QStringLiteral("warp"))
+        *out = Configs::warpBypassID;
+    else
+        return false;
     return true;
 }
 
 bool actionFromName(const QString &name, Configs::simpleAction *out) {
-    if (name == QStringLiteral("proxy")) *out = Configs::proxy;
-    else if (name == QStringLiteral("direct")) *out = Configs::bypass;
-    else if (name == QStringLiteral("block")) *out = Configs::block;
-    else return false;
+    if (name == QStringLiteral("proxy"))
+        *out = Configs::proxy;
+    else if (name == QStringLiteral("direct"))
+        *out = Configs::bypass;
+    else if (name == QStringLiteral("block"))
+        *out = Configs::block;
+    else
+        return false;
     return true;
 }
 
@@ -83,11 +97,16 @@ QJsonObject describeProfile(const std::shared_ptr<Configs::RouteProfile> &profil
 // what "route this site" nearly always means (it covers subdomains too).
 QString withRulePrefix(const QString &entry) {
     static const QStringList prefixes{
-        QStringLiteral("domain:"), QStringLiteral("suffix:"), QStringLiteral("keyword:"),
-        QStringLiteral("regex:"), QStringLiteral("ruleset:"), QStringLiteral("ip:"),
-        QStringLiteral("processName:"), QStringLiteral("processPath:"),
+        QStringLiteral("domain:"),
+        QStringLiteral("suffix:"),
+        QStringLiteral("keyword:"),
+        QStringLiteral("regex:"),
+        QStringLiteral("ruleset:"),
+        QStringLiteral("ip:"),
+        QStringLiteral("processName:"),
+        QStringLiteral("processPath:"),
     };
-    for (const QString &prefix : prefixes)
+    for (const QString &prefix: prefixes)
         if (entry.startsWith(prefix)) return entry;
     return QStringLiteral("suffix:") + entry;
 }
@@ -103,7 +122,7 @@ QString asProcessEntry(const QString &app) {
 
 QStringList requestedStrings(const QJsonObject &request, const QString &key) {
     QStringList values;
-    for (const QJsonValue &value : request.value(key).toArray()) {
+    for (const QJsonValue &value: request.value(key).toArray()) {
         const QString text = value.toString().trimmed();
         if (!text.isEmpty()) values << text;
     }
@@ -115,9 +134,9 @@ QStringList requestedStrings(const QJsonObject &request, const QString &key) {
 // from quietly describing a surface that no longer exists.
 struct Argument {
     const char *name;
-    const char *type;     // "int", "bool", "string", "string[]"
+    const char *type; // "int", "bool", "string", "string[]"
     bool required;
-    const char *accepts;  // allowed values, empty when free-form
+    const char *accepts; // allowed values, empty when free-form
     const char *summary;
 };
 
@@ -132,89 +151,57 @@ const QList<Command> &commandTable() {
     static const QList<Command> table{
         {"help", "This reference as text.", {}, "text"},
         {"schema", "This reference as JSON.", {}, "commands"},
-        {"status", "What is running, where, and through which route.", {},
-         "running, running_profile_id, running_profile_name, mixed_port, tun_enabled, system_proxy, routing"},
+        {"status", "What is running, where, and through which route.", {}, "running, running_profile_id, running_profile_name, mixed_port, tun_enabled, system_proxy, routing"},
         {"profiles.list", "Every proxy profile.", {}, "profiles[]: id, name, type, group_id"},
-        {"profile.start", "Start a proxy profile.",
-         {{"id", "int", true, "", "profile id from profiles.list"}}, "started"},
+        {"profile.start", "Start a proxy profile.", {{"id", "int", true, "", "profile id from profiles.list"}}, "started"},
         {"profile.stop", "Stop the running profile.", {}, ""},
-        {"tun.set", "Turn TUN mode on or off.",
-         {{"enabled", "bool", true, "true, false", ""}},
+        {"tun.set", "Turn TUN mode on or off.", {{"enabled", "bool", true, "true, false", ""}},
          "tun_enabled. Refuses to turn TUN on when the app is not elevated, because that "
          "path restarts it behind a UAC prompt."},
-        {"system_proxy.set", "Turn the system proxy on or off.",
-         {{"enabled", "bool", true, "true, false", ""}}, "system_proxy"},
-        {"routing.list", "Every routing profile; \"active\" marks the selected one.", {},
-         "profiles[]: id, name, default_outbound, rules_enabled, raw, remote, active"},
-        {"routing.get", "The active routing profile and its domain lists.", {},
-         "id, name, default_outbound, rules_enabled, proxy_domains, direct_domains, blocked_domains"},
-        {"routing.select", "Make a routing profile active.",
-         {{"id", "int", true, "", "profile id from routing.list"}}, "active"},
-        {"routing.set_default", "Where traffic goes when no rule matched.",
-         {{"outbound", "string", true, "direct, proxy, block, warp", ""}}, "default_outbound"},
+        {"system_proxy.set", "Turn the system proxy on or off.", {{"enabled", "bool", true, "true, false", ""}}, "system_proxy"},
+        {"routing.list", "Every routing profile; \"active\" marks the selected one.", {}, "profiles[]: id, name, default_outbound, rules_enabled, raw, remote, active"},
+        {"routing.get", "The active routing profile and its domain lists.", {}, "id, name, default_outbound, rules_enabled, proxy_domains, direct_domains, blocked_domains"},
+        {"routing.select", "Make a routing profile active.", {{"id", "int", true, "", "profile id from routing.list"}}, "active"},
+        {"routing.set_default", "Where traffic goes when no rule matched.", {{"outbound", "string", true, "direct, proxy, block, warp", ""}}, "default_outbound"},
         {"routing.set_rules_enabled",
          "Apply the profile's own rules, or send everything to the default outbound. "
          "Throned's internal rules and the local-proxy quick option keep applying either way.",
-         {{"enabled", "bool", true, "true, false", ""}}, "rules_enabled"},
-        {"routing.add_domains", "Add entries to one of the three routing lists.",
-         {{"action", "string", true, "proxy, direct, block", "which list to edit"},
-          {"domains", "string[]", true, "",
-           "a bare host becomes a suffix match covering subdomains; the typed prefixes "
-           "domain:, suffix:, keyword:, regex:, ruleset:, ip:, processName: and processPath: "
-           "are kept as given"}},
+         {{"enabled", "bool", true, "true, false", ""}},
+         "rules_enabled"},
+        {"routing.add_domains", "Add entries to one of the three routing lists.", {{"action", "string", true, "proxy, direct, block", "which list to edit"}, {"domains", "string[]", true, "",
+                                                                                                                                                              "a bare host becomes a suffix match covering subdomains; the typed prefixes "
+                                                                                                                                                              "domain:, suffix:, keyword:, regex:, ruleset:, ip:, processName: and processPath: "
+                                                                                                                                                              "are kept as given"}},
          "action, domains (the resulting list)"},
-        {"routing.paste", "Replace one routing list wholesale with a free-form list.",
-         {{"action", "string", true, "proxy, direct, block", "which list to replace"},
-          {"lines", "string[]", true, "",
-           "one entry per line in any accepted spelling: the typed prefixes, the sing-box "
-           "ones (domain_suffix, process_name, rule_set, ip_cidr), or a bare value whose "
-           "kind is unambiguous. Comments and list punctuation are ignored"}},
+        {"routing.paste", "Replace one routing list wholesale with a free-form list.", {{"action", "string", true, "proxy, direct, block", "which list to replace"}, {"lines", "string[]", true, "",
+                                                                                                                                                                      "one entry per line in any accepted spelling: the typed prefixes, the sing-box "
+                                                                                                                                                                      "ones (domain_suffix, process_name, rule_set, ip_cidr), or a bare value whose "
+                                                                                                                                                                      "kind is unambiguous. Comments and list punctuation are ignored"}},
          "action, domains (the resulting list), rejected (lines that could not be placed)"},
-        {"routing.remove_domains", "Remove entries from one of the three routing lists.",
-         {{"action", "string", true, "proxy, direct, block", "which list to edit"},
-          {"domains", "string[]", true, "", "accepts the bare form or the stored one"}},
-         "action, domains (the resulting list)"},
-        {"logs", "Recent log lines, oldest first.",
-         {{"lines", "int", false, "", "how many to return, up to 2000; 200 by default"},
-          {"contains", "string", false, "", "keep only lines containing this text"}},
-         "lines[]"},
-        {"groups.list", "Server groups and subscriptions.", {},
-         "groups[]: id, name, url, subscription, archive, profiles (count)"},
-        {"subscriptions.update", "Refresh every subscription in the background.", {},
-         "started. Watch groups.list or logs for the outcome."},
-        {"routing.create", "Add a routing profile, optionally as a copy of an existing one.",
-         {{"name", "string", true, "", ""},
-          {"copy_of", "int", false, "", "routing profile id to copy rules and defaults from"},
-          {"select", "bool", false, "true, false", "also make it active"}},
-         "id, name, default_outbound, rules_enabled, raw, remote"},
-        {"routing.delete", "Remove a routing profile.",
-         {{"id", "int", true, "", "not the active one, and not the last one left"}}, "deleted"},
+        {"routing.remove_domains", "Remove entries from one of the three routing lists.", {{"action", "string", true, "proxy, direct, block", "which list to edit"}, {"domains", "string[]", true, "", "accepts the bare form or the stored one"}}, "action, domains (the resulting list)"},
+        {"logs", "Recent log lines, oldest first.", {{"lines", "int", false, "", "how many to return, up to 2000; 200 by default"}, {"contains", "string", false, "", "keep only lines containing this text"}}, "lines[]"},
+        {"groups.list", "Server groups and subscriptions.", {}, "groups[]: id, name, url, subscription, archive, profiles (count)"},
+        {"subscriptions.update", "Refresh every subscription in the background.", {}, "started. Watch groups.list or logs for the outcome."},
+        {"routing.create", "Add a routing profile, optionally as a copy of an existing one.", {{"name", "string", true, "", ""}, {"copy_of", "int", false, "", "routing profile id to copy rules and defaults from"}, {"select", "bool", false, "true, false", "also make it active"}}, "id, name, default_outbound, rules_enabled, raw, remote"},
+        {"routing.delete", "Remove a routing profile.", {{"id", "int", true, "", "not the active one, and not the last one left"}}, "deleted"},
         {"routing.apply", "Restart the running profile so pending routing edits take effect.", {}, "applied"},
         // Documented once here rather than on each command: every routing edit
         // takes it, and repeating it fifteen times would bury the rest.
-        {"routing.export", "The whole profile as a lossless document: every rule with every field, in order.",
-         {{"id", "int", false, "", "routing profile id; the active one by default"}},
-         "profile - feed it back to routing.import unchanged, or edited"},
-        {"routing.rules", "The ordered rule list as the advanced editor shows it. The first rule that matches wins.",
-         {{"id", "int", false, "", "routing profile id; the active one by default"}},
-         "id, name, default_outbound, rules[] (or route for a raw profile)"},
-        {"routing.import", "Replace everything a profile routes. The profile keeps its id, so whatever "
-                           "points at it keeps working.",
+        {"routing.export", "The whole profile as a lossless document: every rule with every field, in order.", {{"id", "int", false, "", "routing profile id; the active one by default"}}, "profile - feed it back to routing.import unchanged, or edited"},
+        {"routing.rules", "The ordered rule list as the advanced editor shows it. The first rule that matches wins.", {{"id", "int", false, "", "routing profile id; the active one by default"}}, "id, name, default_outbound, rules[] (or route for a raw profile)"},
+        {"routing.import",
+         "Replace everything a profile routes. The profile keeps its id, so whatever "
+         "points at it keeps working.",
          {{"profile", "object", false, "", "a document from routing.export, edited as you like"},
           {"input", "string", false, "", "the same thing as a throne://route link or base64"},
           {"id", "int", false, "", "routing profile id; the active one by default"},
           {"rename", "bool", false, "true, false", "also take the name from the document; off by default"}},
          "id, name, rules (count), default_outbound, warnings when anything was adjusted"},
-        {"routing.add_apps", "Route applications by their process.",
-         {{"action", "string", true, "proxy, direct, block", "which list to edit"},
-          {"apps", "string[]", true, "",
-           "an executable name such as discord.exe, or a full path; a path is matched "
-           "exactly, a bare name matches wherever the program runs from"}},
+        {"routing.add_apps", "Route applications by their process.", {{"action", "string", true, "proxy, direct, block", "which list to edit"}, {"apps", "string[]", true, "",
+                                                                                                                                                 "an executable name such as discord.exe, or a full path; a path is matched "
+                                                                                                                                                 "exactly, a bare name matches wherever the program runs from"}},
          "action, apps (the resulting process entries)"},
-        {"routing.remove_apps", "Stop routing applications by their process.",
-         {{"action", "string", true, "proxy, direct, block", "which list to edit"},
-          {"apps", "string[]", true, "", "accepts the bare name, a path, or the stored form"}},
-         "action, apps (the resulting process entries)"},
+        {"routing.remove_apps", "Stop routing applications by their process.", {{"action", "string", true, "proxy, direct, block", "which list to edit"}, {"apps", "string[]", true, "", "accepts the bare name, a path, or the stored form"}}, "action, apps (the resulting process entries)"},
     };
     return table;
 }
@@ -225,8 +212,7 @@ const QList<Command> &commandTable() {
 QJsonObject saveAndApply(const std::shared_ptr<Configs::RouteProfile> &profile, QJsonObject data,
                          const QJsonObject &request) {
     Configs::dataManager->routesRepo->Save(profile);
-    const bool apply = !request.value(QStringLiteral("apply")).isBool()
-        || request.value(QStringLiteral("apply")).toBool();
+    const bool apply = !request.value(QStringLiteral("apply")).isBool() || request.value(QStringLiteral("apply")).toBool();
     if (apply && hooks.applyRoutingChange) hooks.applyRoutingChange();
     data["applied"] = apply;
     return ok(data);
@@ -250,8 +236,9 @@ QJsonObject Execute(const QJsonObject &request) {
         // Enabling TUN unelevated makes the app relaunch itself through a UAC
         // prompt, so the answer to this command would never arrive. Say so.
         if (enabled && hooks.isElevated && !hooks.isElevated())
-            return fail(QStringLiteral("TUN needs elevated rights; turn it on from the window, "
-                                       "which can ask for them"));
+            return fail(QStringLiteral(
+                "TUN needs elevated rights; turn it on from the window, "
+                "which can ask for them"));
         hooks.setTun(enabled);
         return ok(QJsonObject{{"tun_enabled", Configs::dataManager->settingsRepo->spmode_vpn}});
     }
@@ -284,7 +271,7 @@ QJsonObject Execute(const QJsonObject &request) {
 
     if (cmd == QStringLiteral("profiles.list")) {
         QJsonArray items;
-        for (const int id : Configs::dataManager->profilesRepo->GetAllProfileIds()) {
+        for (const int id: Configs::dataManager->profilesRepo->GetAllProfileIds()) {
             const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
             if (!profile) continue;
             items.append(QJsonObject{
@@ -315,7 +302,7 @@ QJsonObject Execute(const QJsonObject &request) {
 
     if (cmd == QStringLiteral("routing.list")) {
         QJsonArray items;
-        for (const auto &profile : Configs::dataManager->routesRepo->GetAllRouteProfiles()) {
+        for (const auto &profile: Configs::dataManager->routesRepo->GetAllRouteProfiles()) {
             QJsonObject item = describeProfile(profile);
             item["active"] = profile->id == Configs::dataManager->settingsRepo->current_route_id;
             items.append(item);
@@ -379,7 +366,8 @@ QJsonObject Execute(const QJsonObject &request) {
     if (cmd == QStringLiteral("logs")) {
         if (!hooks.recentLogs) return fail(QStringLiteral("the window is not ready yet"));
         const int wanted = request.value(QStringLiteral("lines")).isDouble()
-            ? qBound(1, request.value(QStringLiteral("lines")).toInt(), 2000) : 200;
+                               ? qBound(1, request.value(QStringLiteral("lines")).toInt(), 2000)
+                               : 200;
         QStringList lines = hooks.recentLogs(wanted);
         const QString contains = request.value(QStringLiteral("contains")).toString();
         if (!contains.isEmpty())
@@ -389,7 +377,7 @@ QJsonObject Execute(const QJsonObject &request) {
 
     if (cmd == QStringLiteral("groups.list")) {
         QJsonArray items;
-        for (const int id : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
+        for (const int id: Configs::dataManager->groupsRepo->GetAllGroupIds()) {
             const auto group = Configs::dataManager->groupsRepo->GetGroup(id);
             if (!group) continue;
             items.append(QJsonObject{
@@ -524,7 +512,7 @@ QJsonObject Execute(const QJsonObject &request) {
 
         QStringList current = profile->GetSimpleRules(action).split('\n', Qt::SkipEmptyParts);
         const bool adding = cmd.endsWith(QStringLiteral("add_apps"));
-        for (const QString &app : apps) {
+        for (const QString &app: apps) {
             const QString entry = asProcessEntry(app);
             if (adding) {
                 if (!current.contains(entry)) current << entry;
@@ -536,13 +524,14 @@ QJsonObject Execute(const QJsonObject &request) {
         const QString error = profile->UpdateSimpleRules(current.join('\n'), action);
         if (!error.isEmpty()) return fail(error);
         QStringList processEntries;
-        for (const QString &entry : current)
+        for (const QString &entry: current)
             if (entry.startsWith(QStringLiteral("processName:")) || entry.startsWith(QStringLiteral("processPath:")))
                 processEntries << entry;
         return saveAndApply(profile, QJsonObject{
-            {"action", request.value(QStringLiteral("action")).toString()},
-            {"apps", QJsonArray::fromStringList(processEntries)},
-        }, request);
+                                         {"action", request.value(QStringLiteral("action")).toString()},
+                                         {"apps", QJsonArray::fromStringList(processEntries)},
+                                     },
+                            request);
     }
 
     if (cmd == QStringLiteral("routing.paste")) {
@@ -559,31 +548,34 @@ QJsonObject Execute(const QJsonObject &request) {
         const auto linesValue = request.value(QStringLiteral("lines"));
         if (!linesValue.isArray())
             return fail(QStringLiteral("\"lines\" is required and must be an array of strings"));
-        for (const auto &line : linesValue.toArray()) {
+        for (const auto &line: linesValue.toArray()) {
             if (!line.isString())
                 return fail(QStringLiteral("\"lines\" is required and must be an array of strings"));
         }
 
         QStringList parsed;
         QStringList rejected;
-        for (const QString &line : requestedStrings(request, QStringLiteral("lines"))) {
-            for (const QString &part : line.split('\n')) {
+        for (const QString &line: requestedStrings(request, QStringLiteral("lines"))) {
+            for (const QString &part: line.split('\n')) {
                 const QString clean = part.trimmed();
                 if (clean.isEmpty() || clean.startsWith(QLatin1Char('#')) || clean.startsWith(QStringLiteral("//")))
                     continue;
                 const QString rule = Configs::NormalizeRuleLine(clean);
-                if (rule.isEmpty()) rejected << clean;
-                else if (!parsed.contains(rule)) parsed << rule;
+                if (rule.isEmpty())
+                    rejected << clean;
+                else if (!parsed.contains(rule))
+                    parsed << rule;
             }
         }
 
         const QString error = profile->UpdateSimpleRules(parsed.join('\n'), action);
         if (!error.isEmpty()) return fail(error);
         return saveAndApply(profile, QJsonObject{
-            {"action", request.value(QStringLiteral("action")).toString()},
-            {"domains", QJsonArray::fromStringList(parsed)},
-            {"rejected", QJsonArray::fromStringList(rejected)},
-        }, request);
+                                         {"action", request.value(QStringLiteral("action")).toString()},
+                                         {"domains", QJsonArray::fromStringList(parsed)},
+                                         {"rejected", QJsonArray::fromStringList(rejected)},
+                                     },
+                            request);
     }
 
     if (cmd == QStringLiteral("routing.add_domains") || cmd == QStringLiteral("routing.remove_domains")) {
@@ -598,7 +590,7 @@ QJsonObject Execute(const QJsonObject &request) {
 
         QStringList current = profile->GetSimpleRules(action).split('\n', Qt::SkipEmptyParts);
         const bool adding = cmd.endsWith(QStringLiteral("add_domains"));
-        for (const QString &domain : domains) {
+        for (const QString &domain: domains) {
             const QString entry = withRulePrefix(domain);
             if (adding) {
                 if (!current.contains(entry)) current << entry;
@@ -612,9 +604,10 @@ QJsonObject Execute(const QJsonObject &request) {
         const QString error = profile->UpdateSimpleRules(current.join('\n'), action);
         if (!error.isEmpty()) return fail(error);
         return saveAndApply(profile, QJsonObject{
-            {"action", request.value(QStringLiteral("action")).toString()},
-            {"domains", QJsonArray::fromStringList(current)},
-        }, request);
+                                         {"action", request.value(QStringLiteral("action")).toString()},
+                                         {"domains", QJsonArray::fromStringList(current)},
+                                     },
+                            request);
     }
 
     return fail(QStringLiteral("unknown command \"%1\"; send {\"cmd\":\"help\"}").arg(cmd));
@@ -639,18 +632,17 @@ QString HelpText() {
           << QStringLiteral("Commands")
           << QString();
 
-    for (const Command &command : commandTable()) {
+    for (const Command &command: commandTable()) {
         QString head = QStringLiteral(R"(  {"cmd":"%1")").arg(QString::fromLatin1(command.name));
-        for (const Argument &argument : command.arguments) {
-            head += QStringLiteral(",\"%1\":<%2>").arg(QString::fromLatin1(argument.name),
-                                                       QString::fromLatin1(argument.type));
+        for (const Argument &argument: command.arguments) {
+            head += QStringLiteral(",\"%1\":<%2>").arg(QString::fromLatin1(argument.name), QString::fromLatin1(argument.type));
         }
         lines << head + QStringLiteral("}");
         lines << QStringLiteral("      ") + QString::fromLatin1(command.summary);
-        for (const Argument &argument : command.arguments) {
+        for (const Argument &argument: command.arguments) {
             QString detail = QStringLiteral("        %1 (%2%3)")
-                .arg(QString::fromLatin1(argument.name), QString::fromLatin1(argument.type),
-                     argument.required ? QStringLiteral(", required") : QString());
+                                 .arg(QString::fromLatin1(argument.name), QString::fromLatin1(argument.type),
+                                      argument.required ? QStringLiteral(", required") : QString());
             if (*argument.accepts) detail += QStringLiteral(" - one of: %1").arg(QString::fromLatin1(argument.accepts));
             if (*argument.summary) detail += QStringLiteral(" - %1").arg(QString::fromLatin1(argument.summary));
             lines << detail;
@@ -685,12 +677,12 @@ QString HelpText() {
 
 QJsonObject RuleSchema() {
     QJsonArray fields;
-    for (const QString &field : Configs::RouteRule::get_attributes()) {
+    for (const QString &field: Configs::RouteRule::get_attributes()) {
         const Configs::inputType type = Configs::RouteRule::get_input_type(field);
         QJsonObject described{
             {"name", field},
             {"type", type == Configs::trufalse ? QStringLiteral("bool")
-                   : type == Configs::select   ? QStringLiteral("string")
+                     : type == Configs::select ? QStringLiteral("string")
                                                : QStringLiteral("string[]")},
         };
         QStringList accepted = Configs::RouteRule::get_values_for_field(field);
@@ -700,23 +692,23 @@ QJsonObject RuleSchema() {
     }
     return QJsonObject{
         {"document", QStringLiteral(
-            R"({"kind":"throne-route-profile","v":1,"name":"...","default_outbound":"proxy|direct|block|warp","rules":[...]})")},
+                         R"({"kind":"throne-route-profile","v":1,"name":"...","default_outbound":"proxy|direct|block|warp","rules":[...]})")},
         {"order", QStringLiteral("Rules are evaluated in array order and the first match wins.")},
         {"rule", QStringLiteral(
-            R"(A rule is an object of matcher fields plus "action". "route" also takes )"
-            R"("outbound". "name" is a free label, "type" marks which editor owns the rule )"
-            R"(and may be left as "custom" for anything hand-written.)")},
+                     R"(A rule is an object of matcher fields plus "action". "route" also takes )"
+                     R"("outbound". "name" is a free label, "type" marks which editor owns the rule )"
+                     R"(and may be left as "custom" for anything hand-written.)")},
         {"outbound", QStringLiteral(
-            "proxy, direct, block or warp-bypass, or the name of a server profile.")},
+                         "proxy, direct, block or warp-bypass, or the name of a server profile.")},
         {"fields", fields},
     };
 }
 
 QJsonObject Schema() {
     QJsonArray commands;
-    for (const Command &command : commandTable()) {
+    for (const Command &command: commandTable()) {
         QJsonArray arguments;
-        for (const Argument &argument : command.arguments) {
+        for (const Argument &argument: command.arguments) {
             QJsonObject described{
                 {"name", QString::fromLatin1(argument.name)},
                 {"type", QString::fromLatin1(argument.type)},
@@ -724,7 +716,7 @@ QJsonObject Schema() {
             };
             if (*argument.accepts) {
                 QJsonArray accepted;
-                for (const QString &value : QString::fromLatin1(argument.accepts).split(QStringLiteral(", ")))
+                for (const QString &value: QString::fromLatin1(argument.accepts).split(QStringLiteral(", ")))
                     accepted.append(value);
                 described["accepts"] = accepted;
             }

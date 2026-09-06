@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditXrayVless;
+class EditXrayVless;
 }
 QT_END_NAMESPACE
 
@@ -21,6 +21,7 @@ public:
     void onStart(std::shared_ptr<Configs::Profile> _ent) override;
 
     bool onEnd() override;
+
 private:
     Ui::EditXrayVless *ui;
     std::shared_ptr<Configs::Profile> ent;

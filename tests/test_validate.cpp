@@ -7,10 +7,10 @@
 using Configs::FindDanglingReferences;
 
 namespace {
-    QJsonObject parse(const char *json) {
-        return QJsonDocument::fromJson(QByteArray(json)).object();
-    }
+QJsonObject parse(const char *json) {
+    return QJsonDocument::fromJson(QByteArray(json)).object();
 }
+} // namespace
 
 class TestValidate : public QObject {
     Q_OBJECT

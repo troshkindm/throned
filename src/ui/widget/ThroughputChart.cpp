@@ -8,48 +8,61 @@
 #include <QPainterPath>
 
 namespace {
-    // Two minutes at one sample a second, the window the old chart also kept.
-    constexpr int kWindow = 120;
-    constexpr int kPadLeft = 10;
-    constexpr int kPadRight = 66;   // room for the scale labels
-    constexpr int kPadTop = 10;
-    constexpr int kLegendHeight = 26;
-    constexpr int kBarSlot = 6;     // bar plus gap, in the retro style
+// Two minutes at one sample a second, the window the old chart also kept.
+constexpr int kWindow = 120;
+constexpr int kPadLeft = 10;
+constexpr int kPadRight = 66; // room for the scale labels
+constexpr int kPadTop = 10;
+constexpr int kLegendHeight = 26;
+constexpr int kBarSlot = 6; // bar plus gap, in the retro style
 
-    QString seriesLabel(int series) {
-        switch (series) {
-        case ThroughputChart::ProxyDown:  return ThroughputChart::tr("Proxy ↓");
-        case ThroughputChart::ProxyUp:    return ThroughputChart::tr("Proxy ↑");
-        case ThroughputChart::DirectDown: return ThroughputChart::tr("Direct ↓");
-        case ThroughputChart::DirectUp:   return ThroughputChart::tr("Direct ↑");
-        default: return {};
-        }
-    }
-
-    // Short, because the gutter is narrow, but the quarter marks are halves of a
-    // power of two: rounding to whole units printed the top two grid lines the same.
-    QString scaleLabel(qint64 bytes) {
-        static const char *units[] = {"B", "KiB", "MiB", "GiB", "TiB"};
-        int unit = 0;
-        qreal value = static_cast<qreal>(bytes);
-        while (value >= 1024.0 && unit < 4) { value /= 1024.0; ++unit; }
-        QString number = QString::number(value, 'f', 1);
-        if (number.endsWith(QLatin1String(".0"))) number.chop(2);
-        return number + QLatin1Char(' ') + QLatin1String(units[unit]);
-    }
-
-    // Proxy is the loud pair, direct the quiet one: the eye should find the
-    // tunnelled traffic first, which is what the panel is open to watch.
-    QColor seriesColor(int series, const ThronedThemeColors &colors) {
-        switch (series) {
-        case ThroughputChart::ProxyDown:  return colors.accent;
-        case ThroughputChart::ProxyUp:    return colors.accentHover;
-        case ThroughputChart::DirectDown: return colors.textMuted;
-        case ThroughputChart::DirectUp:   return colors.textSubtle;
-        default: return colors.textSubtle;
-        }
+QString seriesLabel(int series) {
+    switch (series) {
+        case ThroughputChart::ProxyDown:
+            return ThroughputChart::tr("Proxy ↓");
+        case ThroughputChart::ProxyUp:
+            return ThroughputChart::tr("Proxy ↑");
+        case ThroughputChart::DirectDown:
+            return ThroughputChart::tr("Direct ↓");
+        case ThroughputChart::DirectUp:
+            return ThroughputChart::tr("Direct ↑");
+        default:
+            return {};
     }
 }
+
+// Short, because the gutter is narrow, but the quarter marks are halves of a
+// power of two: rounding to whole units printed the top two grid lines the same.
+QString scaleLabel(qint64 bytes) {
+    static const char *units[] = {"B", "KiB", "MiB", "GiB", "TiB"};
+    int unit = 0;
+    qreal value = static_cast<qreal>(bytes);
+    while (value >= 1024.0 && unit < 4) {
+        value /= 1024.0;
+        ++unit;
+    }
+    QString number = QString::number(value, 'f', 1);
+    if (number.endsWith(QLatin1String(".0"))) number.chop(2);
+    return number + QLatin1Char(' ') + QLatin1String(units[unit]);
+}
+
+// Proxy is the loud pair, direct the quiet one: the eye should find the
+// tunnelled traffic first, which is what the panel is open to watch.
+QColor seriesColor(int series, const ThronedThemeColors &colors) {
+    switch (series) {
+        case ThroughputChart::ProxyDown:
+            return colors.accent;
+        case ThroughputChart::ProxyUp:
+            return colors.accentHover;
+        case ThroughputChart::DirectDown:
+            return colors.textMuted;
+        case ThroughputChart::DirectUp:
+            return colors.textSubtle;
+        default:
+            return colors.textSubtle;
+    }
+}
+} // namespace
 
 ThroughputChart::ThroughputChart(QWidget *parent) : QWidget(parent) {
     setMinimumHeight(120);
@@ -74,8 +87,8 @@ void ThroughputChart::clear() {
 
 qint64 ThroughputChart::peak() const {
     qint64 top = 0;
-    for (const Sample &sample : m_samples)
-        for (const qint64 value : sample.value) top = qMax(top, value);
+    for (const Sample &sample: m_samples)
+        for (const qint64 value: sample.value) top = qMax(top, value);
     return top;
 }
 
@@ -159,8 +172,10 @@ void ThroughputChart::paintEvent(QPaintEvent *) {
         for (int i = 0; i < columns; ++i) {
             const QPointF point(plot.left() + plot.width() * i / qreal(columns - 1),
                                 plot.bottom() - heightFor(values[i]));
-            if (i == 0) line.moveTo(point);
-            else line.lineTo(point);
+            if (i == 0)
+                line.moveTo(point);
+            else
+                line.lineTo(point);
         }
         QPainterPath area = line;
         area.lineTo(plot.right(), plot.bottom());
@@ -188,16 +203,17 @@ void ThroughputChart::paintEvent(QPaintEvent *) {
     // now" without a second row of labels. It sits in the smaller face because the
     // panel is often only half the window wide.
     QFont legendFont = font();
-    if (legendFont.pixelSize() > 0) legendFont.setPixelSize(qMax(9, legendFont.pixelSize() - 2));
-    else legendFont.setPointSizeF(qMax(7.0, legendFont.pointSizeF() - 1.5));
+    if (legendFont.pixelSize() > 0)
+        legendFont.setPixelSize(qMax(9, legendFont.pixelSize() - 2));
+    else
+        legendFont.setPointSizeF(qMax(7.0, legendFont.pointSizeF() - 1.5));
     painter.setFont(legendFont);
     const QFontMetrics legendMetrics(legendFont);
     qreal x = plot.left();
     const Sample &latest = m_samples.constLast();
     for (int series = 0; series < SeriesCount; ++series) {
         const QColor ink = seriesColor(series, colors);
-        const QString text = seriesLabel(series) + QStringLiteral("  ")
-            + ReadableSize(latest.value[series]) + QStringLiteral("/s");
+        const QString text = seriesLabel(series) + QStringLiteral("  ") + ReadableSize(latest.value[series]) + QStringLiteral("/s");
         const qreal entryWidth = 11 + legendMetrics.horizontalAdvance(text) + 14;
         if (x + entryWidth > width() - 4) break;
         const qreal y = height() - kLegendHeight / 2.0;

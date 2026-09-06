@@ -76,11 +76,12 @@ void EditAutoSelector::resizeDialogToContent() {
         // shared screen-aware bound instead; the editor itself scrolls when the
         // complete advanced form is taller than the available work area.
         FitWindowToScreen(dialog, dialog->sizeHint());
-    }, dialog);
+    },
+                dialog);
 }
 
 void EditAutoSelector::mirrorTooltipsToLabels() const {
-    for (auto *form : findChildren<QFormLayout *>()) {
+    for (auto *form: findChildren<QFormLayout *>()) {
         for (int row = 0; row < form->rowCount(); row++) {
             auto *labelItem = form->itemAt(row, QFormLayout::LabelRole);
             auto *fieldItem = form->itemAt(row, QFormLayout::FieldRole);
@@ -101,7 +102,7 @@ void EditAutoSelector::onStart(std::shared_ptr<Configs::Profile> _ent) {
     // Every setValue below fires valueChanged, which would replan against a half-filled form.
     m_loading = true;
 
-    for (int gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+    for (int gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
         if (group == nullptr || group->archive) continue;
         ui->group->addItem(group->name, group->id);
@@ -195,15 +196,14 @@ bool EditAutoSelector::onEnd() {
     const auto candidates = Configs::AutoSelectorRankingCandidates(this->ent);
     const QSet<int> eligible(candidates.begin(), candidates.end());
     QList<int> pool;
-    for (int id : outbound->pool) {
+    for (int id: outbound->pool) {
         if (eligible.contains(id)) pool << id;
     }
     outbound->pool = pool;
     return true;
 }
 
-void EditAutoSelector::refreshPinnedRow() const
-{
+void EditAutoSelector::refreshPinnedRow() const {
     const bool pinned = m_pinnedID >= 0;
     ui->pinned_l->setVisible(pinned);
     ui->pinned_name->setVisible(pinned);
@@ -226,16 +226,19 @@ void EditAutoSelector::updateBalanceEnabled() const {
     ui->balance_interval_l->setEnabled(rotating);
 
     if (!on) {
-        ui->balance_hint->setText(tr("The best profile carries all traffic; the other ready profiles are "
-                                     "kept verified so one can take over instantly."));
+        ui->balance_hint->setText(tr(
+            "The best profile carries all traffic; the other ready profiles are "
+            "kept verified so one can take over instantly."));
         return;
     }
     if (rotating) {
-        ui->balance_hint->setText(tr("New connections move to another good profile on each rotation; open ones are "
-                                     "left alone and finish where they started. Traffic is counted exactly."));
+        ui->balance_hint->setText(tr(
+            "New connections move to another good profile on each rotation; open ones are "
+            "left alone and finish where they started. Traffic is counted exactly."));
     } else {
-        ui->balance_hint->setText(tr("Every new connection may take a different profile. Widest spread, but your "
-                                     "exit IP changes mid-session and per-profile traffic becomes approximate."));
+        ui->balance_hint->setText(tr(
+            "Every new connection may take a different profile. Widest spread, but your "
+            "exit IP changes mid-session and per-profile traffic becomes approximate."));
     }
 }
 
@@ -272,7 +275,7 @@ void EditAutoSelector::refreshPlanSummary() {
                  .arg(plan.build.size());
     if (!plan.skipped.isEmpty()) {
         QStringList reasons;
-        for (const auto &[skip, count] : plan.skipped) {
+        for (const auto &[skip, count]: plan.skipped) {
             reasons << tr("%1 %2").arg(count).arg(Configs::AutoSelectorSkipReason(skip));
         }
         lines << tr("Skipped: %1.").arg(reasons.join(tr(", ")));

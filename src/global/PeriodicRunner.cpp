@@ -35,7 +35,7 @@ void PeriodicRunner::CheckNow() {
 
 void PeriodicRunner::tick() {
     const qint64 now = QDateTime::currentSecsSinceEpoch();
-    for (const auto& task : m_tasks) {
+    for (const auto& task: m_tasks) {
         const int minutes = task.intervalMinutes ? task.intervalMinutes() : 0;
         if (minutes <= 0) continue; // disabled
         const qint64 last = task.lastRun ? task.lastRun() : 0;

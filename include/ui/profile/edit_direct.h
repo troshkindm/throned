@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditDirect;
+class EditDirect;
 }
 QT_END_NAMESPACE
 

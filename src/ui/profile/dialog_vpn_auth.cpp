@@ -23,26 +23,24 @@
 #include "include/global/Utils.hpp"
 
 namespace {
-    const QColor kVpnAuthErrorColor(0xE0, 0x5A, 0x5A);
+const QColor kVpnAuthErrorColor(0xE0, 0x5A, 0x5A);
 
-    QString vpnAuthRemainingText(qint64 seconds) {
-        if (seconds < 0) seconds = 0;
-        const qint64 m = seconds / 60;
-        const qint64 s = seconds % 60;
-        if (m > 0) return QStringLiteral("%1m %2s").arg(m).arg(s);
-        return QStringLiteral("%1s").arg(s);
-    }
-
-    void vpnAuthSetLabel(QLabel *label, const QString &text) {
-        label->setText(text);
-        label->setVisible(!text.isEmpty());
-    }
+QString vpnAuthRemainingText(qint64 seconds) {
+    if (seconds < 0) seconds = 0;
+    const qint64 m = seconds / 60;
+    const qint64 s = seconds % 60;
+    if (m > 0) return QStringLiteral("%1m %2s").arg(m).arg(s);
+    return QStringLiteral("%1s").arg(s);
 }
 
+void vpnAuthSetLabel(QLabel *label, const QString &text) {
+    label->setText(text);
+    label->setVisible(!text.isEmpty());
+}
+} // namespace
+
 DialogVpnAuth::DialogVpnAuth(QWidget *parent, const VpnAuthChallenge &_challenge, bool _localOnly)
-    : QDialog(parent)
-    , ui(new Ui::DialogVpnAuth)
-{
+    : QDialog(parent), ui(new Ui::DialogVpnAuth) {
     ui->setupUi(this);
     challenge = _challenge;
     localOnly = _localOnly;
@@ -65,9 +63,12 @@ DialogVpnAuth::DialogVpnAuth(QWidget *parent, const VpnAuthChallenge &_challenge
     };
 
     if (challenge.kind == "credentials" || challenge.kind == "secret" || challenge.kind == "form") {
-        if (challenge.kind == "credentials") buildCredentialFields();
-        else if (challenge.kind == "secret") buildSecretField();
-        else buildFormFields();
+        if (challenge.kind == "credentials")
+            buildCredentialFields();
+        else if (challenge.kind == "secret")
+            buildSecretField();
+        else
+            buildFormFields();
         addStandard(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
         submitButton = ui->buttonBox->button(QDialogButtonBox::Ok);
         cancelButton = ui->buttonBox->button(QDialogButtonBox::Cancel);
@@ -169,8 +170,7 @@ void DialogVpnAuth::fitToContent() {
     ui->scroll->setMinimumSize(0, qMin(height, metrics.height() * 6));
 }
 
-DialogVpnAuth::~DialogVpnAuth()
-{
+DialogVpnAuth::~DialogVpnAuth() {
     delete ui;
 }
 
@@ -195,8 +195,10 @@ void DialogVpnAuth::buildCredentialFields() {
         if (!challenge.message.isEmpty()) vpnAuthSetLabel(ui->label_message, {});
     }
 
-    if (challenge.username.isEmpty()) usernameEdit->setFocus();
-    else passwordEdit->setFocus();
+    if (challenge.username.isEmpty())
+        usernameEdit->setFocus();
+    else
+        passwordEdit->setFocus();
 }
 
 void DialogVpnAuth::buildSecretField() {
@@ -208,12 +210,12 @@ void DialogVpnAuth::buildSecretField() {
 
 void DialogVpnAuth::buildFormFields() {
     QWidget *first = nullptr;
-    for (const auto &field : challenge.fields) {
+    for (const auto &field: challenge.fields) {
         const auto label = field.label.isEmpty() ? field.submissionKey : field.label;
         QWidget *widget = nullptr;
         if (field.kind == "select") {
             auto *combo = new QComboBox(ui->form_container);
-            for (const auto &option : field.options) {
+            for (const auto &option: field.options) {
                 combo->addItem(option.second.isEmpty() ? option.first : option.second, option.first);
             }
             const auto preselect = combo->findData(field.value);
@@ -274,7 +276,7 @@ void DialogVpnAuth::submit() {
     if (usernameEdit != nullptr) username = usernameEdit->text();
     if (passwordEdit != nullptr) password = passwordEdit->text();
     if (secretEdit != nullptr) secret = secretEdit->text();
-    for (const auto &[field, widget] : formWidgets) {
+    for (const auto &[field, widget]: formWidgets) {
         if (auto *combo = qobject_cast<QComboBox *>(widget); combo != nullptr) {
             formValues.insert(field.submissionKey, combo->currentData().toString());
         } else if (auto *edit = qobject_cast<QLineEdit *>(widget); edit != nullptr) {
@@ -314,8 +316,10 @@ void DialogVpnAuth::reject() {
         const auto acknowledge = closeAction == CloseAction::Acknowledge;
         runOnNewThread([tag, id, acknowledge] {
             bool rpcOK = false;
-            if (acknowledge) API::defaultClient->SubmitVPNChallenge(&rpcOK, tag, id, {}, {}, {});
-            else API::defaultClient->CancelVPNChallenge(&rpcOK, tag, id);
+            if (acknowledge)
+                API::defaultClient->SubmitVPNChallenge(&rpcOK, tag, id, {}, {}, {});
+            else
+                API::defaultClient->CancelVPNChallenge(&rpcOK, tag, id);
         });
     }
     QDialog::reject();

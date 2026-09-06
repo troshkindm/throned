@@ -17,16 +17,17 @@ class QTimer;
 class TrayProfileSelector : public TrayPopupFrame {
     Q_OBJECT
 public:
-    enum Mode { Server, Routing };
+    enum Mode { Server,
+                Routing };
 
     struct Callbacks {
         std::function<void(int id)> startProfile;
-        std::function<void()>       stopProfile;
+        std::function<void()> stopProfile;
         std::function<void(int id)> chooseRoute;
-        std::function<bool()>       isRunning;
-        std::function<int()>        runningId;
-        std::function<int()>        runningGid;
-        std::function<QString()>    runningName;
+        std::function<bool()> isRunning;
+        std::function<int()> runningId;
+        std::function<int()> runningGid;
+        std::function<QString()> runningName;
     };
 
     TrayProfileSelector(Mode mode, Callbacks cb, QWidget *parent = nullptr);
@@ -47,7 +48,7 @@ private:
 
     Mode m_mode;
     Callbacks m_cb;
-    int m_groupId = -1;   // Server mode: -1 = group list; else the drilled-in group id
+    int m_groupId = -1; // Server mode: -1 = group list; else the drilled-in group id
     int m_page = 0;
     bool m_armed = false;
     QString m_query;

@@ -49,12 +49,11 @@ bool decodeImportedText(const QByteArray &bytes, QString &out) {
 
 } // namespace
 
-void MainWindow::importFromFiles(const QStringList &paths)
-{
+void MainWindow::importFromFiles(const QStringList &paths) {
     QStringList payloads;
     QStringList problems;
 
-    for (const QString &path : paths) {
+    for (const QString &path: paths) {
         const auto name = QFileInfo(path).fileName();
         auto file = QFile(path);
         if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
@@ -83,7 +82,7 @@ void MainWindow::importFromFiles(const QStringList &paths)
                 problems << tr("%1: no QR code found").arg(name);
                 continue;
             }
-            for (const QString &text : texts) {
+            for (const QString &text: texts) {
                 MW_show_log("QR Code Result:\n" + text);
                 payloads << text.trimmed();
             }
@@ -98,11 +97,11 @@ void MainWindow::importFromFiles(const QStringList &paths)
         payloads << text.trimmed();
     }
 
-    for (const QString &problem : problems) MW_show_log(problem);
+    for (const QString &problem: problems) MW_show_log(problem);
 
     // A url payload takes the single-item path: only that one offers a subscription group.
     QStringList batch;
-    for (const QString &payload : payloads) {
+    for (const QString &payload: payloads) {
         if (payload.startsWith("http://") || payload.startsWith("https://")) {
             import_text(payload);
         } else {
@@ -134,8 +133,7 @@ void MainWindow::handle_deeplink_impl(const QString &url) {
     QString base64 = u.path();
     if (base64.startsWith('/')) {
         base64 = base64.mid(1);
-    }
-    else {
+    } else {
         return;
     }
 
@@ -201,7 +199,7 @@ void MainWindow::handle_add_remote_routes(const QString &url) {
         return;
     }
 
-    for (auto &profile : profiles) {
+    for (auto &profile: profiles) {
         profile->autoUpdate = autoUpdate;
         Configs::dataManager->routesRepo->AddRouteProfile(profile);
     }
@@ -209,12 +207,14 @@ void MainWindow::handle_add_remote_routes(const QString &url) {
     const auto added = profiles;
     runOnNewThread([added] {
         int ok = 0;
-        for (const auto &p : added) {
+        for (const auto &p: added) {
             QString warnings;
             const QString err = RouteUpdate::UpdateProfile(p, &warnings);
             Configs::dataManager->routesRepo->Save(p);
-            if (err.isEmpty()) ok++;
-            else MW_show_log(QObject::tr("Remote routing profile %1 failed: %2").arg(p->remoteURL, err));
+            if (err.isEmpty())
+                ok++;
+            else
+                MW_show_log(QObject::tr("Remote routing profile %1 failed: %2").arg(p->remoteURL, err));
         }
         MW_show_log(QObject::tr("Added remote routing profiles: %1 of %2 fetched").arg(ok).arg(added.size()));
     });
@@ -284,123 +284,125 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
     auto &settings = Configs::dataManager->settingsRepo;
 
     switch (cmd) {
-    case MwMessage::UpdateSettings: {
-        updateLogFilterFields();
-        ui->actionTraffic_Stats->setVisible(!settings->disable_traffic_aggregation);
-        if (changed(MwArg::TrayIcon)) {
-            Icon::InvalidateTrayIconCache();
-            icon_status.reset();
-        }
-        if (changed(MwArg::MaxLogLines)) {
-            qvLogDocument->setMaximumBlockCount(settings->max_log_line);
-        }
-        if (changed(MwArg::DisableTray)) {
-            tray->setVisible(!settings->disable_tray);
-        }
-        if (changed(MwArg::SystemDns)) {
-            if (settings->show_system_dns) ui->system_dns->show();
-            else ui->system_dns->hide();
-        }
-        if (changed(MwArg::ChoosePort)) {
-            settings->inbound_socks_port = MkPort(settings->inbound_address);
-            if (settings->spmode_system_proxy) {
-                set_spmode_system_proxy(false);
-                set_spmode_system_proxy(true);
+        case MwMessage::UpdateSettings: {
+            updateLogFilterFields();
+            ui->actionTraffic_Stats->setVisible(!settings->disable_traffic_aggregation);
+            if (changed(MwArg::TrayIcon)) {
+                Icon::InvalidateTrayIconCache();
+                icon_status.reset();
             }
+            if (changed(MwArg::MaxLogLines)) {
+                qvLogDocument->setMaximumBlockCount(settings->max_log_line);
+            }
+            if (changed(MwArg::DisableTray)) {
+                tray->setVisible(!settings->disable_tray);
+            }
+            if (changed(MwArg::SystemDns)) {
+                if (settings->show_system_dns)
+                    ui->system_dns->show();
+                else
+                    ui->system_dns->hide();
+            }
+            if (changed(MwArg::ChoosePort)) {
+                settings->inbound_socks_port = MkPort(settings->inbound_address);
+                if (settings->spmode_system_proxy) {
+                    set_spmode_system_proxy(false);
+                    set_spmode_system_proxy(true);
+                }
+            }
+            if (changed(MwArg::DisableAdmin)) {
+                AutoRun_FixTaskIfNeeded();
+            }
+            if (changed(MwArg::ProfileListDisplay)) {
+                // The security suffix changes the Type column's width, so drop its cached auto-width.
+                if (auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+                    group && group->calculated_column_width.size() > ProfilesTableModel::ColType)
+                    group->calculated_column_width[ProfilesTableModel::ColType] = 0;
+                refresh_proxy_list({}, true);
+            }
+            auto suggestRestartProxy = settings->Save();
+            Throne::PeriodicRunner::instance()->CheckNow();
+            if (changed(MwArg::Route)) {
+                settings->Save();
+                suggestRestartProxy = true;
+            }
+            if (changed(MwArg::NeedRestart)) {
+                suggestRestartProxy = false;
+            }
+            if (changed(MwArg::Vpn) && settings->spmode_vpn) {
+                MessageBoxWarning(tr("Tun Settings changed"), tr("Restart Tun to take effect."));
+            }
+            if ((changed(MwArg::ChoosePort) || suggestRestartProxy) && settings->started_id >= 0 &&
+                QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
+                profile_start(settings->started_id);
+            }
+            refresh_status();
+            if (changed(MwArg::NeedRestart) &&
+                QMessageBox::warning(GetMessageBoxParent(), tr("Settings changed"), tr("Restart the program to take effect."), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+                this->exit_reason = ExitReason::Restart;
+                on_menu_exit_triggered();
+            }
+            break;
         }
-        if (changed(MwArg::DisableAdmin)) {
-            AutoRun_FixTaskIfNeeded();
-        }
-        if (changed(MwArg::ProfileListDisplay)) {
-            // The security suffix changes the Type column's width, so drop its cached auto-width.
-            if (auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-                group && group->calculated_column_width.size() > ProfilesTableModel::ColType)
-                group->calculated_column_width[ProfilesTableModel::ColType] = 0;
-            refresh_proxy_list({}, true);
-        }
-        auto suggestRestartProxy = settings->Save();
-        Throne::PeriodicRunner::instance()->CheckNow();
-        if (changed(MwArg::Route)) {
-            settings->Save();
-            suggestRestartProxy = true;
-        }
-        if (changed(MwArg::NeedRestart)) {
-            suggestRestartProxy = false;
-        }
-        if (changed(MwArg::Vpn) && settings->spmode_vpn) {
-            MessageBoxWarning(tr("Tun Settings changed"), tr("Restart Tun to take effect."));
-        }
-        if ((changed(MwArg::ChoosePort) || suggestRestartProxy) && settings->started_id >= 0 &&
-            QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
-            profile_start(settings->started_id);
-        }
-        refresh_status();
-        if (changed(MwArg::NeedRestart) &&
-            QMessageBox::warning(GetMessageBoxParent(), tr("Settings changed"), tr("Restart the program to take effect."), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+        case MwMessage::RestartProgram:
             this->exit_reason = ExitReason::Restart;
             on_menu_exit_triggered();
+            break;
+        case MwMessage::Raise:
+            ActivateWindow(this);
+            break;
+        case MwMessage::UpdateShortcuts:
+            loadShortcuts();
+            break;
+        case MwMessage::ProfileChanged:
+            refresh_proxy_list({}, true);
+            if (changed(MwArg::RestartProxy) &&
+                QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
+                profile_start(settings->started_id);
+            }
+            break;
+        case MwMessage::GroupsChanged:
+            refresh_groups();
+            break;
+        case MwMessage::SubscriptionFinished:
+            refresh_proxy_list({}, true);
+            refreshSubscriptionReadouts();
+            if (!changed(MwArg::Quiet)) {
+                MW_show_log(tr("Imported %1 profile(s)").arg(settings->imported_count));
+            }
+            break;
+        case MwMessage::SubscriptionNewGroup:
+            refresh_groups();
+            break;
+        case MwMessage::SubscriptionGroupChanged: {
+            QList<int> disturbed;
+            for (int i = 1; i < args.size(); i++) disturbed << args[i].toInt();
+            on_subscription_group_changed(args.value(0).toInt(), disturbed);
+            break;
         }
-        break;
-    }
-    case MwMessage::RestartProgram:
-        this->exit_reason = ExitReason::Restart;
-        on_menu_exit_triggered();
-        break;
-    case MwMessage::Raise:
-        ActivateWindow(this);
-        break;
-    case MwMessage::UpdateShortcuts:
-        loadShortcuts();
-        break;
-    case MwMessage::ProfileChanged:
-        refresh_proxy_list({}, true);
-        if (changed(MwArg::RestartProxy) &&
-            QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
-            profile_start(settings->started_id);
-        }
-        break;
-    case MwMessage::GroupsChanged:
-        refresh_groups();
-        break;
-    case MwMessage::SubscriptionFinished:
-        refresh_proxy_list({}, true);
-        refreshSubscriptionReadouts();
-        if (!changed(MwArg::Quiet)) {
-            MW_show_log(tr("Imported %1 profile(s)").arg(settings->imported_count));
-        }
-        break;
-    case MwMessage::SubscriptionNewGroup:
-        refresh_groups();
-        break;
-    case MwMessage::SubscriptionGroupChanged: {
-        QList<int> disturbed;
-        for (int i = 1; i < args.size(); i++) disturbed << args[i].toInt();
-        on_subscription_group_changed(args.value(0).toInt(), disturbed);
-        break;
-    }
-    case MwMessage::CoreCrashed:
-        profile_stop();
-        break;
-    case MwMessage::CoreStarted:
-        Configs::IsAdmin(true);
-        if (settings->remember_enable && settings->remember_system_proxy) {
-            set_spmode_system_proxy(true, false);
-        }
-        if ((settings->remember_enable && settings->remember_tun) || settings->flag_restart_tun_on) {
-            set_spmode_vpn(true, settings->flag_restart_tun_on);
-            settings->flag_restart_tun_on = false;
-        }
-        if (settings->flag_dns_set) {
-            set_system_dns(true);
-        }
-        if (auto id = args.value(0).toInt(); id >= 0) {
-            profile_start(id);
-        }
-        if (settings->system_dns_set) {
-            set_system_dns(true);
-            ui->system_dns->setChecked(true);
-        }
-        refresh_status();
-        break;
+        case MwMessage::CoreCrashed:
+            profile_stop();
+            break;
+        case MwMessage::CoreStarted:
+            Configs::IsAdmin(true);
+            if (settings->remember_enable && settings->remember_system_proxy) {
+                set_spmode_system_proxy(true, false);
+            }
+            if ((settings->remember_enable && settings->remember_tun) || settings->flag_restart_tun_on) {
+                set_spmode_vpn(true, settings->flag_restart_tun_on);
+                settings->flag_restart_tun_on = false;
+            }
+            if (settings->flag_dns_set) {
+                set_system_dns(true);
+            }
+            if (auto id = args.value(0).toInt(); id >= 0) {
+                profile_start(id);
+            }
+            if (settings->system_dns_set) {
+                set_system_dns(true);
+                ui->system_dns->setChecked(true);
+            }
+            refresh_status();
+            break;
     }
 }

@@ -4,7 +4,7 @@
 #include <QCursor>
 
 namespace {
-    constexpr int READONLY_CODE_WIDTH = 110;
+constexpr int READONLY_CODE_WIDTH = 110;
 }
 
 OtpItem::OtpItem(QWidget *parent, std::shared_ptr<Configs::OtpProfile> profile_, QListWidgetItem *item_,
@@ -20,8 +20,8 @@ OtpItem::OtpItem(QWidget *parent, std::shared_ptr<Configs::OtpProfile> profile_,
     }
 
     // A child that consumes the press stops the click reaching the list, which selects, copies and drags.
-    for (QWidget *passive : {static_cast<QWidget *>(ui->name), static_cast<QWidget *>(ui->code),
-                             static_cast<QWidget *>(ui->timer_text), static_cast<QWidget *>(ui->timer_bar)})
+    for (QWidget *passive: {static_cast<QWidget *>(ui->name), static_cast<QWidget *>(ui->code),
+                            static_cast<QWidget *>(ui->timer_text), static_cast<QWidget *>(ui->timer_bar)})
         passive->setAttribute(Qt::WA_TransparentForMouseEvents);
 
     // Hiding the bar must not reflow the row, or HOTP rows would shift the code column.

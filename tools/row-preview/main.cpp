@@ -41,25 +41,11 @@ using RowVisual = ProfilesTableModel::RowVisual;
 
 QList<RowVisual> sampleRows() {
     return {
-        {.name = "Auto (gRPC)", .chip = "VLESS · Xray", .address = "192.0.2.10:443",
-         .country = "DE", .exitIp = "192.0.2.10", .latency = "60 ms",
-         .udp = "61 ms ±4", .speedDown = "148 Mbps", .speedUp = "36 Mbps",
-         .latencyMs = 60},
-        {.name = "Auto (hy2)", .chip = "Hysteria", .address = "192.0.2.10:16011",
-         .country = "DE", .exitIp = "192.0.2.10", .latency = "57 ms",
-         .udp = "58 ms ±3 / 1%", .speedDown = "196 Mbps", .speedUp = "128 Mbps",
-         .trafficDown = "33.49 GiB", .trafficUp = "38.08 GiB",
-         .latencyMs = 57, .running = true},
-        {.name = "Moscow (games, long name that used to elide)", .chip = "Hysteria",
-         .address = "192.0.2.10:16012", .latency = "47 ms",
-         .udp = "49 ms ±11 / 4%", .trafficDown = "994.18 MiB", .trafficUp = "463.10 MiB",
-         .latencyMs = 47, .udpDegraded = true},
-        {.name = "Moscow → Helsinki", .chip = "VLESS · Xray", .address = "192.0.2.10:2088",
-         .country = "FI", .exitIp = "198.51.100.7", .latency = "32 ms",
-         .trafficDown = "1.40 MiB", .trafficUp = "1.09 MiB", .latencyMs = 32},
-        {.name = "Warp bypass", .chip = "WireGuard", .address = "203.0.113.90:51820",
-         .latency = "78 ms", .udp = "No reply", .trafficDown = "88.10 MiB",
-         .trafficUp = "12.40 MiB", .latencyMs = 78, .udpDegraded = true},
+        {.name = "Auto (gRPC)", .chip = "VLESS · Xray", .address = "192.0.2.10:443", .country = "DE", .exitIp = "192.0.2.10", .latency = "60 ms", .udp = "61 ms ±4", .speedDown = "148 Mbps", .speedUp = "36 Mbps", .latencyMs = 60},
+        {.name = "Auto (hy2)", .chip = "Hysteria", .address = "192.0.2.10:16011", .country = "DE", .exitIp = "192.0.2.10", .latency = "57 ms", .udp = "58 ms ±3 / 1%", .speedDown = "196 Mbps", .speedUp = "128 Mbps", .trafficDown = "33.49 GiB", .trafficUp = "38.08 GiB", .latencyMs = 57, .running = true},
+        {.name = "Moscow (games, long name that used to elide)", .chip = "Hysteria", .address = "192.0.2.10:16012", .latency = "47 ms", .udp = "49 ms ±11 / 4%", .trafficDown = "994.18 MiB", .trafficUp = "463.10 MiB", .latencyMs = 47, .udpDegraded = true},
+        {.name = "Moscow → Helsinki", .chip = "VLESS · Xray", .address = "192.0.2.10:2088", .country = "FI", .exitIp = "198.51.100.7", .latency = "32 ms", .trafficDown = "1.40 MiB", .trafficUp = "1.09 MiB", .latencyMs = 32},
+        {.name = "Warp bypass", .chip = "WireGuard", .address = "203.0.113.90:51820", .latency = "78 ms", .udp = "No reply", .trafficDown = "88.10 MiB", .trafficUp = "12.40 MiB", .latencyMs = 78, .udpDegraded = true},
     };
 }
 
@@ -83,7 +69,9 @@ public:
             return rows_[index.row()].name;
         if (role == Qt::TextAlignmentRole)
             return static_cast<int>((index.column() == ProfilesTableModel::ColcServer
-                                         ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignVCenter);
+                                         ? Qt::AlignLeft
+                                         : Qt::AlignRight) |
+                                    Qt::AlignVCenter);
         return {};
     }
 
@@ -91,14 +79,21 @@ public:
         if (orientation != Qt::Horizontal) return {};
         if (role == Qt::TextAlignmentRole)
             return static_cast<int>((section == ProfilesTableModel::ColcServer
-                                         ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignVCenter);
+                                         ? Qt::AlignLeft
+                                         : Qt::AlignRight) |
+                                    Qt::AlignVCenter);
         if (role != Qt::DisplayRole) return {};
         switch (section) {
-        case ProfilesTableModel::ColcServer: return QStringLiteral("Server");
-        case ProfilesTableModel::ColcPing: return QStringLiteral("Ping · UDP");
-        case ProfilesTableModel::ColcSpeed: return QStringLiteral("Speed");
-        case ProfilesTableModel::ColcTraffic: return QStringLiteral("Traffic");
-        default: return {};
+            case ProfilesTableModel::ColcServer:
+                return QStringLiteral("Server");
+            case ProfilesTableModel::ColcPing:
+                return QStringLiteral("Ping · UDP");
+            case ProfilesTableModel::ColcSpeed:
+                return QStringLiteral("Speed");
+            case ProfilesTableModel::ColcTraffic:
+                return QStringLiteral("Traffic");
+            default:
+                return {};
         }
     }
 
@@ -122,8 +117,7 @@ public:
 protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
         const auto *table = qobject_cast<const QTableView *>(parentWidget());
-        const bool selected = table != nullptr && table->selectionModel() != nullptr
-            && table->selectionModel()->isRowSelected(logicalIndex, QModelIndex());
+        const bool selected = table != nullptr && table->selectionModel() != nullptr && table->selectionModel()->isRowSelected(logicalIndex, QModelIndex());
         painter->save();
         painter->fillRect(rect, selected ? colors_.selection : colors_.surface);
         painter->setPen(selected ? colors_.selectionBorder : colors_.border);
@@ -133,7 +127,7 @@ protected:
         painter->setPen(selected ? colors_.text : colors_.textSubtle);
         painter->drawText(rect, Qt::AlignCenter,
                           model_->runningAt(logicalIndex) ? QStringLiteral("✓")
-                                                         : QString::number(logicalIndex + 1));
+                                                          : QString::number(logicalIndex + 1));
         painter->restore();
     }
 
@@ -228,8 +222,8 @@ public:
         table_->setCornerButtonEnabled(false);
         table_->verticalHeader()->setDefaultSectionSize(ProfileRowDelegate::RowHeight);
         table_->horizontalHeader()->setSectionResizeMode(ProfilesTableModel::ColcServer, QHeaderView::Stretch);
-        for (int column : {ProfilesTableModel::ColcPing, ProfilesTableModel::ColcSpeed,
-                           ProfilesTableModel::ColcTraffic}) {
+        for (int column: {ProfilesTableModel::ColcPing, ProfilesTableModel::ColcSpeed,
+                          ProfilesTableModel::ColcTraffic}) {
             table_->horizontalHeader()->setSectionResizeMode(column, QHeaderView::Fixed);
             table_->horizontalHeader()->resizeSection(
                 column, ProfileRowDelegate::metricColumnWidth(column, table_->font()));
@@ -319,8 +313,8 @@ public:
         logMenu_->addSeparator();
         auto *level = logMenu_->addMenu(QStringLiteral("Level        INFO"));
         level->setObjectName(QStringLiteral("logToolsMenu"));
-        for (const QString &name : {QStringLiteral("DEBUG"), QStringLiteral("INFO"),
-                                    QStringLiteral("WARN"), QStringLiteral("ERROR")})
+        for (const QString &name: {QStringLiteral("DEBUG"), QStringLiteral("INFO"),
+                                   QStringLiteral("WARN"), QStringLiteral("ERROR")})
             level->addAction(name);
         logMenu_->addAction(MaterialIcon::icon(MaterialIcon::Glyph::Tune, colors.textMuted, 17),
                             QStringLiteral("Filter…"));
@@ -331,14 +325,14 @@ public:
         connectionFilterButton_->setFixedSize(28, 28);
         connectionFilterButton_->setIconSize(QSize(18, 18));
         connectionFilterButton_->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune,
-                                                             colors.textMuted, 18));
+                                                            colors.textMuted, 18));
         cornerLayout->addWidget(connectionFilterButton_);
         connectionCloseAllButton_ = new QToolButton(corner);
         connectionCloseAllButton_->setObjectName(QStringLiteral("panelIconButton"));
         connectionCloseAllButton_->setFixedSize(28, 28);
         connectionCloseAllButton_->setIconSize(QSize(18, 18));
         connectionCloseAllButton_->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Block,
-                                                               colors.textMuted, 18));
+                                                              colors.textMuted, 18));
         cornerLayout->addWidget(connectionCloseAllButton_);
         auto *collapse = new QToolButton(corner);
         collapse->setObjectName(QStringLiteral("panelIconButton"));
@@ -361,8 +355,8 @@ public:
         auto *stripLayout = new QHBoxLayout(closedStrip_);
         stripLayout->setContentsMargins(9, 4, 7, 4);
         stripLayout->setSpacing(2);
-        for (const QString &text : {QStringLiteral("Logs"), QStringLiteral("Connections"),
-                                    QStringLiteral("Traffic Graph")}) {
+        for (const QString &text: {QStringLiteral("Logs"), QStringLiteral("Connections"),
+                                   QStringLiteral("Traffic Graph")}) {
             auto *button = new QToolButton(closedStrip_);
             button->setObjectName(QStringLiteral("stripTab"));
             button->setText(text);
@@ -525,8 +519,7 @@ private:
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
     const QStringList args = app.arguments();
-    themeManager()->ApplyTheme(QStringLiteral("Throned ")
-                             + argValue(args, QStringLiteral("--theme"), QStringLiteral("Midnight")));
+    themeManager()->ApplyTheme(QStringLiteral("Throned ") + argValue(args, QStringLiteral("--theme"), QStringLiteral("Midnight")));
     auto *window = new PreviewWindow(
         argValue(args, QStringLiteral("--panel"), QStringLiteral("closed")),
         themeManager()->Colors());

@@ -12,15 +12,14 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 
-
-#define AddGroupToListIfExist(_id)                       \
+#define AddGroupToListIfExist(_id)                                \
     auto __ent = Configs::dataManager->groupsRepo->GetGroup(_id); \
-    if (__ent != nullptr) {                              \
-        auto wI = new QListWidgetItem();                 \
-        auto w = new GroupItem(this, __ent, wI);         \
-        wI->setData(114514, _id);                        \
-        ui->listWidget->addItem(wI);                     \
-        ui->listWidget->setItemWidget(wI, w);            \
+    if (__ent != nullptr) {                                       \
+        auto wI = new QListWidgetItem();                          \
+        auto w = new GroupItem(this, __ent, wI);                  \
+        wI->setData(114514, _id);                                 \
+        ui->listWidget->addItem(wI);                              \
+        ui->listWidget->setItemWidget(wI, w);                     \
     }
 
 DialogManageGroups::DialogManageGroups(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageGroups) {
@@ -30,7 +29,7 @@ DialogManageGroups::DialogManageGroups(QWidget *parent) : QDialog(parent), ui(ne
         AddGroupToListIfExist(id)
     }
 
-    connect(ui->listWidget, &QListWidget::itemDoubleClicked, this, [=,this](QListWidgetItem *wI) {
+    connect(ui->listWidget, &QListWidget::itemDoubleClicked, this, [=, this](QListWidgetItem *wI) {
         auto w = dynamic_cast<GroupItem *>(ui->listWidget->itemWidget(wI));
         emit w->edit_clicked();
     });

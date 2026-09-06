@@ -9,8 +9,7 @@ namespace Ui {
 class EditOpenVPNAdvanced;
 }
 
-class EditOpenVPNAdvanced : public QDialog
-{
+class EditOpenVPNAdvanced : public QDialog {
     Q_OBJECT
 
 public:

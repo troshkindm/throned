@@ -11,39 +11,43 @@
 #include <vector>
 
 namespace {
-    double niceCeil(double v) {
-        if (v <= 0) return 1.0;
-        const double mag = std::pow(10.0, std::floor(std::log10(v)));
-        const double n = v / mag;
-        double nice;
-        if (n <= 1.0) nice = 1.0;
-        else if (n <= 2.0) nice = 2.0;
-        else if (n <= 5.0) nice = 5.0;
-        else nice = 10.0;
-        return nice * mag;
-    }
+double niceCeil(double v) {
+    if (v <= 0) return 1.0;
+    const double mag = std::pow(10.0, std::floor(std::log10(v)));
+    const double n = v / mag;
+    double nice;
+    if (n <= 1.0)
+        nice = 1.0;
+    else if (n <= 2.0)
+        nice = 2.0;
+    else if (n <= 5.0)
+        nice = 5.0;
+    else
+        nice = 10.0;
+    return nice * mag;
 }
+} // namespace
 
-MiniChartWidget::MiniChartWidget(QWidget* parent) : QWidget(parent) {
+MiniChartWidget::MiniChartWidget(QWidget *parent) : QWidget(parent) {
     setMinimumHeight(46);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 void MiniChartWidget::setCapacity(int n) {
     cap_ = n > 1 ? n : 1;
-    for (auto &series : series_)
+    for (auto &series: series_)
         while (series.values.size() > static_cast<std::size_t>(cap_)) series.values.pop_front();
     update();
 }
 
-void MiniChartWidget::setColors(const QColor& primary, const QColor& secondary) {
+void MiniChartWidget::setColors(const QColor &primary, const QColor &secondary) {
     setSeriesStyles({{primary, Qt::SolidLine, true}, {secondary, Qt::SolidLine, false}});
 }
 
-void MiniChartWidget::setSeriesStyles(const QList<MiniChartSeriesStyle>& styles) {
+void MiniChartWidget::setSeriesStyles(const QList<MiniChartSeriesStyle> &styles) {
     series_.clear();
     series_.reserve(styles.size());
-    for (const auto &style : styles) series_.push_back({{}, style});
+    for (const auto &style: styles) series_.push_back({{}, style});
     update();
 }
 
@@ -57,7 +61,7 @@ void MiniChartWidget::setFormatter(std::function<QString(double)> formatter) {
     update();
 }
 
-void MiniChartWidget::setCaption(const QString& caption) {
+void MiniChartWidget::setCaption(const QString &caption) {
     caption_ = caption;
     update();
 }
@@ -68,7 +72,7 @@ void MiniChartWidget::push(double primary, double secondary) {
     pushValues({primary, secondary});
 }
 
-void MiniChartWidget::pushValues(const QList<double>& values) {
+void MiniChartWidget::pushValues(const QList<double> &values) {
     if (values.size() != static_cast<qsizetype>(series_.size())) return;
     for (qsizetype i = 0; i < values.size(); ++i) {
         auto &samples = series_[static_cast<std::size_t>(i)].values;
@@ -79,11 +83,11 @@ void MiniChartWidget::pushValues(const QList<double>& values) {
 }
 
 void MiniChartWidget::clear() {
-    for (auto &series : series_) series.values.clear();
+    for (auto &series: series_) series.values.clear();
     update();
 }
 
-void MiniChartWidget::paintEvent(QPaintEvent*) {
+void MiniChartWidget::paintEvent(QPaintEvent *) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, true);
 
@@ -101,7 +105,7 @@ void MiniChartWidget::paintEvent(QPaintEvent*) {
     if (maxV <= 0) {
         constexpr int scaleWindow = 30;
         std::vector<double> recent;
-        for (const auto &series : series_) {
+        for (const auto &series: series_) {
             const int first = qMax(0, static_cast<int>(series.values.size()) - scaleWindow);
             for (int i = first; i < static_cast<int>(series.values.size()); ++i) {
                 const double value = series.values[static_cast<std::size_t>(i)];
@@ -110,10 +114,10 @@ void MiniChartWidget::paintEvent(QPaintEvent*) {
         }
         std::sort(recent.begin(), recent.end());
         const double normalPeak = recent.empty()
-            ? 0.0
-            : recent.size() < 5
-                ? recent.back()
-                : recent[static_cast<std::size_t>(std::floor((recent.size() - 1) * 0.90))];
+                                      ? 0.0
+                                  : recent.size() < 5
+                                      ? recent.back()
+                                      : recent[static_cast<std::size_t>(std::floor((recent.size() - 1) * 0.90))];
         maxV = niceCeil(qMax(50.0, normalPeak * 1.20));
     }
     if (maxV <= 0) maxV = 1.0;
@@ -186,8 +190,10 @@ void MiniChartWidget::paintEvent(QPaintEvent*) {
                     segmentOpen = false;
                     continue;
                 }
-                if (segmentOpen) line.lineTo(pointAt(i));
-                else line.moveTo(pointAt(i));
+                if (segmentOpen)
+                    line.lineTo(pointAt(i));
+                else
+                    line.moveTo(pointAt(i));
                 segmentOpen = true;
             }
             QPen pen(color, 1.6);

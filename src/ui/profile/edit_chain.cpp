@@ -1,6 +1,5 @@
 #include "include/ui/profile/edit_chain.h"
 
-
 #include "include/database/ProfilesRepo.h"
 #include "include/ui/mainwindow_interface.h"
 #include "include/ui/profile/ProxyItem.h"
@@ -56,7 +55,7 @@ bool EditChain::onEnd() {
 
 void EditChain::on_select_profile_clicked() {
     get_edit_dialog()->hide();
-    GetMainWindow()->start_select_mode(this, [=,this](int id) {
+    GetMainWindow()->start_select_mode(this, [=, this](int id) {
         get_edit_dialog()->show();
         AddProfileToListIfExist(id);
     });
@@ -80,9 +79,9 @@ void EditChain::AddProfileToListIfExist(int profileId) {
         auto w = new ProxyItem(this, _ent, wI);
         ui->listWidget->addItem(wI);
         ui->listWidget->setItemWidget(wI, w);
-        connect(w->get_change_button(), &QPushButton::clicked, w, [=,this] {
+        connect(w->get_change_button(), &QPushButton::clicked, w, [=, this] {
             get_edit_dialog()->hide();
-            GetMainWindow()->start_select_mode(w, [=,this](int newId) {
+            GetMainWindow()->start_select_mode(w, [=, this](int newId) {
                 get_edit_dialog()->show();
                 ReplaceProfile(w, newId);
             });

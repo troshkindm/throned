@@ -28,9 +28,9 @@ DialogEditOtp::DialogEditOtp(QWidget *parent, std::shared_ptr<Configs::OtpProfil
         updateTypeFields();
         updatePreview();
     });
-    for (auto *edit : {ui->secret, ui->issuer}) connect(edit, &QLineEdit::textChanged, this, [this] { updatePreview(); });
+    for (auto *edit: {ui->secret, ui->issuer}) connect(edit, &QLineEdit::textChanged, this, [this] { updatePreview(); });
     connect(ui->algorithm, &QComboBox::currentIndexChanged, this, [this](int) { updatePreview(); });
-    for (auto *spin : {ui->digits, ui->period, ui->counter})
+    for (auto *spin: {ui->digits, ui->period, ui->counter})
         connect(spin, &QSpinBox::valueChanged, this, [this](int) { updatePreview(); });
 
     previewTimer = new QTimer(this);

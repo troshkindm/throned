@@ -14,14 +14,12 @@
 #include "include/ui/profile/editor_table_utils.h"
 
 namespace {
-    const QStringList kNetworks = {"", "udp", "udp4", "udp6", "tcp", "tcp4", "tcp6"};
-    const QStringList kPullFilterActions = {"accept", "ignore", "reject"};
-}
+const QStringList kNetworks = {"", "udp", "udp4", "udp6", "tcp", "tcp4", "tcp6"};
+const QStringList kPullFilterActions = {"accept", "ignore", "reject"};
+} // namespace
 
 EditOpenVPNAdvanced::EditOpenVPNAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent)
-    : QDialog(parent)
-    , ui(new Ui::EditOpenVPNAdvanced)
-{
+    : QDialog(parent), ui(new Ui::EditOpenVPNAdvanced) {
     ui->setupUi(this);
     ent = _ent;
     auto outbound = ent->OpenVPN();
@@ -151,8 +149,7 @@ EditOpenVPNAdvanced::EditOpenVPNAdvanced(QWidget *parent, const std::shared_ptr<
     if (scr != nullptr) resize(QSize(width, sizeHint().height()).boundedTo(scr->availableGeometry().size()));
 }
 
-EditOpenVPNAdvanced::~EditOpenVPNAdvanced()
-{
+EditOpenVPNAdvanced::~EditOpenVPNAdvanced() {
     delete ui;
 }
 

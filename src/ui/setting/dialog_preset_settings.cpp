@@ -9,12 +9,12 @@
 #include <QValidator>
 
 namespace {
-    // 0 means "keep the core default" and is omitted from the config, so show it as blank.
-    void LoadOptionalInt(QLineEdit *edit, const int value, QObject *parent) {
-        edit->setText(value > 0 ? Int2String(value) : "");
-        edit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]+$"), parent));
-    }
+// 0 means "keep the core default" and is omitted from the config, so show it as blank.
+void LoadOptionalInt(QLineEdit *edit, const int value, QObject *parent) {
+    edit->setText(value > 0 ? Int2String(value) : "");
+    edit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]+$"), parent));
 }
+} // namespace
 
 DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogPresetSettings) {
     ui->setupUi(this);

@@ -30,81 +30,81 @@
 #include "include/ui/utils/ScreenQrScanner.h"
 
 namespace {
-    constexpr qint64 MAX_IMPORT_FILE_SIZE = 50 * 1024 * 1024;
+constexpr qint64 MAX_IMPORT_FILE_SIZE = 50 * 1024 * 1024;
 
-    QImage RenderQr(const QString &text, bool &ok) {
-        constexpr int padding = 2;
-        ok = false;
-        try {
-            const auto qr = qrcodegen::QrCode::encodeText(text.toUtf8().data(), qrcodegen::QrCode::Ecc::MEDIUM);
-            const int size = qr.getSize();
-            QImage image(size + padding * 2, size + padding * 2, QImage::Format_RGB32);
-            image.fill(qRgb(255, 255, 255));
-            for (int y = 0; y < size; ++y)
-                for (int x = 0; x < size; ++x)
-                    if (qr.getModule(x, y)) image.setPixel(x + padding, y + padding, qRgb(0, 0, 0));
-            ok = true;
-            return image;
-        } catch (const std::exception &) {
-            return {};
-        }
-    }
-
-    void ShowQrDialog(QWidget *parent, const QString &title, const QString &text) {
-        bool ok = false;
-        const auto image = RenderQr(text, ok);
-
-        QDialog dialog(parent);
-        dialog.setWindowTitle(title);
-        auto *layout = new QVBoxLayout(&dialog);
-
-        if (ok) {
-            auto *label = new QLabel(&dialog);
-            label->setPixmap(QPixmap::fromImage(image.scaled(320, 320, Qt::KeepAspectRatio, Qt::FastTransformation)));
-            label->setAlignment(Qt::AlignCenter);
-            layout->addWidget(label);
-        } else {
-            auto *label = new QLabel(QObject::tr("Too much data to fit in a QR code."), &dialog);
-            label->setWordWrap(true);
-            layout->addWidget(label);
-        }
-
-        auto *view = new QPlainTextEdit(text, &dialog);
-        view->setReadOnly(true);
-        view->setMaximumHeight(120);
-        layout->addWidget(view);
-
-        auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
-        auto *copy = buttons->addButton(QObject::tr("Copy"), QDialogButtonBox::ActionRole);
-        QObject::connect(copy, &QPushButton::clicked, &dialog, [text] { QGuiApplication::clipboard()->setText(text); });
-        QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-        layout->addWidget(buttons);
-
-        dialog.exec();
-    }
-
-    QString AskForText(QWidget *parent, const QString &title, const QString &hint) {
-        QDialog dialog(parent);
-        dialog.setWindowTitle(title);
-        dialog.resize(520, 300);
-        auto *layout = new QVBoxLayout(&dialog);
-
-        auto *label = new QLabel(hint, &dialog);
-        label->setWordWrap(true);
-        layout->addWidget(label);
-
-        auto *edit = new QPlainTextEdit(&dialog);
-        layout->addWidget(edit);
-
-        auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-        QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-        QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-        layout->addWidget(buttons);
-
-        if (dialog.exec() != QDialog::Accepted) return {};
-        return edit->toPlainText();
+QImage RenderQr(const QString &text, bool &ok) {
+    constexpr int padding = 2;
+    ok = false;
+    try {
+        const auto qr = qrcodegen::QrCode::encodeText(text.toUtf8().data(), qrcodegen::QrCode::Ecc::MEDIUM);
+        const int size = qr.getSize();
+        QImage image(size + padding * 2, size + padding * 2, QImage::Format_RGB32);
+        image.fill(qRgb(255, 255, 255));
+        for (int y = 0; y < size; ++y)
+            for (int x = 0; x < size; ++x)
+                if (qr.getModule(x, y)) image.setPixel(x + padding, y + padding, qRgb(0, 0, 0));
+        ok = true;
+        return image;
+    } catch (const std::exception &) {
+        return {};
     }
 }
+
+void ShowQrDialog(QWidget *parent, const QString &title, const QString &text) {
+    bool ok = false;
+    const auto image = RenderQr(text, ok);
+
+    QDialog dialog(parent);
+    dialog.setWindowTitle(title);
+    auto *layout = new QVBoxLayout(&dialog);
+
+    if (ok) {
+        auto *label = new QLabel(&dialog);
+        label->setPixmap(QPixmap::fromImage(image.scaled(320, 320, Qt::KeepAspectRatio, Qt::FastTransformation)));
+        label->setAlignment(Qt::AlignCenter);
+        layout->addWidget(label);
+    } else {
+        auto *label = new QLabel(QObject::tr("Too much data to fit in a QR code."), &dialog);
+        label->setWordWrap(true);
+        layout->addWidget(label);
+    }
+
+    auto *view = new QPlainTextEdit(text, &dialog);
+    view->setReadOnly(true);
+    view->setMaximumHeight(120);
+    layout->addWidget(view);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    auto *copy = buttons->addButton(QObject::tr("Copy"), QDialogButtonBox::ActionRole);
+    QObject::connect(copy, &QPushButton::clicked, &dialog, [text] { QGuiApplication::clipboard()->setText(text); });
+    QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    dialog.exec();
+}
+
+QString AskForText(QWidget *parent, const QString &title, const QString &hint) {
+    QDialog dialog(parent);
+    dialog.setWindowTitle(title);
+    dialog.resize(520, 300);
+    auto *layout = new QVBoxLayout(&dialog);
+
+    auto *label = new QLabel(hint, &dialog);
+    label->setWordWrap(true);
+    layout->addWidget(label);
+
+    auto *edit = new QPlainTextEdit(&dialog);
+    layout->addWidget(edit);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted) return {};
+    return edit->toPlainText();
+}
+} // namespace
 
 DialogOtpManager::DialogOtpManager(QWidget *parent) : QDialog(parent), ui(new Ui::DialogOtpManager) {
     ui->setupUi(this);
@@ -138,7 +138,7 @@ void DialogOtpManager::reloadOtpProfiles() {
     otpProfiles = Configs::dataManager->otpProfilesRepo->GetAllOtpProfiles();
 
     ui->otp_list->clear();
-    for (const auto &profile : otpProfiles) {
+    for (const auto &profile: otpProfiles) {
         auto *item = new QListWidgetItem(ui->otp_list);
         auto *widget = new OtpItem(ui->otp_list, profile, item);
         connect(widget, &OtpItem::editRequested, this, [this, profile] { editOtpProfile(profile); });
@@ -175,8 +175,7 @@ void DialogOtpManager::editOtpProfile(const std::shared_ptr<Configs::OtpProfile>
 
 void DialogOtpManager::deleteOtpProfile(const std::shared_ptr<Configs::OtpProfile> &profile) {
     if (QMessageBox::question(this, tr("Confirmation"),
-                              tr("Delete \"%1\"? Its secret cannot be recovered.").arg(profile->DisplayName()))
-        != QMessageBox::StandardButton::Yes)
+                              tr("Delete \"%1\"? Its secret cannot be recovered.").arg(profile->DisplayName())) != QMessageBox::StandardButton::Yes)
         return;
 
     Configs::dataManager->otpProfilesRepo->DeleteOtpProfile(profile->id);
@@ -189,7 +188,7 @@ void DialogOtpManager::moveOtpProfile(int from, int to) {
     otpProfiles.move(from, to);
     QList<int> ids;
     ids.reserve(otpProfiles.size());
-    for (const auto &profile : otpProfiles) ids.append(profile->id);
+    for (const auto &profile: otpProfiles) ids.append(profile->id);
     Configs::dataManager->otpProfilesRepo->UpdateOtpProfilesOrder(ids);
 
     reloadOtpProfiles();
@@ -286,7 +285,7 @@ void DialogOtpManager::importOtpFromFiles() {
 
     QStringList payloads;
     QStringList problems;
-    for (const auto &path : paths) {
+    for (const auto &path: paths) {
         const QFileInfo info(path);
         QFile file(path);
         if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
@@ -316,7 +315,7 @@ void DialogOtpManager::importOtpFromFiles() {
                 problems << tr("%1: no QR code found").arg(info.fileName());
                 continue;
             }
-            for (const auto &text : texts) payloads << text.trimmed();
+            for (const auto &text: texts) payloads << text.trimmed();
             continue;
         }
 
@@ -324,7 +323,7 @@ void DialogOtpManager::importOtpFromFiles() {
     }
 
     QList<OTP::Entry> entries;
-    for (const auto &payload : payloads) entries += OTP::ParseAny(payload, &problems);
+    for (const auto &payload: payloads) entries += OTP::ParseAny(payload, &problems);
     importOtpEntries(entries, problems);
 }
 
@@ -336,11 +335,11 @@ void DialogOtpManager::importOtpEntries(const QList<OTP::Entry> &entries, const 
 
     const auto existing = Configs::dataManager->otpProfilesRepo->GetAllOtpProfiles();
     QStringList takenNames;
-    for (const auto &other : existing) takenNames << other->name;
+    for (const auto &other: existing) takenNames << other->name;
 
     int added = 0;
     int skipped = 0;
-    for (const auto &entry : entries) {
+    for (const auto &entry: entries) {
         if (!OTP::Validate(entry).isEmpty()) {
             ++skipped;
             continue;
@@ -377,7 +376,7 @@ void DialogOtpManager::exportOtpAsLink(const std::shared_ptr<Configs::OtpProfile
 
 void DialogOtpManager::exportOtpAsMigration(const QList<std::shared_ptr<Configs::OtpProfile>> &profiles) {
     QList<OTP::Entry> entries;
-    for (const auto &profile : profiles) entries.append(*profile);
+    for (const auto &profile: profiles) entries.append(*profile);
 
     const auto link = OTP::ExportToMigrationLink(entries);
     if (link.isEmpty()) {
@@ -393,7 +392,7 @@ void DialogOtpManager::exportOtpAsJson(const QList<std::shared_ptr<Configs::OtpP
     if (path.isEmpty()) return;
 
     QList<OTP::Entry> entries;
-    for (const auto &profile : profiles) entries.append(*profile);
+    for (const auto &profile: profiles) entries.append(*profile);
 
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {

@@ -3,7 +3,7 @@
 #include <QKeyEvent>
 
 QtExtKeySequenceEdit::QtExtKeySequenceEdit(QWidget *parent)
-        : QKeySequenceEdit(parent) {
+    : QKeySequenceEdit(parent) {
 }
 
 QtExtKeySequenceEdit::~QtExtKeySequenceEdit() {

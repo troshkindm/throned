@@ -90,7 +90,7 @@ void MainWindow::on_menu_routing_settings_triggered() {
     if (dialog_is_using) return;
     dialog_is_using = true;
     auto dialog = new DialogManageRoutes(this);
-    connect(dialog, &QDialog::finished, this, [=,this] {
+    connect(dialog, &QDialog::finished, this, [=, this] {
         dialog->deleteLater();
         dialog_is_using = false;
     });
@@ -117,8 +117,7 @@ void MainWindow::on_menu_hotkey_settings_triggered() {
     if (dialog_is_using) return;
     dialog_is_using = true;
     auto dialog = new DialogHotkey(this, getActionsForShortcut());
-    connect(dialog, &QDialog::finished, this, [=,this]
-    {
+    connect(dialog, &QDialog::finished, this, [=, this] {
         dialog->deleteLater();
         dialog_is_using = false;
     });
@@ -128,7 +127,7 @@ void MainWindow::on_menu_hotkey_settings_triggered() {
 void MainWindow::on_commitDataRequest() {
     qDebug() << "Start of data save";
 
-    auto* settings = Configs::dataManager->settingsRepo.get();
+    auto *settings = Configs::dataManager->settingsRepo.get();
 
     settings->mainWindowGeometry = this->saveGeometry().toBase64(QByteArray::Base64Encoding);
     if (!isMaximized()) {
@@ -146,12 +145,10 @@ void MainWindow::on_commitDataRequest() {
     qDebug() << "End of data save";
 }
 
-void MainWindow::prepare_exit()
-{
+void MainWindow::prepare_exit() {
     qDebug() << "prepare for exit...";
     mu_exit.lock();
-    if (Configs::dataManager->settingsRepo->prepare_exit)
-    {
+    if (Configs::dataManager->settingsRepo->prepare_exit) {
         qDebug() << "prepare exit had already succeeded, ignoring...";
         mu_exit.unlock();
         return;
@@ -166,10 +163,10 @@ void MainWindow::prepare_exit()
     Configs::dataManager->settingsRepo->noSave = true; // don't change Configs::dataManager->settingsRepo after this line
     profile_stop(false, true);
 
-    runOnThread([=, this]()
-    {
+    runOnThread([=, this]() {
         core_process->Kill();
-    }, DS_cores, true);
+    },
+                DS_cores, true);
     HideWindow(this);
     tray->hide();
 
@@ -186,11 +183,20 @@ void MainWindow::on_menu_exit_triggered() {
         const QDir applicationDir(updaterWorkingDirectory);
         QString updaterLanguage = QStringLiteral("en");
         switch (Configs::dataManager->settingsRepo->language) {
-        case 2: updaterLanguage = QStringLiteral("zh"); break;
-        case 3: updaterLanguage = QStringLiteral("fa"); break;
-        case 4: updaterLanguage = QStringLiteral("ru"); break;
-        case 0: updaterLanguage = QLocale::system().name().section(QChar('_'), 0, 0); break;
-        default: break;
+            case 2:
+                updaterLanguage = QStringLiteral("zh");
+                break;
+            case 3:
+                updaterLanguage = QStringLiteral("fa");
+                break;
+            case 4:
+                updaterLanguage = QStringLiteral("ru");
+                break;
+            case 0:
+                updaterLanguage = QLocale::system().name().section(QChar('_'), 0, 0);
+                break;
+            default:
+                break;
         }
         updaterArguments = {QStringLiteral("--lang"), updaterLanguage,
                             QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
@@ -255,8 +261,7 @@ void MainWindow::toggle_system_proxy() {
 }
 
 bool MainWindow::get_elevated_permissions(ExitReason reason) {
-    if (Configs::dataManager->settingsRepo->disable_privilege_req)
-    {
+    if (Configs::dataManager->settingsRepo->disable_privilege_req) {
         MW_show_log(tr("User opted for no privilege req, some features may not work"));
         return true;
     }
@@ -268,8 +273,7 @@ bool MainWindow::get_elevated_permissions(ExitReason reason) {
     }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes) {
-        runOnNewThread([=,this]
-        {
+        runOnNewThread([=, this] {
             auto chownArgs = QString("root:root " + Configs::FindCoreRealPath());
             auto ret = Linux_Run_Command("chown", chownArgs);
             if (ret != 0) {
@@ -295,14 +299,12 @@ bool MainWindow::get_elevated_permissions(ExitReason reason) {
 #endif
 
 #ifdef Q_OS_MACOS
-    if (Configs::isSetuidSet(Configs::FindCoreRealPath().toStdString()))
-    {
+    if (Configs::isSetuidSet(Configs::FindCoreRealPath().toStdString())) {
         StopVPNProcess();
         return true;
     }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
-    if (n == QMessageBox::Yes)
-    {
+    if (n == QMessageBox::Yes) {
         auto Command = QString("sudo chown root:wheel '%1' && sudo chmod u+s '%1'").arg(Configs::FindCoreRealPath());
         auto ret = Mac_Run_Command(Command);
         if (ret == 0) {
@@ -329,7 +331,7 @@ void MainWindow::set_system_proxy(bool enable) {
 void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
     if (enable && Configs::dataManager->settingsRepo->disable_mixed_inbound) {
         runOnUiThread([=, this] {
-           MessageBoxWarning("Invalid Operation", "Cannot set system proxy when mixed inbound is disabled.");
+            MessageBoxWarning("Invalid Operation", "Cannot set system proxy when mixed inbound is disabled.");
         });
         ui->checkBox_SystemProxy->setChecked(false);
         return;
@@ -376,20 +378,20 @@ void MainWindow::set_spmode_vpn(bool enable, bool save) {
 }
 
 bool MainWindow::StopVPNProcess() {
-    runOnThread([=, this]
-    {
+    runOnThread([=, this] {
         core_process->Kill();
-    }, DS_cores, true);
+    },
+                DS_cores, true);
 
     return true;
 }
 
 void MainWindow::RestartCore() {
-    runOnThread([=, this]
-    {
+    runOnThread([=, this] {
         profile_stop(true, true, true);
         core_process->Kill();
-    }, DS_cores);
+    },
+                DS_cores);
 }
 
 namespace {
@@ -402,11 +404,10 @@ bool isNewer(QString assetName) {
     QString version;
     auto spl = assetName.split('-');
     version += spl[0];
-    if (spl[1].contains("beta") || spl[1].contains("alpha") || spl[1].contains("rc")) version += "."+spl[1];
+    if (spl[1].contains("beta") || spl[1].contains("alpha") || spl[1].contains("rc")) version += "." + spl[1];
     auto parts = version.split("."); // [1,2,3,beta,13]
     auto currentParts = QString(NKR_VERSION).replace("-", ".").split('.');
-    if (parts.size() < 3 || currentParts.size() < 3)
-    {
+    if (parts.size() < 3 || currentParts.size() < 3) {
         MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
         return false;
     }
@@ -415,8 +416,7 @@ bool isNewer(QString assetName) {
     verNums.push_back(parts[0].toInt());
     verNums.push_back(parts[1].toInt());
     verNums.push_back(parts[2].toInt());
-    if (parts.size() > 3)
-    {
+    if (parts.size() > 3) {
         if (parts[3] == "alpha") verNums.push_back(1);
         if (parts[3] == "beta") verNums.push_back(2);
         if (parts[3] == "rc") verNums.push_back(3);
@@ -426,38 +426,32 @@ bool isNewer(QString assetName) {
     currNums.push_back(currentParts[0].toInt());
     currNums.push_back(currentParts[1].toInt());
     currNums.push_back(currentParts[2].toInt());
-    if (currentParts.size() > 3)
-    {
+    if (currentParts.size() > 3) {
         if (currentParts[3] == "alpha") currNums.push_back(1);
         if (currentParts[3] == "beta") currNums.push_back(2);
         if (currentParts[3] == "rc") currNums.push_back(3);
         if (currentParts.size() > 4) currNums.push_back(currentParts[4].toInt());
     }
 
-    if (verNums.size() < 3 || currNums.size() < 3)
-    {
+    if (verNums.size() < 3 || currNums.size() < 3) {
         MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
         return false;
     }
 
-    for (int i=0;i<3;i++)
-    {
+    for (int i = 0; i < 3; i++) {
         if (verNums[i] > currNums[i]) return true;
         if (verNums[i] < currNums[i]) return false;
     }
 
     if (verNums.size() == 5 && currNums.size() == 3) return false;
     if (verNums.size() == 3 && currNums.size() == 5) return true;
-    if (verNums.size() == 5 && currNums.size() == 5)
-    {
-        for (int i=3;i<5;i++)
-        {
+    if (verNums.size() == 5 && currNums.size() == 5) {
+        for (int i = 3; i < 5; i++) {
             if (verNums[i] > currNums[i]) return true;
             if (verNums[i] < currNums[i]) return false;
         }
-    } else
-    {
-		MW_show_log("There are no updates. You have the latest version - " + QString(NKR_VERSION));
+    } else {
+        MW_show_log("There are no updates. You have the latest version - " + QString(NKR_VERSION));
         return false;
     }
     return false;
@@ -470,7 +464,7 @@ bool copyOut(const QString &from, const QString &to) {
     if (!QFile::copy(from, to)) return false;
     // Resource files are read-only, and QFile::copy carries that onto the copy.
     return QFile::setPermissions(to, QFileDevice::ReadOwner | QFileDevice::WriteOwner |
-                                     QFileDevice::ReadGroup | QFileDevice::ReadOther);
+                                         QFileDevice::ReadGroup | QFileDevice::ReadOther);
 }
 
 bool unpackBundledDashboard(const QDir &dest) {
@@ -537,8 +531,7 @@ void MainWindow::OpenDashboard() {
     }
 
     if (QMessageBox::question(this, tr("Web dashboard"),
-                              tr("The dashboard is not installed yet. Download it now?"))
-        != QMessageBox::StandardButton::Yes) {
+                              tr("The dashboard is not installed yet. Download it now?")) != QMessageBox::StandardButton::Yes) {
         return;
     }
 
@@ -576,35 +569,35 @@ void MainWindow::CheckUpdate(bool silent) {
 
     QString search;
 #ifdef Q_OS_WIN
-#  ifdef Q_PROCESSOR_ARM_64
+#ifdef Q_PROCESSOR_ARM_64
     search = "windows-arm64";
-#  else
-#    ifdef Q_OS_WIN64
-        if (WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1809))
-            search = "windows64";
-        else
-	        search = "windowslegacy64";
-#    else
-	    search = "windows32";
-#    endif
-#  endif
+#else
+#ifdef Q_OS_WIN64
+    if (WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1809))
+        search = "windows64";
+    else
+        search = "windowslegacy64";
+#else
+    search = "windows32";
+#endif
+#endif
 #endif
 #ifdef Q_OS_LINUX
-#  ifdef Q_PROCESSOR_X86_64
+#ifdef Q_PROCESSOR_X86_64
     search = "linux-amd64";
-#  else
+#else
     search = "linux-arm64";
-#  endif
+#endif
 #endif
 #ifdef Q_OS_MACOS
-#  ifdef Q_PROCESSOR_X86_64
-	search = "macos-amd64";
-#  else
-	search = "macos-arm64";
-#  endif
+#ifdef Q_PROCESSOR_X86_64
+    search = "macos-amd64";
+#else
+    search = "macos-arm64";
+#endif
 #endif
     if (search.isEmpty()) {
-        if (!silent) runOnUiThread([=,this] {
+        if (!silent) runOnUiThread([=, this] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Not official support platform"));
         });
         return;
@@ -626,7 +619,7 @@ void MainWindow::CheckUpdate(bool silent) {
         "https://api.github.com/repos/troshkindm/throned/releases", false, requestUsedProfile);
     if (!resp.error.isEmpty()) {
         rememberDirectFailure();
-        if (!silent) runOnUiThread([=,this] {
+        if (!silent) runOnUiThread([=, this] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
         });
         return;
@@ -637,8 +630,8 @@ void MainWindow::CheckUpdate(bool silent) {
     if (parseError.error != QJsonParseError::NoError || !releasesDocument.isArray()) {
         rememberDirectFailure();
         const QString error = parseError.error == QJsonParseError::NoError
-            ? tr("GitHub returned an unexpected response.")
-            : tr("Could not read GitHub's response: %1").arg(parseError.errorString());
+                                  ? tr("GitHub returned an unexpected response.")
+                                  : tr("Could not read GitHub's response: %1").arg(parseError.errorString());
         if (!silent) runOnUiThread([=, this] {
             MessageBoxWarning(tr("Update"), tr("Requesting update error: %1").arg(error));
         });
@@ -649,10 +642,10 @@ void MainWindow::CheckUpdate(bool silent) {
     QString assets_name, release_download_url, release_url, release_note, note_pre_release;
     bool exitFlag = false;
     const QJsonArray array = releasesDocument.array();
-    for (const QJsonValue value : array) {
+    for (const QJsonValue value: array) {
         QJsonObject release = value.toObject();
         if (release["prerelease"].toBool() && !Configs::dataManager->settingsRepo->allow_beta_update) continue;
-        for (const QJsonValue asset : release["assets"].toArray()) {
+        for (const QJsonValue asset: release["assets"].toArray()) {
             const QString assetName = asset["name"].toString();
             if (assetName.startsWith("Throned-") && assetName.contains(search) &&
                 assetName.section('.', -1) == QString("zip")) {
@@ -669,13 +662,13 @@ void MainWindow::CheckUpdate(bool silent) {
     }
 
     if (release_download_url.isEmpty() || !isNewer(assets_name)) {
-        if (!silent) runOnUiThread([=,this] {
+        if (!silent) runOnUiThread([=, this] {
             MessageBoxInfo(QObject::tr("Update"), QObject::tr("No update"));
         });
         return;
     }
 
-    const auto showUpdatePrompt = [=,this] {
+    const auto showUpdatePrompt = [=, this] {
         auto allow_updater = !Configs::dataManager->settingsRepo->flag_use_appdata;
         const auto choice = ShowUpdatePrompt(this, QObject::tr("Update") + note_pre_release,
                                              assets_name, release_note, allow_updater);
@@ -687,7 +680,7 @@ void MainWindow::CheckUpdate(bool silent) {
         }
     };
 
-    runOnUiThread([=,this] {
+    runOnUiThread([=, this] {
         if (!silent) {
             showUpdatePrompt();
             return;
@@ -721,8 +714,10 @@ void MainWindow::startUpdateDownload(const QString &url, const QString &assetNam
             lastUpdateProgressMs_.store(now);
             runOnUiThread([this, assetName, received, total, complete] {
                 if (updateStatusWidget == nullptr) return;
-                if (complete) updateStatusWidget->showPreparing(assetName);
-                else updateStatusWidget->showDownloading(assetName, received, total);
+                if (complete)
+                    updateStatusWidget->showPreparing(assetName);
+                else
+                    updateStatusWidget->showDownloading(assetName, received, total);
             });
         };
 
@@ -758,131 +753,147 @@ void MainWindow::retryPendingUpdateCheck() {
 }
 
 namespace {
-    bool isSensitiveQueryKey(const QString &key) {
-        static const QSet<QString> keys{
-            QStringLiteral("access_token"), QStringLiteral("api-key"), QStringLiteral("api_key"),
-            QStringLiteral("apikey"), QStringLiteral("auth"), QStringLiteral("authorization"),
-            QStringLiteral("key"), QStringLiteral("password"), QStringLiteral("secret"),
-            QStringLiteral("token"),
-        };
-        return keys.contains(key.toLower());
-    }
-
-    void appendUrlSecrets(const QString &text, QStringList &secrets) {
-        const auto url = QUrl::fromUserInput(text);
-        if (!url.isValid() || url.scheme().isEmpty() || url.host().isEmpty()) return;
-        if (!url.userInfo().isEmpty()) secrets << url.userInfo();
-        if (!url.password().isEmpty()) secrets << url.password();
-        const QUrlQuery query(url);
-        for (const auto &[key, value] : query.queryItems(QUrl::FullyDecoded)) {
-            if (isSensitiveQueryKey(key) && !value.isEmpty()) secrets << value;
-        }
-
-        // Personal DNS products commonly put the account id in the path instead
-        // of a query. Keep the provider visible while hiding that final segment.
-        const auto host = url.host().toLower();
-        const auto parts = url.path().split('/', Qt::SkipEmptyParts);
-        if (!parts.isEmpty() &&
-            (host == QStringLiteral("dns.nextdns.io") || host == QStringLiteral("d.adguard-dns.com") ||
-             (parts.size() > 1 && parts.at(parts.size() - 2) == QStringLiteral("dns-query")))) {
-            secrets << parts.last();
-        }
-    }
-
-    // Values that must never leave the machine in a paste. Redaction is by literal
-    // match rather than pattern: a token only has to be recognised once, here.
-    QStringList collectSecrets() {
-        const auto &settings = *Configs::dataManager->settingsRepo;
-        QStringList secrets{
-            settings.core_box_api_secret,
-            settings.core_box_clash_api_secret,
-            settings.inbound_user,
-            settings.inbound_pass,
-            settings.internal_proxy_auth,
-            settings.warp_private_key,
-        };
-        for (const int groupID : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
-            const auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
-            if (group != nullptr && !group->url.isEmpty()) secrets << group->url;
-        }
-        appendUrlSecrets(settings.remote_dns, secrets);
-        appendUrlSecrets(settings.direct_dns, secrets);
-        appendUrlSecrets(settings.core_box_underlying_dns, secrets);
-        static const QRegularExpression urlInJson(QStringLiteral(R"((?:https?|h3)://[^\s\"']+)"),
-                                                   QRegularExpression::CaseInsensitiveOption);
-        auto urls = urlInJson.globalMatch(settings.dns_object);
-        while (urls.hasNext()) appendUrlSecrets(urls.next().captured(), secrets);
-        secrets.removeAll("");
-        // Longest first, so a token that contains another is masked whole.
-        std::sort(secrets.begin(), secrets.end(),
-                  [](const QString &a, const QString &b) { return a.size() > b.size(); });
-        return secrets;
-    }
-
-    QString redact(QString text, const QStringList &secrets) {
-        for (const auto &secret : secrets) {
-            // A short value is more likely an ordinary word than a token, and blanket
-            // replacing one would shred the log it is supposed to make readable.
-            if (secret.size() < 6) continue;
-            text.replace(secret, QStringLiteral("[redacted]"));
-        }
-        // Share links carry the credentials themselves, and the log holds them verbatim:
-        // scanning a QR writes the whole link out. Matching by scheme catches every
-        // profile format at once. Plain http(s) is deliberately left alone -- rule-set
-        // and update URLs are worth reading, and subscription links with tokens are
-        // already covered by the literal pass above.
-        static const QRegularExpression shareLink(
-            QStringLiteral(R"(\b(?:vless|vmess|trojan|ss|ssr|hysteria2?|hy2|tuic|anytls|socks5?|wireguard|wg|snell|mieru|juicity|naive|shadowtls|ssh|throne)://\S+)"),
-            QRegularExpression::CaseInsensitiveOption);
-        text.replace(shareLink, QStringLiteral("[link redacted]"));
-
-        // Preserve the resolver host for support while masking credentials and
-        // common token-bearing query fields even when they only appear in a
-        // generated DNS object rather than in the settings verbatim.
-        static const QRegularExpression urlUserInfo(
-            QStringLiteral(R"((\b[a-z][a-z0-9+.-]*://)[^/\s@\"']+@)"),
-            QRegularExpression::CaseInsensitiveOption);
-        text.replace(urlUserInfo, QStringLiteral("\\1[credentials redacted]@"));
-        static const QRegularExpression sensitiveQuery(
-            QStringLiteral(R"(([?&](?:access_token|api[-_]?key|apikey|auth|authorization|key|password|secret|token)=)[^&#\s\"']+)"),
-            QRegularExpression::CaseInsensitiveOption);
-        text.replace(sensitiveQuery, QStringLiteral("\\1[redacted]"));
-        return text;
-    }
-
-    bool isSensitiveJsonKey(const QString &key) {
-        static const QSet<QString> keys{
-            QStringLiteral("access_token"), QStringLiteral("api-key"), QStringLiteral("api_key"),
-            QStringLiteral("apikey"), QStringLiteral("auth"), QStringLiteral("authorization"),
-            QStringLiteral("client_key"), QStringLiteral("cookie"), QStringLiteral("key"),
-            QStringLiteral("password"), QStringLiteral("private_key"), QStringLiteral("proxy-authorization"),
-            QStringLiteral("secret"), QStringLiteral("set-cookie"), QStringLiteral("token"),
-        };
-        return keys.contains(key.toLower());
-    }
-
-    QJsonValue redactJsonForDiagnostics(const QJsonValue &value, const bool redactValues = false) {
-        if (redactValues && !value.isArray() && !value.isObject()) return QStringLiteral("[redacted]");
-        if (value.isArray()) {
-            QJsonArray result;
-            for (const auto &item : value.toArray()) result.append(redactJsonForDiagnostics(item, redactValues));
-            return result;
-        }
-        if (value.isObject()) {
-            QJsonObject result;
-            const auto object = value.toObject();
-            for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
-                const auto key = it.key().toLower();
-                const bool hideValue = redactValues || key == QStringLiteral("headers") || isSensitiveJsonKey(key);
-                result.insert(it.key(), redactJsonForDiagnostics(it.value(), hideValue));
-            }
-            return result;
-        }
-        return value;
-    }
-
-    QString onOff(const bool value) { return value ? QStringLiteral("on") : QStringLiteral("off"); }
+bool isSensitiveQueryKey(const QString &key) {
+    static const QSet<QString> keys{
+        QStringLiteral("access_token"),
+        QStringLiteral("api-key"),
+        QStringLiteral("api_key"),
+        QStringLiteral("apikey"),
+        QStringLiteral("auth"),
+        QStringLiteral("authorization"),
+        QStringLiteral("key"),
+        QStringLiteral("password"),
+        QStringLiteral("secret"),
+        QStringLiteral("token"),
+    };
+    return keys.contains(key.toLower());
 }
+
+void appendUrlSecrets(const QString &text, QStringList &secrets) {
+    const auto url = QUrl::fromUserInput(text);
+    if (!url.isValid() || url.scheme().isEmpty() || url.host().isEmpty()) return;
+    if (!url.userInfo().isEmpty()) secrets << url.userInfo();
+    if (!url.password().isEmpty()) secrets << url.password();
+    const QUrlQuery query(url);
+    for (const auto &[key, value]: query.queryItems(QUrl::FullyDecoded)) {
+        if (isSensitiveQueryKey(key) && !value.isEmpty()) secrets << value;
+    }
+
+    // Personal DNS products commonly put the account id in the path instead
+    // of a query. Keep the provider visible while hiding that final segment.
+    const auto host = url.host().toLower();
+    const auto parts = url.path().split('/', Qt::SkipEmptyParts);
+    if (!parts.isEmpty() &&
+        (host == QStringLiteral("dns.nextdns.io") || host == QStringLiteral("d.adguard-dns.com") ||
+         (parts.size() > 1 && parts.at(parts.size() - 2) == QStringLiteral("dns-query")))) {
+        secrets << parts.last();
+    }
+}
+
+// Values that must never leave the machine in a paste. Redaction is by literal
+// match rather than pattern: a token only has to be recognised once, here.
+QStringList collectSecrets() {
+    const auto &settings = *Configs::dataManager->settingsRepo;
+    QStringList secrets{
+        settings.core_box_api_secret,
+        settings.core_box_clash_api_secret,
+        settings.inbound_user,
+        settings.inbound_pass,
+        settings.internal_proxy_auth,
+        settings.warp_private_key,
+    };
+    for (const int groupID: Configs::dataManager->groupsRepo->GetAllGroupIds()) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
+        if (group != nullptr && !group->url.isEmpty()) secrets << group->url;
+    }
+    appendUrlSecrets(settings.remote_dns, secrets);
+    appendUrlSecrets(settings.direct_dns, secrets);
+    appendUrlSecrets(settings.core_box_underlying_dns, secrets);
+    static const QRegularExpression urlInJson(QStringLiteral(R"((?:https?|h3)://[^\s\"']+)"),
+                                              QRegularExpression::CaseInsensitiveOption);
+    auto urls = urlInJson.globalMatch(settings.dns_object);
+    while (urls.hasNext()) appendUrlSecrets(urls.next().captured(), secrets);
+    secrets.removeAll("");
+    // Longest first, so a token that contains another is masked whole.
+    std::sort(secrets.begin(), secrets.end(),
+              [](const QString &a, const QString &b) { return a.size() > b.size(); });
+    return secrets;
+}
+
+QString redact(QString text, const QStringList &secrets) {
+    for (const auto &secret: secrets) {
+        // A short value is more likely an ordinary word than a token, and blanket
+        // replacing one would shred the log it is supposed to make readable.
+        if (secret.size() < 6) continue;
+        text.replace(secret, QStringLiteral("[redacted]"));
+    }
+    // Share links carry the credentials themselves, and the log holds them verbatim:
+    // scanning a QR writes the whole link out. Matching by scheme catches every
+    // profile format at once. Plain http(s) is deliberately left alone -- rule-set
+    // and update URLs are worth reading, and subscription links with tokens are
+    // already covered by the literal pass above.
+    static const QRegularExpression shareLink(
+        QStringLiteral(R"(\b(?:vless|vmess|trojan|ss|ssr|hysteria2?|hy2|tuic|anytls|socks5?|wireguard|wg|snell|mieru|juicity|naive|shadowtls|ssh|throne)://\S+)"),
+        QRegularExpression::CaseInsensitiveOption);
+    text.replace(shareLink, QStringLiteral("[link redacted]"));
+
+    // Preserve the resolver host for support while masking credentials and
+    // common token-bearing query fields even when they only appear in a
+    // generated DNS object rather than in the settings verbatim.
+    static const QRegularExpression urlUserInfo(
+        QStringLiteral(R"((\b[a-z][a-z0-9+.-]*://)[^/\s@\"']+@)"),
+        QRegularExpression::CaseInsensitiveOption);
+    text.replace(urlUserInfo, QStringLiteral("\\1[credentials redacted]@"));
+    static const QRegularExpression sensitiveQuery(
+        QStringLiteral(R"(([?&](?:access_token|api[-_]?key|apikey|auth|authorization|key|password|secret|token)=)[^&#\s\"']+)"),
+        QRegularExpression::CaseInsensitiveOption);
+    text.replace(sensitiveQuery, QStringLiteral("\\1[redacted]"));
+    return text;
+}
+
+bool isSensitiveJsonKey(const QString &key) {
+    static const QSet<QString> keys{
+        QStringLiteral("access_token"),
+        QStringLiteral("api-key"),
+        QStringLiteral("api_key"),
+        QStringLiteral("apikey"),
+        QStringLiteral("auth"),
+        QStringLiteral("authorization"),
+        QStringLiteral("client_key"),
+        QStringLiteral("cookie"),
+        QStringLiteral("key"),
+        QStringLiteral("password"),
+        QStringLiteral("private_key"),
+        QStringLiteral("proxy-authorization"),
+        QStringLiteral("secret"),
+        QStringLiteral("set-cookie"),
+        QStringLiteral("token"),
+    };
+    return keys.contains(key.toLower());
+}
+
+QJsonValue redactJsonForDiagnostics(const QJsonValue &value, const bool redactValues = false) {
+    if (redactValues && !value.isArray() && !value.isObject()) return QStringLiteral("[redacted]");
+    if (value.isArray()) {
+        QJsonArray result;
+        for (const auto &item: value.toArray()) result.append(redactJsonForDiagnostics(item, redactValues));
+        return result;
+    }
+    if (value.isObject()) {
+        QJsonObject result;
+        const auto object = value.toObject();
+        for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
+            const auto key = it.key().toLower();
+            const bool hideValue = redactValues || key == QStringLiteral("headers") || isSensitiveJsonKey(key);
+            result.insert(it.key(), redactJsonForDiagnostics(it.value(), hideValue));
+        }
+        return result;
+    }
+    return value;
+}
+
+QString onOff(const bool value) { return value ? QStringLiteral("on") : QStringLiteral("off"); }
+} // namespace
 
 // Everything a support answer needs, in one paste. Built here rather than asked
 // for question by question, because a user who can describe their DNS setup

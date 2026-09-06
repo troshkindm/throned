@@ -25,9 +25,9 @@ ProfilesTableView::ProfilesTableView(QWidget *parent)
 
 void ProfilesTableView::setModel(QAbstractItemModel *model) {
     QTableView::setModel(model);
-    m_filterProxy = qobject_cast<ProfilesFilterProxyModel*>(model);
+    m_filterProxy = qobject_cast<ProfilesFilterProxyModel *>(model);
     auto *pm = m_filterProxy ? m_filterProxy->profilesModel()
-                             : qobject_cast<ProfilesTableModel*>(model);
+                             : qobject_cast<ProfilesTableModel *>(model);
     m_verticalHeader->setProfilesModel(pm, m_filterProxy);
 }
 
@@ -42,7 +42,6 @@ int ProfilesTableView::firstVisibleRow() {
     return startRow;
 }
 
-
 void ProfilesTableView::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Escape && selectionModel() && selectionModel()->hasSelection()) {
         clearSelection();
@@ -50,8 +49,7 @@ void ProfilesTableView::keyPressEvent(QKeyEvent *event) {
         event->accept();
         return;
     }
-    if (event->key() == Qt::Key_Up && m_filterHeader->filtersVisible()
-        && currentIndex().isValid() && currentIndex().row() == 0) {
+    if (event->key() == Qt::Key_Up && m_filterHeader->filtersVisible() && currentIndex().isValid() && currentIndex().row() == 0) {
         m_filterHeader->focusLastFilterField();
         event->accept();
         return;
@@ -61,7 +59,6 @@ void ProfilesTableView::keyPressEvent(QKeyEvent *event) {
 
 void ProfilesTableView::dragEnterEvent(QDragEnterEvent *event) {
     if (event->mimeData()->hasFormat("application/profile-row-number")) {
-
         event->accept();
         QTableView::dragEnterEvent(event);
     } else {
@@ -84,8 +81,7 @@ void ProfilesTableView::dragMoveEvent(QDragMoveEvent *event) {
                     event->possibleActions(),
                     event->mimeData(),
                     event->buttons(),
-                    event->modifiers()
-                );
+                    event->modifiers());
                 QTableView::dragMoveEvent(&fakeEvent);
                 event->accept();
                 return;

@@ -32,6 +32,7 @@ class Sparkline;
 class DiagnosticsWindow final : public QDialog {
     Q_OBJECT
     friend class TestDiagnostics;
+
 public:
     // Everything the window needs that the application already knows, so it never
     // reaches into the database or the core itself.
@@ -45,7 +46,7 @@ public:
         bool tun = false;
         bool systemProxy = false;
         bool fakeDns = false;
-        QString udpState;   // "ok", "fail", "unknown"
+        QString udpState; // "ok", "fail", "unknown"
         QString udpDetail;
         QString environmentReport;
     };

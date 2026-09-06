@@ -32,195 +32,192 @@
 #include "include/global/CountryHelper.hpp"
 
 namespace Configs {
-    // `latency` sentinel: egress probe failed, but the core reports the tunnel up.
-    constexpr int kLatencyConnectOnly = -2;
+// `latency` sentinel: egress probe failed, but the core reports the tunnel up.
+constexpr int kLatencyConnectOnly = -2;
 
-    class Profile {
-    public:
-        QString type;
-        QString name;
+class Profile {
+public:
+    QString type;
+    QString name;
 
-        int id = -1;
-        int gid = 0;
-        int latency = 0;
-        // Unix seconds when `latency` was measured; 0 = never.
-        qint64 latency_at = 0;
-        QString dl_speed;
-        QString ul_speed;
-        QString test_country;
-        std::shared_ptr<Configs::outbound> outbound;
+    int id = -1;
+    int gid = 0;
+    int latency = 0;
+    // Unix seconds when `latency` was measured; 0 = never.
+    qint64 latency_at = 0;
+    QString dl_speed;
+    QString ul_speed;
+    QString test_country;
+    std::shared_ptr<Configs::outbound> outbound;
 
-        qint64 traffic_downlink = 0;
-        qint64 traffic_uplink = 0;
+    qint64 traffic_downlink = 0;
+    qint64 traffic_uplink = 0;
 
-        QString ip_out;
+    QString ip_out;
 
-        // Starred by the user. Lives on the profile row, so a subscription update that
-        // rewrites an outbound in place keeps it.
-        bool favorite = false;
+    // Starred by the user. Lives on the profile row, so a subscription update that
+    // rewrites an outbound in place keeps it.
+    bool favorite = false;
 
-        QString runningCountryInfo; // volatile, not saved to db
+    QString runningCountryInfo; // volatile, not saved to db
 
-        Profile() = default;
-        Profile(Configs::outbound *outbound, const QString &type_);
+    Profile() = default;
+    Profile(Configs::outbound *outbound, const QString &type_);
 
-        void ClearTestResults();
+    void ClearTestResults();
 
-        // Always set latency through here: it also stamps latency_at.
-        void SetLatency(int ms);
+    // Always set latency through here: it also stamps latency_at.
+    void SetLatency(int ms);
 
-        [[nodiscard]] QString DisplayTestResult() const;
+    [[nodiscard]] QString DisplayTestResult() const;
 
-        // UDP round trip through this outbound. Kept in memory only: nothing
-        // depends on it across restarts the way the auto-selector needs latency.
-        int udp_avg = 0;    // ms; 0 = never measured, -1 = nothing came back
-        int udp_jitter = 0; // ms
-        int udp_loss = 0;   // percent
-        QString udp_error;  // runtime-only; explains timeout vs an explicit server rejection
-        [[nodiscard]] QString DisplayUDPResult() const;
+    // UDP round trip through this outbound. Kept in memory only: nothing
+    // depends on it across restarts the way the auto-selector needs latency.
+    int udp_avg = 0;    // ms; 0 = never measured, -1 = nothing came back
+    int udp_jitter = 0; // ms
+    int udp_loss = 0;   // percent
+    QString udp_error;  // runtime-only; explains timeout vs an explicit server rejection
+    [[nodiscard]] QString DisplayUDPResult() const;
 
-        [[nodiscard]] QColor DisplayLatencyColor() const;
+    [[nodiscard]] QColor DisplayLatencyColor() const;
 
-        [[nodiscard]] QString DisplayTraffic() const;
-        void ResetTraffic();
+    [[nodiscard]] QString DisplayTraffic() const;
+    void ResetTraffic();
 
-        [[nodiscard]] Configs::socks *Socks() const {
-            return dynamic_cast<Configs::socks *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::http *Http() const {
-            return dynamic_cast<Configs::http *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::shadowsocks *ShadowSocks() const {
-            return dynamic_cast<Configs::shadowsocks *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::vmess *VMess() const {
-            return dynamic_cast<Configs::vmess *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::Trojan *Trojan() const {
-            return dynamic_cast<Configs::Trojan *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::vless *VLESS() const {
-            return dynamic_cast<Configs::vless *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::xrayVless *XrayVLESS() const {
-            return dynamic_cast<Configs::xrayVless *>(outbound.get());
-        }
-
-        [[nodiscard]] Configs::anyTLS *AnyTLS() const {
-            return dynamic_cast<Configs::anyTLS *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::mieru *Mieru() const {
-            return dynamic_cast<Configs::mieru *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::snell *Snell() const {
-            return dynamic_cast<Configs::snell *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::hysteria *Hysteria() const {
-            return dynamic_cast<Configs::hysteria *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::ssh *SSH() const {
-            return dynamic_cast<Configs::ssh *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::tailscale *Tailscale() const {
-            return dynamic_cast<Configs::tailscale *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::tuic *TUIC() const {
-            return dynamic_cast<Configs::tuic *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::juicity *Juicity() const {
-            return dynamic_cast<Configs::juicity *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::trusttunnel *TrustTunnel() const {
-            return dynamic_cast<Configs::trusttunnel *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::naive *Naive() const {
-            return dynamic_cast<Configs::naive *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::shadowtls *ShadowTLS() const {
-            return dynamic_cast<Configs::shadowtls *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::wireguard *Wireguard() const {
-            return dynamic_cast<Configs::wireguard *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::openvpn *OpenVPN() const {
-            return dynamic_cast<Configs::openvpn *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::openconnect *OpenConnect() const {
-            return dynamic_cast<Configs::openconnect *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::Custom *Custom() const {
-            return dynamic_cast<Configs::Custom *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::chain *Chain() const {
-            return dynamic_cast<Configs::chain *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::autoSelector *AutoSelector() const {
-            return dynamic_cast<Configs::autoSelector *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::direct *Direct() const {
-            return dynamic_cast<Configs::direct *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::extracore *ExtraCore() const {
-            return dynamic_cast<Configs::extracore *>(outbound.get());
-        };
+    [[nodiscard]] Configs::socks *Socks() const {
+        return dynamic_cast<Configs::socks *>(outbound.get());
     };
-    class ProfileFilter {
-    public:
-        static void Uniq(
-            const QList<std::shared_ptr<Profile>> &in,
-            QList<std::shared_ptr<Profile>> &out,
-            bool keep_last = false, // def keep first
-            bool ignoreMetadata = true
-        );
 
-        static void Common(
-            const QList<std::shared_ptr<Profile>> &src,
-            const QList<std::shared_ptr<Profile>> &dst,
-            QList<std::shared_ptr<Profile>> &outSrc,
-            QList<std::shared_ptr<Profile>> &outDst,
-            bool ignoreMetadata = true
-        );
-
-        static void OnlyInSrc(
-            const QList<std::shared_ptr<Profile>> &src,
-            const QList<std::shared_ptr<Profile>> &dst,
-            QList<std::shared_ptr<Profile>> &out,
-            bool ignoreMetadata = true
-        );
-
-        static void OnlyInSrc_ByPointer(
-            const QList<std::shared_ptr<Profile>> &src,
-            const QList<std::shared_ptr<Profile>> &dst,
-            QList<std::shared_ptr<Profile>> &out);
-
-        static void ChangedByIdentity(
-            QList<std::shared_ptr<Profile>> &src,
-            QList<std::shared_ptr<Profile>> &dst,
-            QList<std::shared_ptr<Profile>> &changedSrc,
-            QList<std::shared_ptr<Profile>> &changedDst);
+    [[nodiscard]] Configs::http *Http() const {
+        return dynamic_cast<Configs::http *>(outbound.get());
     };
+
+    [[nodiscard]] Configs::shadowsocks *ShadowSocks() const {
+        return dynamic_cast<Configs::shadowsocks *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::vmess *VMess() const {
+        return dynamic_cast<Configs::vmess *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::Trojan *Trojan() const {
+        return dynamic_cast<Configs::Trojan *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::vless *VLESS() const {
+        return dynamic_cast<Configs::vless *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::xrayVless *XrayVLESS() const {
+        return dynamic_cast<Configs::xrayVless *>(outbound.get());
+    }
+
+    [[nodiscard]] Configs::anyTLS *AnyTLS() const {
+        return dynamic_cast<Configs::anyTLS *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::mieru *Mieru() const {
+        return dynamic_cast<Configs::mieru *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::snell *Snell() const {
+        return dynamic_cast<Configs::snell *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::hysteria *Hysteria() const {
+        return dynamic_cast<Configs::hysteria *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::ssh *SSH() const {
+        return dynamic_cast<Configs::ssh *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::tailscale *Tailscale() const {
+        return dynamic_cast<Configs::tailscale *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::tuic *TUIC() const {
+        return dynamic_cast<Configs::tuic *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::juicity *Juicity() const {
+        return dynamic_cast<Configs::juicity *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::trusttunnel *TrustTunnel() const {
+        return dynamic_cast<Configs::trusttunnel *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::naive *Naive() const {
+        return dynamic_cast<Configs::naive *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::shadowtls *ShadowTLS() const {
+        return dynamic_cast<Configs::shadowtls *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::wireguard *Wireguard() const {
+        return dynamic_cast<Configs::wireguard *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::openvpn *OpenVPN() const {
+        return dynamic_cast<Configs::openvpn *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::openconnect *OpenConnect() const {
+        return dynamic_cast<Configs::openconnect *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::Custom *Custom() const {
+        return dynamic_cast<Configs::Custom *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::chain *Chain() const {
+        return dynamic_cast<Configs::chain *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::autoSelector *AutoSelector() const {
+        return dynamic_cast<Configs::autoSelector *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::direct *Direct() const {
+        return dynamic_cast<Configs::direct *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::extracore *ExtraCore() const {
+        return dynamic_cast<Configs::extracore *>(outbound.get());
+    };
+};
+class ProfileFilter {
+public:
+    static void Uniq(
+        const QList<std::shared_ptr<Profile>> &in,
+        QList<std::shared_ptr<Profile>> &out,
+        bool keep_last = false, // def keep first
+        bool ignoreMetadata = true);
+
+    static void Common(
+        const QList<std::shared_ptr<Profile>> &src,
+        const QList<std::shared_ptr<Profile>> &dst,
+        QList<std::shared_ptr<Profile>> &outSrc,
+        QList<std::shared_ptr<Profile>> &outDst,
+        bool ignoreMetadata = true);
+
+    static void OnlyInSrc(
+        const QList<std::shared_ptr<Profile>> &src,
+        const QList<std::shared_ptr<Profile>> &dst,
+        QList<std::shared_ptr<Profile>> &out,
+        bool ignoreMetadata = true);
+
+    static void OnlyInSrc_ByPointer(
+        const QList<std::shared_ptr<Profile>> &src,
+        const QList<std::shared_ptr<Profile>> &dst,
+        QList<std::shared_ptr<Profile>> &out);
+
+    static void ChangedByIdentity(
+        QList<std::shared_ptr<Profile>> &src,
+        QList<std::shared_ptr<Profile>> &dst,
+        QList<std::shared_ptr<Profile>> &changedSrc,
+        QList<std::shared_ptr<Profile>> &changedDst);
+};
 } // namespace Configs

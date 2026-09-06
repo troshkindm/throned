@@ -5,7 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogVPNSettings;
+class DialogVPNSettings;
 }
 QT_END_NAMESPACE
 

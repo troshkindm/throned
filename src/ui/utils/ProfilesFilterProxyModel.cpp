@@ -2,7 +2,7 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 
 namespace {
-    const QString portPrefix = QStringLiteral("port=");
+const QString portPrefix = QStringLiteral("port=");
 }
 
 ProfilesFilterProxyModel::ProfilesFilterProxyModel(QObject *parent)
@@ -16,8 +16,7 @@ ProfilesTableModel *ProfilesFilterProxyModel::profilesModel() const {
 }
 
 bool ProfilesFilterProxyModel::hasActiveFilter() const {
-    return !m_type.isEmpty() || !m_address.isEmpty() || !m_name.isEmpty() || !m_country.isEmpty()
-        || !m_search.isEmpty();
+    return !m_type.isEmpty() || !m_address.isEmpty() || !m_name.isEmpty() || !m_country.isEmpty() || !m_search.isEmpty();
 }
 
 void ProfilesFilterProxyModel::setSearch(const QString &search) {
@@ -66,11 +65,7 @@ bool ProfilesFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex
     const auto *key = model->filterKeyAt(sourceRow);
     if (!key) return true;
 
-    if (!m_search.isEmpty()
-        && !key->type.contains(m_search, Qt::CaseInsensitive)
-        && !key->address.contains(m_search, Qt::CaseInsensitive)
-        && !key->name.contains(m_search, Qt::CaseInsensitive)
-        && !key->country.contains(m_search, Qt::CaseInsensitive)) {
+    if (!m_search.isEmpty() && !key->type.contains(m_search, Qt::CaseInsensitive) && !key->address.contains(m_search, Qt::CaseInsensitive) && !key->name.contains(m_search, Qt::CaseInsensitive) && !key->country.contains(m_search, Qt::CaseInsensitive)) {
         return false;
     }
 

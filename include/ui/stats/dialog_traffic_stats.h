@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogTrafficStats;
+class DialogTrafficStats;
 }
 QT_END_NAMESPACE
 

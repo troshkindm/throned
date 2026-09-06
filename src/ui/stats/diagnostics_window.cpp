@@ -70,7 +70,7 @@ QHash<quint32, QPair<quint32, QString>> processTree() {
     }
     CloseHandle(snapshot);
 #elif defined(Q_OS_LINUX)
-    for (const auto &name : QDir(QStringLiteral("/proc")).entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+    for (const auto &name: QDir(QStringLiteral("/proc")).entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
         bool numeric = false;
         const auto pid = name.toUInt(&numeric);
         if (!numeric) continue;
@@ -107,7 +107,7 @@ QString bytes(qint64 value) { return QLocale().formattedDataSize(value); }
 QStringList toList(const std::vector<std::string> &values) {
     QStringList out;
     out.reserve(static_cast<int>(values.size()));
-    for (const auto &value : values) out << QString::fromStdString(value);
+    for (const auto &value: values) out << QString::fromStdString(value);
     return out;
 }
 QLabel *label(const QString &value, const char *role = nullptr) {
@@ -210,8 +210,7 @@ QString shortenRule(const QString &rule, int keep = 2) {
             continue;
         }
         const auto rest = items.size() - keep;
-        out += QLatin1Char('[') + items.mid(0, keep).join(QLatin1Char(' ')) + QLatin1Char(' ')
-            + (rest > 0 ? DiagnosticsWindow::tr("+%n more", "", rest) : QStringLiteral("…")) + QLatin1Char(']');
+        out += QLatin1Char('[') + items.mid(0, keep).join(QLatin1Char(' ')) + QLatin1Char(' ') + (rest > 0 ? DiagnosticsWindow::tr("+%n more", "", rest) : QStringLiteral("…")) + QLatin1Char(']');
     }
     out += rule.mid(at);
     return out;
@@ -226,7 +225,9 @@ QPushButton *button(const QString &value, const char *name) {
 }
 QColor toneColor(const QString &tone) {
     const auto c = themeManager()->Colors();
-    return tone == "ok" ? c.success : tone == "error" ? c.danger : tone == "warning" ? c.warning : c.controlInactive;
+    return tone == "ok" ? c.success : tone == "error" ? c.danger
+                                  : tone == "warning" ? c.warning
+                                                      : c.controlInactive;
 }
 QPixmap dotPixmap(const QColor &color, int size = 10) {
     const qreal ratio = qApp != nullptr ? qApp->devicePixelRatio() : 1.0;
@@ -277,11 +278,10 @@ QString normaliseURL(const QString &raw) {
     if (value.isEmpty()) return {};
     if (!value.contains(QStringLiteral("://"))) value.prepend(QStringLiteral("https://"));
     QUrl url(value, QUrl::StrictMode);
-    if (!url.isValid() || url.host().isEmpty() || !url.userInfo().isEmpty() || url.hasFragment()
-        || (url.scheme() != "https" && url.scheme() != "http") || url.port() == 0) return {};
+    if (!url.isValid() || url.host().isEmpty() || !url.userInfo().isEmpty() || url.hasFragment() || (url.scheme() != "https" && url.scheme() != "http") || url.port() == 0) return {};
     return QString::fromUtf8(url.toEncoded());
 }
-}
+} // namespace
 
 // One stage of the request, drawn as a node on a rail with its duration as a bar on
 // a scale shared by the whole path, so a slow phase is visible without reading times.
@@ -331,7 +331,11 @@ public:
     }
     // The bar is a slice of the whole request, offset by everything before it, so the
     // rows read left-to-right as elapsed time rather than as four unrelated meters.
-    void setSpan(qint64 startedAt, qint64 total) { offset = startedAt; scale = total; update(); }
+    void setSpan(qint64 startedAt, qint64 total) {
+        offset = startedAt;
+        scale = total;
+        update();
+    }
     void setExpanded(bool value) {
         expanded = value;
         detail->setVisible(value && !detail->text().isEmpty());
@@ -374,8 +378,16 @@ protected:
         if (event->button() == Qt::LeftButton && !detail->text().isEmpty()) setExpanded(!expanded);
         QWidget::mousePressEvent(event);
     }
-    void enterEvent(QEnterEvent *event) override { hovered = true; update(); QWidget::enterEvent(event); }
-    void leaveEvent(QEvent *event) override { hovered = false; update(); QWidget::leaveEvent(event); }
+    void enterEvent(QEnterEvent *event) override {
+        hovered = true;
+        update();
+        QWidget::enterEvent(event);
+    }
+    void leaveEvent(QEvent *event) override {
+        hovered = false;
+        update();
+        QWidget::leaveEvent(event);
+    }
 
 private:
     static constexpr int RailWidth = 22;
@@ -410,6 +422,7 @@ public:
         setIcon(value.isEmpty() ? QIcon() : QIcon(dotPixmap(toneColor(value))));
     }
     [[nodiscard]] QString stateName() const { return state; }
+
 private:
     QString state;
 };
@@ -454,6 +467,7 @@ public:
     [[nodiscard]] QString describe() const { return name->text() + QStringLiteral(": ") + value->text(); }
     QPushButton *action;
     QString actionTarget;
+
 private:
     QLabel *pip;
     QLabel *name;
@@ -476,12 +490,13 @@ public:
         ok = healthy;
         update();
     }
+
 protected:
     void paintEvent(QPaintEvent *) override {
         if (samples.size() < 2) return;
         const auto colors = themeManager()->Colors();
         qint64 peak = 1;
-        for (const auto sample : samples) peak = qMax(peak, sample);
+        for (const auto sample: samples) peak = qMax(peak, sample);
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
         QPainterPath path;
@@ -491,11 +506,15 @@ protected:
         for (int i = 0; i < samples.size(); ++i) {
             const qreal x = 1 + step * i;
             const qreal y = top + span - span * qreal(samples[i]) / qreal(peak);
-            if (i == 0) path.moveTo(x, y); else path.lineTo(x, y);
+            if (i == 0)
+                path.moveTo(x, y);
+            else
+                path.lineTo(x, y);
         }
         painter.setPen(QPen(ok ? colors.success : colors.warning, 1.4));
         painter.drawPath(path);
     }
+
 private:
     QList<qint64> samples;
     bool ok = true;
@@ -524,7 +543,7 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
     auto *railLayout = new QVBoxLayout(railPanel);
     railLayout->setContentsMargins(10, 12, 10, 10);
     railLayout->setSpacing(3);
-    for (const auto &caption : {tr("Overview"), tr("Address"), tr("Applications"), tr("Statistics"), tr("Report")}) {
+    for (const auto &caption: {tr("Overview"), tr("Address"), tr("Applications"), tr("Statistics"), tr("Report")}) {
         auto *item = new RailButton(caption, railPanel);
         // Fixed, so the bolder checked entry does not push the ones below it out of step.
         item->setFixedHeight(38);
@@ -559,8 +578,11 @@ DiagnosticsWindow::DiagnosticsWindow(QWidget *parent) : QDialog(parent, Qt::Wind
         connect(rail[i], &QPushButton::clicked, this, [this, i] {
             pages->setCurrentIndex(i);
             for (int j = 0; j < rail.size(); ++j) rail[j]->setChecked(j == i);
-            if (i == 2) { poll->start(); requestConnections(); }
-            else if (!recording) poll->stop();
+            if (i == 2) {
+                poll->start();
+                requestConnections();
+            } else if (!recording)
+                poll->stop();
             if (i == 3) emit usageRequested(usageRangeDays);
             if (i == 4) refreshReport();
             reportSave->setVisible(i == 4);
@@ -726,8 +748,8 @@ void DiagnosticsWindow::buildOverviewPage() {
     auto *cardLayout = new QVBoxLayout(card);
     cardLayout->setContentsMargins(0, 0, 0, 0);
     cardLayout->setSpacing(0);
-    for (const auto &caption : {tr("Core"), tr("Profile"), tr("Traffic capture"), tr("Visible address"),
-                                tr("DNS"), tr("UDP"), tr("System clock")}) {
+    for (const auto &caption: {tr("Core"), tr("Profile"), tr("Traffic capture"), tr("Visible address"),
+                               tr("DNS"), tr("UDP"), tr("System clock")}) {
         auto *row = new HealthRow(caption, card);
         cardLayout->addWidget(row);
         healthRows.append(row);
@@ -823,8 +845,10 @@ void DiagnosticsWindow::buildAddressPage() {
         verdictActions.append(action);
         connect(action, &QPushButton::clicked, this, [this, action] {
             const auto target = action->property("target").toString();
-            if (target == QLatin1String("matrix")) startMatrix();
-            else if (!target.isEmpty()) emit navigateRequested(target);
+            if (target == QLatin1String("matrix"))
+                startMatrix();
+            else if (!target.isEmpty())
+                emit navigateRequested(target);
         });
     }
     verdictButtons->addStretch();
@@ -884,7 +908,9 @@ void DiagnosticsWindow::buildAddressPage() {
     connect(address, &QLineEdit::returnPressed, this, &DiagnosticsWindow::startSite);
     connect(compare, &QLineEdit::returnPressed, this, &DiagnosticsWindow::startSite);
     connect(resetRoute, &QPushButton::clicked, this, [this] {
-        pinnedProcess.clear(); pinnedOutbound.clear(); resetRoute->hide();
+        pinnedProcess.clear();
+        pinnedOutbound.clear();
+        resetRoute->hide();
         siteContext->setText(tr("The address is matched against your routing rules first, then requested through the outbound they choose."));
     });
     pages->addWidget(scroll);
@@ -911,8 +937,9 @@ void DiagnosticsWindow::buildApplicationsPage() {
     // tooltip spells out the three things that count as "not fine".
     onlyProblems = button(tr("Hide the healthy"), "diagnosticProblemsOnly");
     onlyProblems->setCheckable(true);
-    onlyProblems->setToolTip(tr("Keeps only the destinations with a remark: no outbound reported, "
-                                "nothing came back, or going direct while the rest is proxied."));
+    onlyProblems->setToolTip(tr(
+        "Keeps only the destinations with a remark: no outbound reported, "
+        "nothing came back, or going direct while the rest is proxied."));
     observe = button(tr("Start observation"), "diagnosticObserve");
     observe->setProperty("primary", true);
     form->addWidget(apps, 1);
@@ -1009,8 +1036,8 @@ void DiagnosticsWindow::buildApplicationsPage() {
     addRule->setMenu(new QMenu(addRule));
     dropConnections = button(tr("Drop connections"), "diagnosticDrop");
     dropConnections->setEnabled(false);
-    for (auto *action : {static_cast<QWidget *>(diagnoseAddress), static_cast<QWidget *>(addRule),
-                         static_cast<QWidget *>(dropConnections)}) {
+    for (auto *action: {static_cast<QWidget *>(diagnoseAddress), static_cast<QWidget *>(addRule),
+                        static_cast<QWidget *>(dropConnections)}) {
         action->setFixedHeight(34);
         sidebarLayout->addWidget(action);
     }
@@ -1034,8 +1061,8 @@ void DiagnosticsWindow::buildApplicationsPage() {
         address->setText(targetURL(group->domain, group->dest));
         resetRoute->setVisible(!pinnedProcess.isEmpty());
         siteContext->setText(pinnedProcess.isEmpty()
-            ? tr("The address is matched against your routing rules first, then requested through the outbound they choose.")
-            : tr("Rules are matched as if %1 opened the address. Application login is not reproduced.").arg(group->process));
+                                 ? tr("The address is matched against your routing rules first, then requested through the outbound they choose.")
+                                 : tr("Rules are matched as if %1 opened the address. Application login is not reproduced.").arg(group->process));
         rail[1]->click();
         address->setFocus();
     });
@@ -1058,15 +1085,16 @@ void DiagnosticsWindow::buildStatisticsPage() {
     rangeLayout->setContentsMargins(0, 0, 0, 0);
     rangeLayout->setSpacing(0);
     int index = 0;
-    for (const auto &option : {QPair<int, QString>{1, tr("Day")}, {7, tr("7 days")}, {30, tr("30 days")}, {0, tr("All")}}) {
+    for (const auto &option: {QPair<int, QString>{1, tr("Day")}, {7, tr("7 days")}, {30, tr("30 days")}, {0, tr("All")}}) {
         auto *choice = button(option.second, "diagnosticRange");
         choice->setCheckable(true);
         choice->setChecked(option.first == usageRangeDays);
-        choice->setProperty("segment", index == 0 ? "first" : index == 3 ? "last" : "middle");
+        choice->setProperty("segment", index == 0 ? "first" : index == 3 ? "last"
+                                                                         : "middle");
         const int days = option.first;
         connect(choice, &QPushButton::clicked, this, [this, days] {
             usageRangeDays = days;
-            for (auto *other : ranges) other->setChecked(other->property("days").toInt() == days);
+            for (auto *other: ranges) other->setChecked(other->property("days").toInt() == days);
             emit usageRequested(days);
         });
         choice->setProperty("days", days);
@@ -1115,7 +1143,7 @@ void DiagnosticsWindow::buildStatisticsPage() {
     auto *tabs = new QHBoxLayout;
     tabs->setSpacing(0);
     int tab = 0;
-    for (const auto &caption : {tr("Programs"), tr("Servers"), tr("Sites")}) {
+    for (const auto &caption: {tr("Programs"), tr("Servers"), tr("Sites")}) {
         auto *choice = button(caption, "diagnosticUsageTab");
         choice->setCheckable(true);
         choice->setChecked(tab == 0);
@@ -1174,8 +1202,8 @@ void DiagnosticsWindow::buildReportPage() {
     split->setSpacing(16);
     auto *choices = new QVBoxLayout;
     choices->setSpacing(4);
-    for (const auto &caption : {tr("Connection state"), tr("Address check"), tr("Application connections"),
-                                tr("Settings, DNS and log")}) {
+    for (const auto &caption: {tr("Connection state"), tr("Address check"), tr("Application connections"),
+                               tr("Settings, DNS and log")}) {
         auto *box = new QCheckBox(caption);
         box->setChecked(true);
         choices->addWidget(box);
@@ -1228,28 +1256,36 @@ void DiagnosticsWindow::refreshTheme() {
     reportCopy->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Copy, c.textMuted, 18));
     recheck->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Reload, c.text, 18));
     compareToggle->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, c.textMuted, 18));
-    verdictIcon->setPixmap(MaterialIcon::pixmap(verdictTone == "ok" ? MaterialIcon::Glyph::Check
-        : verdictTone.isEmpty() ? MaterialIcon::Glyph::Search : MaterialIcon::Glyph::Shield, toneColor(verdictTone), 26));
-    for (auto *step : steps) step->update();
+    verdictIcon->setPixmap(MaterialIcon::pixmap(verdictTone == "ok"     ? MaterialIcon::Glyph::Check
+                                                : verdictTone.isEmpty() ? MaterialIcon::Glyph::Search
+                                                                        : MaterialIcon::Glyph::Shield,
+                                                toneColor(verdictTone), 26));
+    for (auto *step: steps) step->update();
     refreshRail();
 }
 
 void DiagnosticsWindow::refreshRail() {
     QString worst;
-    for (const auto *row : healthRows) {
-        if (row->stateName() == QLatin1String("error")) { worst = QStringLiteral("error"); break; }
+    for (const auto *row: healthRows) {
+        if (row->stateName() == QLatin1String("error")) {
+            worst = QStringLiteral("error");
+            break;
+        }
         if (row->stateName() == QLatin1String("warning")) worst = QStringLiteral("warning");
     }
     rail[0]->setState(worst);
     QString apps;
-    for (const auto &group : groups) {
-        if (group.suspicion >= 2) { apps = QStringLiteral("error"); break; }
+    for (const auto &group: groups) {
+        if (group.suspicion >= 2) {
+            apps = QStringLiteral("error");
+            break;
+        }
         if (group.suspicion == 1) apps = QStringLiteral("warning");
     }
     rail[2]->setState(apps);
     // Address carries the last check's verdict, which is a result the user just read
     // rather than a standing condition; statistics and the report have no state at all.
-    for (const int section : {1, 3, 4}) rail[section]->setState({});
+    for (const int section: {1, 3, 4}) rail[section]->setState({});
 }
 
 // ---------------------------------------------------------------- overview
@@ -1271,23 +1307,23 @@ void DiagnosticsWindow::refreshOverview() {
     auto minutes = [](qint64 ms) { return ms / 60000; };
 
     healthRows[0]->set(local.coreRunning ? "ok" : "error",
-        local.coreRunning
-            ? (local.coreUptimeMs < 0 ? local.coreVersion
-                 : tr("%1 · %2 min").arg(local.coreVersion).arg(minutes(local.coreUptimeMs)))
-            : tr("Not started — nothing is being routed"));
+                       local.coreRunning
+                           ? (local.coreUptimeMs < 0 ? local.coreVersion
+                                                     : tr("%1 · %2 min").arg(local.coreVersion).arg(minutes(local.coreUptimeMs)))
+                           : tr("Not started — nothing is being routed"));
     healthRows[0]->setAction(tr("Log"), QStringLiteral("log"));
 
     healthRows[1]->set(local.profileName.isEmpty() ? "error" : "ok",
-        local.profileName.isEmpty() ? tr("No profile is selected")
-            : local.profileLatencyMs < 0 ? tr("%1 · %2").arg(local.profileName, local.profileType)
-            : tr("%1 · %2 · %3 ms").arg(local.profileName, local.profileType).arg(local.profileLatencyMs));
+                       local.profileName.isEmpty()  ? tr("No profile is selected")
+                       : local.profileLatencyMs < 0 ? tr("%1 · %2").arg(local.profileName, local.profileType)
+                                                    : tr("%1 · %2 · %3 ms").arg(local.profileName, local.profileType).arg(local.profileLatencyMs));
     healthRows[1]->setAction(tr("Change"), QStringLiteral("profile"));
 
     const bool capturing = local.tun || local.systemProxy;
     healthRows[2]->set(capturing ? "ok" : "warning",
-        local.tun ? tr("TUN is active — every program goes through Throned")
-            : local.systemProxy ? tr("System proxy is set — programs that honour it go through Throned")
-            : tr("Neither TUN nor the system proxy is on — programs go past Throned"));
+                       local.tun           ? tr("TUN is active — every program goes through Throned")
+                       : local.systemProxy ? tr("System proxy is set — programs that honour it go through Throned")
+                                           : tr("Neither TUN nor the system proxy is on — programs go past Throned"));
     healthRows[2]->setAction(capturing ? QString() : tr("Turn on"), QStringLiteral("interception"));
 
     const auto externalError = text(health.external_error);
@@ -1300,25 +1336,26 @@ void DiagnosticsWindow::refreshOverview() {
         healthRows[3]->set({}, healthBusy ? tr("Checking…") : tr("Not checked yet"));
     else
         healthRows[3]->set("ok", text(health.external_country).isEmpty()
-            ? externalIP : tr("%1 · %2").arg(externalIP, text(health.external_country)));
+                                     ? externalIP
+                                     : tr("%1 · %2").arg(externalIP, text(health.external_country)));
     healthRows[3]->setAction({}, {});
 
     const auto dnsDomain = text(health.dns_domain);
     if (!health.dns_compared.value_or(false)) {
         const auto dnsError = text(health.dns_error);
         healthRows[4]->set(dnsError.isEmpty() ? QString() : QStringLiteral("warning"),
-            dnsError.isEmpty() ? (healthBusy ? tr("Checking…") : tr("Not checked yet")) : dnsError);
+                           dnsError.isEmpty() ? (healthBusy ? tr("Checking…") : tr("Not checked yet")) : dnsError);
         healthRows[4]->setAction({}, {});
     } else if (health.dns_agrees.value_or(false)) {
         healthRows[4]->set("ok", tr("The system and the core agree on %1").arg(dnsDomain));
         healthRows[4]->setAction({}, {});
     } else if (local.fakeDns) {
         healthRows[4]->set("ok", tr("FakeIP is active — different system and core answers are expected for %1")
-            .arg(dnsDomain));
+                                     .arg(dnsDomain));
         healthRows[4]->setAction({}, {});
     } else {
         healthRows[4]->set("warning", tr("The system and the core answered differently for %1 — check the DNS path if this persists")
-            .arg(dnsDomain));
+                                          .arg(dnsDomain));
         healthRows[4]->setAction(tr("Fix"), QStringLiteral("dns"));
     }
 
@@ -1329,11 +1366,12 @@ void DiagnosticsWindow::refreshOverview() {
         healthRows[5]->set({}, healthBusy ? tr("Checking…") : tr("Not checked yet"));
     else if (udpOk)
         healthRows[5]->set("ok", health.udp_rtt_ms.value_or(-1) >= 0
-            ? tr("Answers in %1 ms — calls, games and QUIC have a path").arg(health.udp_rtt_ms.value_or(0))
-            : tr("Answers — calls, games and QUIC have a path"));
+                                     ? tr("Answers in %1 ms — calls, games and QUIC have a path").arg(health.udp_rtt_ms.value_or(0))
+                                     : tr("Answers — calls, games and QUIC have a path"));
     else
         healthRows[5]->set("warning", local.udpDetail.isEmpty()
-            ? tr("No answer — calls, games and QUIC will not work") : local.udpDetail);
+                                          ? tr("No answer — calls, games and QUIC will not work")
+                                          : local.udpDetail);
     healthRows[5]->setAction(udpChecked && !udpOk ? tr("Rules") : QString(), QStringLiteral("rules"));
 
     if (!health.clock_known.value_or(false)) {
@@ -1343,16 +1381,17 @@ void DiagnosticsWindow::refreshOverview() {
         // being correct, so a number here is a real offset rather than round-trip noise.
         const auto skew = health.clock_skew_ms.value_or(0);
         const auto seconds = qAbs(skew) / 1000.0;
-        healthRows[6]->set(qAbs(skew) > 300000 ? "error" : qAbs(skew) > 60000 ? "warning" : "ok",
-            skew == 0 ? tr("Matches real time")
-                : qAbs(skew) > 300000
-                    ? tr("Off by %1 s — TLS will fail everywhere until the clock is corrected").arg(seconds, 0, 'f', 0)
-                    : tr("Off by %1 s — TLS is unaffected").arg(seconds, 0, 'f', 1));
+        healthRows[6]->set(qAbs(skew) > 300000 ? "error" : qAbs(skew) > 60000 ? "warning"
+                                                                              : "ok",
+                           skew == 0 ? tr("Matches real time")
+                           : qAbs(skew) > 300000
+                               ? tr("Off by %1 s — TLS will fail everywhere until the clock is corrected").arg(seconds, 0, 'f', 0)
+                               : tr("Off by %1 s — TLS is unaffected").arg(seconds, 0, 'f', 1));
     }
     healthRows[6]->setAction({}, {});
 
     overviewStamp->setText(healthBusy ? tr("checking…")
-        : tr("checked %1").arg(QDateTime::currentDateTime().toString(QStringLiteral("HH:mm:ss"))));
+                                      : tr("checked %1").arg(QDateTime::currentDateTime().toString(QStringLiteral("HH:mm:ss"))));
     recheck->setEnabled(!healthBusy);
     refreshRail();
 }
@@ -1376,9 +1415,9 @@ void DiagnosticsWindow::setStep(int index, const QString &title, const QString &
 
 void DiagnosticsWindow::rescaleSteps() {
     qint64 total = 0;
-    for (const auto *step : steps) total += qMax<qint64>(0, step->ms);
+    for (const auto *step: steps) total += qMax<qint64>(0, step->ms);
     qint64 elapsed = 0;
-    for (auto *step : steps) {
+    for (auto *step: steps) {
         step->setSpan(elapsed, total);
         elapsed += qMax<qint64>(0, step->ms);
     }
@@ -1391,15 +1430,18 @@ void DiagnosticsWindow::setVerdict(const QString &tone, const QString &title, co
     verdictDetail->setText(detail);
     for (int i = 0; i < verdictActions.size(); ++i) {
         auto *action = verdictActions[i];
-        if (i >= actions.size()) { action->hide(); continue; }
+        if (i >= actions.size()) {
+            action->hide();
+            continue;
+        }
         const auto target = actions[i];
         action->setProperty("target", target);
-        action->setText(target == QLatin1String("rules") ? tr("Open routing rules")
-            : target == QLatin1String("reachability") ? tr("Try the other servers")
-            : target == QLatin1String("dpi") ? tr("Turn on DPI bypass")
-            : target == QLatin1String("dns") ? tr("Open DNS settings")
-            : target == QLatin1String("matrix") ? tr("Check the other outbounds")
-            : target);
+        action->setText(target == QLatin1String("rules")          ? tr("Open routing rules")
+                        : target == QLatin1String("reachability") ? tr("Try the other servers")
+                        : target == QLatin1String("dpi")          ? tr("Turn on DPI bypass")
+                        : target == QLatin1String("dns")          ? tr("Open DNS settings")
+                        : target == QLatin1String("matrix")       ? tr("Check the other outbounds")
+                                                                  : target);
         action->setProperty("primary", i == 0);
         action->show();
     }
@@ -1423,10 +1465,14 @@ void DiagnosticsWindow::startSite() {
     matrix->clear();
     matrix->hide();
     matrixCaption->hide();
-    routedOutbound.clear(); routedRule.clear(); routedAction.clear();
+    routedOutbound.clear();
+    routedRule.clear();
+    routedAction.clear();
     siteStatus = 0;
     siteBusy = true;
-    check->setEnabled(false); address->setEnabled(false); resetRoute->setEnabled(false);
+    check->setEnabled(false);
+    address->setEnabled(false);
+    resetRoute->setEnabled(false);
     diagnoseAddress->setEnabled(false);
     progress->show();
     setVerdict({}, tr("Checking %1…").arg(QUrl(requestURL).host()),
@@ -1460,8 +1506,8 @@ void DiagnosticsWindow::applyRoutePreview(const libcore::PreviewRouteResponse &r
         return;
     }
     QString detail = routedRule.isEmpty()
-        ? tr("No rule matched, so the default outbound is used.")
-        : tr("Matched rule: %1").arg(routedRule);
+                         ? tr("No rule matched, so the default outbound is used.")
+                         : tr("Matched rule: %1").arg(routedRule);
     if (!r.address_resolved.value_or(false))
         detail += QStringLiteral("\n") + tr("Rules that match on IP are not evaluated for a hostname.");
     if (pinnedProcess.isEmpty() && !routedRule.isEmpty())
@@ -1504,7 +1550,9 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
     auto render = [&](int index, const QString &name, qint64 ms, const QString &details, const QString &key) {
         setStep(index, ms < 0 ? tr("%1 · not checked").arg(name) : name,
                 stage == key ? error : details,
-                ms < 0 ? QString() : stage == key ? QStringLiteral("error") : QStringLiteral("ok"), ms);
+                ms < 0 ? QString() : stage == key ? QStringLiteral("error")
+                                                  : QStringLiteral("ok"),
+                ms);
     };
     render(2, tr("Connection"), r.connect_ms.value_or(-1),
            tr("Established through the outbound. The proxy may resolve the name remotely."), "connect");
@@ -1514,8 +1562,7 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
     if (!text(r.tls_alpn).isEmpty()) tlsDetail += QStringLiteral(" · ") + text(r.tls_alpn);
     if (!text(r.tls_issuer).isEmpty()) tlsDetail += QStringLiteral("\n") + tr("Issued by %1").arg(text(r.tls_issuer));
     if (r.tls_expires_unix.value_or(0) > 0)
-        tlsDetail += QStringLiteral("\n") + tr("Valid until %1").arg(
-            QDateTime::fromSecsSinceEpoch(r.tls_expires_unix.value_or(0)).toString(QStringLiteral("dd.MM.yyyy")));
+        tlsDetail += QStringLiteral("\n") + tr("Valid until %1").arg(QDateTime::fromSecsSinceEpoch(r.tls_expires_unix.value_or(0)).toString(QStringLiteral("dd.MM.yyyy")));
     render(3, cut ? tr("TLS · connection cut") : tr("TLS"), r.tls_ms.value_or(-1), tlsDetail, "tls");
     if (QUrl(requestURL).scheme() == "http") setStep(3, tr("TLS · not used for HTTP"), tr("This URL uses unencrypted HTTP."), {});
     render(4, status > 0 ? tr("HTTP %1").arg(status) : tr("HTTP"), r.http_ms.value_or(-1),
@@ -1561,23 +1608,22 @@ void DiagnosticsWindow::applySiteResult(const libcore::DiagnoseSiteResponse &r, 
 
 void DiagnosticsWindow::endSite() {
     siteBusy = false;
-    check->setEnabled(true); address->setEnabled(true); resetRoute->setEnabled(true);
+    check->setEnabled(true);
+    address->setEnabled(true);
+    resetRoute->setEnabled(true);
     progress->hide();
     showConnection();
     rescaleSteps();
-    siteReport = tr("Throned · address check") + QStringLiteral("\n") + requestURL + QStringLiteral("\n")
-        + QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral("\n\n");
-    for (const auto *step : steps)
-        siteReport += step->heading() + (step->ms < 0 ? QString() : QStringLiteral(" · ") + tr("%1 ms").arg(step->ms))
-            + QStringLiteral("\n") + step->body() + QStringLiteral("\n\n");
+    siteReport = tr("Throned · address check") + QStringLiteral("\n") + requestURL + QStringLiteral("\n") + QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral("\n\n");
+    for (const auto *step: steps)
+        siteReport += step->heading() + (step->ms < 0 ? QString() : QStringLiteral(" · ") + tr("%1 ms").arg(step->ms)) + QStringLiteral("\n") + step->body() + QStringLiteral("\n\n");
     siteReport += verdictTitle->text() + QStringLiteral("\n") + verdictDetail->text();
     if (!comparisonSummary.isEmpty()) siteReport += QStringLiteral("\n\n") + comparisonSummary;
     refreshTheme();
     // A comparison is the same check again, so it runs only once the first has landed.
     if (!comparingURL.isEmpty()) {
         const auto next = comparingURL;
-        comparisonSummary = tr("Compared with %1").arg(next) + QStringLiteral("\n")
-            + tr("Result for %1: %2").arg(QUrl(requestURL).host(), verdictTitle->text());
+        comparisonSummary = tr("Compared with %1").arg(next) + QStringLiteral("\n") + tr("Result for %1: %2").arg(QUrl(requestURL).host(), verdictTitle->text());
         comparingURL.clear();
         comparisonPass = true;
         address->setText(next);
@@ -1591,7 +1637,7 @@ void DiagnosticsWindow::endSite() {
 void DiagnosticsWindow::startMatrix() {
     if (siteBusy || requestURL.isEmpty()) return;
     QStringList others;
-    for (const auto &tag : toList(health.outbounds))
+    for (const auto &tag: toList(health.outbounds))
         if (!tag.isEmpty() && tag != routedOutbound) others << tag;
     if (others.isEmpty()) {
         matrixCaption->setText(tr("No other outbounds are running to compare against."));
@@ -1605,16 +1651,19 @@ void DiagnosticsWindow::startMatrix() {
     matrix->show();
     auto *current = new QTreeWidgetItem(matrix);
     current->setText(0, routedOutbound + QStringLiteral(" · ") + tr("current"));
-    current->setText(1, steps[1]->tone == "ok" ? QStringLiteral("✓")
-                         : steps[1]->tone == "warning" ? QStringLiteral("≠") : QStringLiteral("—"));
+    current->setText(1, steps[1]->tone == "ok"        ? QStringLiteral("✓")
+                        : steps[1]->tone == "warning" ? QStringLiteral("≠")
+                                                      : QStringLiteral("—"));
     current->setForeground(1, toneColor(steps[1]->tone));
-    current->setText(2, steps[3]->tone == "ok" ? tr("%1 ms").arg(steps[3]->ms)
-                         : steps[3]->tone == "error" ? tr("fail") : QStringLiteral("—"));
+    current->setText(2, steps[3]->tone == "ok"      ? tr("%1 ms").arg(steps[3]->ms)
+                        : steps[3]->tone == "error" ? tr("fail")
+                                                    : QStringLiteral("—"));
     current->setForeground(2, toneColor(steps[3]->tone));
-    current->setText(3, siteStatus > 0 ? QString::number(siteStatus)
-                         : steps[4]->tone == "error" ? tr("fail") : QStringLiteral("—"));
+    current->setText(3, siteStatus > 0              ? QString::number(siteStatus)
+                        : steps[4]->tone == "error" ? tr("fail")
+                                                    : QStringLiteral("—"));
     current->setForeground(3, toneColor(steps[4]->tone));
-    for (const auto &tag : others) {
+    for (const auto &tag: others) {
         auto *item = new QTreeWidgetItem(matrix);
         item->setText(0, tag);
         item->setData(0, Qt::UserRole, tag);
@@ -1633,12 +1682,18 @@ void DiagnosticsWindow::applyMatrixResult(const QString &outbound, const libcore
             item->setText(column, value);
             item->setForeground(column, toneColor(tone));
         };
-        cell(1, !r.dns_compared.value_or(false) ? QStringLiteral("—") : r.dns_agrees.value_or(false) ? QStringLiteral("✓") : QStringLiteral("≠"),
-             !r.dns_compared.value_or(false) ? QString() : r.dns_agrees.value_or(false) ? QStringLiteral("ok") : QStringLiteral("warning"));
-        cell(2, stage == "tls" ? tr("cut") : r.tls_ms.value_or(-1) < 0 ? QStringLiteral("—") : tr("%1 ms").arg(r.tls_ms.value_or(0)),
-             stage == "tls" ? QStringLiteral("error") : r.tls_ms.value_or(-1) < 0 ? QString() : QStringLiteral("ok"));
-        cell(3, status > 0 ? QString::number(status) : stage == "connect" ? tr("no route") : QStringLiteral("—"),
-             status > 0 && status < 400 ? QStringLiteral("ok") : status >= 400 ? QStringLiteral("warning") : QStringLiteral("error"));
+        cell(1, !r.dns_compared.value_or(false) ? QStringLiteral("—") : r.dns_agrees.value_or(false) ? QStringLiteral("✓")
+                                                                                                     : QStringLiteral("≠"),
+             !r.dns_compared.value_or(false) ? QString() : r.dns_agrees.value_or(false) ? QStringLiteral("ok")
+                                                                                        : QStringLiteral("warning"));
+        cell(2, stage == "tls" ? tr("cut") : r.tls_ms.value_or(-1) < 0 ? QStringLiteral("—")
+                                                                       : tr("%1 ms").arg(r.tls_ms.value_or(0)),
+             stage == "tls" ? QStringLiteral("error") : r.tls_ms.value_or(-1) < 0 ? QString()
+                                                                                  : QStringLiteral("ok"));
+        cell(3, status > 0 ? QString::number(status) : stage == "connect" ? tr("no route")
+                                                                          : QStringLiteral("—"),
+             status > 0 && status < 400 ? QStringLiteral("ok") : status >= 400 ? QStringLiteral("warning")
+                                                                               : QStringLiteral("error"));
         item->setToolTip(0, error.isEmpty() ? text(r.error) : error);
         break;
     }
@@ -1651,7 +1706,10 @@ void DiagnosticsWindow::showApplication(const QString &key) {
     desiredProcess = key;
     if (!key.isEmpty()) {
         int index = apps->findData(key);
-        if (index < 0) { apps->addItem(QFileInfo(key).fileName(), key); index = apps->count() - 1; }
+        if (index < 0) {
+            apps->addItem(QFileInfo(key).fileName(), key);
+            index = apps->count() - 1;
+        }
         const QSignalBlocker block(apps);
         apps->setCurrentIndex(index);
     }
@@ -1668,19 +1726,25 @@ void DiagnosticsWindow::requestConnections() {
 
 void DiagnosticsWindow::toggleObservation() {
     if (recording) {
-        recording = false; captureFinished = true;
+        recording = false;
+        captureFinished = true;
         captureStopped = QDateTime::currentMSecsSinceEpoch();
         poll->stop();
         observe->setText(tr("Start observation"));
     } else {
-        captured.clear(); downHistory.clear(); lastDownload.clear();
-        captureFinished = false; recording = true;
-        captureStarted = QDateTime::currentMSecsSinceEpoch(); captureStopped = 0;
+        captured.clear();
+        downHistory.clear();
+        lastDownload.clear();
+        captureFinished = false;
+        recording = true;
+        captureStarted = QDateTime::currentMSecsSinceEpoch();
+        captureStopped = 0;
         observe->setText(tr("Stop observation"));
         poll->start();
         requestConnections();
     }
-    rebuildConnections(); refreshTheme();
+    rebuildConnections();
+    refreshTheme();
 }
 
 void DiagnosticsWindow::applyConnections(const libcore::QueryConnectionsResp &r, const QString &error) {
@@ -1695,8 +1759,7 @@ void DiagnosticsWindow::applyConnections(const libcore::QueryConnectionsResp &r,
         const auto id = text(c.id);
         if (id.isEmpty()) return;
         if (!closed && latest.size() < MaxConnections) latest.insert(id, c);
-        if (recording && (!closed || c.closed_at.value_or(0) >= captureStarted)
-            && (captured.contains(id) || captured.size() < MaxConnections)) captured.insert(id, c);
+        if (recording && (!closed || c.closed_at.value_or(0) >= captureStarted) && (captured.contains(id) || captured.size() < MaxConnections)) captured.insert(id, c);
         const auto key = processKey(c);
         if (key.isEmpty()) {
             if (apps->findData(NoProcessFilter) < 0)
@@ -1706,8 +1769,8 @@ void DiagnosticsWindow::applyConnections(const libcore::QueryConnectionsResp &r,
             apps->setItemData(apps->count() - 1, key, Qt::ToolTipRole);
         }
     };
-    for (const auto &c : r.active) ingest(c, false);
-    for (const auto &c : r.closed) ingest(c, true);
+    for (const auto &c: r.active) ingest(c, false);
+    for (const auto &c: r.closed) ingest(c, true);
     rebuildConnections();
 }
 
@@ -1724,22 +1787,27 @@ void DiagnosticsWindow::rebuildConnections() {
         const auto rowProcessKey = processKey(c);
         if (filter == NoProcessFilter) {
             if (!rowProcessKey.isEmpty()) continue;
-        } else if (!filter.isEmpty() && rowProcessKey != filter) continue;
+        } else if (!filter.isEmpty() && rowProcessKey != filter)
+            continue;
         if (rowProcessKey.isEmpty()) ++withoutProcess;
         const auto host = text(c.domain).isEmpty() ? text(c.dest) : text(c.domain);
         // Without a process the client address is the identity, or two LAN devices
         // talking to the same host would collapse into one indistinguishable row.
         const auto identity = rowProcessKey.isEmpty() ? sourceHost(c) : rowProcessKey;
-        const auto key = identity + QLatin1Char('\x1f') + host + QLatin1Char('\x1f')
-            + text(c.outbound) + QLatin1Char('\x1f') + text(c.network);
+        const auto key = identity + QLatin1Char('\x1f') + host + QLatin1Char('\x1f') + text(c.outbound) + QLatin1Char('\x1f') + text(c.network);
         auto &group = merged[key];
         if (group.count == 0) {
-            group.key = key; group.host = host; group.domain = text(c.domain); group.dest = text(c.dest);
-            group.process = processName(c); group.processPath = rowProcessKey;
+            group.key = key;
+            group.host = host;
+            group.domain = text(c.domain);
+            group.dest = text(c.dest);
+            group.process = processName(c);
+            group.processPath = rowProcessKey;
             group.source = sourceHost(c);
             group.pid = c.process_id.value_or(0);
             group.applicationRootPid = group.pid;
-            group.outbound = text(c.outbound); group.network = text(c.network);
+            group.outbound = text(c.outbound);
+            group.network = text(c.network);
         }
         if (group.matchedRule.isEmpty()) group.matchedRule = text(c.matched_rule);
         if (c.closed_at.value_or(0) <= 0) group.ids << it.key();
@@ -1747,7 +1815,8 @@ void DiagnosticsWindow::rebuildConnections() {
         if (c.closed_at.value_or(0) > 0) ++group.closed;
         group.upload += c.upload.value_or(0);
         group.download += c.download.value_or(0);
-        up += c.upload.value_or(0); down += c.download.value_or(0);
+        up += c.upload.value_or(0);
+        down += c.download.value_or(0);
         ++total;
         if (!text(c.outbound).isEmpty()) outboundUse[text(c.outbound)] += 1;
     }
@@ -1757,11 +1826,13 @@ void DiagnosticsWindow::rebuildConnections() {
     for (auto it = outboundUse.cbegin(); it != outboundUse.cend(); ++it)
         if (dominant.isEmpty() || it.value() > outboundUse.value(dominant)) dominant = it.key();
     groups = merged.values();
-    for (auto &group : groups) {
-        if (group.outbound.isEmpty()) group.suspicion = 3;
-        else if (group.download == 0 && group.upload > 0) group.suspicion = 2;
-        else if (!dominant.isEmpty() && group.outbound != dominant
-                 && group.outbound.compare(QStringLiteral("direct"), Qt::CaseInsensitive) == 0) group.suspicion = 1;
+    for (auto &group: groups) {
+        if (group.outbound.isEmpty())
+            group.suspicion = 3;
+        else if (group.download == 0 && group.upload > 0)
+            group.suspicion = 2;
+        else if (!dominant.isEmpty() && group.outbound != dominant && group.outbound.compare(QStringLiteral("direct"), Qt::CaseInsensitive) == 0)
+            group.suspicion = 1;
         auto &history = downHistory[group.key];
         history.append(qMax<qint64>(0, group.download - lastDownload.value(group.key, group.download)));
         while (history.size() > HistorySamples) history.removeFirst();
@@ -1770,7 +1841,8 @@ void DiagnosticsWindow::rebuildConnections() {
     resolveAncestry();
     if (problemsOnly)
         groups.erase(std::remove_if(groups.begin(), groups.end(),
-                                    [](const ConnectionGroup &g) { return g.suspicion == 0; }), groups.end());
+                                    [](const ConnectionGroup &g) { return g.suspicion == 0; }),
+                     groups.end());
     std::sort(groups.begin(), groups.end(), [](const ConnectionGroup &a, const ConnectionGroup &b) {
         if (a.suspicion != b.suspicion) return a.suspicion > b.suspicion;
         if (a.count != b.count) return a.count > b.count;
@@ -1779,20 +1851,20 @@ void DiagnosticsWindow::rebuildConnections() {
     });
     syncConnectionRows();
     summary->setText(tr("%1 destinations · %2 connections · sent %3 · received %4")
-                         .arg(groups.size()).arg(total).arg(bytes(up), bytes(down)));
+                         .arg(groups.size())
+                         .arg(total)
+                         .arg(bytes(up), bytes(down)));
     if (recording || captureFinished) {
         const auto elapsed = ((recording ? QDateTime::currentMSecsSinceEpoch() : captureStopped) - captureStarted) / 1000;
-        captureStatus->setText((recording ? tr("Observing · %1 s. Reproduce the problem in the application.") : tr("Observation stopped · %1 s.")).arg(elapsed)
-            + (captured.size() >= MaxConnections ? tr(" Limit reached: the first 1000 connections are retained.") : QString()));
-    } else captureStatus->setText(latest.isEmpty() ? tr("No connections yet. Start Throned and open the application.") : tr("Current connections. Start observation to retain completed connections."));
+        captureStatus->setText((recording ? tr("Observing · %1 s. Reproduce the problem in the application.") : tr("Observation stopped · %1 s.")).arg(elapsed) + (captured.size() >= MaxConnections ? tr(" Limit reached: the first 1000 connections are retained.") : QString()));
+    } else
+        captureStatus->setText(latest.isEmpty() ? tr("No connections yet. Start Throned and open the application.") : tr("Current connections. Start observation to retain completed connections."));
     // The core only resolves the owning process when the routing profile asks it to,
     // so a list with no applications at all is a settings answer, not a bug report.
     if (withoutProcess > 0 && withoutProcess == total && total > 0)
-        captureStatus->setText(captureStatus->text() + QLatin1Char('\n')
-            + tr("No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up."));
+        captureStatus->setText(captureStatus->text() + QLatin1Char('\n') + tr("No application is reported for any connection: the routing profile has no rules that match on a program, so the core never looks one up."));
     else if (withoutProcess > 0)
-        captureStatus->setText(captureStatus->text() + QLatin1Char('\n')
-            + tr("%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.", "", withoutProcess));
+        captureStatus->setText(captureStatus->text() + QLatin1Char('\n') + tr("%n connection(s) report no application — traffic from another device, or a socket that closed before it could be attributed.", "", withoutProcess));
     showConnection();
     refreshRail();
 }
@@ -1825,19 +1897,22 @@ void DiagnosticsWindow::syncConnectionRows() {
         if (group.closed >= group.count) line << tr("Closed");
         // The remark that made the row rank where it did, said in the row itself: the
         // filter above is only meaningful if you can see what it would keep.
-        if (group.suspicion == 3) line << tr("no outbound");
-        else if (group.suspicion == 2) line << tr("no reply");
-        else if (group.suspicion == 1) line << tr("bypasses the proxy");
-        item->setIcon(0, dotPixmap(group.suspicion >= 2 ? themeManager()->Colors().danger
+        if (group.suspicion == 3)
+            line << tr("no outbound");
+        else if (group.suspicion == 2)
+            line << tr("no reply");
+        else if (group.suspicion == 1)
+            line << tr("bypasses the proxy");
+        item->setIcon(0, dotPixmap(group.suspicion >= 2   ? themeManager()->Colors().danger
                                    : group.suspicion == 1 ? themeManager()->Colors().warning
-                                   : themeManager()->Colors().success, 9));
+                                                          : themeManager()->Colors().success,
+                                   9));
         item->setText(0, group.host + QStringLiteral("\n") + line.join(QStringLiteral(" · ")));
         item->setText(1, QStringLiteral("↑ %1\n↓ %2").arg(bytes(group.upload), bytes(group.download)));
         item->setTextAlignment(1, Qt::AlignRight | Qt::AlignVCenter);
-        item->setToolTip(0, group.dest + QStringLiteral("\n") + group.processPath + QStringLiteral("\n")
-            + (group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule));
+        item->setToolTip(0, group.dest + QStringLiteral("\n") + group.processPath + QStringLiteral("\n") + (group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule));
     }
-    for (auto *stale : existing) delete connections->takeTopLevelItem(connections->indexOfTopLevelItem(stale));
+    for (auto *stale: existing) delete connections->takeTopLevelItem(connections->indexOfTopLevelItem(stale));
     if (!connections->currentItem() && connections->topLevelItemCount())
         connections->setCurrentItem(connections->topLevelItem(0));
     connections->verticalScrollBar()->setValue(scroll);
@@ -1847,14 +1922,14 @@ void DiagnosticsWindow::syncConnectionRows() {
 // twice a second and shared by every group rather than walked per connection.
 void DiagnosticsWindow::resolveAncestry() {
     bool needed = false;
-    for (const auto &group : groups) needed = needed || group.pid != 0;
+    for (const auto &group: groups) needed = needed || group.pid != 0;
     if (!needed) return;
     const auto now = QDateTime::currentMSecsSinceEpoch();
     if (now - ancestryTakenAt > 2000 || ancestry.isEmpty()) {
         ancestry = processTree();
         ancestryTakenAt = now;
     }
-    for (auto &group : groups) {
+    for (auto &group: groups) {
         if (group.pid == 0 || !ancestry.contains(group.pid)) continue;
         group.applicationRootPid = group.pid;
         const auto own = QFileInfo(group.processPath).fileName();
@@ -1867,8 +1942,7 @@ void DiagnosticsWindow::resolveAncestry() {
             QStringLiteral("pwsh.exe"), QStringLiteral("conhost.exe"), QStringLiteral("services.exe"),
             QStringLiteral("svchost.exe"), QStringLiteral("systemd"), QStringLiteral("init"),
             QStringLiteral("launchd"), QStringLiteral("sh"), QStringLiteral("bash"),
-            QStringLiteral("zsh"), QStringLiteral("fish")
-        };
+            QStringLiteral("zsh"), QStringLiteral("fish")};
         for (int depth = 0; depth < 12 && pid > 4 && ancestry.contains(pid); ++depth) {
             const auto name = ancestry.value(pid).second;
             if (name.compare(own, Qt::CaseInsensitive) == 0) {
@@ -1890,7 +1964,10 @@ void DiagnosticsWindow::resolveAncestry() {
 void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
     auto *menu = addRule->menu();
     menu->clear();
-    struct Candidate { QString label; QString entry; };
+    struct Candidate {
+        QString label;
+        QString entry;
+    };
     QList<Candidate> candidates;
     if (!group.domain.isEmpty()) {
         candidates.append({tr("This domain — %1").arg(group.domain), QStringLiteral("domain:") + group.domain});
@@ -1902,8 +1979,8 @@ void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
         candidates.append({tr("This executable — %1").arg(name), QStringLiteral("processPath:") + group.processPath});
     }
     const auto address = group.dest.contains(QLatin1Char(']'))
-        ? group.dest.section(QLatin1Char(']'), 0, 0).mid(1)
-        : group.dest.section(QLatin1Char(':'), 0, 0);
+                             ? group.dest.section(QLatin1Char(']'), 0, 0).mid(1)
+                             : group.dest.section(QLatin1Char(':'), 0, 0);
     if (!address.isEmpty() && !QHostAddress(address).isNull())
         candidates.append({tr("This address — %1").arg(address), QStringLiteral("ip:") + address});
     // The whole family: every executable currently seen under the same parent. sing-box
@@ -1911,22 +1988,27 @@ void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
     // later under a new name is not covered until it appears here too.
     QStringList family;
     if (group.applicationRootPid != 0) {
-        if (!group.parentProcess.isEmpty()) family << group.parentProcess;
-        else if (!group.process.isEmpty()) family << group.process;
-        for (const auto &other : groups)
+        if (!group.parentProcess.isEmpty())
+            family << group.parentProcess;
+        else if (!group.process.isEmpty())
+            family << group.process;
+        for (const auto &other: groups)
             if (other.applicationRootPid == group.applicationRootPid && !other.processPath.isEmpty())
                 family << QFileInfo(other.processPath).fileName();
         family.removeDuplicates();
     }
     addRule->setEnabled(!candidates.isEmpty() || family.size() > 1);
-    for (const auto &candidate : candidates) {
+    for (const auto &candidate: candidates) {
         auto *sub = menu->addMenu(candidate.label);
-        const struct { int action; QString label; } targets[] = {
+        const struct {
+            int action;
+            QString label;
+        } targets[] = {
             {Configs::proxy, tr("Through proxy")},
             {Configs::bypass, tr("Directly")},
             {Configs::block, tr("Block")},
         };
-        for (const auto &target : targets) {
+        for (const auto &target: targets) {
             const auto entry = candidate.entry;
             const int action = target.action;
             connect(sub->addAction(target.label), &QAction::triggered, this,
@@ -1938,15 +2020,15 @@ void DiagnosticsWindow::rebuildRuleMenu(const ConnectionGroup &group) {
     const auto familyLabel = group.parentProcess.isEmpty() ? group.process : group.parentProcess;
     auto *whole = menu->addMenu(tr("The whole application — %1 and %n helper(s)", "", family.size() - 1)
                                     .arg(familyLabel));
-    for (const auto &target : {QPair<int, QString>{Configs::proxy, tr("Through proxy")},
-                               {Configs::bypass, tr("Directly")},
-                               {Configs::block, tr("Block")}}) {
+    for (const auto &target: {QPair<int, QString>{Configs::proxy, tr("Through proxy")},
+                              {Configs::bypass, tr("Directly")},
+                              {Configs::block, tr("Block")}}) {
         const auto names = family;
         const int action = target.first;
         connect(whole->addAction(target.second), &QAction::triggered, this, [this, names, action] {
             QStringList entries;
             entries.reserve(names.size());
-            for (const auto &name : names) entries << QStringLiteral("processName:") + name;
+            for (const auto &name: names) entries << QStringLiteral("processName:") + name;
             emit rulesRequested(entries, action);
         });
     }
@@ -1956,7 +2038,7 @@ const DiagnosticsWindow::ConnectionGroup *DiagnosticsWindow::currentGroup() cons
     auto *item = connections->currentItem();
     if (item == nullptr) return nullptr;
     const auto key = item->data(0, Qt::UserRole).toString();
-    for (const auto &group : groups)
+    for (const auto &group: groups)
         if (group.key == key) return &group;
     return nullptr;
 }
@@ -1977,7 +2059,7 @@ void DiagnosticsWindow::setFacts(const QList<QPair<QString, QString>> &rows, con
         facts->addWidget(name, i, 0, Qt::AlignTop);
         facts->addWidget(value, i, 1);
     }
-    for (const auto &note : notes) findings->addWidget(label(note, "finding"));
+    for (const auto &note: notes) findings->addWidget(label(note, "finding"));
 }
 
 void DiagnosticsWindow::showConnection() {
@@ -2010,7 +2092,8 @@ void DiagnosticsWindow::showConnection() {
     if (!group->parentProcess.isEmpty()) rows.append({tr("Started by"), group->parentProcess});
     if (group->processPath.isEmpty() && !group->source.isEmpty()) rows.append({tr("Opened from"), group->source});
     rows.append({tr("Connections"), group->closed > 0
-        ? tr("%1 · %2 closed").arg(group->count).arg(group->closed) : QString::number(group->count)});
+                                        ? tr("%1 · %2 closed").arg(group->count).arg(group->closed)
+                                        : QString::number(group->count)});
 
     QStringList notes;
     if (group->outbound.isEmpty())
@@ -2034,8 +2117,8 @@ void DiagnosticsWindow::showConnection() {
     // What caught the connection first, the rule itself condensed after it: a geosite
     // rule quoted in full is a paragraph of literals nobody reads in a 268 px card.
     ruleDetail->setText(group->matchedRule.isEmpty()
-        ? tr("No rule matched, so the default outbound is used.")
-        : explainRuleText(group->matchedRule) + QStringLiteral("\n") + shortenRule(group->matchedRule));
+                            ? tr("No rule matched, so the default outbound is used.")
+                            : explainRuleText(group->matchedRule) + QStringLiteral("\n") + shortenRule(group->matchedRule));
     ruleDetail->setToolTip(group->matchedRule);
 }
 
@@ -2044,21 +2127,20 @@ void DiagnosticsWindow::showConnection() {
 QString DiagnosticsWindow::healthReport() const {
     QStringList out;
     out << tr("Throned · connection state");
-    for (const auto *row : healthRows) out << QStringLiteral("  ") + row->describe();
+    for (const auto *row: healthRows) out << QStringLiteral("  ") + row->describe();
     return out.join(QLatin1Char('\n'));
 }
 
 QString DiagnosticsWindow::connectionReport() const {
-    QString result = tr("Throned · application connections") + QStringLiteral("\n")
-        + QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral("\n") + captureStatus->text() + QStringLiteral("\n");
+    QString result = tr("Throned · application connections") + QStringLiteral("\n") + QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral("\n") + captureStatus->text() + QStringLiteral("\n");
     // Ordered as shown, so the entry the window flagged first is first in the paste too.
-    for (const auto &group : groups)
+    for (const auto &group: groups)
         result += QStringLiteral("\n%1 · %2 · %3 ×%4 → %5\n%6\n↑ %7 · ↓ %8\n")
-            .arg(group.process, group.dest.isEmpty() ? group.host : group.dest, group.network)
-            .arg(group.count)
-            .arg(group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound,
-                 group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule,
-                 bytes(group.upload), bytes(group.download));
+                      .arg(group.process, group.dest.isEmpty() ? group.host : group.dest, group.network)
+                      .arg(group.count)
+                      .arg(group.outbound.isEmpty() ? tr("Unknown outbound") : group.outbound,
+                           group.matchedRule.isEmpty() ? tr("Default route (no rule reported)") : group.matchedRule,
+                           bytes(group.upload), bytes(group.download));
     return result;
 }
 
@@ -2075,7 +2157,7 @@ QString DiagnosticsWindow::buildReport() const {
     const QString mask = QStringLiteral("███");
     if (!local.profileName.isEmpty()) report.replace(local.profileName, mask);
     if (const auto ip = text(health.external_ip); !ip.isEmpty()) report.replace(ip, mask);
-    for (const auto &group : groups) {
+    for (const auto &group: groups) {
         if (group.processPath.isEmpty() || group.processPath == group.process) continue;
         report.replace(group.processPath, QFileInfo(group.processPath).fileName());
     }
@@ -2098,7 +2180,7 @@ bool DiagnosticsWindow::usageSplitKnown() const {
 QList<DiagnosticsWindow::UsageRow> DiagnosticsWindow::visibleUsageRows() const {
     auto rows = usageTab == 1 ? usage.servers : usage.apps;
     if (usageProxyOnlyOn && usageSplitKnown()) {
-        for (auto &row : rows) {
+        for (auto &row: rows) {
             row.up -= row.directUp;
             row.down -= row.directDown;
             row.directUp = row.directDown = 0;
@@ -2129,7 +2211,7 @@ QList<DiagnosticsWindow::UsageRow> DiagnosticsWindow::visibleUsageRows() const {
 QList<DiagnosticsWindow::UsagePoint> DiagnosticsWindow::visibleUsageSeries() const {
     auto points = usageTab == 1 ? usage.serverSeries : usage.series;
     if (!usageProxyOnlyOn || !usageSplitKnown()) return points;
-    for (auto &point : points) {
+    for (auto &point: points) {
         point.up -= point.directUp;
         point.down -= point.directDown;
         point.directUp = point.directDown = 0;
@@ -2145,7 +2227,11 @@ void DiagnosticsWindow::refreshUsage() {
     const auto rows = visibleUsageRows();
     const bool splitKnown = usageSplitKnown();
     qint64 up = 0, down = 0, direct = 0;
-    for (const auto &row : rows) { up += row.up; down += row.down; direct += row.directUp + row.directDown; }
+    for (const auto &row: rows) {
+        up += row.up;
+        down += row.down;
+        direct += row.directUp + row.directDown;
+    }
     usageDown->setText(down > 0 ? bytes(down) : QStringLiteral("—"));
     usageUp->setText(up > 0 ? bytes(up) : QStringLiteral("—"));
     usageTotal->setText(up + down > 0 ? bytes(up + down) : QStringLiteral("—"));
@@ -2154,7 +2240,7 @@ void DiagnosticsWindow::refreshUsage() {
 
     QList<TrafficChartWidget::Bar> bars;
     const auto series = visibleUsageSeries();
-    for (const auto &point : series)
+    for (const auto &point: series)
         bars.append({point.bucketStart, point.down, point.up, point.label});
     // Enough labels to orient without them colliding at a 30-day range.
     usageChart->setData(bars, qMax(1, bars.size() / 8), usage.bucketSecs);
@@ -2169,7 +2255,7 @@ void DiagnosticsWindow::refreshUsage() {
     }
     // A single scale for the bars: the top row is full width and the rest read against it.
     qint64 peak = 1;
-    for (const auto &row : rows) peak = qMax(peak, row.up + row.down);
+    for (const auto &row: rows) peak = qMax(peak, row.up + row.down);
     static const QColor swatches[] = {QColor("#3B82F6"), QColor("#5C99FF"), QColor("#3ECF8E"),
                                       QColor("#D9A441"), QColor("#A78BFA"), QColor("#4B4F58")};
     for (int i = 0; i < rows.size(); ++i) {
@@ -2192,9 +2278,9 @@ void DiagnosticsWindow::refreshUsage() {
         const auto rowTotal = row.up + row.down;
         auto *bar = new SplitBar(rowTotal - rowDirect, rowDirect, peak, splitKnown);
         bar->setToolTip(!splitKnown
-            ? tr("The proxy and direct split was not recorded for this period.")
-            : rowDirect > 0 ? tr("Through the proxy %1 · directly %2").arg(bytes(rowTotal - rowDirect), bytes(rowDirect))
-                            : tr("All of it through the proxy"));
+                            ? tr("The proxy and direct split was not recorded for this period.")
+                        : rowDirect > 0 ? tr("Through the proxy %1 · directly %2").arg(bytes(rowTotal - rowDirect), bytes(rowDirect))
+                                        : tr("All of it through the proxy"));
         grid->addWidget(bar, 0, 2, 2, 1, Qt::AlignVCenter);
         auto *value = label(bytes(row.up + row.down), "factValue");
         value->setAlignment(Qt::AlignRight | Qt::AlignBottom);
@@ -2210,9 +2296,9 @@ void DiagnosticsWindow::refreshUsage() {
     }
     usageRows->addStretch(1);
     auto footnote = usage.databaseBytes > 0
-        ? tr("Stored on this computer only · %1 · %n day(s) of records", "", static_cast<int>(usage.daysStored))
-              .arg(bytes(usage.databaseBytes))
-        : tr("Stored on this computer only and never sent anywhere.");
+                        ? tr("Stored on this computer only · %1 · %n day(s) of records", "", static_cast<int>(usage.daysStored))
+                              .arg(bytes(usage.databaseBytes))
+                        : tr("Stored on this computer only and never sent anywhere.");
     // The one number the split is worth spelling out, on a line that already exists.
     if (splitKnown && direct > 0)
         footnote += QStringLiteral(" · ") + tr("%1 went around the tunnel").arg(bytes(direct));
@@ -2225,15 +2311,18 @@ void DiagnosticsWindow::exportUsage() {
     const auto rows = visibleUsageRows(); // what the screen shows, filter included
     if (rows.isEmpty()) return;
     const auto path = QFileDialog::getSaveFileName(this, tr("Export statistics"),
-        QStringLiteral("throned-traffic-") + QDate::currentDate().toString(Qt::ISODate) + QStringLiteral(".csv"),
-        tr("CSV files (*.csv)"));
+                                                   QStringLiteral("throned-traffic-") + QDate::currentDate().toString(Qt::ISODate) + QStringLiteral(".csv"),
+                                                   tr("CSV files (*.csv)"));
     if (path.isEmpty()) return;
     QString out = QStringLiteral("name,detail,download_bytes,upload_bytes,direct_download_bytes,direct_upload_bytes\n");
-    for (const auto &row : rows)
+    for (const auto &row: rows)
         out += QStringLiteral("\"%1\",\"%2\",%3,%4,%5,%6\n")
-            .arg(QString(row.name).replace(QLatin1Char('"'), QStringLiteral("\"\"")),
-                 QString(row.detail).replace(QLatin1Char('"'), QStringLiteral("\"\"")))
-            .arg(row.down).arg(row.up).arg(row.directDown).arg(row.directUp);
+                   .arg(QString(row.name).replace(QLatin1Char('"'), QStringLiteral("\"\"")),
+                        QString(row.detail).replace(QLatin1Char('"'), QStringLiteral("\"\"")))
+                   .arg(row.down)
+                   .arg(row.up)
+                   .arg(row.directDown)
+                   .arg(row.directUp);
     QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
     file.write(out.toUtf8());
@@ -2255,8 +2344,7 @@ void DiagnosticsWindow::copyReport() {
 void DiagnosticsWindow::saveReport() {
     const auto value = buildReport();
     if (value.isEmpty()) return;
-    const auto suggested = QStringLiteral("throned-diagnostics-")
-        + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")) + QStringLiteral(".txt");
+    const auto suggested = QStringLiteral("throned-diagnostics-") + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")) + QStringLiteral(".txt");
     const auto path = QFileDialog::getSaveFileName(this, tr("Save report"), suggested, tr("Text files (*.txt)"));
     if (path.isEmpty()) return;
     QSaveFile file(path);

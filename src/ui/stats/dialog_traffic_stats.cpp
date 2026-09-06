@@ -23,21 +23,21 @@
 #include "include/configs/generate.h"
 
 namespace {
-    // Named rows per breakdown table; the rest is folded into one "Other" row.
-    constexpr int kMaxBreakdownRows = 9;
+// Named rows per breakdown table; the rest is folded into one "Other" row.
+constexpr int kMaxBreakdownRows = 9;
 
-    // Sorts on the raw byte value; the default compares the formatted text, ranking "900 MiB" above "1.00 GiB".
-    class TrafficStatsSizeItem : public QTableWidgetItem {
-    public:
-        TrafficStatsSizeItem(const QString& text, long long value) : QTableWidgetItem(text) {
-            QTableWidgetItem::setData(Qt::UserRole, QVariant::fromValue<qlonglong>(value));
-            setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        }
-        bool operator<(const QTableWidgetItem& other) const override {
-            return data(Qt::UserRole).toLongLong() < other.data(Qt::UserRole).toLongLong();
-        }
-    };
-}
+// Sorts on the raw byte value; the default compares the formatted text, ranking "900 MiB" above "1.00 GiB".
+class TrafficStatsSizeItem : public QTableWidgetItem {
+public:
+    TrafficStatsSizeItem(const QString& text, long long value) : QTableWidgetItem(text) {
+        QTableWidgetItem::setData(Qt::UserRole, QVariant::fromValue<qlonglong>(value));
+        setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    }
+    bool operator<(const QTableWidgetItem& other) const override {
+        return data(Qt::UserRole).toLongLong() < other.data(Qt::UserRole).toLongLong();
+    }
+};
+} // namespace
 
 DialogTrafficStats::DialogTrafficStats(QWidget* parent) : QDialog(parent), ui(new Ui::DialogTrafficStats) {
     ui->setupUi(this);
@@ -68,11 +68,15 @@ DialogTrafficStats::~DialogTrafficStats() {
 
 long long DialogTrafficStats::selectedWindowSecs() const {
     switch (ui->periodCombo->currentIndex()) {
-        case 1: return 7LL * 86400LL;
-        case 2: return 30LL * 86400LL;
-        case 3: return 90LL * 86400LL;
+        case 1:
+            return 7LL * 86400LL;
+        case 2:
+            return 30LL * 86400LL;
+        case 3:
+            return 90LL * 86400LL;
         case 0:
-        default: return 24LL * 3600LL;
+        default:
+            return 24LL * 3600LL;
     }
 }
 
@@ -104,7 +108,7 @@ void DialogTrafficStats::refresh() {
     QHash<long long, Configs::TrafficSeriesPoint> byBucket;
     byBucket.reserve(series.size());
     long long totalUp = 0, totalDown = 0;
-    for (const auto& pt : series) {
+    for (const auto& pt: series) {
         byBucket.insert(pt.bucket_start, pt);
         totalUp += pt.up;
         totalDown += pt.down;
@@ -128,15 +132,15 @@ void DialogTrafficStats::refresh() {
     ui->chart->setData(bars, stride, bucket);
 
     ui->summaryLabel->setText(tr("Download: %1     Upload: %2     Total: %3")
-                               .arg(ReadableSize(totalDown), ReadableSize(totalUp),
-                                    ReadableSize(totalDown + totalUp)));
+                                  .arg(ReadableSize(totalDown), ReadableSize(totalUp),
+                                       ReadableSize(totalDown + totalUp)));
 }
 
 void DialogTrafficStats::populateProfileTable(long long fromSecs, long long toSecs) {
     auto* repo = Configs::dataManager->trafficStatsRepo.get();
     auto usage = repo->QueryConfigUsage(fromSecs, toSecs);
     QHash<int, Configs::ConfigMetaRow> meta;
-    for (const auto& m : repo->GetAllConfigMeta()) meta.insert(m.profile_id, m);
+    for (const auto& m: repo->GetAllConfigMeta()) meta.insert(m.profile_id, m);
 
     // Sorted here, not by the table, so the top-N cut is by total even after the user re-sorts.
     std::sort(usage.begin(), usage.end(), [](const Configs::ConfigUsage& a, const Configs::ConfigUsage& b) {

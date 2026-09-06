@@ -18,7 +18,7 @@
 void MainWindow::trayClickEvent() {
     constexpr qint64 recentlyActiveMs = 350;
     const bool wasRecentlyActive = isActiveWindow() ||
-        (sinceWindowDeactivated.isValid() && sinceWindowDeactivated.elapsed() <= recentlyActiveMs);
+                                   (sinceWindowDeactivated.isValid() && sinceWindowDeactivated.elapsed() <= recentlyActiveMs);
 
     if (isVisible() && !isMinimized() && wasRecentlyActive) {
         HideWindow(this);
@@ -50,8 +50,8 @@ void MainWindow::changeEvent(QEvent *event) {
             w->setStyleSheet("");
             w->setStyleSheet(ss);
         };
-        const auto allChildren = findChildren<QWidget*>();
-        for (QWidget *w : allChildren) {
+        const auto allChildren = findChildren<QWidget *>();
+        for (QWidget *w: allChildren) {
             refreshStylesheetCache(w);
         }
         // Tab chrome lives in the app sheet now (ThemeManager owns it), and the loop above only
@@ -89,8 +89,10 @@ void MainWindow::changeEvent(QEvent *event) {
     }
     if (type == QEvent::ActivationChange) {
         // Not stamped from WindowDeactivate in eventFilter(): that only reaches visible filtered children.
-        if (isActiveWindow()) sinceWindowDeactivated.invalidate();
-        else sinceWindowDeactivated.start();
+        if (isActiveWindow())
+            sinceWindowDeactivated.invalidate();
+        else
+            sinceWindowDeactivated.start();
     }
     QMainWindow::changeEvent(event);
 }
@@ -107,8 +109,7 @@ void MainWindow::hideEvent(QHideEvent *event) {
 }
 
 void MainWindow::syncConnectionViewState() {
-    const bool inView = isVisible() && !isMinimized()
-        && ui->stats_widget->currentWidget() == ui->connections_tab;
+    const bool inView = isVisible() && !isMinimized() && ui->stats_widget->currentWidget() == ui->connections_tab;
     Stats::connection_lister->SetInView(inView);
 }
 
@@ -122,8 +123,7 @@ void MainWindow::scheduleProxyListRefresh() {
     if (m_proxyListRefreshDebounce) m_proxyListRefreshDebounce->start(proxyListRefreshDebounceMs);
 }
 
-void MainWindow::dragEnterEvent(QDragEnterEvent *event)
-{
+void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
     if (event->mimeData()->hasUrls() || event->mimeData()->hasText()) {
         event->acceptProposedAction();
     } else {
@@ -131,13 +131,12 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
-void MainWindow::dropEvent(QDropEvent* event)
-{
+void MainWindow::dropEvent(QDropEvent *event) {
     const auto mimeData = event->mimeData();
 
     if (mimeData->hasUrls()) {
         QStringList paths;
-        for (const QUrl &url : mimeData->urls()) {
+        for (const QUrl &url: mimeData->urls()) {
             if (url.isLocalFile()) paths << url.toLocalFile();
         }
         if (!paths.isEmpty()) {

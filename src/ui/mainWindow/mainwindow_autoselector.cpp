@@ -35,7 +35,7 @@ void MainWindow::on_subscription_group_changed(int gid, const QList<int>& distur
     const QSet<int> disturbedSet(disturbed.begin(), disturbed.end());
     int restartID = -1;
 
-    for (int id : Configs::dataManager->profilesRepo->GetProfileIdsByType("autoselector")) {
+    for (int id: Configs::dataManager->profilesRepo->GetProfileIdsByType("autoselector")) {
         auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
         if (ent == nullptr) continue;
         auto selector = ent->AutoSelector();
@@ -52,7 +52,7 @@ void MainWindow::on_subscription_group_changed(int gid, const QList<int>& distur
         if (running == nullptr || running->id != ent->id) continue;
         // A replaced member keeps its id, so only the disturbed set spots it.
         bool rebuild = prunedBuilt > 0;
-        for (int memberID : selector->lastBuilt) {
+        for (int memberID: selector->lastBuilt) {
             if (!disturbedSet.contains(memberID)) continue;
             rebuild = true;
             break;
@@ -69,8 +69,9 @@ void MainWindow::on_auto_selector_exhausted(int profileID) {
     auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
     if (ent == nullptr || running == nullptr || running->id != profileID) return;
 
-    MW_show_log(tr("[Auto selector] Every running profile stopped working — rebuilding from the "
-                   "next best candidates."));
+    MW_show_log(tr(
+        "[Auto selector] Every running profile stopped working — rebuilding from the "
+        "next best candidates."));
     runOnNewThread([=, this] {
         // Re-testing the members that just died sinks them so fresh candidates rise.
         QList<int> stale;

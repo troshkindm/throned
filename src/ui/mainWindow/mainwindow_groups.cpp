@@ -24,7 +24,6 @@
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
 
-
 void MainWindow::on_tabWidget_currentChanged(int index) {
     if (Configs::dataManager->settingsRepo->refreshing_group_list) return;
     const auto gid = tabIndex2GroupId(index);
@@ -139,7 +138,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
     const int clickedIndex = ui->tabWidget->tabBar()->tabAt(p);
     if (clickedIndex == -1) {
         QMenu menu(this);
-        connect(menu.addAction(tr("Add new Group")), &QAction::triggered, this, [=,this]{
+        connect(menu.addAction(tr("Add new Group")), &QAction::triggered, this, [=, this] {
             auto ent = Configs::dataManager->groupsRepo->NewGroup();
             auto dialog = new DialogEditGroup(ent, this);
             const int ret = dialog->exec();
@@ -164,7 +163,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
 
     const auto clickedGroup = Configs::dataManager->groupsRepo->GetGroup(Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex]);
 
-    connect(menu.addAction(tr("Add new Group")), &QAction::triggered, this, [=,this]{
+    connect(menu.addAction(tr("Add new Group")), &QAction::triggered, this, [=, this] {
         auto ent = Configs::dataManager->groupsRepo->NewGroup();
         auto dialog = new DialogEditGroup(ent, this);
         const int ret = dialog->exec();
@@ -175,11 +174,11 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
             MW_dialog_message(MwMessage::GroupsChanged, {});
         }
     });
-    connect(menu.addAction(tr("Edit selected Group")), &QAction::triggered, this, [=,this]{
+    connect(menu.addAction(tr("Edit selected Group")), &QAction::triggered, this, [=, this] {
         const auto id = Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex];
         auto ent = Configs::dataManager->groupsRepo->GetGroup(id);
         auto dialog = new DialogEditGroup(ent, this);
-        connect(dialog, &QDialog::finished, this, [=,this] {
+        connect(dialog, &QDialog::finished, this, [=, this] {
             if (dialog->result() == QDialog::Accepted) {
                 Configs::dataManager->groupsRepo->Save(ent);
                 MW_dialog_message(MwMessage::GroupsChanged, {});
@@ -189,7 +188,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         dialog->show();
     });
     if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() > 1) {
-        connect(menu.addAction(tr("Delete selected Group")), &QAction::triggered, this, [=,this] {
+        connect(menu.addAction(tr("Delete selected Group")), &QAction::triggered, this, [=, this] {
             const auto id = Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex];
             if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(Configs::dataManager->groupsRepo->GetGroup(id)->name)) ==
                 QMessageBox::StandardButton::Yes) {
@@ -207,7 +206,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         menu.addSeparator();
     }
     if (clickedGroup != nullptr && !clickedGroup->url.isEmpty()) {
-        connect(menu.addAction(tr("Update subscription")), &QAction::triggered, this, [=,this]{
+        connect(menu.addAction(tr("Update subscription")), &QAction::triggered, this, [=, this] {
             const auto id = Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex];
             auto group = Configs::dataManager->groupsRepo->GetGroup(id);
             if (group->url.isEmpty()) return;
@@ -217,10 +216,10 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         });
     }
     if (clickedGroup != nullptr) {
-        connect(menu.addAction(tr("Url Test selected Group")), &QAction::triggered, this, [=,this]{
+        connect(menu.addAction(tr("Url Test selected Group")), &QAction::triggered, this, [=, this] {
             testRunner->runUrlTests(clickedGroup->Profiles());
         });
-        connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=,this]{
+        connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=, this] {
             testRunner->runSpeedTests(clickedGroup->Profiles());
         });
     }
@@ -228,27 +227,30 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
 }
 
 namespace {
-    // Thresholds a plan can cross. The mask is recomputed from the current state on
-    // every readout, so a renewal clears the bits on its own and the notice can fire
-    // again next period without any history being kept.
-    enum SubNotice { NoticeWeek = 1 << 0, NoticeThreeDays = 1 << 1, NoticeLastDay = 1 << 2, NoticeQuota = 1 << 3 };
+// Thresholds a plan can cross. The mask is recomputed from the current state on
+// every readout, so a renewal clears the bits on its own and the notice can fire
+// again next period without any history being kept.
+enum SubNotice { NoticeWeek = 1 << 0,
+                 NoticeThreeDays = 1 << 1,
+                 NoticeLastDay = 1 << 2,
+                 NoticeQuota = 1 << 3 };
 
-    constexpr double kQuotaWarnFrom = 0.75;
-    constexpr double kQuotaCriticalFrom = 0.90;
+constexpr double kQuotaWarnFrom = 0.75;
+constexpr double kQuotaCriticalFrom = 0.90;
 
-    GroupTabBar::Urgency subscriptionUrgency(const Configs::SubInfo &sub, int days) {
-        auto urgency = GroupTabBar::Urgency::Normal;
-        if (const double used = sub.usedFraction(); used >= kQuotaCriticalFrom)
-            urgency = GroupTabBar::Urgency::Critical;
-        else if (used >= kQuotaWarnFrom)
-            urgency = GroupTabBar::Urgency::Warning;
+GroupTabBar::Urgency subscriptionUrgency(const Configs::SubInfo &sub, int days) {
+    auto urgency = GroupTabBar::Urgency::Normal;
+    if (const double used = sub.usedFraction(); used >= kQuotaCriticalFrom)
+        urgency = GroupTabBar::Urgency::Critical;
+    else if (used >= kQuotaWarnFrom)
+        urgency = GroupTabBar::Urgency::Warning;
 
-        if (days < 0) return urgency;
-        if (days <= 2) return GroupTabBar::Urgency::Critical;
-        if (days <= 7 && urgency == GroupTabBar::Urgency::Normal) return GroupTabBar::Urgency::Warning;
-        return urgency;
-    }
+    if (days < 0) return urgency;
+    if (days <= 2) return GroupTabBar::Urgency::Critical;
+    if (days <= 7 && urgency == GroupTabBar::Urgency::Normal) return GroupTabBar::Urgency::Warning;
+    return urgency;
 }
+} // namespace
 
 void MainWindow::notifySubscriptionState(const std::shared_ptr<Configs::Group> &group,
                                          const Configs::SubInfo &sub, int days) {
@@ -269,9 +271,12 @@ void MainWindow::notifySubscriptionState(const std::shared_ptr<Configs::Group> &
 
     // Only the sharpest new threshold speaks; the rest are already implied by it.
     QString body;
-    if (fresh & NoticeLastDay) body = days == 0 ? tr("Expires today.") : tr("Expires tomorrow.");
-    else if (fresh & NoticeThreeDays) body = tr("%n day(s) left.", "", days);
-    else if (fresh & NoticeWeek) body = tr("%n day(s) left.", "", days);
+    if (fresh & NoticeLastDay)
+        body = days == 0 ? tr("Expires today.") : tr("Expires tomorrow.");
+    else if (fresh & NoticeThreeDays)
+        body = tr("%n day(s) left.", "", days);
+    else if (fresh & NoticeWeek)
+        body = tr("%n day(s) left.", "", days);
     else if (fresh & NoticeQuota)
         body = sub.total > 0
                    ? tr("%1 of %2 used.").arg(ReadableSize(sub.used()), ReadableSize(sub.total))
@@ -306,7 +311,6 @@ void MainWindow::applySubscriptionReadout(int index, const std::shared_ptr<Confi
     notifySubscriptionState(group, sub, days);
 }
 
-
 // One card serves both the hover and the click: reopening a second one over the first
 // is what makes hover popovers flicker.
 SubscriptionPopover *MainWindow::subscriptionCard() {
@@ -316,7 +320,8 @@ SubscriptionPopover *MainWindow::subscriptionCard() {
                 target != nullptr && !target->url.isEmpty()) {
                 Subscription::updater()->RefreshGroup(gid);
             }
-        }, this);
+        },
+                                                      this);
     }
     return subscriptionPopover;
 }
@@ -367,11 +372,11 @@ void MainWindow::refreshSubscriptionReadouts() {
 // A subscription can carry a line of text from its provider. It rides with the
 // profile table into whichever group page is current, so one widget serves them all.
 namespace {
-    QString announceFingerprint(const QString &text) {
-        return QString::fromLatin1(
-            QCryptographicHash::hash(text.trimmed().toUtf8(), QCryptographicHash::Md5).toHex());
-    }
+QString announceFingerprint(const QString &text) {
+    return QString::fromLatin1(
+        QCryptographicHash::hash(text.trimmed().toUtf8(), QCryptographicHash::Md5).toHex());
 }
+} // namespace
 
 void MainWindow::setupAnnounceStrip() {
     announceHost = new QWidget(this);
@@ -426,8 +431,7 @@ void MainWindow::refreshAnnounceStrip() {
     if (announceHost == nullptr) return;
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     const QString text = group == nullptr ? QString() : group->provider.announce.trimmed();
-    const bool unseen = !text.isEmpty()
-                     && announceFingerprint(text) != group->provider.announceSeen;
+    const bool unseen = !text.isEmpty() && announceFingerprint(text) != group->provider.announceSeen;
     announceHost->setVisible(unseen);
     // The header borrows the card's top border; with the notice above it, it needs one.
     if (auto *header = ui->profilesTableView->horizontalHeader();

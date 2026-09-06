@@ -9,15 +9,15 @@
 #include <utility>
 
 namespace Configs {
-    void initDB(const std::string& dbPath);
+void initDB(const std::string& dbPath);
 
-    QString FindCoreRealPath();
+QString FindCoreRealPath();
 
-    bool IsAdmin(bool forceRenew=false);
+bool IsAdmin(bool forceRenew = false);
 
-    bool isSetuidSet(const std::string& path);
+bool isSetuidSet(const std::string& path);
 
-    QString GetBasePath();
+QString GetBasePath();
 } // namespace Configs
 
 #define ROUTES_PREFIX_NAME QString("route_profiles")

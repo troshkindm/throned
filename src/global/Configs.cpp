@@ -16,7 +16,6 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
 
-
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"
 #else
@@ -29,78 +28,78 @@
 #endif
 
 namespace Configs {
-    void initDB(const std::string& dbPath) {
-        dataManager = new DatabaseManager(dbPath);
+void initDB(const std::string& dbPath) {
+    dataManager = new DatabaseManager(dbPath);
 
-        if (dataManager->groupsRepo->GetAllGroupIds().empty()) {
-            auto defaultGroup = GroupsRepo::NewGroup();
-            defaultGroup->name = QObject::tr("Default");
-            dataManager->groupsRepo->AddGroup(defaultGroup);
-        }
-        if (dataManager->routesRepo->GetAllRouteProfileIds().empty()) {
-            auto defaultRoute = RouteProfile::GetDefaultChain();
-            dataManager->routesRepo->AddRouteProfile(defaultRoute);
-        }
+    if (dataManager->groupsRepo->GetAllGroupIds().empty()) {
+        auto defaultGroup = GroupsRepo::NewGroup();
+        defaultGroup->name = QObject::tr("Default");
+        dataManager->groupsRepo->AddGroup(defaultGroup);
     }
-
-    QString FindCoreRealPath() {
-        auto fn = QApplication::applicationDirPath() + "/ThronedCore";
-#ifdef Q_OS_WIN
-        fn += ".exe";
-#endif
-        auto fi = QFileInfo(fn);
-        QString path;
-        if (fi.isSymLink()) path =  fi.symLinkTarget();
-        path = fn;
-#ifdef Q_OS_WIN
-        path.replace("/", "\\");
-#endif
-        return path;
+    if (dataManager->routesRepo->GetAllRouteProfileIds().empty()) {
+        auto defaultRoute = RouteProfile::GetDefaultChain();
+        dataManager->routesRepo->AddRouteProfile(defaultRoute);
     }
+}
 
-    short isAdminCache = -1;
+QString FindCoreRealPath() {
+    auto fn = QApplication::applicationDirPath() + "/ThronedCore";
+#ifdef Q_OS_WIN
+    fn += ".exe";
+#endif
+    auto fi = QFileInfo(fn);
+    QString path;
+    if (fi.isSymLink()) path = fi.symLinkTarget();
+    path = fn;
+#ifdef Q_OS_WIN
+    path.replace("/", "\\");
+#endif
+    return path;
+}
 
-    bool isSetuidSet(const std::string& path) {
+short isAdminCache = -1;
+
+bool isSetuidSet(const std::string& path) {
 #ifdef Q_OS_MACOS
-        struct stat fileInfo;
+    struct stat fileInfo;
 
-        if (stat(path.c_str(), &fileInfo) != 0) {
-            return false;
-        }
-
-        if (fileInfo.st_mode & S_ISUID) {
-            return true;
-        } else {
-            return false;
-        }
-#else
+    if (stat(path.c_str(), &fileInfo) != 0) {
         return false;
-#endif
     }
 
-    // IsAdmin 主要判断：有无权限启动 Tun
-    bool IsAdmin(bool forceRenew) {
-        if (isAdminCache >= 0 && !forceRenew) return isAdminCache;
-
-        bool admin = false;
-#ifdef Q_OS_WIN
-        admin = Windows_IsInAdmin();
-        Configs::dataManager->settingsRepo->windows_set_admin = admin;
+    if (fileInfo.st_mode & S_ISUID) {
+        return true;
+    } else {
+        return false;
+    }
 #else
-        // Unknown until the core answers; caching that would pin "not elevated" for the session.
-        if (API::defaultClient == nullptr) return false;
-        bool ok;
-        const auto isPrivileged = API::defaultClient->IsPrivileged(&ok);
-        if (!ok) return false;
-        admin = isPrivileged;
+    return false;
 #endif
-        isAdminCache = admin;
-        return admin;
-    }
+}
 
-    QString GetBasePath() {
-        if (Configs::dataManager->settingsRepo->flag_use_appdata) return QStandardPaths::writableLocation(
-              QStandardPaths::AppConfigLocation);
-        return qApp->applicationDirPath();
-    }
+// IsAdmin 主要判断：有无权限启动 Tun
+bool IsAdmin(bool forceRenew) {
+    if (isAdminCache >= 0 && !forceRenew) return isAdminCache;
+
+    bool admin = false;
+#ifdef Q_OS_WIN
+    admin = Windows_IsInAdmin();
+    Configs::dataManager->settingsRepo->windows_set_admin = admin;
+#else
+    // Unknown until the core answers; caching that would pin "not elevated" for the session.
+    if (API::defaultClient == nullptr) return false;
+    bool ok;
+    const auto isPrivileged = API::defaultClient->IsPrivileged(&ok);
+    if (!ok) return false;
+    admin = isPrivileged;
+#endif
+    isAdminCache = admin;
+    return admin;
+}
+
+QString GetBasePath() {
+    if (Configs::dataManager->settingsRepo->flag_use_appdata) return QStandardPaths::writableLocation(
+        QStandardPaths::AppConfigLocation);
+    return qApp->applicationDirPath();
+}
 } // namespace Configs

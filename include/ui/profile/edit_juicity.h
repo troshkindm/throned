@@ -5,7 +5,7 @@
 #include "ui_edit_juicity.h"
 
 namespace Ui {
-    class EditJuicity;
+class EditJuicity;
 }
 
 class EditJuicity : public QWidget, public ProfileEditor {

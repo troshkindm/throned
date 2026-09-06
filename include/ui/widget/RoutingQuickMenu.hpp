@@ -24,9 +24,9 @@ public:
     // it now" step are injected, so the widget stays out of MainWindow's internals.
     struct Callbacks {
         std::function<void(int outboundID)> setDefaultOutbound;
-        std::function<void(bool enabled)>   setApplyProfileRules;
-        std::function<void()>               openProfile;   // edit the active profile
-        std::function<void()>               manageProfiles;
+        std::function<void(bool enabled)> setApplyProfileRules;
+        std::function<void()> openProfile; // edit the active profile
+        std::function<void()> manageProfiles;
     };
 
     explicit RoutingQuickMenu(Callbacks cb, QWidget *parent = nullptr);

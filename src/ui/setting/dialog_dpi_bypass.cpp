@@ -15,14 +15,14 @@
 #include <QTabBar>
 
 namespace {
-    constexpr auto kRouteProfileName = "DPI Bypass";
+constexpr auto kRouteProfileName = "DPI Bypass";
 
-    // Combo position -> stored key. Order matches the items added below.
-    const QStringList kMethodKeys = {"spoof", "fragment", "record_fragment"};
+// Combo position -> stored key. Order matches the items added below.
+const QStringList kMethodKeys = {"spoof", "fragment", "record_fragment"};
 
-    constexpr auto kRussiaRuleSet = "geosite-ru-blocked";
-    constexpr auto kRussiaSpoofSNI = "max.ru";
-}
+constexpr auto kRussiaRuleSet = "geosite-ru-blocked";
+constexpr auto kRussiaSpoofSNI = "max.ru";
+} // namespace
 
 DialogDpiBypass::DialogDpiBypass(QWidget *parent) : QDialog(parent), ui(new Ui::DialogDpiBypass) {
     ui->setupUi(this);
@@ -207,5 +207,6 @@ void DialogDpiBypass::applyDpiPreset() {
     }
     ui->dpi_status->setText(
         (isNew ? tr("Created routing profile \"%1\" and selected it.") : tr("Updated routing profile \"%1\" and selected it."))
-        .arg(kRouteProfileName) + extra + " " + tr("Turn on Tun Mode, then start a direct profile."));
+            .arg(kRouteProfileName) +
+        extra + " " + tr("Turn on Tun Mode, then start a direct profile."));
 }

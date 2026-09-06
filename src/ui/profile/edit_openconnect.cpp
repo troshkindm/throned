@@ -42,8 +42,10 @@ void EditOpenConnect::editPem(QPushButton *button, const QString &title, QString
     auto txt = QInputDialog::getMultiLineText(this, title, "", target.join("\n"), &ok);
     if (!ok) return;
     target = txt.split("\n", Qt::SkipEmptyParts);
-    if (editor_cache_updated) editor_cache_updated();
-    else button->setText(target.isEmpty() ? tr("Not set") : tr("Already set"));
+    if (editor_cache_updated)
+        editor_cache_updated();
+    else
+        button->setText(target.isEmpty() ? tr("Not set") : tr("Already set"));
 }
 
 QList<QPair<QPushButton *, QString>> EditOpenConnect::get_editor_cached() {

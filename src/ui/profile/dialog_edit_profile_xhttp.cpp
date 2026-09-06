@@ -12,7 +12,7 @@ void setXHTTPGridStretch(QGridLayout *layout) {
     layout->setColumnStretch(1, 1);
     layout->setColumnStretch(3, 1);
 }
-}
+} // namespace
 
 void DialogEditProfile::setXrayXHTTPHelp(QWidget *caption, QWidget *field,
                                          const QString &text,
@@ -165,12 +165,16 @@ void DialogEditProfile::updateXrayXHTTPControls() {
     ui->xray_downloadsettings_edit->setVisible(showDownloadSettings);
 
     const QList<QWidget *> obfsWidgets = {
-        ui->label_xpadding_method,    ui->xray_xpadding_method,
-        ui->label_xpadding_placement, ui->xray_xpadding_placement,
-        ui->label_xpadding_key,       ui->xray_xpadding_key,
-        ui->label_xpadding_header,    ui->xray_xpadding_header,
+        ui->label_xpadding_method,
+        ui->xray_xpadding_method,
+        ui->label_xpadding_placement,
+        ui->xray_xpadding_placement,
+        ui->label_xpadding_key,
+        ui->xray_xpadding_key,
+        ui->label_xpadding_header,
+        ui->xray_xpadding_header,
     };
-    for (auto widget : obfsWidgets) {
+    for (auto widget: obfsWidgets) {
         widget->setEnabled(obfsEnabled);
         widget->setVisible(obfsEnabled);
     }

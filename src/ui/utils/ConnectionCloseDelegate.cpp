@@ -39,8 +39,7 @@ QSize ConnectionCloseDelegate::sizeHint(const QStyleOptionViewItem &, const QMod
 bool ConnectionCloseDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
                                           const QStyleOptionViewItem &option, const QModelIndex &index) {
     const auto type = event->type();
-    if (type != QEvent::MouseButtonPress && type != QEvent::MouseButtonRelease
-        && type != QEvent::MouseButtonDblClick) {
+    if (type != QEvent::MouseButtonPress && type != QEvent::MouseButtonRelease && type != QEvent::MouseButtonDblClick) {
         return QStyledItemDelegate::editorEvent(event, model, option, index);
     }
 

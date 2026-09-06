@@ -11,7 +11,7 @@ void Windows_QWidget_SetForegroundWindow(QWidget *w) {
     DWORD dwForeID = ::GetWindowThreadProcessId(hForgroundWnd, NULL);
     DWORD dwCurID = ::GetCurrentThreadId();
     const bool attach = dwForeID != 0 && dwForeID != dwCurID &&
-        AttachThreadInput(dwCurID, dwForeID, TRUE);
+                        AttachThreadInput(dwCurID, dwForeID, TRUE);
     SetForegroundWindow((HWND) w->winId());
     if (attach) AttachThreadInput(dwCurID, dwForeID, FALSE);
 }

@@ -7,9 +7,7 @@
 #include "include/global/Utils.hpp"
 
 EditHysteriaRealm::EditHysteriaRealm(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent)
-    : QDialog(parent)
-    , ui(new Ui::EditHysteriaRealm)
-{
+    : QDialog(parent), ui(new Ui::EditHysteriaRealm) {
     ui->setupUi(this);
     ent = _ent;
     auto outbound = ent->Hysteria();
@@ -36,8 +34,7 @@ EditHysteriaRealm::EditHysteriaRealm(QWidget *parent, const std::shared_ptr<Conf
     if (scr != nullptr) resize(sizeHint().boundedTo(scr->availableGeometry().size()));
 }
 
-EditHysteriaRealm::~EditHysteriaRealm()
-{
+EditHysteriaRealm::~EditHysteriaRealm() {
     delete ui;
 }
 

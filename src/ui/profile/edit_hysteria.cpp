@@ -3,7 +3,7 @@
 #include "include/global/Utils.hpp"
 #include "include/ui/profile/edit_hysteria_realm.h"
 
-EditHysteria::EditHysteria(QWidget *parent)
+EditHysteria::EditHysteria(QWidget* parent)
     : QWidget(parent),
       ui(new Ui::EditHysteria) {
     ui->setupUi(this);
@@ -90,8 +90,7 @@ bool EditHysteria::onEnd() {
 }
 
 void EditHysteria::editHysteriaLayout(const QString& version, const QString& obfs_type) {
-    if (version == "1")
-    {
+    if (version == "1") {
         ui->auth_type->setVisible(true);
         ui->auth_type_l->setVisible(true);
         ui->auth->setVisible(true);
@@ -113,8 +112,7 @@ void EditHysteria::editHysteriaLayout(const QString& version, const QString& obf
         ui->hop_interval_max_l->setVisible(false);
         ui->bbr_profile->setVisible(false);
         ui->bbr_profile_l->setVisible(false);
-    } else
-    {
+    } else {
         ui->auth_type->setVisible(false);
         ui->auth_type_l->setVisible(false);
         ui->auth->setVisible(false);

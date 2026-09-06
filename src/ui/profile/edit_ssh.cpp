@@ -22,7 +22,7 @@ void EditSSH::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->host_key_algs->setText(outbound->host_key_algorithms.join(","));
     ui->client_version->setText(outbound->client_version);
 
-    connect(ui->choose_pk, &QPushButton::clicked, this, [=,this] {
+    connect(ui->choose_pk, &QPushButton::clicked, this, [=, this] {
         auto fn = QFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
                                                "", nullptr, QFileDialog::Option::ReadOnly);
         if (!fn.isEmpty()) {
@@ -39,10 +39,14 @@ bool EditSSH::onEnd() {
     outbound->private_key = ui->private_key->toPlainText();
     outbound->private_key_path = ui->private_key_path->text().trimmed();
     outbound->private_key_passphrase = ui->private_key_pass->text();
-    if (!ui->host_key->text().trimmed().isEmpty()) outbound->host_key = ui->host_key->text().split(",");
-    else outbound->host_key = {};
-    if (!ui->host_key_algs->text().trimmed().isEmpty()) outbound->host_key_algorithms = ui->host_key_algs->text().split(",");
-    else outbound->host_key_algorithms = {};
+    if (!ui->host_key->text().trimmed().isEmpty())
+        outbound->host_key = ui->host_key->text().split(",");
+    else
+        outbound->host_key = {};
+    if (!ui->host_key_algs->text().trimmed().isEmpty())
+        outbound->host_key_algorithms = ui->host_key_algs->text().split(",");
+    else
+        outbound->host_key_algorithms = {};
     outbound->client_version = ui->client_version->text().trimmed();
 
     return true;

@@ -13,32 +13,28 @@
 #include <Windows.h>
 
 #ifndef NTSTATUS
-	using NTSTATUS = LONG;
+using NTSTATUS = LONG;
 #endif
 
-extern "C" NTSTATUS __stdcall RtlGetVersion(OSVERSIONINFOEXW * lpVersionInformation);
+extern "C" NTSTATUS __stdcall RtlGetVersion(OSVERSIONINFOEXW* lpVersionInformation);
 
-bool WinVersion::GetVersion(VersionInfo& info)
-{
-	OSVERSIONINFOEXW osv;
-	osv.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-	if (RtlGetVersion(&osv) == 0)
-	{
-		info.Major = osv.dwMajorVersion;
-		info.Minor = osv.dwMinorVersion;
-		info.BuildNum = osv.dwBuildNumber;
+bool WinVersion::GetVersion(VersionInfo& info) {
+    OSVERSIONINFOEXW osv;
+    osv.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+    if (RtlGetVersion(&osv) == 0) {
+        info.Major = osv.dwMajorVersion;
+        info.Minor = osv.dwMinorVersion;
+        info.BuildNum = osv.dwBuildNumber;
 
-		return true;
-	}
-	return false;
+        return true;
+    }
+    return false;
 }
 
-bool WinVersion::IsBuildNumGreaterOrEqual(unsigned int buildNumber)
-{
-	VersionInfo info;
-	if (GetVersion(info))
-	{
-		return (info.BuildNum >= buildNumber);
-	}
-	return false;
+bool WinVersion::IsBuildNumGreaterOrEqual(unsigned int buildNumber) {
+    VersionInfo info;
+    if (GetVersion(info)) {
+        return (info.BuildNum >= buildNumber);
+    }
+    return false;
 }

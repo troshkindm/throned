@@ -2,8 +2,6 @@
 
 #include <QFileDialog>
 
-
-
 #include "include/ui/profile/dialog_edit_profile.h"
 
 EditExtraCore::EditExtraCore(QWidget *parent) : QWidget(parent),
@@ -27,15 +25,12 @@ void EditExtraCore::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->path_combo->addItems(Configs::dataManager->settingsRepo->GetExtraCorePaths());
     ui->path_combo->setCurrentText(outbound->extraCorePath);
 
-    connect(ui->path_button, &QPushButton::pressed, this, [=,this]
-    {
+    connect(ui->path_button, &QPushButton::pressed, this, [=, this] {
         auto f = QFileDialog::getOpenFileName();
-        if (f.isEmpty())
-        {
+        if (f.isEmpty()) {
             return;
         }
-        if (!QDir::current().relativeFilePath(f).startsWith("../../"))
-        {
+        if (!QDir::current().relativeFilePath(f).startsWith("../../")) {
             f = QDir::current().relativeFilePath(f);
         }
         if (Configs::dataManager->settingsRepo->AddExtraCorePath(f)) ui->path_combo->addItem(f);

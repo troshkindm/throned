@@ -42,7 +42,7 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 
 namespace {
-    constexpr int removeListPreviewLimit = 20;
+constexpr int removeListPreviewLimit = 20;
 }
 
 void MainWindow::on_profilesTableView_doubleClicked(const QModelIndex &index) {
@@ -120,7 +120,7 @@ void MainWindow::showQuickAddOverlay() {
     }
 
     QList<QPair<int, QString>> groups;
-    for (const int id : Configs::dataManager->groupsRepo->GetGroupsTabOrder())
+    for (const int id: Configs::dataManager->groupsRepo->GetGroupsTabOrder())
         if (const auto group = Configs::dataManager->groupsRepo->GetGroup(id); group != nullptr)
             groups.append({id, group->name});
     quickAddOverlay->open(groups, Configs::dataManager->settingsRepo->current_group);
@@ -194,7 +194,7 @@ void MainWindow::on_menu_delete_repeat_triggered() {
 void MainWindow::on_menu_delete_triggered() {
     auto entIDs = get_now_selected_list();
     if (entIDs.count() == 0) return;
-    if (Configs::dataManager->settingsRepo->skip_delete_confirmation || QMessageBox::question(this, tr("Confirmation"), QString(tr("Remove %1 item(s) ?")).arg(entIDs.count()))==QMessageBox::StandardButton::Yes) {
+    if (Configs::dataManager->settingsRepo->skip_delete_confirmation || QMessageBox::question(this, tr("Confirmation"), QString(tr("Remove %1 item(s) ?")).arg(entIDs.count())) == QMessageBox::StandardButton::Yes) {
         Configs::dataManager->profilesRepo->BatchDeleteProfiles(entIDs, true);
         refresh_proxy_list({}, true, RefreshAnchor::Removal);
     }
@@ -205,12 +205,12 @@ void MainWindow::on_menu_reset_traffic_triggered() {
     if (entIDs.count() == 0) return;
     auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     if (ents.empty()) return;
-    for (const auto& ent: ents) {
+    for (const auto &ent: ents) {
         ent->ResetTraffic();
         Configs::dataManager->profilesRepo->SaveTraffic(ent);
     }
     if (auto group = Configs::dataManager->groupsRepo->GetGroup(ents.first()->gid); group &&
-        group->calculated_column_width.size() > ProfilesTableModel::ColTraffic)
+                                                                                    group->calculated_column_width.size() > ProfilesTableModel::ColTraffic)
         group->calculated_column_width[ProfilesTableModel::ColTraffic] = 0;
     refresh_proxy_list(entIDs);
 }
@@ -271,8 +271,10 @@ void MainWindow::on_menu_export_config_triggered() {
             return;
         }
         // An xray-full config is tested as its own box, so surface that wrapper here.
-        if (!res->xrayFullConfigs.isEmpty()) config_core = res->xrayFullConfigs.first();
-        else config_core = QJsonObject2QString(res->coreConfig, true);
+        if (!res->xrayFullConfigs.isEmpty())
+            config_core = res->xrayFullConfigs.first();
+        else
+            config_core = QJsonObject2QString(res->coreConfig, true);
         QApplication::clipboard()->setText(config_core);
     }
 }
@@ -359,13 +361,12 @@ void MainWindow::display_qr_link(bool nkrFormat) {
     w->deleteLater();
 }
 
-void MainWindow::parseQrImage(const QPixmap *image)
-{
+void MainWindow::parseQrImage(const QPixmap *image) {
     const QVector<QString> texts = QrDecoder().decode(image->toImage());
     if (texts.isEmpty()) {
         MessageBoxInfo(software_name, tr("QR Code not found"));
     } else {
-        for (const QString &text : texts) {
+        for (const QString &text: texts) {
             MW_show_log("QR Code Result:\n" + text);
             import_text(text);
         }
@@ -384,7 +385,7 @@ void MainWindow::on_menu_scan_qr_triggered() {
         MessageBoxInfo(software_name, tr("QR Code not found"));
         return;
     }
-    for (const QString &text : texts) {
+    for (const QString &text: texts) {
         MW_show_log("QR Code Result:\n" + text);
         import_text(text);
     }
@@ -399,7 +400,7 @@ void MainWindow::on_menu_clear_test_result_triggered() {
     }
     Configs::dataManager->profilesRepo->SaveBatch(ents);
     if (auto group = Configs::dataManager->groupsRepo->GetGroup(ents.first()->gid); group &&
-        group->calculated_column_width.size() > ProfilesTableModel::ColTestResult)
+                                                                                    group->calculated_column_width.size() > ProfilesTableModel::ColTestResult)
         group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
     refresh_proxy_list();
 }
@@ -425,57 +426,53 @@ void MainWindow::on_menu_remove_unavailable_triggered() {
 }
 
 void MainWindow::on_menu_remove_invalid_triggered() {
-    runOnNewThread([=,this]
-    {
+    runOnNewThread([=, this] {
         QList<std::shared_ptr<Configs::Profile>> out_del;
 
-     auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
-     if (currentGroup == nullptr) return;
-     std::atomic counter(0);
-     QMutex mu;
-     QMutex access;
-     int profileSize = currentGroup->Profiles().size();
-     // Empty group: no worker unlocks mu, so the join below would block forever.
-     if (profileSize == 0) return;
-     mu.lock();
-     for (const auto& profileID : currentGroup->Profiles()) {
-         auto profile = Configs::dataManager->profilesRepo->GetProfile(profileID);
-         parallelCoreCallPool->start([&out_del, profile, &counter, &mu, profileSize, &access]
-         {
-             if (!IsValid(profile))
-             {
-                 access.lock();
-                 out_del += profile;
-                 access.unlock();
-             }
-             if (++counter == profileSize) mu.unlock();
-         });
-     }
-     mu.lock();
-     mu.unlock();
+        auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (currentGroup == nullptr) return;
+        std::atomic counter(0);
+        QMutex mu;
+        QMutex access;
+        int profileSize = currentGroup->Profiles().size();
+        // Empty group: no worker unlocks mu, so the join below would block forever.
+        if (profileSize == 0) return;
+        mu.lock();
+        for (const auto &profileID: currentGroup->Profiles()) {
+            auto profile = Configs::dataManager->profilesRepo->GetProfile(profileID);
+            parallelCoreCallPool->start([&out_del, profile, &counter, &mu, profileSize, &access] {
+                if (!IsValid(profile)) {
+                    access.lock();
+                    out_del += profile;
+                    access.unlock();
+                }
+                if (++counter == profileSize) mu.unlock();
+            });
+        }
+        mu.lock();
+        mu.unlock();
 
-     int remove_display_count = 0;
-     QString remove_display;
-     for (const auto &ent: out_del) {
-         remove_display += ent->outbound->DisplayTypeAndName() + "\n";
-         if (++remove_display_count == removeListPreviewLimit) {
-             remove_display += "...";
-             break;
-         }
-     }
+        int remove_display_count = 0;
+        QString remove_display;
+        for (const auto &ent: out_del) {
+            remove_display += ent->outbound->DisplayTypeAndName() + "\n";
+            if (++remove_display_count == removeListPreviewLimit) {
+                remove_display += "...";
+                break;
+            }
+        }
 
-     runOnUiThread([=,this]
-     {
-         if (!out_del.empty() &&
-         (Configs::dataManager->settingsRepo->skip_delete_confirmation || QMessageBox::question(this, tr("Confirmation"), tr("Remove %1 Invalid item(s) ?").arg(out_del.length()) + "\n" + remove_display) == QMessageBox::StandardButton::Yes)) {
-         QList<int> del_ids;
-         for (const auto &ent: out_del) {
-             del_ids += ent->id;
-         }
-         Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids, true);
-         refresh_proxy_list({}, true, RefreshAnchor::Removal);
-     }
-     });
+        runOnUiThread([=, this] {
+            if (!out_del.empty() &&
+                (Configs::dataManager->settingsRepo->skip_delete_confirmation || QMessageBox::question(this, tr("Confirmation"), tr("Remove %1 Invalid item(s) ?").arg(out_del.length()) + "\n" + remove_display) == QMessageBox::StandardButton::Yes)) {
+                QList<int> del_ids;
+                for (const auto &ent: out_del) {
+                    del_ids += ent->id;
+                }
+                Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids, true);
+                refresh_proxy_list({}, true, RefreshAnchor::Removal);
+            }
+        });
     });
 }
 
@@ -487,7 +484,7 @@ void MainWindow::on_menu_remove_insecure_triggered() {
     QList<int> del_ids;
     QString remove_display;
     int remove_display_count = 0;
-    for (const auto& profile : profiles) {
+    for (const auto &profile: profiles) {
         if (!profile || !profile->outbound) continue;
         // Configs of unknown security (e.g. unparseable custom ones) are spared.
         if (!profile->outbound->GetSecurity().isDangerous()) continue;
@@ -504,7 +501,7 @@ void MainWindow::on_menu_remove_insecure_triggered() {
     }
     if (Configs::dataManager->settingsRepo->skip_delete_confirmation ||
         QMessageBox::question(this, tr("Confirmation"),
-            tr("Remove %1 insecure config(s)?").arg(del_ids.length()) + "\n" + remove_display) == QMessageBox::StandardButton::Yes) {
+                              tr("Remove %1 insecure config(s)?").arg(del_ids.length()) + "\n" + remove_display) == QMessageBox::StandardButton::Yes) {
         Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids, true);
         refresh_proxy_list({}, true, RefreshAnchor::Removal);
     }
@@ -520,7 +517,7 @@ void MainWindow::on_menu_resolve_selected_triggered() {
 
     auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(profiles);
     for (const auto &profile: ents) {
-        profile->outbound->ResolveDomainToIP([=,this] {
+        profile->outbound->ResolveDomainToIP([=, this] {
             Configs::dataManager->profilesRepo->Save(profile);
             refresh_proxy_list({profile->id});
             if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
@@ -547,7 +544,7 @@ void MainWindow::on_menu_resolve_domain_triggered() {
 
     for (const auto id: profiles) {
         auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
-        profile->outbound->ResolveDomainToIP([=,this] {
+        profile->outbound->ResolveDomainToIP([=, this] {
             Configs::dataManager->profilesRepo->Save(profile);
             refresh_proxy_list({profile->id});
             if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
@@ -567,9 +564,12 @@ void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &p
     }
     const QList<int> selected = get_now_selected_list();
     bool allFavorite = !selected.isEmpty();
-    for (const int id : selected) {
+    for (const int id: selected) {
         const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
-        if (profile == nullptr || !profile->favorite) { allFavorite = false; break; }
+        if (profile == nullptr || !profile->favorite) {
+            allFavorite = false;
+            break;
+        }
     }
     favoriteAction->setEnabled(!selected.isEmpty());
     favoriteAction->setText(allFavorite ? tr("Remove from favourites") : tr("Add to favourites"));
@@ -590,7 +590,6 @@ void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &p
     ui->menu_server->popup(ui->profilesTableView->viewport()->mapToGlobal(pos));
 }
 
-
 // Escape does this too; both go through here so the group cannot hand the
 // dismissed selection back on its next rebuild.
 void MainWindow::clearProfileSelection() {
@@ -604,7 +603,7 @@ QList<int> MainWindow::get_now_selected_list() {
     QList<int> list;
     if (!profilesTableModel) return list;
     QModelIndexList indices = ui->profilesTableView->selectionModel()->selectedRows(0);
-    for (const QModelIndex &idx : indices) {
+    for (const QModelIndex &idx: indices) {
         list << idx.data(ProfilesTableModel::ProfileIdRole).toInt();
     }
     return list;
@@ -635,7 +634,7 @@ void MainWindow::saveProfileFocusState() {
     QModelIndexList indices = ui->profilesTableView->selectionModel()->selectedRows(0);
     group->selectedProfilesIdIdxPairs.clear();
 
-    for (const QModelIndex &idx : indices) {
+    for (const QModelIndex &idx: indices) {
         group->selectedProfilesIdIdxPairs << std::make_pair(idx.data(ProfilesTableModel::ProfileIdRole).toInt(), idx.row());
     }
 }
@@ -678,8 +677,8 @@ void MainWindow::selectProfileRows(const QList<int> &rows) {
     view->setAutoScroll(false);
 
     QItemSelection selection;
-    for (int row : rows) {
-        QModelIndex left  = profilesFilterModel->index(row, 0);
+    for (int row: rows) {
+        QModelIndex left = profilesFilterModel->index(row, 0);
         QModelIndex right = profilesFilterModel->index(row, profilesFilterModel->columnCount() - 1);
         selection.select(left, right);
     }
@@ -715,7 +714,8 @@ void MainWindow::clearUnavailableProfiles(bool confirm, QList<int> profileIDs) {
             del_ids += profile->id;
             if (++remove_display_count == removeListPreviewLimit) {
                 remove_display += "...";
-            }else if (remove_display_count < removeListPreviewLimit) remove_display += profile->outbound->DisplayTypeAndName() + "\n";
+            } else if (remove_display_count < removeListPreviewLimit)
+                remove_display += profile->outbound->DisplayTypeAndName() + "\n";
         }
     }
 

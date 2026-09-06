@@ -82,7 +82,7 @@ static QStringList mimeappsLists() {
 
     QStringList paths;
     const auto desktops = QProcessEnvironment::systemEnvironment().value("XDG_CURRENT_DESKTOP").split(':', Qt::SkipEmptyParts);
-    for (const QString &de : desktops) {
+    for (const QString &de: desktops) {
         paths << cfgDir + "/" + de.toLower() + "-mimeapps.list";
         paths << appsDir + "/" + de.toLower() + "-mimeapps.list";
     }
@@ -99,7 +99,7 @@ static void stripFromMimeapps(const QString &path) {
 
     QStringList out;
     bool changed = false;
-    for (const QString &line : lines) {
+    for (const QString &line: lines) {
         const int eq = line.indexOf('=');
         if (eq < 0 || line.trimmed().startsWith('[') || !line.contains(kDesktopId)) {
             out << line;
@@ -108,9 +108,11 @@ static void stripFromMimeapps(const QString &path) {
 
         QStringList kept;
         bool hit = false;
-        for (const QString &app : line.mid(eq + 1).split(';', Qt::SkipEmptyParts)) {
-            if (app.trimmed() == kDesktopId) hit = true;
-            else kept << app;
+        for (const QString &app: line.mid(eq + 1).split(';', Qt::SkipEmptyParts)) {
+            if (app.trimmed() == kDesktopId)
+                hit = true;
+            else
+                kept << app;
         }
         if (!hit) {
             out << line;
@@ -134,7 +136,7 @@ void UrlScheme_Remove() {
     QFile::remove(dataDir + "/throne.png");
     QDir().rmdir(dataDir);
 
-    for (const QString &path : mimeappsLists()) stripFromMimeapps(path);
+    for (const QString &path: mimeappsLists()) stripFromMimeapps(path);
 
     QProcess::execute("update-desktop-database", {QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation)});
 }

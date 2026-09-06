@@ -10,36 +10,35 @@
 #include <QMessageBox>
 #include <QHostAddress>
 
-
-#define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
+#define ADJUST_SIZE runOnThread([=, this] { adjustSize(); adjustPosition(mainwindow); }, this);
 
 namespace {
-    const QString kDefaultTunIPv4CIDR = "172.19.0.1/24";
-    const QString kDefaultTunIPv6CIDR = "fdfe:dcba:9876::1/96";
+const QString kDefaultTunIPv4CIDR = "172.19.0.1/24";
+const QString kDefaultTunIPv6CIDR = "fdfe:dcba:9876::1/96";
 
-    bool IsValidCIDR(const QString &cidr, const QAbstractSocket::NetworkLayerProtocol protocol) {
-        const auto parts = cidr.trimmed().split("/");
-        if (parts.size() != 2) return false;
+bool IsValidCIDR(const QString &cidr, const QAbstractSocket::NetworkLayerProtocol protocol) {
+    const auto parts = cidr.trimmed().split("/");
+    if (parts.size() != 2) return false;
 
-        bool ok = false;
-        const int prefix = parts[1].toInt(&ok);
-        if (!ok) return false;
+    bool ok = false;
+    const int prefix = parts[1].toInt(&ok);
+    if (!ok) return false;
 
-        QHostAddress host;
-        if (!host.setAddress(parts[0].trimmed())) return false;
-        if (host.protocol() != protocol) return false;
+    QHostAddress host;
+    if (!host.setAddress(parts[0].trimmed())) return false;
+    if (host.protocol() != protocol) return false;
 
-        if (protocol == QAbstractSocket::IPv4Protocol) return prefix >= 0 && prefix <= 32;
-        if (protocol == QAbstractSocket::IPv6Protocol) return prefix >= 0 && prefix <= 128;
-        return false;
-    }
-
-    // parseSubnet alone would accept Qt's abbreviated forms, where "10" means 10.0.0.0/8.
-    bool IsValidRange(const QString &range) {
-        if (!range.contains('.') && !range.contains(':')) return false;
-        return QHostAddress::parseSubnet(range).second >= 0;
-    }
+    if (protocol == QAbstractSocket::IPv4Protocol) return prefix >= 0 && prefix <= 32;
+    if (protocol == QAbstractSocket::IPv6Protocol) return prefix >= 0 && prefix <= 128;
+    return false;
 }
+
+// parseSubnet alone would accept Qt's abbreviated forms, where "10" means 10.0.0.0/8.
+bool IsValidRange(const QString &range) {
+    if (!range.contains('.') && !range.contains(':')) return false;
+    return QHostAddress::parseSubnet(range).second >= 0;
+}
+} // namespace
 
 DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogVPNSettings) {
     ui->setupUi(this);
@@ -49,8 +48,7 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     if (WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1507)) {
         ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
         ui->vpn_implementation->setCurrentText(Configs::dataManager->settingsRepo->vpn_implementation);
-    }
-    else {
+    } else {
         ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
         ui->vpn_implementation->setCurrentText("gvisor");
         ui->vpn_implementation->setEnabled(false);
@@ -97,7 +95,7 @@ void DialogVPNSettings::accept() {
         return;
     }
     QStringList privateRanges;
-    for (const auto &line : ui->priv_ranges->toPlainText().split("\n")) {
+    for (const auto &line: ui->priv_ranges->toPlainText().split("\n")) {
         const auto range = line.trimmed();
         if (range.isEmpty()) continue;
         if (!IsValidRange(range)) {
@@ -139,17 +137,14 @@ void DialogVPNSettings::on_restore_default_ranges_clicked() {
 }
 
 void DialogVPNSettings::on_troubleshooting_clicked() {
-
-
     QMessageBox msg(
         QMessageBox::Information,
         tr("Troubleshooting"),
         tr("If you have trouble starting VPN, you can force reset Core process here.\n\n"
-            "If still not working, see documentation for more information.\n"
-            "https://matsuridayo.github.io/n-configuration/#vpn-tun"),
+           "If still not working, see documentation for more information.\n"
+           "https://matsuridayo.github.io/n-configuration/#vpn-tun"),
         QMessageBox::NoButton,
-        this
-    );
+        this);
     auto reset = msg.addButton(tr("Reset"), QMessageBox::ActionRole);
     auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
 

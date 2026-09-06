@@ -40,7 +40,7 @@ public:
     QSize sizeHint() const override { return minimumSize(); }
     QSize minimumSize() const override {
         QSize size;
-        for (QLayoutItem *item : items_) size = size.expandedTo(item->minimumSize());
+        for (QLayoutItem *item: items_) size = size.expandedTo(item->minimumSize());
         const QMargins margins = contentsMargins();
         if (uniformColumns_) size.setWidth(std::min(size.width(), columnMinimum_));
         return size + QSize(margins.left() + margins.right(), margins.top() + margins.bottom());
@@ -58,7 +58,7 @@ private:
 
         int widest = 0;
         int rowHeight = 0;
-        for (QLayoutItem *item : items_) {
+        for (QLayoutItem *item: items_) {
             widest = std::max(widest, item->sizeHint().width());
             rowHeight = std::max(rowHeight, item->sizeHint().height());
         }
@@ -87,7 +87,7 @@ private:
         int x = area.x();
         int y = area.y();
         int rowHeight = 0;
-        for (QLayoutItem *item : items_) {
+        for (QLayoutItem *item: items_) {
             const QSize hint = item->sizeHint();
             if (x > area.x() && x + hint.width() > area.right() + 1) {
                 x = area.x();

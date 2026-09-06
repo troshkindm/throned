@@ -16,98 +16,90 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace
-{
-    enum Column {
-        ColRank = 0,
-        ColName,
-        ColState,
-        ColLatency,
-        ColJitter,
-        ColChecks,
-        ColDials,
-        ColLastOK,
-        ColNote,
-        ColCount
-    };
+namespace {
+enum Column {
+    ColRank = 0,
+    ColName,
+    ColState,
+    ColLatency,
+    ColJitter,
+    ColChecks,
+    ColDials,
+    ColLastOK,
+    ColNote,
+    ColCount
+};
 
-    QString agoText(qint64 ms)
-    {
-        if (ms <= 0) return QObject::tr("never");
-        const auto secs = (QDateTime::currentMSecsSinceEpoch() - ms) / 1000;
-        if (secs < 5) return QObject::tr("just now");
-        if (secs < 60) return QObject::tr("%1s ago").arg(secs);
-        if (secs < 3600) return QObject::tr("%1m ago").arg(secs / 60);
-        return QObject::tr("%1h ago").arg(secs / 3600);
-    }
-
-    QString stateText(const Stats::AutoSelectorMemberView &member)
-    {
-        if (member.state == "ok") return QObject::tr("Working");
-        if (member.state == "degraded") return QObject::tr("Unstable");
-        if (member.state == "untested") return QObject::tr("Not checked");
-        if (member.state == "dead") return QObject::tr("Failing");
-        if (member.state == "cooldown") return QObject::tr("Paused");
-        return member.state;
-    }
-
-    int stateOrder(const Stats::AutoSelectorMemberView &member)
-    {
-        if (member.state == "ok") return 0;
-        if (member.state == "degraded") return 1;
-        if (member.state == "untested") return 2;
-        if (member.state == "cooldown") return 3;
-        return 4; // dead
-    }
-
-    struct Key {
-        bool known = false;
-        double value = 0;
-    };
-
-    Key latencyKey(const Stats::AutoSelectorMemberView &m) { return {m.samples > 0 && m.averageMs > 0, static_cast<double>(m.averageMs)}; }
-    Key jitterKey(const Stats::AutoSelectorMemberView &m) { return {m.samples > 0, static_cast<double>(m.deviationMs)}; }
-
-    Key checksKey(const Stats::AutoSelectorMemberView &m)
-    {
-        if (m.samples <= 0) return {};
-        return {true, static_cast<double>(m.samples - m.failures) / m.samples};
-    }
-
-    Key dialsKey(const Stats::AutoSelectorMemberView &m)
-    {
-        if (m.dialTotal <= 0) return {};
-        return {true, static_cast<double>(m.dialTotal - m.dialFail) / m.dialTotal};
-    }
-
-    Key lastOKKey(const Stats::AutoSelectorMemberView &m) { return {m.lastOKms > 0, static_cast<double>(m.lastOKms)}; }
-
-    QString noteText(const Stats::AutoSelectorMemberView &member)
-    {
-        if (member.pinned) {
-            if (member.selected) return QObject::tr("your choice, carrying traffic now");
-            return QObject::tr("your choice, but not usable right now");
-        }
-        if (member.selected) return QObject::tr("carrying traffic now");
-        if (member.state == "cooldown") {
-            const auto secs = (member.cooldownUntilMs - QDateTime::currentMSecsSinceEpoch()) / 1000;
-            if (secs > 0) return QObject::tr("failed to connect, retrying in %1s").arg(secs);
-            return QObject::tr("failed to connect");
-        }
-        if (member.state == "dead") {
-            return member.lastError.isEmpty() ? QObject::tr("every check failed") : member.lastError;
-        }
-        if (member.qualified) return QObject::tr("ready to take over");
-        if (member.state == "untested") {
-            return member.active ? QObject::tr("check in progress") : QObject::tr("queued for checking");
-        }
-        if (member.failures > 0) return QObject::tr("%1 of %2 checks failed").arg(member.failures).arg(member.samples);
-        return {};
-    }
+QString agoText(qint64 ms) {
+    if (ms <= 0) return QObject::tr("never");
+    const auto secs = (QDateTime::currentMSecsSinceEpoch() - ms) / 1000;
+    if (secs < 5) return QObject::tr("just now");
+    if (secs < 60) return QObject::tr("%1s ago").arg(secs);
+    if (secs < 3600) return QObject::tr("%1m ago").arg(secs / 60);
+    return QObject::tr("%1h ago").arg(secs / 3600);
 }
 
-DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
-{
+QString stateText(const Stats::AutoSelectorMemberView &member) {
+    if (member.state == "ok") return QObject::tr("Working");
+    if (member.state == "degraded") return QObject::tr("Unstable");
+    if (member.state == "untested") return QObject::tr("Not checked");
+    if (member.state == "dead") return QObject::tr("Failing");
+    if (member.state == "cooldown") return QObject::tr("Paused");
+    return member.state;
+}
+
+int stateOrder(const Stats::AutoSelectorMemberView &member) {
+    if (member.state == "ok") return 0;
+    if (member.state == "degraded") return 1;
+    if (member.state == "untested") return 2;
+    if (member.state == "cooldown") return 3;
+    return 4; // dead
+}
+
+struct Key {
+    bool known = false;
+    double value = 0;
+};
+
+Key latencyKey(const Stats::AutoSelectorMemberView &m) { return {m.samples > 0 && m.averageMs > 0, static_cast<double>(m.averageMs)}; }
+Key jitterKey(const Stats::AutoSelectorMemberView &m) { return {m.samples > 0, static_cast<double>(m.deviationMs)}; }
+
+Key checksKey(const Stats::AutoSelectorMemberView &m) {
+    if (m.samples <= 0) return {};
+    return {true, static_cast<double>(m.samples - m.failures) / m.samples};
+}
+
+Key dialsKey(const Stats::AutoSelectorMemberView &m) {
+    if (m.dialTotal <= 0) return {};
+    return {true, static_cast<double>(m.dialTotal - m.dialFail) / m.dialTotal};
+}
+
+Key lastOKKey(const Stats::AutoSelectorMemberView &m) { return {m.lastOKms > 0, static_cast<double>(m.lastOKms)}; }
+
+QString noteText(const Stats::AutoSelectorMemberView &member) {
+    if (member.pinned) {
+        if (member.selected) return QObject::tr("your choice, carrying traffic now");
+        return QObject::tr("your choice, but not usable right now");
+    }
+    if (member.selected) return QObject::tr("carrying traffic now");
+    if (member.state == "cooldown") {
+        const auto secs = (member.cooldownUntilMs - QDateTime::currentMSecsSinceEpoch()) / 1000;
+        if (secs > 0) return QObject::tr("failed to connect, retrying in %1s").arg(secs);
+        return QObject::tr("failed to connect");
+    }
+    if (member.state == "dead") {
+        return member.lastError.isEmpty() ? QObject::tr("every check failed") : member.lastError;
+    }
+    if (member.qualified) return QObject::tr("ready to take over");
+    if (member.state == "untested") {
+        return member.active ? QObject::tr("check in progress") : QObject::tr("queued for checking");
+    }
+    if (member.failures > 0) return QObject::tr("%1 of %2 checks failed").arg(member.failures).arg(member.samples);
+    return {};
+}
+} // namespace
+
+DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent) {
     setWindowTitle(tr("Auto Selector Stats"));
 
     auto *layout = new QVBoxLayout(this);
@@ -130,11 +122,12 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
     controls->addStretch();
 
     m_pin = new QPushButton(tr("Use this profile"), this);
-    m_pin->setToolTip(tr("Keep the selected profile in use instead of letting the ranking choose. "
-                         "Useful when several profiles measure much the same and you prefer one of "
-                         "them.\n\nIt stays a preference, not a lock: if that profile stops working "
-                         "the selector still moves on, and comes back to your choice once it "
-                         "recovers."));
+    m_pin->setToolTip(tr(
+        "Keep the selected profile in use instead of letting the ranking choose. "
+        "Useful when several profiles measure much the same and you prefer one of "
+        "them.\n\nIt stays a preference, not a lock: if that profile stops working "
+        "the selector still moves on, and comes back to your choice once it "
+        "recovers."));
     connect(m_pin, &QPushButton::clicked, this, [this] { applySelection(highlightedTag()); });
     controls->addWidget(m_pin);
 
@@ -144,8 +137,9 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
     controls->addWidget(m_release);
 
     m_recheck = new QPushButton(tr("Check all now"), this);
-    m_recheck->setToolTip(tr("Re-measure every running profile immediately instead of waiting for the "
-                             "next scheduled check."));
+    m_recheck->setToolTip(tr(
+        "Re-measure every running profile immediately instead of waiting for the "
+        "next scheduled check."));
     connect(m_recheck, &QPushButton::clicked, this, [this] {
         Stats::autoSelectorMonitor->RequestRecheck();
         m_footer->setText(tr("Re-checking every profile..."));
@@ -187,8 +181,7 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
 }
 
 // A QTableWidget's size hint is a fixed default unrelated to its column count.
-void DialogAutoSelector::fitToColumns()
-{
+void DialogAutoSelector::fitToColumns() {
     int needed = 2 * m_table->frameWidth() + m_table->verticalScrollBar()->sizeHint().width() + 24;
     for (int column = 0; column < ColCount; column++) needed += m_table->columnWidth(column);
 
@@ -197,8 +190,7 @@ void DialogAutoSelector::fitToColumns()
     resize(target.boundedTo(available));
 }
 
-QString DialogAutoSelector::highlightedTag() const
-{
+QString DialogAutoSelector::highlightedTag() const {
     const auto rows = m_table->selectionModel() != nullptr ? m_table->selectionModel()->selectedRows()
                                                            : QModelIndexList{};
     if (rows.isEmpty()) return {};
@@ -207,8 +199,7 @@ QString DialogAutoSelector::highlightedTag() const
     return item == nullptr ? QString() : item->data(Qt::UserRole).toString();
 }
 
-void DialogAutoSelector::applySelection(const QString &tag)
-{
+void DialogAutoSelector::applySelection(const QString &tag) {
     if (tag.isEmpty() && m_pinnedTag.isEmpty()) return;
     const auto error = Stats::autoSelectorMonitor->RequestSelect(tag);
     if (!error.isEmpty()) {
@@ -223,8 +214,7 @@ void DialogAutoSelector::applySelection(const QString &tag)
     m_release->setEnabled(!tag.isEmpty());
 }
 
-void DialogAutoSelector::refresh()
-{
+void DialogAutoSelector::refresh() {
     const auto view = Stats::autoSelectorMonitor->Snapshot();
     if (!view.valid) {
         m_headline->setText(tr("No auto selector is running."));
@@ -245,9 +235,10 @@ void DialogAutoSelector::refresh()
 
     QStringList footer;
     if (view.suspended) {
-        footer << tr("Checks are paused because this machine has no network connection. "
-                     "No profile is being blamed for it, and the ranking is frozen until the "
-                     "connection returns.");
+        footer << tr(
+            "Checks are paused because this machine has no network connection. "
+            "No profile is being blamed for it, and the ranking is frozen until the "
+            "connection returns.");
     } else {
         if (view.roundsCompleted > 0) footer << tr("Last check round %1.").arg(agoText(view.lastRoundMs));
         if (view.nextRoundMs > 0) {
@@ -267,64 +258,79 @@ void DialogAutoSelector::refresh()
         footer << tr("Last switch %1 (%2).").arg(agoText(view.lastSwitchMs), view.lastSwitchReason);
     }
     if (view.exhaustedSinceMs > 0) {
-        footer << tr("Nothing is working right now — if this holds, the selector will rebuild from the "
-                     "next best profiles.");
+        footer << tr(
+            "Nothing is working right now — if this holds, the selector will rebuild from the "
+            "next best profiles.");
     }
     m_footer->setText(footer.join(" "));
 
     buildRows(view);
 }
 
-void DialogAutoSelector::sortRows(QList<Stats::AutoSelectorMemberView> &rows) const
-{
+void DialogAutoSelector::sortRows(QList<Stats::AutoSelectorMemberView> &rows) const {
     const bool ascending = m_sortOrder == Qt::AscendingOrder;
     const int column = m_sortColumn;
 
     const auto compareKeys = [ascending](const Key &left, const Key &right, bool &decided) {
         decided = true;
         if (left.known != right.known) return left.known; // unknowns always last
-        if (!left.known) { decided = false; return false; }
-        if (left.value == right.value) { decided = false; return false; }
+        if (!left.known) {
+            decided = false;
+            return false;
+        }
+        if (left.value == right.value) {
+            decided = false;
+            return false;
+        }
         return ascending ? left.value < right.value : left.value > right.value;
     };
 
     std::stable_sort(rows.begin(), rows.end(),
                      [&](const Stats::AutoSelectorMemberView &a, const Stats::AutoSelectorMemberView &b) {
-        bool decided = false;
-        bool result = false;
-        switch (column) {
-            case ColName: {
-                const int cmp = QString::compare(a.name.isEmpty() ? a.tag : a.name,
-                                                 b.name.isEmpty() ? b.tag : b.name, Qt::CaseInsensitive);
-                if (cmp != 0) return ascending ? cmp < 0 : cmp > 0;
-                break;
-            }
-            case ColState:
-                if (stateOrder(a) != stateOrder(b))
-                    return ascending ? stateOrder(a) < stateOrder(b) : stateOrder(a) > stateOrder(b);
-                break;
-            case ColLatency: result = compareKeys(latencyKey(a), latencyKey(b), decided); break;
-            case ColJitter: result = compareKeys(jitterKey(a), jitterKey(b), decided); break;
-            case ColChecks: result = compareKeys(checksKey(a), checksKey(b), decided); break;
-            case ColDials: result = compareKeys(dialsKey(a), dialsKey(b), decided); break;
-            case ColLastOK: result = compareKeys(lastOKKey(a), lastOKKey(b), decided); break;
-            case ColNote: {
-                const int cmp = QString::compare(noteText(a), noteText(b), Qt::CaseInsensitive);
-                if (cmp != 0) return ascending ? cmp < 0 : cmp > 0;
-                break;
-            }
-            default: // ColRank
-                if (a.rank != b.rank) return ascending ? a.rank < b.rank : a.rank > b.rank;
-                break;
-        }
-        if (decided) return result;
-        // Rank is the tiebreak everywhere, so equal rows don't shuffle between polls.
-        return a.rank < b.rank;
-    });
+                         bool decided = false;
+                         bool result = false;
+                         switch (column) {
+                             case ColName: {
+                                 const int cmp = QString::compare(a.name.isEmpty() ? a.tag : a.name,
+                                                                  b.name.isEmpty() ? b.tag : b.name, Qt::CaseInsensitive);
+                                 if (cmp != 0) return ascending ? cmp < 0 : cmp > 0;
+                                 break;
+                             }
+                             case ColState:
+                                 if (stateOrder(a) != stateOrder(b))
+                                     return ascending ? stateOrder(a) < stateOrder(b) : stateOrder(a) > stateOrder(b);
+                                 break;
+                             case ColLatency:
+                                 result = compareKeys(latencyKey(a), latencyKey(b), decided);
+                                 break;
+                             case ColJitter:
+                                 result = compareKeys(jitterKey(a), jitterKey(b), decided);
+                                 break;
+                             case ColChecks:
+                                 result = compareKeys(checksKey(a), checksKey(b), decided);
+                                 break;
+                             case ColDials:
+                                 result = compareKeys(dialsKey(a), dialsKey(b), decided);
+                                 break;
+                             case ColLastOK:
+                                 result = compareKeys(lastOKKey(a), lastOKKey(b), decided);
+                                 break;
+                             case ColNote: {
+                                 const int cmp = QString::compare(noteText(a), noteText(b), Qt::CaseInsensitive);
+                                 if (cmp != 0) return ascending ? cmp < 0 : cmp > 0;
+                                 break;
+                             }
+                             default: // ColRank
+                                 if (a.rank != b.rank) return ascending ? a.rank < b.rank : a.rank > b.rank;
+                                 break;
+                         }
+                         if (decided) return result;
+                         // Rank is the tiebreak everywhere, so equal rows don't shuffle between polls.
+                         return a.rank < b.rank;
+                     });
 }
 
-void DialogAutoSelector::onHeaderClicked(int column)
-{
+void DialogAutoSelector::onHeaderClicked(int column) {
     if (column == m_sortColumn) {
         m_sortOrder = m_sortOrder == Qt::AscendingOrder ? Qt::DescendingOrder : Qt::AscendingOrder;
     } else {
@@ -337,11 +343,10 @@ void DialogAutoSelector::onHeaderClicked(int column)
     refresh();
 }
 
-void DialogAutoSelector::buildRows(const Stats::AutoSelectorView &view)
-{
+void DialogAutoSelector::buildRows(const Stats::AutoSelectorView &view) {
     const bool filtered = m_onlyProblems->isChecked();
     QList<Stats::AutoSelectorMemberView> rows;
-    for (const auto &member : view.members) {
+    for (const auto &member: view.members) {
         if (filtered && !member.hasProblem()) continue;
         rows << member;
     }

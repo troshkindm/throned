@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogPresetSettings;
+class DialogPresetSettings;
 }
 QT_END_NAMESPACE
 

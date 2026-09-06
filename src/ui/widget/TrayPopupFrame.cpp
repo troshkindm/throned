@@ -27,8 +27,8 @@ TrayPopupFrame::TrayPopupFrame(QWidget *parent) : QFrame(parent) {
     m_card = new QFrame(this);
     m_card->setObjectName(QStringLiteral("trayCard"));
     m_card->setStyleSheet(QStringLiteral(
-        "QFrame#trayCard { background-color:%1; border:1px solid %2; border-radius:10px; }")
-        .arg(bg, border));
+                              "QFrame#trayCard { background-color:%1; border:1px solid %2; border-radius:10px; }")
+                              .arg(bg, border));
     outer->addWidget(m_card);
 
     m_cardLayout = new QVBoxLayout(m_card);
@@ -42,8 +42,8 @@ TrayPopupFrame::TrayPopupFrame(QWidget *parent) : QFrame(parent) {
     m_search->setClearButtonEnabled(true);
     m_search->installEventFilter(this);
     m_search->setStyleSheet(QStringLiteral(
-        "QLineEdit#traySearch { border:1px solid %1; border-radius:8px; padding:5px 9px; background-color:%2; }")
-        .arg(border, base));
+                                "QLineEdit#traySearch { border:1px solid %1; border-radius:8px; padding:5px 9px; background-color:%2; }")
+                                .arg(border, base));
     auto *closeBtn = new QPushButton(QStringLiteral("✕"), m_card);
     closeBtn->setFixedWidth(28);
     closeBtn->setToolTip(tr("Close"));

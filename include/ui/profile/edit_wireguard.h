@@ -7,7 +7,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditWireguard;
+class EditWireguard;
 }
 QT_END_NAMESPACE
 

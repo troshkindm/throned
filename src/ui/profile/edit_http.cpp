@@ -1,7 +1,7 @@
 #include "include/ui/profile/edit_http.h"
 
 EditHttp::EditHttp(QWidget *parent) : QWidget(parent),
-      ui(new Ui::EditHttp) {
+                                      ui(new Ui::EditHttp) {
     ui->setupUi(this);
 }
 

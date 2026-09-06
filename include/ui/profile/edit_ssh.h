@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditSSH;
+class EditSSH;
 }
 QT_END_NAMESPACE
 

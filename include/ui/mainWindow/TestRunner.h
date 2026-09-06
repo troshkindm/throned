@@ -42,20 +42,23 @@ public:
 
     // One HTTP probe per site through each selected profile. The verdict is what the
     // site answered, not whether it liked us: a geo-block replies and a filter does not.
-    struct SiteTarget { QString name; QString url; };
+    struct SiteTarget {
+        QString name;
+        QString url;
+    };
     struct SiteVerdict {
-        int status = 0;     // HTTP code, 0 when nothing answered
+        int status = 0; // HTTP code, 0 when nothing answered
         int latencyMs = 0;
         QString error;
         [[nodiscard]] bool reached() const { return status > 0; }
         [[nodiscard]] bool served() const { return status >= 200 && status < 400; }
     };
     struct SiteReport {
-        QStringList sites;                    // column order
-        QMap<int, QList<SiteVerdict>> rows;   // profile id -> one verdict per site
-        QMap<int, QString> errors;            // setup/core failures, not HTTP failures
-        QList<int> skipped;                   // auto-selectors are not individual profiles
-        QString error;                       // the run could not start or was cancelled
+        QStringList sites;                  // column order
+        QMap<int, QList<SiteVerdict>> rows; // profile id -> one verdict per site
+        QMap<int, QString> errors;          // setup/core failures, not HTTP failures
+        QList<int> skipped;                 // auto-selectors are not individual profiles
+        QString error;                      // the run could not start or was cancelled
     };
 
     static QList<SiteTarget> configuredSites();
@@ -73,7 +76,9 @@ public:
     bool isTestingCurrent() const { return testingCurrent_.load(); }
 
 private:
-    enum class LatencyKind { Url, Ip, Udp };
+    enum class LatencyKind { Url,
+                             Ip,
+                             Udp };
 
     struct Target {
         QString coreConfig;

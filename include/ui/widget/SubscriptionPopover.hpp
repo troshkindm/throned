@@ -10,7 +10,9 @@ class QLabel;
 class QPushButton;
 class QToolButton;
 
-namespace Configs { class Group; }
+namespace Configs {
+class Group;
+}
 
 // Everything the subscription server says about a plan, in one surface anchored to
 // the group tab whose meter the user just clicked: allowance, expiry, the refresh

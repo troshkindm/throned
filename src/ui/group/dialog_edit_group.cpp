@@ -14,14 +14,13 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
+#define ADJUST_SIZE runOnThread([=, this] { adjustSize(); adjustPosition(mainwindow); }, this);
 
-#define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
-
-DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWidget *parent) : QDialog(parent), ui(new Ui::DialogEditGroup) {
+DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group>& ent, QWidget* parent) : QDialog(parent), ui(new Ui::DialogEditGroup) {
     ui->setupUi(this);
     this->ent = ent;
 
-    connect(ui->type, &QComboBox::currentIndexChanged, this, [=,this](int index) {
+    connect(ui->type, &QComboBox::currentIndexChanged, this, [=, this](int index) {
         ui->cat_sub->setHidden(index == 0);
         ADJUST_SIZE
     });
@@ -63,7 +62,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     auto proxyListRaw = Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped();
     QHash<int, QString> idToName;
     idToName.reserve(proxyListRaw.size());
-    for (const auto& [id, name] : proxyListRaw) idToName.insert(id, name);
+    for (const auto& [id, name]: proxyListRaw) idToName.insert(id, name);
     QList<std::pair<int, QString>> proxyList;
     // An auto selector moves server on its own, so it cannot hold a fixed front/landing slot.
     const auto selectorIDsRaw = Configs::dataManager->profilesRepo->GetProfileIdsByType("autoselector");
@@ -73,7 +72,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
         const QString prefix = "[" + group->name + "] ";
-        for (int profileID : group->profiles) {
+        for (int profileID: group->profiles) {
             if (selectorIDs.contains(profileID)) continue;
             auto it = idToName.constFind(profileID);
             if (it == idToName.constEnd()) continue;
@@ -93,7 +92,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     ui->landing_proxy->addItem("None", QVariant(-1));
     const int comboCap = ui->front_proxy->maxCount();
     int comboCount = 1; // "None" already added
-    for (const auto&[id, name] : proxyList) {
+    for (const auto& [id, name]: proxyList) {
         proxyNameList.append(name);
         if (!proxyNameToId.contains(name)) {
             proxyNameToId.insert(name, id);
@@ -132,13 +131,13 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
             debounce->start();
         });
         connect(completer, qOverload<const QString&>(&QCompleter::activated),
-                         lineEdit, [combo, lineEdit](const QString& text) {
-            lineEdit->setText(text);
-            const int index = combo->findText(text, Qt::MatchExactly);
-            if (index >= 0) {
-                combo->setCurrentIndex(index);
-            }
-        });
+                lineEdit, [combo, lineEdit](const QString& text) {
+                    lineEdit->setText(text);
+                    const int index = combo->findText(text, Qt::MatchExactly);
+                    if (index >= 0) {
+                        combo->setCurrentIndex(index);
+                    }
+                });
     };
 
     ui->front_proxy->setEditable(true);
@@ -151,7 +150,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     frontCompleter->setFilterMode(Qt::MatchContains);
     ui->front_proxy->setCompleter(nullptr);
     attachDebouncedCompleter(ui->front_proxy, frontCompleter);
-    connect(ui->front_proxy, &QComboBox::currentIndexChanged, this, [=,this](int index){
+    connect(ui->front_proxy, &QComboBox::currentIndexChanged, this, [=, this](int index) {
         CACHE.front_proxy = ui->front_proxy->itemData(index).value<int>();
     });
 
@@ -165,14 +164,14 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     landingCompleter->setFilterMode(Qt::MatchContains);
     ui->landing_proxy->setCompleter(nullptr);
     attachDebouncedCompleter(ui->landing_proxy, landingCompleter);
-    connect(ui->landing_proxy, &QComboBox::currentIndexChanged, this, [=,this](int index){
+    connect(ui->landing_proxy, &QComboBox::currentIndexChanged, this, [=, this](int index) {
         LANDING.landing_proxy = ui->landing_proxy->itemData(index).value<int>();
     });
 
     connect(ui->copy_links, &QPushButton::clicked, this, [=] {
         QStringList links;
         auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(ent->Profiles());
-        for (const auto &profile: profiles) {
+        for (const auto& profile: profiles) {
             links += profile->outbound->ExportToLink();
         }
         QApplication::clipboard()->setText(links.join("\n"));
@@ -181,7 +180,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     connect(ui->copy_links_nkr, &QPushButton::clicked, this, [=] {
         QStringList links;
         auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(ent->Profiles());
-        for (const auto &profile: profiles) {
+        for (const auto& profile: profiles) {
             links += profile->outbound->ExportJsonLink();
         }
         QApplication::clipboard()->setText(links.join("\n"));
@@ -197,7 +196,7 @@ DialogEditGroup::~DialogEditGroup() {
     delete ui;
 }
 
-int DialogEditGroup::resolve_proxy_selection(QComboBox *combo, int fallback) const {
+int DialogEditGroup::resolve_proxy_selection(QComboBox* combo, int fallback) const {
     const QString text = combo->currentText().trimmed();
     if (text.isEmpty() || text == "None") {
         return -1;

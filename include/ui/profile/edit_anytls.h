@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditAnyTLS;
+class EditAnyTLS;
 }
 QT_END_NAMESPACE
 

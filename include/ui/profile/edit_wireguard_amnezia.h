@@ -4,8 +4,7 @@
 #include "ui_edit_wireguard_amnezia.h"
 #include "include/configs/outbounds/wireguard.h"
 
-struct WireguardAmneziaOptions
-{
+struct WireguardAmneziaOptions {
     int jc = 0;
     int jmin = 0;
     int jmax = 0;
@@ -40,8 +39,7 @@ namespace Ui {
 class EditWireguardAmnezia;
 }
 
-class EditWireguardAmnezia : public QDialog
-{
+class EditWireguardAmnezia : public QDialog {
     Q_OBJECT
 
 public:

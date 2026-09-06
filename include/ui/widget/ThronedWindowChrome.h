@@ -13,8 +13,8 @@ class ThronedTitleBar;
 // left has to be re-implemented by hand, badly. Instead the frame is kept and only
 // the caption's drawing is replaced, which is how Chrome, VS Code and Discord do it.
 namespace ThronedChrome {
-    // Builds the title bar, binds the window to the platform agent and returns the
-    // bar for the caller to place. This is the whole ritual: no window flags to set
-    // and no resizer to remember.
-    ThronedTitleBar *install(QWidget *window, const QString &context = {});
-}
+// Builds the title bar, binds the window to the platform agent and returns the
+// bar for the caller to place. This is the whole ritual: no window flags to set
+// and no resizer to remember.
+ThronedTitleBar *install(QWidget *window, const QString &context = {});
+} // namespace ThronedChrome

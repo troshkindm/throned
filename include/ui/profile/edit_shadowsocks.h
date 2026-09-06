@@ -5,7 +5,7 @@
 #include "ui_edit_shadowsocks.h"
 
 namespace Ui {
-    class EditShadowSocks;
+class EditShadowSocks;
 }
 
 class EditShadowSocks : public QWidget, public ProfileEditor {

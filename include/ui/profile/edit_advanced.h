@@ -9,8 +9,7 @@ namespace Ui {
 class EditAdvanced;
 }
 
-class EditAdvanced : public QDialog
-{
+class EditAdvanced : public QDialog {
     Q_OBJECT
 
 public:

@@ -74,19 +74,18 @@ protected:
     }
 
     bool eventFilter(QObject *obj, QEvent *event) override {
-        if (!qobject_cast<QLineEdit*>(obj)) return QHeaderView::eventFilter(obj, event);
+        if (!qobject_cast<QLineEdit *>(obj)) return QHeaderView::eventFilter(obj, event);
 
         // Window shortcuts resolve before the key reaches the field, so bare Return/Del would fire menu actions.
         if (event->type() == QEvent::ShortcutOverride) {
-            if (!isTextEditingKey(static_cast<QKeyEvent*>(event))) {
+            if (!isTextEditingKey(static_cast<QKeyEvent *>(event))) {
                 return QHeaderView::eventFilter(obj, event);
             }
             event->accept();
             return true;
         }
 
-        if (event->type() == QEvent::KeyPress
-            && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
+        if (event->type() == QEvent::KeyPress && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Escape) {
             emit closeRequested();
             return true;
         }
@@ -99,14 +98,14 @@ public slots:
 
         // Hiding must clear, or the list stays filtered with nothing explaining why.
         if (!visible) {
-            for (QLineEdit *edit : filterEdits()) edit->clear();
+            for (QLineEdit *edit: filterEdits()) edit->clear();
         }
 
-        if (auto btn = qobject_cast<QToolButton*>(sender())) {
+        if (auto btn = qobject_cast<QToolButton *>(sender())) {
             btn->setToolTip(visible ? tr("Disable Filter") : tr("Enable Filter"));
         }
 
-        for (QLineEdit *edit : filterEdits()) edit->setVisible(visible);
+        for (QLineEdit *edit: filterEdits()) edit->setVisible(visible);
 
         resizeSections();
         emit geometriesChanged();
@@ -158,12 +157,18 @@ private:
 
     QLineEdit *editForColumn(int column) const {
         switch (column) {
-        case ConnectionsTableModel::ColSource:   return source_filter;
-        case ConnectionsTableModel::ColDest:     return dest_filter;
-        case ConnectionsTableModel::ColProcess:  return process_filter;
-        case ConnectionsTableModel::ColProtocol: return protocol_filter;
-        case ConnectionsTableModel::ColOutbound: return outbound_filter;
-        default:                                 return nullptr;
+            case ConnectionsTableModel::ColSource:
+                return source_filter;
+            case ConnectionsTableModel::ColDest:
+                return dest_filter;
+            case ConnectionsTableModel::ColProcess:
+                return process_filter;
+            case ConnectionsTableModel::ColProtocol:
+                return protocol_filter;
+            case ConnectionsTableModel::ColOutbound:
+                return outbound_filter;
+            default:
+                return nullptr;
         }
     }
 
@@ -174,7 +179,7 @@ private:
         return edit->text();
     }
 
-    std::array<QLineEdit*, 5> filterEdits() const {
+    std::array<QLineEdit *, 5> filterEdits() const {
         return {source_filter, dest_filter, process_filter, protocol_filter, outbound_filter};
     }
 
@@ -182,11 +187,11 @@ private:
         if (!(key->modifiers() & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier))) {
             return key->key() < Qt::Key_F1 || key->key() > Qt::Key_F35;
         }
-        for (auto standard : {QKeySequence::SelectAll, QKeySequence::Copy, QKeySequence::Cut,
-                              QKeySequence::Paste, QKeySequence::Undo, QKeySequence::Redo,
-                              QKeySequence::MoveToStartOfLine, QKeySequence::MoveToEndOfLine,
-                              QKeySequence::SelectStartOfLine, QKeySequence::SelectEndOfLine,
-                              QKeySequence::DeleteStartOfWord, QKeySequence::DeleteEndOfWord}) {
+        for (auto standard: {QKeySequence::SelectAll, QKeySequence::Copy, QKeySequence::Cut,
+                             QKeySequence::Paste, QKeySequence::Undo, QKeySequence::Redo,
+                             QKeySequence::MoveToStartOfLine, QKeySequence::MoveToEndOfLine,
+                             QKeySequence::SelectStartOfLine, QKeySequence::SelectEndOfLine,
+                             QKeySequence::DeleteStartOfWord, QKeySequence::DeleteEndOfWord}) {
             if (key->matches(standard)) return true;
         }
         return false;

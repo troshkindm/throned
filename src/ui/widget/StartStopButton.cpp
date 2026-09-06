@@ -46,18 +46,27 @@ void StartStopButton::setState(State s) {
     applyState(true);
 }
 
-
 void StartStopButton::applyState(bool animated) {
     const bool interactive = (m_state == State::Idle || m_state == State::Running);
     setEnabled(interactive);
     setCursor(interactive ? Qt::PointingHandCursor : Qt::ArrowCursor);
 
     switch (m_state) {
-        case State::Disabled: setToolTip(tr("Select a profile to start")); break;
-        case State::Idle: setToolTip(tr("Start")); break;
-        case State::Connecting: setToolTip(tr("Connecting…")); break;
-        case State::Running: setToolTip(tr("Stop")); break;
-        case State::Disconnecting: setToolTip(tr("Stopping…")); break;
+        case State::Disabled:
+            setToolTip(tr("Select a profile to start"));
+            break;
+        case State::Idle:
+            setToolTip(tr("Start"));
+            break;
+        case State::Connecting:
+            setToolTip(tr("Connecting…"));
+            break;
+        case State::Running:
+            setToolTip(tr("Stop"));
+            break;
+        case State::Disconnecting:
+            setToolTip(tr("Stopping…"));
+            break;
     }
 
     const qreal morphTarget = (m_state == State::Running || m_state == State::Disconnecting) ? 1.0 : 0.0;
@@ -100,7 +109,6 @@ void StartStopButton::setLoopRunning(QPropertyAnimation *anim, bool running) {
     update();
 }
 
-
 void StartStopButton::updateLoops() {
     const bool spinning = m_state == State::Connecting || m_state == State::Disconnecting;
     setLoopRunning(m_spinAnim, m_shown && spinning);
@@ -133,8 +141,10 @@ QColor StartStopButton::glyphColor() const {
     // The glyph is the ring lifted off its own colour, so a new theme only has to
     // supply the ring and this follows.
     switch (m_state) {
-    case State::Disabled: return palette().color(QPalette::Disabled, QPalette::WindowText);
-    default: return targetRingColor().lighter(themeManager()->Colors().dark ? 140 : 115);
+        case State::Disabled:
+            return palette().color(QPalette::Disabled, QPalette::WindowText);
+        default:
+            return targetRingColor().lighter(themeManager()->Colors().dark ? 140 : 115);
     }
 }
 
@@ -142,10 +152,14 @@ QColor StartStopButton::targetRingColor() const {
     const auto colors = themeManager()->Colors();
     switch (m_state) {
         case State::Connecting:
-        case State::Disconnecting: return colors.warning;
-        case State::Running: return colors.danger;
-        case State::Disabled: return colors.controlInactive;
-        case State::Idle: return idleRingColor();
+        case State::Disconnecting:
+            return colors.warning;
+        case State::Running:
+            return colors.danger;
+        case State::Disabled:
+            return colors.controlInactive;
+        case State::Idle:
+            return idleRingColor();
     }
     return idleRingColor();
 }

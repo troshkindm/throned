@@ -3,7 +3,6 @@
 EditDirect::EditDirect(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditDirect) {
-
     ui->setupUi(this);
 }
 

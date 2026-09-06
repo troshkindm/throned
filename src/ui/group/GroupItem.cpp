@@ -10,7 +10,6 @@
 #include "include/database/GroupsRepo.h"
 #include "include/ui/mainwindow.h"
 
-
 QString FormatSubInfo(const QString &info) {
     const auto sub = Configs::ParseSubInfo(info);
     if (!sub.valid) return "";
@@ -30,7 +29,7 @@ GroupItem::GroupItem(QWidget *parent, const std::shared_ptr<Configs::Group> &ent
     if (ent == nullptr) return;
 
     connect(this, &GroupItem::edit_clicked, this, &GroupItem::on_edit_clicked);
-    connect(Subscription::updater(), &Subscription::GroupUpdater::asyncUpdateCallback, this, [=,this](int gid) { if (gid == this->ent->id) refresh_data(); });
+    connect(Subscription::updater(), &Subscription::GroupUpdater::asyncUpdateCallback, this, [=, this](int gid) { if (gid == this->ent->id) refresh_data(); });
 
     refresh_data();
 }
@@ -69,7 +68,7 @@ void GroupItem::refresh_data() {
         }
     }
     runOnThread(
-        [=,this] {
+        [=, this] {
             adjustSize();
             item->setSizeHint(sizeHint());
             dynamic_cast<QWidget *>(parent())->adjustSize();
@@ -83,7 +82,7 @@ void GroupItem::on_update_sub_clicked() {
 
 void GroupItem::on_edit_clicked() {
     auto dialog = new DialogEditGroup(ent, parentWindow);
-    connect(dialog, &QDialog::finished, this, [=,this] {
+    connect(dialog, &QDialog::finished, this, [=, this] {
         if (dialog->result() == QDialog::Accepted) {
             Configs::dataManager->groupsRepo->Save(ent);
             refresh_data();

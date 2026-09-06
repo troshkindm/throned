@@ -38,7 +38,7 @@ RawRouteEdit::RawRouteEdit(QWidget* parent) : JsonCodeEdit(parent) {
 void RawRouteEdit::setOutboundItems(const QList<QPair<QString, QString>>& items) {
     QStringList display;
     outboundIdByDisplay.clear();
-    for (const auto& [text, id] : items) {
+    for (const auto& [text, id]: items) {
         display << text;
         outboundIdByDisplay.insert(text, id);
     }
@@ -115,9 +115,10 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
 
     preventCheck = new QCheckBox(tr("Prevent modifications"), this);
     preventCheck->setChecked(chain->preventModifications);
-    preventCheck->setToolTip(tr("Use the route object exactly as written (outbound ids are still resolved to tags).\n"
-                                "Throned will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray\n"
-                                "outbounds and other Throned features may break. For advanced users only."));
+    preventCheck->setToolTip(tr(
+        "Use the route object exactly as written (outbound ids are still resolved to tags).\n"
+        "Throned will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray\n"
+        "outbounds and other Throned features may break. For advanced users only."));
     layout->addWidget(preventCheck);
 
     jsonEdit = new RawRouteEdit(this);
@@ -128,16 +129,16 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
         jsonEdit->setValidator(validator);
     }
     jsonEdit->setPlainText(chain->rawRoute.isEmpty()
-        ? QStringLiteral("{\n"
-                         "  \"rules\": [\n"
-                         "    {\n"
-                         "      \"domain_suffix\": [\".example.com\"],\n"
-                         "      \"outbound\": -2\n"
-                         "    }\n"
-                         "  ],\n"
-                         "  \"final\": -1\n"
-                         "}")
-        : chain->rawRoute);
+                               ? QStringLiteral("{\n"
+                                                "  \"rules\": [\n"
+                                                "    {\n"
+                                                "      \"domain_suffix\": [\".example.com\"],\n"
+                                                "      \"outbound\": -2\n"
+                                                "    }\n"
+                                                "  ],\n"
+                                                "  \"final\": -1\n"
+                                                "}")
+                               : chain->rawRoute);
     layout->addWidget(jsonEdit, 1);
 
     QList<QPair<QString, QString>> items;
@@ -145,12 +146,12 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
     items.append({QStringLiteral("direct"), QString::number(-2)});
     items.append({QStringLiteral("warp-bypass"), QString::number(Configs::warpBypassID)});
     QMap<int, QString> idToName;
-    for (const auto& [pid, pname] : Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped())
+    for (const auto& [pid, pname]: Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped())
         idToName.insert(pid, pname);
-    for (int groupID : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+    for (int groupID: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
-        for (int profileID : group->profiles) {
+        for (int profileID: group->profiles) {
             if (!idToName.contains(profileID)) continue;
             items.append({QString("[%1] %2").arg(group->name, idToName[profileID]), QString::number(profileID)});
         }

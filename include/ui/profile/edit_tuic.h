@@ -5,7 +5,7 @@
 #include "ui_edit_tuic.h"
 
 namespace Ui {
-    class EditTuic;
+class EditTuic;
 }
 
 class EditTuic : public QWidget, public ProfileEditor {

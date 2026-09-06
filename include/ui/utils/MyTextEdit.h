@@ -23,10 +23,7 @@ public:
         const QSize base = QTextEdit::sizeHint();
         if (m_visibleLines <= 0) return base;
         const QMargins m = contentsMargins();
-        const int h = fontMetrics().lineSpacing() * m_visibleLines
-                      + static_cast<int>(document()->documentMargin()) * 2
-                      + m.top() + m.bottom()
-                      + frameWidth() * 2;
+        const int h = fontMetrics().lineSpacing() * m_visibleLines + static_cast<int>(document()->documentMargin()) * 2 + m.top() + m.bottom() + frameWidth() * 2;
         return {base.width(), h};
     }
 

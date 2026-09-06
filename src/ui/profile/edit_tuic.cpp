@@ -3,7 +3,6 @@
 EditTuic::EditTuic(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditTuic) {
-
     ui->setupUi(this);
 }
 

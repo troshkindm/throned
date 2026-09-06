@@ -44,9 +44,13 @@ public:
         save_ << [combo, &target] { target = combo->currentText(); };
     }
 
-    void load() const { for (const auto &fn : load_) fn(); }
+    void load() const {
+        for (const auto &fn: load_) fn();
+    }
 
-    void save() const { for (const auto &fn : save_) fn(); }
+    void save() const {
+        for (const auto &fn: save_) fn();
+    }
 
 private:
     QList<std::function<void()>> load_;

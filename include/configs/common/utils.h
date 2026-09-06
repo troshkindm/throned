@@ -2,19 +2,18 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 
-namespace Configs
-{
-    void mergeUrlQuery(QUrlQuery& baseQuery, const QString& strQuery);
+namespace Configs {
+void mergeUrlQuery(QUrlQuery& baseQuery, const QString& strQuery);
 
-    void mergeJsonObjects(QJsonObject& baseObject, const QJsonObject& obj);
+void mergeJsonObjects(QJsonObject& baseObject, const QJsonObject& obj);
 
-    QStringList jsonObjectToQStringList(const QJsonObject& obj);
+QStringList jsonObjectToQStringList(const QJsonObject& obj);
 
-    QJsonObject qStringListToJsonObject(const QStringList& list);
+QJsonObject qStringListToJsonObject(const QStringList& list);
 
-    bool useXrayVless(const QString& link);
+bool useXrayVless(const QString& link);
 
-    QString getHeadersString(const QStringList& headers);
+QString getHeadersString(const QStringList& headers);
 
-    QStringList parseHeaderPairs(const QString& rawHeader);
-}
+QStringList parseHeaderPairs(const QString& rawHeader);
+} // namespace Configs

@@ -23,7 +23,10 @@ protected:
 // area fills the whole button the way a native caption control does.
 class ThronedCaptionButton final : public QToolButton {
 public:
-    enum class Glyph { Minimize, Maximize, Restore, Close };
+    enum class Glyph { Minimize,
+                       Maximize,
+                       Restore,
+                       Close };
 
     ThronedCaptionButton(Glyph glyph, QWidget *parent = nullptr);
     void setGlyph(Glyph glyph);

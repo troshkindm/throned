@@ -20,7 +20,7 @@ public:
         setSortIndicatorShown(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-        type_filter = new QLineEdit(this->viewport()); 
+        type_filter = new QLineEdit(this->viewport());
         type_filter->setPlaceholderText(tr("Filter..."));
         type_filter->setClearButtonEnabled(true);
         connect(type_filter, &QLineEdit::textChanged, [this](const QString &text) {
@@ -34,21 +34,21 @@ public:
             emit addressFilterChanged(text);
         });
 
-        name_filter = new QLineEdit(this->viewport()); 
+        name_filter = new QLineEdit(this->viewport());
         name_filter->setPlaceholderText(tr("Filter..."));
         name_filter->setClearButtonEnabled(true);
         connect(name_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit nameFilterChanged(text);
         });
 
-        test_filter = new QLineEdit(this->viewport()); 
+        test_filter = new QLineEdit(this->viewport());
         test_filter->setPlaceholderText(tr("Filter by country..."));
         test_filter->setClearButtonEnabled(true);
         connect(test_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit testFilterChanged(text);
         });
 
-        for (QLineEdit *edit : filterEdits()) edit->installEventFilter(this);
+        for (QLineEdit *edit: filterEdits()) edit->installEventFilter(this);
 
         connect(this, &QHeaderView::sectionResized, this, &ProfilesTableFilterHeader::adjustPositions);
 
@@ -97,11 +97,11 @@ protected:
     }
 
     bool eventFilter(QObject *obj, QEvent *event) override {
-        if (!qobject_cast<QLineEdit*>(obj)) return QHeaderView::eventFilter(obj, event);
+        if (!qobject_cast<QLineEdit *>(obj)) return QHeaderView::eventFilter(obj, event);
 
         // Window shortcuts resolve before the key reaches the field, so bare Return/Del would fire menu actions.
         if (event->type() == QEvent::ShortcutOverride) {
-            if (!isTextEditingKey(static_cast<QKeyEvent*>(event))) {
+            if (!isTextEditingKey(static_cast<QKeyEvent *>(event))) {
                 return QHeaderView::eventFilter(obj, event);
             }
             event->accept();
@@ -109,15 +109,15 @@ protected:
         }
 
         if (event->type() == QEvent::KeyPress) {
-            switch (static_cast<QKeyEvent*>(event)->key()) {
-            case Qt::Key_Escape:
-                emit closeRequested();
-                return true;
-            case Qt::Key_Down:
-                emit focusTableRequested(true);
-                return true;
-            default:
-                break;
+            switch (static_cast<QKeyEvent *>(event)->key()) {
+                case Qt::Key_Escape:
+                    emit closeRequested();
+                    return true;
+                case Qt::Key_Down:
+                    emit focusTableRequested(true);
+                    return true;
+                default:
+                    break;
             }
         }
         return QHeaderView::eventFilter(obj, event);
@@ -134,19 +134,21 @@ public slots:
                 emit lastFilterColumnChanged(m_lastFilterColumn);
             }
             // Hiding must clear, or the list stays filtered with nothing explaining why.
-            for (QLineEdit *edit : filterEdits()) edit->clear();
+            for (QLineEdit *edit: filterEdits()) edit->clear();
         }
 
-        if (auto btn = qobject_cast<QToolButton*>(sender())) {
+        if (auto btn = qobject_cast<QToolButton *>(sender())) {
             btn->setToolTip(QString("%1\n%2").arg(visible ? tr("Disable Filter") : tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
         }
 
-        for (QLineEdit *edit : filterEdits()) edit->setVisible(visible && editForColumn(columnOf(edit)) == edit);
+        for (QLineEdit *edit: filterEdits()) edit->setVisible(visible && editForColumn(columnOf(edit)) == edit);
 
         emit geometriesChanged();
 
-        if (visible) focusLastFilterField();
-        else if (focused) emit focusTableRequested(false);
+        if (visible)
+            focusLastFilterField();
+        else if (focused)
+            emit focusTableRequested(false);
     }
 
     void adjustPositions() {
@@ -162,10 +164,9 @@ public slots:
             placeComfortable(test_filter, ProfilesTableModel::ColcPing);
             return;
         }
-        if (!m_filtersVisible || !address_filter || !name_filter || !type_filter
-            || !test_filter || count() <= ProfilesTableModel::ColTestResult) {
-	        return;
-	    }
+        if (!m_filtersVisible || !address_filter || !name_filter || !type_filter || !test_filter || count() <= ProfilesTableModel::ColTestResult) {
+            return;
+        }
 
         const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
@@ -190,7 +191,7 @@ signals:
     void closeRequested();
 
 private:
-    std::array<QLineEdit*, 4> filterEdits() const {
+    std::array<QLineEdit *, 4> filterEdits() const {
         return {type_filter, address_filter, name_filter, test_filter};
     }
 
@@ -198,18 +199,18 @@ private:
         if (!(key->modifiers() & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier))) {
             return key->key() < Qt::Key_F1 || key->key() > Qt::Key_F35;
         }
-        for (auto standard : {QKeySequence::SelectAll, QKeySequence::Copy, QKeySequence::Cut,
-                              QKeySequence::Paste, QKeySequence::Undo, QKeySequence::Redo,
-                              QKeySequence::MoveToStartOfLine, QKeySequence::MoveToEndOfLine,
-                              QKeySequence::SelectStartOfLine, QKeySequence::SelectEndOfLine,
-                              QKeySequence::DeleteStartOfWord, QKeySequence::DeleteEndOfWord}) {
+        for (auto standard: {QKeySequence::SelectAll, QKeySequence::Copy, QKeySequence::Cut,
+                             QKeySequence::Paste, QKeySequence::Undo, QKeySequence::Redo,
+                             QKeySequence::MoveToStartOfLine, QKeySequence::MoveToEndOfLine,
+                             QKeySequence::SelectStartOfLine, QKeySequence::SelectEndOfLine,
+                             QKeySequence::DeleteStartOfWord, QKeySequence::DeleteEndOfWord}) {
             if (key->matches(standard)) return true;
         }
         return false;
     }
 
     QLineEdit *focusedEdit() const {
-        for (QLineEdit *edit : filterEdits()) {
+        for (QLineEdit *edit: filterEdits()) {
             if (edit->hasFocus()) return edit;
         }
         return nullptr;
@@ -223,11 +224,16 @@ private:
             return nullptr;
         }
         switch (column) {
-        case ProfilesTableModel::ColType:       return type_filter;
-        case ProfilesTableModel::ColAddress:    return address_filter;
-        case ProfilesTableModel::ColName:       return name_filter;
-        case ProfilesTableModel::ColTestResult: return test_filter;
-        default:                                return nullptr;
+            case ProfilesTableModel::ColType:
+                return type_filter;
+            case ProfilesTableModel::ColAddress:
+                return address_filter;
+            case ProfilesTableModel::ColName:
+                return name_filter;
+            case ProfilesTableModel::ColTestResult:
+                return test_filter;
+            default:
+                return nullptr;
         }
     }
 
@@ -237,17 +243,17 @@ private:
             if (edit == test_filter) return ProfilesTableModel::ColcPing;
             return -1;
         }
-        if (edit == type_filter)    return ProfilesTableModel::ColType;
+        if (edit == type_filter) return ProfilesTableModel::ColType;
         if (edit == address_filter) return ProfilesTableModel::ColAddress;
-        if (edit == name_filter)    return ProfilesTableModel::ColName;
-        if (edit == test_filter)    return ProfilesTableModel::ColTestResult;
+        if (edit == name_filter) return ProfilesTableModel::ColName;
+        if (edit == test_filter) return ProfilesTableModel::ColTestResult;
         return -1;
     }
 
-    QLineEdit* type_filter;
-    QLineEdit* address_filter;
-    QLineEdit* name_filter;
-    QLineEdit* test_filter;
+    QLineEdit *type_filter;
+    QLineEdit *address_filter;
+    QLineEdit *name_filter;
+    QLineEdit *test_filter;
     bool m_filtersVisible = false;
     bool m_comfortable = false;
     int m_lastFilterColumn = ProfilesTableModel::ColName;

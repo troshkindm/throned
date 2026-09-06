@@ -13,14 +13,12 @@
 #include "include/ui/profile/editor_table_utils.h"
 
 namespace {
-    // The row shows a state; the PEM itself lives in the item's user role.
-    constexpr int kPemRole = Qt::UserRole + 1;
-}
+// The row shows a state; the PEM itself lives in the item's user role.
+constexpr int kPemRole = Qt::UserRole + 1;
+} // namespace
 
 EditOpenConnectAdvanced::EditOpenConnectAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent)
-    : QDialog(parent)
-    , ui(new Ui::EditOpenConnectAdvanced)
-{
+    : QDialog(parent), ui(new Ui::EditOpenConnectAdvanced) {
     ui->setupUi(this);
     ent = _ent;
     auto outbound = ent->OpenConnect();
@@ -138,8 +136,7 @@ EditOpenConnectAdvanced::EditOpenConnectAdvanced(QWidget *parent, const std::sha
     if (scr != nullptr) resize(QSize(width, sizeHint().height()).boundedTo(scr->availableGeometry().size()));
 }
 
-EditOpenConnectAdvanced::~EditOpenConnectAdvanced()
-{
+EditOpenConnectAdvanced::~EditOpenConnectAdvanced() {
     delete ui;
 }
 

@@ -1,16 +1,16 @@
 #pragma once
 
 namespace GroupSortMethod {
-    enum GroupSortMethod {
-        Raw,
-        ByType,
-        ByAddress,
-        ByName,
-        ByTestResult,
-        ById,
-        ByTraffic,
-        BySecurity,
-    };
+enum GroupSortMethod {
+    Raw,
+    ByType,
+    ByAddress,
+    ByName,
+    ByTestResult,
+    ById,
+    ByTraffic,
+    BySecurity,
+};
 }
 
 struct GroupSortAction {

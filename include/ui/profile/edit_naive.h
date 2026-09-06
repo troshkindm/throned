@@ -4,7 +4,7 @@
 #include "ui_edit_naive.h"
 
 namespace Ui {
-    class EditNaive;
+class EditNaive;
 }
 
 class EditNaive : public QWidget, public ProfileEditor {

@@ -48,11 +48,11 @@ static const MINIDUMP_TYPE DUMP_TYPE = static_cast<MINIDUMP_TYPE>(
     MiniDumpWithProcessThreadData);
 
 // Failures that reach us with no SEH record get a synthesized one carrying these.
-#define THRONE_EXC_TERMINATE    0xE0544501
-#define THRONE_EXC_PURECALL     0xE0544502
+#define THRONE_EXC_TERMINATE 0xE0544501
+#define THRONE_EXC_PURECALL 0xE0544502
 #define THRONE_EXC_INVALIDPARAM 0xE0544503
-#define THRONE_EXC_ABORT        0xE0544504
-#define THRONE_EXC_NEWFAIL      0xE0544505
+#define THRONE_EXC_ABORT 0xE0544504
+#define THRONE_EXC_NEWFAIL 0xE0544505
 
 // Streams at or above LastReservedStream are free for application use.
 static const ULONG32 THRONE_LOG_STREAM = 0x10000;
@@ -64,26 +64,46 @@ static char g_logStream[128 * 1024];
 
 static const char *ExceptionName(DWORD code) {
     switch (code) {
-        case EXCEPTION_ACCESS_VIOLATION: return "ACCESS_VIOLATION";
-        case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "ARRAY_BOUNDS_EXCEEDED";
-        case EXCEPTION_DATATYPE_MISALIGNMENT: return "DATATYPE_MISALIGNMENT";
-        case EXCEPTION_FLT_DIVIDE_BY_ZERO: return "FLT_DIVIDE_BY_ZERO";
-        case EXCEPTION_ILLEGAL_INSTRUCTION: return "ILLEGAL_INSTRUCTION";
-        case EXCEPTION_IN_PAGE_ERROR: return "IN_PAGE_ERROR";
-        case EXCEPTION_INT_DIVIDE_BY_ZERO: return "INT_DIVIDE_BY_ZERO";
-        case EXCEPTION_INVALID_DISPOSITION: return "INVALID_DISPOSITION";
-        case EXCEPTION_NONCONTINUABLE_EXCEPTION: return "NONCONTINUABLE_EXCEPTION";
-        case EXCEPTION_PRIV_INSTRUCTION: return "PRIV_INSTRUCTION";
-        case EXCEPTION_STACK_OVERFLOW: return "STACK_OVERFLOW";
-        case 0xE06D7363: return "C++ exception (unhandled)";
-        case 0xC0000409: return "STACK_BUFFER_OVERRUN / __fastfail";
-        case 0xC0000374: return "HEAP_CORRUPTION";
-        case THRONE_EXC_TERMINATE: return "std::terminate (uncaught C++ exception)";
-        case THRONE_EXC_PURECALL: return "pure virtual call";
-        case THRONE_EXC_INVALIDPARAM: return "CRT invalid parameter";
-        case THRONE_EXC_ABORT: return "abort()";
-        case THRONE_EXC_NEWFAIL: return "operator new failed";
-        default: return "unknown";
+        case EXCEPTION_ACCESS_VIOLATION:
+            return "ACCESS_VIOLATION";
+        case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+            return "ARRAY_BOUNDS_EXCEEDED";
+        case EXCEPTION_DATATYPE_MISALIGNMENT:
+            return "DATATYPE_MISALIGNMENT";
+        case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+            return "FLT_DIVIDE_BY_ZERO";
+        case EXCEPTION_ILLEGAL_INSTRUCTION:
+            return "ILLEGAL_INSTRUCTION";
+        case EXCEPTION_IN_PAGE_ERROR:
+            return "IN_PAGE_ERROR";
+        case EXCEPTION_INT_DIVIDE_BY_ZERO:
+            return "INT_DIVIDE_BY_ZERO";
+        case EXCEPTION_INVALID_DISPOSITION:
+            return "INVALID_DISPOSITION";
+        case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+            return "NONCONTINUABLE_EXCEPTION";
+        case EXCEPTION_PRIV_INSTRUCTION:
+            return "PRIV_INSTRUCTION";
+        case EXCEPTION_STACK_OVERFLOW:
+            return "STACK_OVERFLOW";
+        case 0xE06D7363:
+            return "C++ exception (unhandled)";
+        case 0xC0000409:
+            return "STACK_BUFFER_OVERRUN / __fastfail";
+        case 0xC0000374:
+            return "HEAP_CORRUPTION";
+        case THRONE_EXC_TERMINATE:
+            return "std::terminate (uncaught C++ exception)";
+        case THRONE_EXC_PURECALL:
+            return "pure virtual call";
+        case THRONE_EXC_INVALIDPARAM:
+            return "CRT invalid parameter";
+        case THRONE_EXC_ABORT:
+            return "abort()";
+        case THRONE_EXC_NEWFAIL:
+            return "operator new failed";
+        default:
+            return "unknown";
     }
 }
 
@@ -163,7 +183,8 @@ static void WriteSidecar(const wchar_t *path, EXCEPTION_POINTERS *pException, bo
 
         HMODULE mod = nullptr;
         if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                               static_cast<LPCWSTR>(record->ExceptionAddress), &mod) && mod != nullptr) {
+                               static_cast<LPCWSTR>(record->ExceptionAddress), &mod) &&
+            mod != nullptr) {
             wchar_t modPath[MAX_PATH] = L"";
             if (GetModuleFileNameW(mod, modPath, MAX_PATH) > 0) {
                 const ULONG_PTR offset = reinterpret_cast<ULONG_PTR>(record->ExceptionAddress) -
@@ -370,8 +391,9 @@ void Windows_ConfigureWER() {
     if (ok) {
         LOG_INFO("WER LocalDumps registered for Throned.exe and ThronedCore.exe");
     } else {
-        LOG_INFO("WER LocalDumps not registered (needs admin); crashes that bypass "
-                 "the exception filter will go to %LOCALAPPDATA%\\CrashDumps if "
-                 "LocalDumps is enabled machine-wide");
+        LOG_INFO(
+            "WER LocalDumps not registered (needs admin); crashes that bypass "
+            "the exception filter will go to %LOCALAPPDATA%\\CrashDumps if "
+            "LocalDumps is enabled machine-wide");
     }
 }

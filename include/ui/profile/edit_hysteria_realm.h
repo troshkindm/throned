@@ -8,8 +8,7 @@ namespace Ui {
 class EditHysteriaRealm;
 }
 
-class EditHysteriaRealm : public QDialog
-{
+class EditHysteriaRealm : public QDialog {
     Q_OBJECT
 
 public:

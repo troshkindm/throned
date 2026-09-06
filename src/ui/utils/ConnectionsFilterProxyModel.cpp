@@ -12,14 +12,12 @@ ConnectionsTableModel *ConnectionsFilterProxyModel::connectionsModel() const {
 }
 
 bool ConnectionsFilterProxyModel::hasActiveFilter() const {
-    return !m_source.isEmpty() || !m_dest.isEmpty() || !m_process.isEmpty()
-           || !m_protocol.isEmpty() || !m_outbound.isEmpty();
+    return !m_source.isEmpty() || !m_dest.isEmpty() || !m_process.isEmpty() || !m_protocol.isEmpty() || !m_outbound.isEmpty();
 }
 
 void ConnectionsFilterProxyModel::setFilters(const QString &source, const QString &dest, const QString &process,
                                              const QString &protocol, const QString &outbound) {
-    if (m_source == source && m_dest == dest && m_process == process
-        && m_protocol == protocol && m_outbound == outbound) return;
+    if (m_source == source && m_dest == dest && m_process == process && m_protocol == protocol && m_outbound == outbound) return;
     m_source = source;
     m_dest = dest;
     m_process = process;

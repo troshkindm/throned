@@ -8,21 +8,24 @@
 #include <QStyleOptionTab>
 
 namespace {
-    constexpr int kLineHeight = 2;
-    // The group is now a detached pill. Keep the meter inside that pill rather
-    // than letting it fall into the gap above the profile table.
-    constexpr int kBottomInset = 8;
+constexpr int kLineHeight = 2;
+// The group is now a detached pill. Keep the meter inside that pill rather
+// than letting it fall into the gap above the profile table.
+constexpr int kBottomInset = 8;
 
-    // Same three states the start button and the latency column use, from the theme.
-    QColor usageColor(GroupTabBar::Urgency urgency) {
-        const auto colors = themeManager()->Colors();
-        switch (urgency) {
-        case GroupTabBar::Urgency::Critical: return colors.danger;
-        case GroupTabBar::Urgency::Warning: return colors.warning;
-        default: return colors.success;
-        }
+// Same three states the start button and the latency column use, from the theme.
+QColor usageColor(GroupTabBar::Urgency urgency) {
+    const auto colors = themeManager()->Colors();
+    switch (urgency) {
+        case GroupTabBar::Urgency::Critical:
+            return colors.danger;
+        case GroupTabBar::Urgency::Warning:
+            return colors.warning;
+        default:
+            return colors.success;
     }
 }
+} // namespace
 
 GroupTabBar::GroupTabBar(QWidget *parent) : QTabBar(parent) {
     // Without tracking, moves only arrive while a button is held.
@@ -30,14 +33,18 @@ GroupTabBar::GroupTabBar(QWidget *parent) : QTabBar(parent) {
 }
 
 void GroupTabBar::setUsage(int index, double fraction, Urgency urgency) {
-    if (fraction < 0) usage_.remove(index);
-    else usage_[index] = {qBound(0.0, fraction, 1.0), urgency};
+    if (fraction < 0)
+        usage_.remove(index);
+    else
+        usage_[index] = {qBound(0.0, fraction, 1.0), urgency};
     update();
 }
 
 void GroupTabBar::setSubscription(int index, bool subscription) {
-    if (subscription) subscriptions_.insert(index);
-    else subscriptions_.remove(index);
+    if (subscription)
+        subscriptions_.insert(index);
+    else
+        subscriptions_.remove(index);
 }
 
 void GroupTabBar::clearUsage() {
@@ -51,7 +58,6 @@ void GroupTabBar::setSelectionVisible(bool visible) {
     selectionVisible_ = visible;
     update();
 }
-
 
 void GroupTabBar::mousePressEvent(QMouseEvent *event) {
     QTabBar::mousePressEvent(event);
@@ -74,8 +80,10 @@ void GroupTabBar::mouseMoveEvent(QMouseEvent *event) {
     const int subscriptionTab = subscriptions_.contains(index) ? index : -1;
     if (subscriptionTab == hoveredSubscription_) return;
     hoveredSubscription_ = subscriptionTab;
-    if (subscriptionTab < 0) emit meterHoverLeft();
-    else emit meterHovered(subscriptionTab);
+    if (subscriptionTab < 0)
+        emit meterHoverLeft();
+    else
+        emit meterHovered(subscriptionTab);
 }
 
 void GroupTabBar::leaveEvent(QEvent *event) {

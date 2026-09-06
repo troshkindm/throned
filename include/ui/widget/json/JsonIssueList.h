@@ -3,19 +3,19 @@
 #include <QListWidget>
 
 namespace JsonEdit {
-    class JsonCodeEdit;
+class JsonCodeEdit;
 
-    class JsonIssueList : public QListWidget {
-        Q_OBJECT
+class JsonIssueList : public QListWidget {
+    Q_OBJECT
 
-    public:
-        explicit JsonIssueList(QWidget* parent = nullptr);
+public:
+    explicit JsonIssueList(QWidget* parent = nullptr);
 
-        void attach(JsonCodeEdit* editor);
+    void attach(JsonCodeEdit* editor);
 
-    private:
-        void refresh();
+private:
+    void refresh();
 
-        JsonCodeEdit* m_editor = nullptr;
-    };
-}
+    JsonCodeEdit* m_editor = nullptr;
+};
+} // namespace JsonEdit

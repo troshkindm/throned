@@ -13,17 +13,17 @@
 #include <v2/ui/LogHighlighter.hpp>
 
 namespace {
-    constexpr qsizetype MAX_PENDING_LOG_CHARS = 2 * 1024 * 1024;
+constexpr qsizetype MAX_PENDING_LOG_CHARS = 2 * 1024 * 1024;
 
-    inline void FastAppendTextDocument(const QString &message, QTextDocument *doc) {
-        QTextCursor cursor(doc);
-        cursor.movePosition(QTextCursor::End);
-        cursor.beginEditBlock();
-        cursor.insertBlock();
-        cursor.insertText(message);
-        cursor.endEditBlock();
-    }
+inline void FastAppendTextDocument(const QString &message, QTextDocument *doc) {
+    QTextCursor cursor(doc);
+    cursor.movePosition(QTextCursor::End);
+    cursor.beginEditBlock();
+    cursor.insertBlock();
+    cursor.insertText(message);
+    cursor.endEditBlock();
 }
+} // namespace
 
 void MainWindow::applyLogBrowserFont() {
     QFont logFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -63,13 +63,17 @@ void MainWindow::log_process_loop() {
         const LogFilter filter{
             Configs::dataManager->settingsRepo->log_enable_include,
             Configs::dataManager->settingsRepo->log_enable_exclude,
-            includeKeywords, excludeKeywords, includeCombined, excludeCombined, minLogLevelRank,
+            includeKeywords,
+            excludeKeywords,
+            includeCombined,
+            excludeCombined,
+            minLogLevelRank,
         };
         logMutex.unlock();
 
         QString batchToPrint;
-        for (const auto& entry : pending) {
-            for (const auto& logLine : entry.split('\n')) {
+        for (const auto &entry: pending) {
+            for (const auto &logLine: entry.split('\n')) {
                 if (should_print_log(logLine, filter)) {
                     batchToPrint += logLine;
                     batchToPrint += '\n';
@@ -140,7 +144,7 @@ bool MainWindow::should_print_log(const QString &log, const LogFilter &filter) {
     bool result = true;
     if (filter.enableInclude) {
         result = false;
-        for (const auto& includeKeyword : filter.includeKeywords) {
+        for (const auto &includeKeyword: filter.includeKeywords) {
             if (log.contains(includeKeyword)) {
                 result = true;
                 break;
@@ -151,7 +155,7 @@ bool MainWindow::should_print_log(const QString &log, const LogFilter &filter) {
         }
     }
     if (result && filter.enableExclude) {
-        for (const auto& excludeKeyword : filter.excludeKeywords) {
+        for (const auto &excludeKeyword: filter.excludeKeywords) {
             if (log.contains(excludeKeyword)) {
                 result = false;
                 break;
@@ -173,7 +177,7 @@ void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &po
 
     auto action_clear = new QAction(this);
     action_clear->setText(tr("Clear"));
-    connect(action_clear, &QAction::triggered, this, [=,this] {
+    connect(action_clear, &QAction::triggered, this, [=, this] {
         {
             // Otherwise a flush already in flight repaints what was just cleared.
             QMutexLocker pendingLocker(&logPendingMutex);

@@ -4,15 +4,15 @@
 #include <QCoreApplication>
 
 namespace {
-    const QString kEmptyText;
+const QString kEmptyText;
 
-    // These moved out of mainwindow.ui, so they keep that context to hold on to the
-    // existing .ts entries. The call sites wrap each literal in QT_TRANSLATE_NOOP
-    // because lupdate cannot see a string handed to a helper through a variable.
-    QString mwTr(const char *source) {
-        return QCoreApplication::translate("MainWindow", source);
-    }
+// These moved out of mainwindow.ui, so they keep that context to hold on to the
+// existing .ts entries. The call sites wrap each literal in QT_TRANSLATE_NOOP
+// because lupdate cannot see a string handed to a helper through a variable.
+QString mwTr(const char *source) {
+    return QCoreApplication::translate("MainWindow", source);
 }
+} // namespace
 
 ConnectionsTableModel::ConnectionsTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
@@ -68,14 +68,22 @@ QVariant ConnectionsTableModel::data(const QModelIndex &index, int role) const {
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-        case ColSource: return c.sourceDisplay;
-        case ColDest: return destText(row);
-        case ColProcess: return c.process;
-        case ColProtocol: return protocolText(row);
-        case ColOutbound: return c.outbound;
-        case ColTraffic: return QStringLiteral("↑ ") + ReadableSize(c.upload) + QStringLiteral("   ↓ ") + ReadableSize(c.download);
-        case ColSpeed: return QStringLiteral("↑ ") + ReadableSize(c.uploadSpeed) + QStringLiteral("/s   ↓ ") + ReadableSize(c.downloadSpeed) + QStringLiteral("/s");
-        default: return {};
+            case ColSource:
+                return c.sourceDisplay;
+            case ColDest:
+                return destText(row);
+            case ColProcess:
+                return c.process;
+            case ColProtocol:
+                return protocolText(row);
+            case ColOutbound:
+                return c.outbound;
+            case ColTraffic:
+                return QStringLiteral("↑ ") + ReadableSize(c.upload) + QStringLiteral("   ↓ ") + ReadableSize(c.download);
+            case ColSpeed:
+                return QStringLiteral("↑ ") + ReadableSize(c.uploadSpeed) + QStringLiteral("/s   ↓ ") + ReadableSize(c.downloadSpeed) + QStringLiteral("/s");
+            default:
+                return {};
         }
     }
 
@@ -96,14 +104,22 @@ QVariant ConnectionsTableModel::headerData(int section, Qt::Orientation orientat
 
     if (role == Qt::DisplayRole) {
         switch (section) {
-        case ColSource: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Source"));
-        case ColDest: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Destination (Domain)"));
-        case ColProcess: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Process"));
-        case ColProtocol: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Protocol"));
-        case ColOutbound: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Outbound"));
-        case ColTraffic: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Traffic"));
-        case ColSpeed: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Speed"));
-        default: return {};
+            case ColSource:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Source"));
+            case ColDest:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Destination (Domain)"));
+            case ColProcess:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Process"));
+            case ColProtocol:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Protocol"));
+            case ColOutbound:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Outbound"));
+            case ColTraffic:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Traffic"));
+            case ColSpeed:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Speed"));
+            default:
+                return {};
         }
     }
 
@@ -113,14 +129,22 @@ QVariant ConnectionsTableModel::headerData(int section, Qt::Orientation orientat
 
     if (role == Qt::ToolTipRole) {
         switch (section) {
-        case ColSource: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Source"));
-        case ColDest: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Disable Sorting"));
-        case ColProcess: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Process"));
-        case ColProtocol: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Protocol"));
-        case ColOutbound: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Outbound"));
-        case ColTraffic: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click to sort by traffic; right-click to choose total/down/up"));
-        case ColSpeed: return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click to sort by speed; right-click to choose total/down/up"));
-        default: return {};
+            case ColSource:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Source"));
+            case ColDest:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Disable Sorting"));
+            case ColProcess:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Process"));
+            case ColProtocol:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Protocol"));
+            case ColOutbound:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click To Sort By Outbound"));
+            case ColTraffic:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click to sort by traffic; right-click to choose total/down/up"));
+            case ColSpeed:
+                return mwTr(QT_TRANSLATE_NOOP("MainWindow", "Click to sort by speed; right-click to choose total/down/up"));
+            default:
+                return {};
         }
     }
 

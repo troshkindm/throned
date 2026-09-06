@@ -16,7 +16,9 @@ public:
 
     // Traffic alone cannot say a plan is about to lapse, so the caller decides how
     // urgent the group is and the meter only draws it.
-    enum class Urgency { Normal, Warning, Critical };
+    enum class Urgency { Normal,
+                         Warning,
+                         Critical };
 
     // fraction is 0..1 of the allowance used; anything negative clears the line.
     void setUsage(int index, double fraction, Urgency urgency = Urgency::Normal);
@@ -48,7 +50,10 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    struct Meter { double fraction = 0; Urgency urgency = Urgency::Normal; };
+    struct Meter {
+        double fraction = 0;
+        Urgency urgency = Urgency::Normal;
+    };
     QHash<int, Meter> usage_;
     QSet<int> subscriptions_;
     bool selectionVisible_ = true;

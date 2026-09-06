@@ -7,13 +7,14 @@
 #include <memory>
 
 namespace Configs {
-    class Profile;
+class Profile;
 }
 
 class ProfilesTableModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    enum { ProfileIdRole = Qt::UserRole, RowVisualRole };
+    enum { ProfileIdRole = Qt::UserRole,
+           RowVisualRole };
 
     enum Column {
         ColType = 0,
@@ -35,7 +36,8 @@ public:
         ComfortColumnCount,
     };
 
-    enum class RowStyle { Compact, Comfortable };
+    enum class RowStyle { Compact,
+                          Comfortable };
 
     // The arrow is part of the header label: a QSS header with transparent
     // sections swallows the style's own sort indicator.
@@ -44,9 +46,9 @@ public:
     // Everything a comfortable row paints, resolved once per row.
     struct RowVisual {
         QString name;
-        QString chip;      // protocol, drawn as an outlined chip
+        QString chip; // protocol, drawn as an outlined chip
         QString address;
-        QString country;   // two-letter code, drawn as a badge rather than a flag glyph
+        QString country; // two-letter code, drawn as a badge rather than a flag glyph
         QString exitIp;
         QString latency;
         QString udp;

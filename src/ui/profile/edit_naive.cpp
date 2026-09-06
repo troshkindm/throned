@@ -3,7 +3,6 @@
 EditNaive::EditNaive(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditNaive) {
-
     ui->setupUi(this);
 }
 

@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditVless;
+class EditVless;
 }
 QT_END_NAMESPACE
 
@@ -23,6 +23,7 @@ public:
     bool onEnd() override;
 
     QComboBox *_flow;
+
 private:
     Ui::EditVless *ui;
     std::shared_ptr<Configs::Profile> ent;

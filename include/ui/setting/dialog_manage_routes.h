@@ -13,7 +13,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogManageRoutes;
+class DialogManageRoutes;
 }
 QT_END_NAMESPACE
 
@@ -21,12 +21,12 @@ class DialogManageRoutes : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DialogManageRoutes(QWidget *parent = nullptr);
+    explicit DialogManageRoutes(QWidget* parent = nullptr);
 
     ~DialogManageRoutes() override;
 
 private:
-    Ui::DialogManageRoutes *ui;
+    Ui::DialogManageRoutes* ui;
 
     RouteItem* routeChainWidget;
 
@@ -50,7 +50,7 @@ private:
 
     void set_dns_hijack_enability(bool enable) const;
 
-    static bool validate_dns_rules(const QString &rawString);
+    static bool validate_dns_rules(const QString& rawString);
 
     void show_predefined_dns_editor();
 

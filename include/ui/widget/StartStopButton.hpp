@@ -14,7 +14,11 @@ class StartStopButton : public QToolButton {
     Q_PROPERTY(QColor ringColor READ ringColor WRITE setRingColor)
 
 public:
-    enum class State { Disabled, Idle, Connecting, Running, Disconnecting };
+    enum class State { Disabled,
+                       Idle,
+                       Connecting,
+                       Running,
+                       Disconnecting };
     Q_ENUM(State)
 
     // Mirrors the tray-icon modes computed in MainWindow::refresh_status.
@@ -24,20 +28,34 @@ public:
     void setState(State s);
     State state() const { return m_state; }
 
-
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override { return sizeHint(); }
 
     qreal morph() const { return m_morph; }
-    void setMorph(qreal v) { m_morph = v; update(); }
+    void setMorph(qreal v) {
+        m_morph = v;
+        update();
+    }
     qreal spin() const { return m_spin; }
-    void setSpin(qreal v) { m_spin = v; update(); }
+    void setSpin(qreal v) {
+        m_spin = v;
+        update();
+    }
     qreal dim() const { return m_dim; }
-    void setDim(qreal v) { m_dim = v; update(); }
+    void setDim(qreal v) {
+        m_dim = v;
+        update();
+    }
     qreal press() const { return m_press; }
-    void setPress(qreal v) { m_press = v; update(); }
+    void setPress(qreal v) {
+        m_press = v;
+        update();
+    }
     QColor ringColor() const { return m_ringColor; }
-    void setRingColor(const QColor &c) { m_ringColor = c; update(); }
+    void setRingColor(const QColor &c) {
+        m_ringColor = c;
+        update();
+    }
 
 protected:
     void paintEvent(QPaintEvent *) override;

@@ -4,7 +4,7 @@
 #include "ui_edit_trojan.h"
 
 namespace Ui {
-    class EditTrojan;
+class EditTrojan;
 }
 
 class EditTrojan : public QWidget, public ProfileEditor {

@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditSnell;
+class EditSnell;
 }
 QT_END_NAMESPACE
 

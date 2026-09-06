@@ -10,7 +10,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class DialogOtpManager;
+class DialogOtpManager;
 }
 QT_END_NAMESPACE
 

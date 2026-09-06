@@ -3,7 +3,6 @@
 EditJuicity::EditJuicity(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditJuicity) {
-
     ui->setupUi(this);
 }
 

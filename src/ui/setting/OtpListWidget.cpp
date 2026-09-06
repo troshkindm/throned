@@ -11,10 +11,10 @@
 #include <QPainter>
 
 namespace {
-    constexpr auto ROW_MIME_TYPE = "application/otp-row-number";
-    constexpr int INDICATOR_THICKNESS = 2;
-    constexpr int INDICATOR_INSET = 4;
-}
+constexpr auto ROW_MIME_TYPE = "application/otp-row-number";
+constexpr int INDICATOR_THICKNESS = 2;
+constexpr int INDICATOR_INSET = 4;
+} // namespace
 
 OtpListWidget::OtpListWidget(QWidget *parent) : QListWidget(parent) {
     setSelectionMode(NoSelection);

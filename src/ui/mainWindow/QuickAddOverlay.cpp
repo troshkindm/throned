@@ -48,14 +48,30 @@ bool isSubscriptionScheme(const QString &scheme) {
 
 bool isProfileScheme(const QString &scheme) {
     static const QStringList schemes{
-        QStringLiteral("ss"), QStringLiteral("vmess"), QStringLiteral("vless"),
-        QStringLiteral("trojan"), QStringLiteral("anytls"), QStringLiteral("mieru"),
-        QStringLiteral("mierus"), QStringLiteral("snell"), QStringLiteral("hysteria"),
-        QStringLiteral("hysteria2"), QStringLiteral("hy2"), QStringLiteral("tuic"),
-        QStringLiteral("juicity"), QStringLiteral("tt"), QStringLiteral("shadowtls"),
-        QStringLiteral("wg"), QStringLiteral("ssh"), QStringLiteral("naive+https"),
-        QStringLiteral("naive+quic"), QStringLiteral("socks"), QStringLiteral("socks4"),
-        QStringLiteral("socks4a"), QStringLiteral("socks5"), QStringLiteral("throne"),
+        QStringLiteral("ss"),
+        QStringLiteral("vmess"),
+        QStringLiteral("vless"),
+        QStringLiteral("trojan"),
+        QStringLiteral("anytls"),
+        QStringLiteral("mieru"),
+        QStringLiteral("mierus"),
+        QStringLiteral("snell"),
+        QStringLiteral("hysteria"),
+        QStringLiteral("hysteria2"),
+        QStringLiteral("hy2"),
+        QStringLiteral("tuic"),
+        QStringLiteral("juicity"),
+        QStringLiteral("tt"),
+        QStringLiteral("shadowtls"),
+        QStringLiteral("wg"),
+        QStringLiteral("ssh"),
+        QStringLiteral("naive+https"),
+        QStringLiteral("naive+quic"),
+        QStringLiteral("socks"),
+        QStringLiteral("socks4"),
+        QStringLiteral("socks4a"),
+        QStringLiteral("socks5"),
+        QStringLiteral("throne"),
         QStringLiteral("json"),
     };
     return schemes.contains(scheme);
@@ -391,7 +407,7 @@ QPushButton#quickAddPrimaryButton:disabled {
     connect(groupType, &QComboBox::currentIndexChanged, this, [this] { updateGroupUrlState(); });
 
     const QList<QLineEdit *> manualEdits{profileName, profileAddress, profilePort, groupName, groupUrl};
-    for (auto *edit : manualEdits) {
+    for (auto *edit: manualEdits) {
         connect(edit, &QLineEdit::textChanged, this, [this] { updateManualValidation(); });
         connect(edit, &QLineEdit::returnPressed, this, [this] { submit(); });
     }
@@ -458,7 +474,7 @@ void QuickAddOverlay::reset(const QList<QPair<int, QString>> &groups, int curren
 
     profileGroup->clear();
     int currentIndex = -1;
-    for (const auto &[id, name] : groups) {
+    for (const auto &[id, name]: groups) {
         profileGroup->addItem(name, id);
         if (id == currentGroupId) currentIndex = profileGroup->count() - 1;
     }
@@ -545,15 +561,12 @@ void QuickAddOverlay::updateManualValidation() {
     if (manualPage == ManualPage::Profile) {
         bool portOk = false;
         const int port = profilePort->text().toInt(&portOk);
-        valid = !profileName->text().trimmed().isEmpty()
-                && !profileAddress->text().trimmed().isEmpty()
-                && portOk && port > 0 && port <= 65535 && profileGroup->currentIndex() >= 0;
+        valid = !profileName->text().trimmed().isEmpty() && !profileAddress->text().trimmed().isEmpty() && portOk && port > 0 && port <= 65535 && profileGroup->currentIndex() >= 0;
         primaryButton->setText(qaTr("Continue"));
     } else {
         const bool subscription = groupType->currentData().toString() == QStringLiteral("subscription");
         const QUrl url(groupUrl->text().trimmed());
-        const bool urlOk = !subscription
-            || (url.isValid() && isSubscriptionScheme(url.scheme().toLower()) && !url.host().isEmpty());
+        const bool urlOk = !subscription || (url.isValid() && isSubscriptionScheme(url.scheme().toLower()) && !url.host().isEmpty());
         valid = !groupName->text().trimmed().isEmpty() && urlOk;
         primaryButton->setText(qaTr("Create"));
     }
@@ -596,7 +609,8 @@ void QuickAddOverlay::submit() {
     if (!callbacks.addGroup) return;
     const QString name = groupName->text().trimmed();
     const QString url = groupType->currentData().toString() == QStringLiteral("subscription")
-        ? groupUrl->text().trimmed() : QString();
+                            ? groupUrl->text().trimmed()
+                            : QString();
     closeOverlay();
     callbacks.addGroup(name, url);
 }

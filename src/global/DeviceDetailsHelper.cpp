@@ -3,7 +3,7 @@
 #include <QString>
 #include <QSysInfo>
 #include <QFile>
-#include <vector>   
+#include <vector>
 #include <string>
 
 #ifdef Q_OS_WIN
@@ -25,8 +25,7 @@ static QString queryWmiProperty(const QString& wmiClass, const QString& property
         NULL, -1, NULL, NULL,
         RPC_C_AUTHN_LEVEL_DEFAULT,
         RPC_C_IMP_LEVEL_IMPERSONATE,
-        NULL, EOAC_NONE, NULL
-    );
+        NULL, EOAC_NONE, NULL);
     if (FAILED(hres) && hres != RPC_E_TOO_LATE) {
         CoUninitialize();
         return QString();
@@ -36,8 +35,7 @@ static QString queryWmiProperty(const QString& wmiClass, const QString& property
     hres = CoCreateInstance(
         CLSID_WbemLocator, 0,
         CLSCTX_INPROC_SERVER,
-        IID_IWbemLocator, (LPVOID*)&pLoc
-    );
+        IID_IWbemLocator, (LPVOID*) &pLoc);
     if (FAILED(hres)) {
         CoUninitialize();
         return QString();
@@ -47,8 +45,7 @@ static QString queryWmiProperty(const QString& wmiClass, const QString& property
     BSTR bstrNamespace = SysAllocString(L"ROOT\\CIMV2");
     hres = pLoc->ConnectServer(
         bstrNamespace,
-        NULL, NULL, NULL, 0, NULL, 0, &pSvc
-    );
+        NULL, NULL, NULL, 0, NULL, 0, &pSvc);
     SysFreeString(bstrNamespace);
     if (FAILED(hres)) {
         pLoc->Release();
@@ -64,8 +61,7 @@ static QString queryWmiProperty(const QString& wmiClass, const QString& property
         RPC_C_AUTHN_LEVEL_CALL,
         RPC_C_IMP_LEVEL_IMPERSONATE,
         NULL,
-        EOAC_NONE
-    );
+        EOAC_NONE);
     if (FAILED(hres)) {
         pSvc->Release();
         pLoc->Release();
@@ -82,8 +78,7 @@ static QString queryWmiProperty(const QString& wmiClass, const QString& property
         bstrQuery,
         WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
         NULL,
-        &pEnumerator
-    );
+        &pEnumerator);
     SysFreeString(bstrWQL);
     SysFreeString(bstrQuery);
     if (FAILED(hres)) {
@@ -131,7 +126,7 @@ DeviceDetails GetDeviceDetails() {
     static const DeviceDetails details = []() {
         DeviceDetails d;
 
-    #ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
         d.hwid = QSysInfo::machineUniqueId();
         if (d.hwid.isEmpty()) {
             auto productType = QSysInfo::productType().toUtf8();
@@ -143,19 +138,18 @@ DeviceDetails GetDeviceDetails() {
         VersionInfo info;
         WinVersion::GetVersion(info);
         d.osVersion = QString("%1.%2.%3").arg(info.Major).arg(info.Minor).arg(info.BuildNum);
-        
+
         auto wm = winModel();
         auto wbb = winBaseBoard();
         d.model = (wm == wbb) ? wm : wm + "/" + wbb;
         if (d.hwid.isEmpty()) d.model = QSysInfo::prettyProductName();
-    #elif defined(Q_OS_LINUX)
+#elif defined(Q_OS_LINUX)
         QString mid;
         QFile f1("/etc/machine-id");
         if (f1.exists() && f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
             mid = QString::fromUtf8(f1.readAll()).trimmed();
             f1.close();
-        }
-        else {
+        } else {
             QFile f2("/var/lib/dbus/machine-id");
             if (f2.exists() && f2.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 mid = QString::fromUtf8(f2.readAll()).trimmed();
@@ -166,17 +160,17 @@ DeviceDetails GetDeviceDetails() {
         d.os = QStringLiteral("Linux");
         d.osVersion = QSysInfo::kernelVersion();
         d.model = QSysInfo::prettyProductName();
-    #elif defined(Q_OS_MACOS)
+#elif defined(Q_OS_MACOS)
         d.hwid = QSysInfo::machineUniqueId();
         d.os = QStringLiteral("macOS");
         d.osVersion = QSysInfo::productVersion();
         d.model = QSysInfo::prettyProductName();
-    #else
+#else
         d.hwid = QSysInfo::machineUniqueId();
         d.os = QSysInfo::productType();
         d.osVersion = QSysInfo::productVersion();
         d.model = QSysInfo::prettyProductName();
-    #endif
+#endif
         return d;
     }();
     return details;

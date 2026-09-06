@@ -22,7 +22,7 @@ class RouteItem : public QDialog {
     Q_OBJECT
 
 public:
-    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<Configs::RouteProfile>& routeChain = nullptr);
+    explicit RouteItem(QWidget* parent = nullptr, const std::shared_ptr<Configs::RouteProfile>& routeChain = nullptr);
     ~RouteItem() override;
 
     std::shared_ptr<Configs::RouteProfile> chain;
@@ -30,7 +30,7 @@ signals:
     void settingsChanged(std::shared_ptr<Configs::RouteProfile> routingChain);
 
 private:
-    Ui::RouteItem *ui;
+    Ui::RouteItem* ui;
     int currentIndex = -1;
 
     int lastNum = 0;
@@ -41,7 +41,7 @@ private:
 
     QStringList outbounds;
 
-    std::map<int,int> outboundMap;
+    std::map<int, int> outboundMap;
 
     AutoCompleteTextEdit* simpleDirect;
 

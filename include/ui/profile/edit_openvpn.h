@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditOpenVPN;
+class EditOpenVPN;
 }
 QT_END_NAMESPACE
 

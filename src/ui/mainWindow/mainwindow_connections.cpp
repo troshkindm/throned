@@ -25,8 +25,7 @@
 #include <QToolButton>
 #include <QToolTip>
 
-void MainWindow::setupConnectionList()
-{
+void MainWindow::setupConnectionList() {
     connectionsModel = new ConnectionsTableModel(this);
     connectionsFilterModel = new ConnectionsFilterProxyModel(this);
     connectionsFilterModel->setSourceModel(connectionsModel);
@@ -39,9 +38,9 @@ void MainWindow::setupConnectionList()
     connectionCloseDelegate = new ConnectionCloseDelegate(this);
     ui->connections->setItemDelegateForColumn(ConnectionsTableModel::ColClose, connectionCloseDelegate);
     connect(connectionCloseDelegate, &ConnectionCloseDelegate::closeRequested, this,
-            [this](const QString& id) { closeConnections({id}); });
+            [this](const QString &id) { closeConnections({id}); });
 
-    auto* header = ui->connections->horizontalHeader();
+    auto *header = ui->connections->horizontalHeader();
     header->setHighlightSections(false);
     header->setSectionResizeMode(ConnectionsTableModel::ColSource, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(ConnectionsTableModel::ColDest, QHeaderView::Stretch);
@@ -68,8 +67,7 @@ void MainWindow::setupConnectionList()
     setupConnectionSortMenu();
     setupConnectionFilter();
 
-    connect(ui->connections, &QAbstractItemView::clicked, this, [this](const QModelIndex& index)
-    {
+    connect(ui->connections, &QAbstractItemView::clicked, this, [this](const QModelIndex &index) {
         if (!index.isValid() || index.column() == ConnectionsTableModel::ColClose) return;
         const auto text = index.data(Qt::DisplayRole).toString();
         if (text.isEmpty()) return;
@@ -78,9 +76,8 @@ void MainWindow::setupConnectionList()
         const QPoint pos = ui->connections->viewport()->mapToGlobal(ui->connections->visualRect(index).center());
         QToolTip::showText(pos, tr("Copied!"), this);
         auto r = ++toolTipID;
-        QTimer::singleShot(1500, this, [=,this] {
-            if (r != toolTipID)
-            {
+        QTimer::singleShot(1500, this, [=, this] {
+            if (r != toolTipID) {
                 return;
             }
             QToolTip::hideText();
@@ -91,69 +88,66 @@ void MainWindow::setupConnectionList()
 }
 
 namespace {
-    struct RuleCandidate {
-        QString label;
-        QString entry;
-    };
+struct RuleCandidate {
+    QString label;
+    QString entry;
+};
 
-    QList<RuleCandidate> candidatesFor(const QString &dest, const QString &domain,
-                                       const QString &process, const QString &processPath) {
-        QList<RuleCandidate> candidates;
-        const QString host = domain.isEmpty() ? QString() : domain;
-        if (!host.isEmpty()) {
-            candidates.append({MainWindow::tr("This domain — %1").arg(host),
-                               QStringLiteral("domain:") + host});
-            candidates.append({MainWindow::tr("Domain and subdomains — *.%1").arg(host),
-                               QStringLiteral("suffix:") + host});
-        }
-        if (!process.isEmpty())
-            candidates.append({MainWindow::tr("This process — %1").arg(process),
-                               QStringLiteral("processName:") + process});
-        if (!processPath.isEmpty())
-            candidates.append({MainWindow::tr("This executable — %1").arg(QFileInfo(processPath).fileName()),
-                               QStringLiteral("processPath:") + processPath});
-        // dest is host:port, and a port makes a poor routing rule on its own.
-        const QString address = dest.contains(QLatin1Char(']'))
-            ? dest.section(QLatin1Char(']'), 0, 0).mid(1)
-            : dest.section(QLatin1Char(':'), 0, 0);
-        if (!address.isEmpty() && !QHostAddress(address).isNull())
-            candidates.append({MainWindow::tr("This address — %1").arg(address),
-                               QStringLiteral("ip:") + address});
-        return candidates;
+QList<RuleCandidate> candidatesFor(const QString &dest, const QString &domain,
+                                   const QString &process, const QString &processPath) {
+    QList<RuleCandidate> candidates;
+    const QString host = domain.isEmpty() ? QString() : domain;
+    if (!host.isEmpty()) {
+        candidates.append({MainWindow::tr("This domain — %1").arg(host),
+                           QStringLiteral("domain:") + host});
+        candidates.append({MainWindow::tr("Domain and subdomains — *.%1").arg(host),
+                           QStringLiteral("suffix:") + host});
     }
+    if (!process.isEmpty())
+        candidates.append({MainWindow::tr("This process — %1").arg(process),
+                           QStringLiteral("processName:") + process});
+    if (!processPath.isEmpty())
+        candidates.append({MainWindow::tr("This executable — %1").arg(QFileInfo(processPath).fileName()),
+                           QStringLiteral("processPath:") + processPath});
+    // dest is host:port, and a port makes a poor routing rule on its own.
+    const QString address = dest.contains(QLatin1Char(']'))
+                                ? dest.section(QLatin1Char(']'), 0, 0).mid(1)
+                                : dest.section(QLatin1Char(':'), 0, 0);
+    if (!address.isEmpty() && !QHostAddress(address).isNull())
+        candidates.append({MainWindow::tr("This address — %1").arg(address),
+                           QStringLiteral("ip:") + address});
+    return candidates;
+}
 
-    struct RuleTarget {
-        Configs::simpleAction action;
-        QString label;
+struct RuleTarget {
+    Configs::simpleAction action;
+    QString label;
+};
+
+QList<RuleTarget> ruleTargets() {
+    return {
+        {Configs::proxy, MainWindow::tr("Through proxy")},
+        {Configs::bypass, MainWindow::tr("Directly")},
+        {Configs::block, MainWindow::tr("Block")},
     };
-
-    QList<RuleTarget> ruleTargets() {
-        return {
-            {Configs::proxy, MainWindow::tr("Through proxy")},
-            {Configs::bypass, MainWindow::tr("Directly")},
-            {Configs::block, MainWindow::tr("Block")},
-        };
-    }
+}
 } // namespace
 
-QString MainWindow::existingRuleAction(const QString &entry) const
-{
+QString MainWindow::existingRuleAction(const QString &entry) const {
     const auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
         Configs::dataManager->settingsRepo->current_route_id);
     if (!profile || profile->isRaw) return {};
-    for (const auto &target : ruleTargets())
+    for (const auto &target: ruleTargets())
         if (profile->GetSimpleRules(target.action).split('\n', Qt::SkipEmptyParts).contains(entry))
             return target.label;
     return {};
 }
 
-void MainWindow::addRuleFromConnection(const QString &entry, int action)
-{
+void MainWindow::addRuleFromConnection(const QString &entry, int action) {
     addRulesFromConnection({entry}, action);
 }
 
-void MainWindow::addRulesFromConnection(const QStringList &entries, int action)
-{
+void MainWindow::addRulesFromConnection(const QStringList &entries, int action) {
     auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
         Configs::dataManager->settingsRepo->current_route_id);
     if (!profile) {
@@ -169,7 +163,7 @@ void MainWindow::addRulesFromConnection(const QStringList &entries, int action)
     const auto simple = static_cast<Configs::simpleAction>(action);
     QStringList current = profile->GetSimpleRules(simple).split('\n', Qt::SkipEmptyParts);
     bool changed = false;
-    for (const auto &entry : entries) {
+    for (const auto &entry: entries) {
         if (entry.isEmpty() || current.contains(entry)) continue;
         current << entry;
         changed = true;
@@ -185,11 +179,10 @@ void MainWindow::addRulesFromConnection(const QStringList &entries, int action)
         profile_start(Configs::dataManager->settingsRepo->started_id);
 }
 
-void MainWindow::showConnectionMenu(const QPoint &pos)
-{
+void MainWindow::showConnectionMenu(const QPoint &pos) {
     const auto index = ui->connections->indexAt(pos);
     if (!index.isValid()) return;
-    const auto* conn = connectionsModel->metaAt(connectionsFilterModel->mapToSource(index).row());
+    const auto *conn = connectionsModel->metaAt(connectionsFilterModel->mapToSource(index).row());
     if (conn == nullptr) return;
     const QString dest = conn->dest;
     const QString domain = conn->domain;
@@ -200,12 +193,13 @@ void MainWindow::showConnectionMenu(const QPoint &pos)
     const QString diagnosticProcess = processPath.isEmpty() ? conn->process : processPath;
     if (!diagnosticProcess.isEmpty()) {
         auto *diagnose = menu.addAction(MaterialIcon::icon(MaterialIcon::Glyph::Search,
-            themeManager()->Colors().accent, 18), tr("Diagnose this application"));
+                                                           themeManager()->Colors().accent, 18),
+                                        tr("Diagnose this application"));
         connect(diagnose, &QAction::triggered, this, [this, diagnosticProcess] { openDiagnostics(diagnosticProcess); });
         menu.addSeparator();
     }
     auto *verdict = menu.addAction(tr("%1 → %2")
-        .arg(domain.isEmpty() ? dest : domain, outbound.isEmpty() ? tr("unknown") : outbound));
+                                       .arg(domain.isEmpty() ? dest : domain, outbound.isEmpty() ? tr("unknown") : outbound));
     verdict->setEnabled(false);
     menu.addSeparator();
 
@@ -214,13 +208,13 @@ void MainWindow::showConnectionMenu(const QPoint &pos)
         auto *none = menu.addAction(tr("Nothing to build a rule from"));
         none->setEnabled(false);
     }
-    for (const auto &candidate : candidates) {
+    for (const auto &candidate: candidates) {
         const QString already = existingRuleAction(candidate.entry);
         auto *submenu = menu.addMenu(already.isEmpty()
-            ? candidate.label
-            : tr("%1  ·  already %2").arg(candidate.label, already.toLower()));
+                                         ? candidate.label
+                                         : tr("%1  ·  already %2").arg(candidate.label, already.toLower()));
         submenu->setToolTip(candidate.entry);
-        for (const auto &target : ruleTargets()) {
+        for (const auto &target: ruleTargets()) {
             auto *action = submenu->addAction(target.label);
             const QString entry = candidate.entry;
             const int simple = target.action;
@@ -244,9 +238,8 @@ void MainWindow::showConnectionMenu(const QPoint &pos)
     menu.exec(ui->connections->viewport()->mapToGlobal(pos));
 }
 
-void MainWindow::restoreConnectionSort()
-{
-    const auto* settings = Configs::dataManager->settingsRepo.get();
+void MainWindow::restoreConnectionSort() {
+    const auto *settings = Configs::dataManager->settingsRepo.get();
     int stored = settings->connection_sort;
     if (stored < Stats::Default || stored > Stats::BySource) return;
     // The Source header is unreachable while its column is hidden, so that sort would be stuck for good.
@@ -255,19 +248,17 @@ void MainWindow::restoreConnectionSort()
     Stats::connection_lister->restoreSort(static_cast<Stats::ConnectionSort>(stored), settings->connection_sort_asc);
 }
 
-void MainWindow::applyConnectionSort(Stats::ConnectionSort sort)
-{
+void MainWindow::applyConnectionSort(Stats::ConnectionSort sort) {
     Stats::connection_lister->setSort(sort);
-    auto* settings = Configs::dataManager->settingsRepo.get();
+    auto *settings = Configs::dataManager->settingsRepo.get();
     settings->connection_sort = Stats::connection_lister->getSort();
     settings->connection_sort_asc = Stats::connection_lister->isSortAscending();
     settings->Save();
     Stats::connection_lister->ForceUpdate();
 }
 
-void MainWindow::setupConnectionFilter()
-{
-    auto* btnFilter = new QToolButton(this);
+void MainWindow::setupConnectionFilter() {
+    auto *btnFilter = new QToolButton(this);
     btnFilter->setObjectName(QStringLiteral("panelIconButton"));
     btnFilter->setToolTip(tr("Enable Filter"));
     btnFilter->setCheckable(true);
@@ -300,15 +291,15 @@ void MainWindow::setupConnectionFilter()
     connect(btnFilter, &QToolButton::toggled, this, retintConnectionTools);
     connect(themeManager(), &ThemeManager::themeChanged, this, retintConnectionTools);
 
-    auto* corner = new QWidget(this);
+    auto *corner = new QWidget(this);
     corner->setProperty("statsPage", ui->connections_tab->objectName());
-    auto* cornerLayout = new QHBoxLayout(corner);
+    auto *cornerLayout = new QHBoxLayout(corner);
     cornerLayout->setContentsMargins(0, 0, 0, 0);
     cornerLayout->setSpacing(2);
     cornerLayout->addWidget(btnFilter);
     cornerLayout->addWidget(connectionCloseAllButton);
     // The log tools already hold this corner, so join them there; taking it would evict them.
-    if (auto* host = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
+    if (auto *host = ui->stats_widget->cornerWidget(Qt::TopRightCorner);
         host != nullptr && host->layout() != nullptr) {
         host->layout()->addWidget(corner);
     } else {
@@ -328,16 +319,14 @@ void MainWindow::setupConnectionFilter()
     connect(connectionFilterHeader, &ConnectionsFilterHeader::filtersChanged, this, [this] { connectionFilterDebounce->start(); });
 }
 
-void MainWindow::applyConnectionFilters()
-{
+void MainWindow::applyConnectionFilters() {
     const auto filters = connectionFilterHeader->filters();
     connectionsFilterModel->setFilters(filters.source, filters.dest, filters.process, filters.protocol,
                                        filters.outbound);
     refreshStatsPanelLabels();
 }
 
-void MainWindow::syncConnectionSourceColumn()
-{
+void MainWindow::syncConnectionSourceColumn() {
     if (connectionsModel == nullptr) return;
     const bool show = LocalNetwork::LanInboundEnabled();
     // refresh_status() drives this on a 2s tick, so bail out unless the state actually flipped.
@@ -355,50 +344,46 @@ void MainWindow::syncConnectionSourceColumn()
 
 // Right-click the Traffic / Speed headers to pick the sub-field they sort by;
 // left-clicking still sorts by total.
-void MainWindow::setupConnectionSortMenu()
-{
-    auto* header = ui->connections->horizontalHeader();
+void MainWindow::setupConnectionSortMenu() {
+    auto *header = ui->connections->horizontalHeader();
     header->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(header, &QWidget::customContextMenuRequested, this, [=,this](const QPoint& pos)
-    {
+    connect(header, &QWidget::customContextMenuRequested, this, [=, this](const QPoint &pos) {
         const int columnIndex = header->logicalIndexAt(pos);
         const bool isTraffic = columnIndex == ConnectionsTableModel::ColTraffic;
         const bool isSpeed = columnIndex == ConnectionsTableModel::ColSpeed;
         if (!isTraffic && !isSpeed) return;
 
-        struct SortOption { Stats::ConnectionSort value; QString label; };
+        struct SortOption {
+            Stats::ConnectionSort value;
+            QString label;
+        };
         const QList<SortOption> options = isTraffic
-            ? QList<SortOption>{
-                { Stats::ByTraffic, tr("Total") },
-                { Stats::ByDownload, tr("Downloaded") },
-                { Stats::ByUpload, tr("Uploaded") } }
-            : QList<SortOption>{
-                { Stats::BySpeed, tr("Total") },
-                { Stats::ByDownloadSpeed, tr("Download Speed") },
-                { Stats::ByUploadSpeed, tr("Upload Speed") } };
+                                              ? QList<SortOption>{
+                                                    {Stats::ByTraffic, tr("Total")},
+                                                    {Stats::ByDownload, tr("Downloaded")},
+                                                    {Stats::ByUpload, tr("Uploaded")}}
+                                              : QList<SortOption>{{Stats::BySpeed, tr("Total")}, {Stats::ByDownloadSpeed, tr("Download Speed")}, {Stats::ByUploadSpeed, tr("Upload Speed")}};
 
         QMenu menu(this);
-        auto* sortByLabel = menu.addAction(tr("Sort By:"));
+        auto *sortByLabel = menu.addAction(tr("Sort By:"));
         sortByLabel->setEnabled(false);
 
         const auto current = Stats::connection_lister->getSort();
-        for (const auto& opt : options)
-        {
-            auto* act = menu.addAction(opt.label);
+        for (const auto &opt: options) {
+            auto *act = menu.addAction(opt.label);
             act->setData(static_cast<int>(opt.value));
             act->setCheckable(true);
             act->setChecked(current == opt.value);
         }
 
-        auto* chosen = menu.exec(header->mapToGlobal(pos));
+        auto *chosen = menu.exec(header->mapToGlobal(pos));
         if (chosen == nullptr || !chosen->data().isValid()) return;
 
         applyConnectionSort(static_cast<Stats::ConnectionSort>(chosen->data().toInt()));
     });
 }
 
-void MainWindow::refreshConnectionCloseIcons()
-{
+void MainWindow::refreshConnectionCloseIcons() {
     // ApplyTheme() fires PaletteChange from the constructor, before setupUi() has built the table.
     if (connectionCloseDelegate == nullptr) return;
 
@@ -412,28 +397,24 @@ void MainWindow::refreshConnectionCloseIcons()
     ui->connections->viewport()->update();
 }
 
-QStringList MainWindow::listedConnectionIds() const
-{
+QStringList MainWindow::listedConnectionIds() const {
     QStringList ids;
     const int rows = connectionsFilterModel->rowCount();
     ids.reserve(rows);
-    for (int row = 0; row < rows; row++)
-    {
+    for (int row = 0; row < rows; row++) {
         const auto id = connectionsFilterModel->index(row, 0).data(ConnectionsTableModel::ConnIdRole).toString();
         if (!id.isEmpty()) ids << id;
     }
     return ids;
 }
 
-void MainWindow::closeConnections(const QStringList& ids)
-{
+void MainWindow::closeConnections(const QStringList &ids) {
     if (ids.isEmpty()) return;
     // Blocks until the core has walked every id, and "close all listed" hands it the whole table.
     runOnNewThread([ids] {
         bool rpcOK = false;
         const auto err = API::defaultClient->CloseConnections(&rpcOK, ids);
-        if (!rpcOK || !err.isEmpty())
-        {
+        if (!rpcOK || !err.isEmpty()) {
             MW_show_log(tr("Failed to close connections: %1").arg(err.isEmpty() ? tr("IPC error") : err));
             return;
         }
@@ -441,15 +422,13 @@ void MainWindow::closeConnections(const QStringList& ids)
     });
 }
 
-void MainWindow::UpdateConnectionList(const QList<Stats::ConnectionMetadata>& connections)
-{
+void MainWindow::UpdateConnectionList(const QList<Stats::ConnectionMetadata> &connections) {
     if (connectionsModel == nullptr) return;
     connectionsModel->setConnections(connections);
     refreshStatsPanelLabels();
 }
 
-void MainWindow::refreshStatsPanelLabels()
-{
+void MainWindow::refreshStatsPanelLabels() {
     const int tab = ui->stats_widget->indexOf(ui->connections_tab);
     if (tab < 0) return;
     const int count = connectionsFilterModel == nullptr ? 0 : connectionsFilterModel->rowCount();
@@ -461,6 +440,6 @@ void MainWindow::refreshStatsPanelLabels()
     // The closed strip has no room for a badge widget, so the number joins the label.
     if (statsConnectionStripCount != nullptr)
         statsConnectionStripCount->setText(countText.isEmpty()
-            ? tr("Connections")
-            : tr("Connections") + QStringLiteral("   ") + countText);
+                                               ? tr("Connections")
+                                               : tr("Connections") + QStringLiteral("   ") + countText);
 }

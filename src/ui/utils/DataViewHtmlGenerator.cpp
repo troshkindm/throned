@@ -136,14 +136,14 @@ QString DataViewHtmlGenerator::speedtestSectionHtml() {
         }
         if (speedtest_.serverName.isEmpty()) return QString("<p style='text-align:center;margin:0;'>%1</p>").arg(firstLine);
         return QString(
-           "<p style='text-align:center;margin:0;'>%1</p>"
-           "<div style='text-align: center;'>"
-           "<span style='color: %7;'>Dl↓ %2</span>  "
-           "<span style='color: %8;'>Ul↑ %3</span>"
-           "</div>"
-           "<p style='text-align:center;margin:0;'>Server: %4%5, %6</p>")
+                   "<p style='text-align:center;margin:0;'>%1</p>"
+                   "<div style='text-align: center;'>"
+                   "<span style='color: %7;'>Dl↓ %2</span>  "
+                   "<span style='color: %8;'>Ul↑ %3</span>"
+                   "</div>"
+                   "<p style='text-align:center;margin:0;'>Server: %4%5, %6</p>")
             .arg(firstLine, speedtest_.dlSpeed, speedtest_.ulSpeed, speedtest_.serverCountryFlag, speedtest_.serverCountry,
-                speedtest_.serverName, themeManager()->Colors().accent.name(), themeManager()->Colors().success.name());
+                 speedtest_.serverName, themeManager()->Colors().accent.name(), themeManager()->Colors().success.name());
     } else {
         QString res;
         auto content = QString("Running Country Test");

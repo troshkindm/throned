@@ -7,7 +7,7 @@
 #include "ui_dialog_basic_settings.h"
 
 namespace Ui {
-    class DialogBasicSettings;
+class DialogBasicSettings;
 }
 
 class QButtonGroup;

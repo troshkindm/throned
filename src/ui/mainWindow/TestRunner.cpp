@@ -18,75 +18,75 @@
 using namespace API;
 
 namespace {
-    // A batch shares one core instance, so this bounds config size, not concurrency.
-    constexpr int kTestBatchSize = 100;
-    constexpr int kLatencyPollIntervalMs = 200;
-    constexpr int kSpeedPollIntervalMs = 100;
-    constexpr int kTrafficFlushIntervalMs = 1000;
+// A batch shares one core instance, so this bounds config size, not concurrency.
+constexpr int kTestBatchSize = 100;
+constexpr int kLatencyPollIntervalMs = 200;
+constexpr int kSpeedPollIntervalMs = 100;
+constexpr int kTrafficFlushIntervalMs = 1000;
 
-    QList<int> withoutAutoSelectors(const QList<int>& profileIDs) {
-        const auto selectors = Configs::dataManager->profilesRepo->GetProfileIdsByType("autoselector");
-        if (selectors.isEmpty()) return profileIDs;
-        const QSet<int> skip(selectors.begin(), selectors.end());
-        QList<int> filtered;
-        filtered.reserve(profileIDs.size());
-        for (int id : profileIDs) {
-            if (!skip.contains(id)) filtered << id;
-        }
-        return filtered;
+QList<int> withoutAutoSelectors(const QList<int>& profileIDs) {
+    const auto selectors = Configs::dataManager->profilesRepo->GetProfileIdsByType("autoselector");
+    if (selectors.isEmpty()) return profileIDs;
+    const QSet<int> skip(selectors.begin(), selectors.end());
+    QList<int> filtered;
+    filtered.reserve(profileIDs.size());
+    for (int id: profileIDs) {
+        if (!skip.contains(id)) filtered << id;
     }
-
-    bool isTestAborted(const QString& error) {
-        return error.contains("test aborted") || error.contains("context canceled");
-    }
-
-    bool isVpnProfile(const std::shared_ptr<Configs::Profile>& ent) {
-        return ent != nullptr && (ent->type == "openvpn" || ent->type == "openconnect");
-    }
-
-    constexpr int kVpnStatusWaitMs = 10000;
-
-    // An empty tag map means a single-profile box, so the result must be `fallback`.
-    int resolveEntID(const QMap<QString, int>& tag2entID, const std::string& tag, int fallback) {
-        if (tag2entID.isEmpty()) return fallback;
-        return tag2entID.value(QString::fromStdString(tag), -1);
-    }
-
-    // Target is deduced, not named: access control applies to naming a private type.
-    template <typename Req, typename Target>
-    void fillCommonTestReq(Req& req, const Target& target) {
-        for (const auto& tag : target.outboundTags) req.outbound_tags.push_back(tag.toStdString());
-        req.config = target.coreConfig.toStdString();
-        req.use_default_outbound = target.useDefaultOutbound;
-        req.xray_config = target.xrayConfig.toStdString();
-        req.need_xray = !target.xrayConfig.isEmpty();
-        req.xray_outbound_dns_strategy = target.xrayDnsStrategy.toStdString();
-        for (const auto& xc : target.xrayFullConfigs) req.xray_full_configs.push_back(xc.toStdString());
-    }
-
-    // Stopping does not join: the poll may itself sit in a 30s RPC and must not stall the batch.
-    class ResultPoller {
-    public:
-        ResultPoller(std::function<void()> tick, int intervalMs)
-            : stop_(std::make_shared<std::atomic<bool>>(false)) {
-            runOnNewThread([stop = stop_, tick = std::move(tick), intervalMs] {
-                while (!stop->load()) {
-                    QThread::msleep(intervalMs);
-                    if (stop->load()) break;
-                    tick();
-                }
-            });
-        }
-
-        ~ResultPoller() { stop_->store(true); }
-
-        ResultPoller(const ResultPoller&) = delete;
-        ResultPoller& operator=(const ResultPoller&) = delete;
-
-    private:
-        std::shared_ptr<std::atomic<bool>> stop_;
-    };
+    return filtered;
 }
+
+bool isTestAborted(const QString& error) {
+    return error.contains("test aborted") || error.contains("context canceled");
+}
+
+bool isVpnProfile(const std::shared_ptr<Configs::Profile>& ent) {
+    return ent != nullptr && (ent->type == "openvpn" || ent->type == "openconnect");
+}
+
+constexpr int kVpnStatusWaitMs = 10000;
+
+// An empty tag map means a single-profile box, so the result must be `fallback`.
+int resolveEntID(const QMap<QString, int>& tag2entID, const std::string& tag, int fallback) {
+    if (tag2entID.isEmpty()) return fallback;
+    return tag2entID.value(QString::fromStdString(tag), -1);
+}
+
+// Target is deduced, not named: access control applies to naming a private type.
+template<typename Req, typename Target>
+void fillCommonTestReq(Req& req, const Target& target) {
+    for (const auto& tag: target.outboundTags) req.outbound_tags.push_back(tag.toStdString());
+    req.config = target.coreConfig.toStdString();
+    req.use_default_outbound = target.useDefaultOutbound;
+    req.xray_config = target.xrayConfig.toStdString();
+    req.need_xray = !target.xrayConfig.isEmpty();
+    req.xray_outbound_dns_strategy = target.xrayDnsStrategy.toStdString();
+    for (const auto& xc: target.xrayFullConfigs) req.xray_full_configs.push_back(xc.toStdString());
+}
+
+// Stopping does not join: the poll may itself sit in a 30s RPC and must not stall the batch.
+class ResultPoller {
+public:
+    ResultPoller(std::function<void()> tick, int intervalMs)
+        : stop_(std::make_shared<std::atomic<bool>>(false)) {
+        runOnNewThread([stop = stop_, tick = std::move(tick), intervalMs] {
+            while (!stop->load()) {
+                QThread::msleep(intervalMs);
+                if (stop->load()) break;
+                tick();
+            }
+        });
+    }
+
+    ~ResultPoller() { stop_->store(true); }
+
+    ResultPoller(const ResultPoller&) = delete;
+    ResultPoller& operator=(const ResultPoller&) = delete;
+
+private:
+    std::shared_ptr<std::atomic<bool>> stop_;
+};
+} // namespace
 
 bool TestRunner::isRunning() {
     if (!session_.tryLock()) return true;
@@ -118,8 +118,7 @@ void TestRunner::applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, co
         ent->SetLatency(res.latency_ms.value());
     } else if (isTestAborted(error)) {
         ent->SetLatency(0);
-    } else if (vpnConnected != nullptr && isVpnProfile(ent)
-               && vpnConnected->value(QString::fromStdString(res.outbound_tag.value()), false)) {
+    } else if (vpnConnected != nullptr && isVpnProfile(ent) && vpnConnected->value(QString::fromStdString(res.outbound_tag.value()), false)) {
         ent->SetLatency(Configs::kLatencyConnectOnly);
     } else {
         ent->SetLatency(-1);
@@ -192,7 +191,7 @@ void TestRunner::runUdpProbe(const Target& target) {
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
-            for (const auto& res : resp.results) {
+            for (const auto& res: resp.results) {
                 mw_->dataViewHtmlGenerator_.addTestProgress();
                 mw_->UpdateDataView();
                 const int entid = resolveEntID(tag2entID, res.outbound_tag.value(), -1);
@@ -205,7 +204,8 @@ void TestRunner::runUdpProbe(const Target& target) {
             if (updated.isEmpty()) return;
             mw_->UpdateDataView(true);
             runOnUiThread([=, this] { mw_->refresh_proxy_list(updated); });
-        }, kLatencyPollIntervalMs);
+        },
+                            kLatencyPollIntervalMs);
 
         result = defaultClient->UDPTest(&rpcOK, req, &coreError);
     }
@@ -215,7 +215,7 @@ void TestRunner::runUdpProbe(const Target& target) {
         return;
     }
 
-    for (const auto& res : result.results) {
+    for (const auto& res: result.results) {
         const int entid = resolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
         if (entid == -1) continue;
         auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
@@ -259,7 +259,7 @@ void TestRunner::runUrlProbe(const Target& target) {
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
-            for (const auto& res : resp.results) {
+            for (const auto& res: resp.results) {
                 mw_->dataViewHtmlGenerator_.addTestProgress();
                 mw_->UpdateDataView();
                 const int entid = resolveEntID(tag2entID, res.outbound_tag.value(), -1);
@@ -272,7 +272,8 @@ void TestRunner::runUrlProbe(const Target& target) {
             if (updated.isEmpty()) return;
             mw_->UpdateDataView(true);
             runOnUiThread([=, this] { mw_->refresh_proxy_list(updated); });
-        }, kLatencyPollIntervalMs);
+        },
+                            kLatencyPollIntervalMs);
 
         result = defaultClient->Test(&rpcOK, req, &coreError);
     }
@@ -284,11 +285,11 @@ void TestRunner::runUrlProbe(const Target& target) {
     }
 
     QHash<QString, bool> vpnConnected;
-    for (const auto& st : result.vpn_status) {
+    for (const auto& st: result.vpn_status) {
         vpnConnected.insert(QString::fromStdString(st.tag.value()), st.connected.value());
     }
 
-    for (const auto& res : result.results) {
+    for (const auto& res: result.results) {
         const int entid = resolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
         if (entid == -1) {
             MW_show_log(MainWindow::tr("Something is very wrong, the subject ent cannot be found!"));
@@ -326,7 +327,7 @@ void TestRunner::runIpProbe(const Target& target) {
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
-            for (const auto& res : resp.results) {
+            for (const auto& res: resp.results) {
                 mw_->dataViewHtmlGenerator_.addTestProgress();
                 mw_->UpdateDataView();
                 const int entid = resolveEntID(tag2entID, res.outbound_tag.value(), -1);
@@ -339,7 +340,8 @@ void TestRunner::runIpProbe(const Target& target) {
             if (updated.isEmpty()) return;
             mw_->UpdateDataView(true);
             runOnUiThread([=, this] { mw_->refresh_proxy_list(updated); });
-        }, kLatencyPollIntervalMs);
+        },
+                            kLatencyPollIntervalMs);
 
         result = defaultClient->IPTest(&rpcOK, req, &coreError);
     }
@@ -349,7 +351,7 @@ void TestRunner::runIpProbe(const Target& target) {
         return;
     }
 
-    for (const auto& res : result.results) {
+    for (const auto& res: result.results) {
         const int entid = resolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
         if (entid == -1) {
             MW_show_log(MainWindow::tr("Something is very wrong, the subject ent cannot be found!"));
@@ -393,8 +395,8 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
     }
     if (!session_.tryLock()) {
         MessageBoxWarning(software_name, isUrl
-            ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
-            : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
+                                             ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
+                                             : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
         finish();
         return;
     }
@@ -425,13 +427,16 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
             const auto probe = [this, isUrl, isUdp, &batchDone](const Target& target) {
                 mw_->parallelCoreCallPool->start([this, isUrl, isUdp, target, &batchDone] {
                     const QSemaphoreReleaser releaser(batchDone);
-                    if (isUrl) runUrlProbe(target);
-                    else if (isUdp) runUdpProbe(target);
-                    else runIpProbe(target);
+                    if (isUrl)
+                        runUrlProbe(target);
+                    else if (isUdp)
+                        runUdpProbe(target);
+                    else
+                        runIpProbe(target);
                 });
             };
 
-            for (const auto& entID : buildObject->fullConfigs.keys()) {
+            for (const auto& entID: buildObject->fullConfigs.keys()) {
                 Target target;
                 target.coreConfig = buildObject->fullConfigs[entID];
                 target.useDefaultOutbound = true;
@@ -450,7 +455,8 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
             }
             batchDone.acquire(testCount);
 
-            MW_show_log(isUrl ? "URL test for batch done." : isUdp ? "UDP test for batch done." : "IP test for batch done.");
+            MW_show_log(isUrl ? "URL test for batch done." : isUdp ? "UDP test for batch done."
+                                                                   : "IP test for batch done.");
             runOnUiThread([=, this] {
                 mw_->refresh_proxy_list(ids);
             });
@@ -477,7 +483,7 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         if (currentGroup != nullptr && currentGroup->auto_clear_unavailable) {
             MW_show_log("URL test finished, clearing unavailable profiles...");
             runOnUiThread([=, this] {
-               mw_->clearUnavailableProfiles(false, profileIDs);
+                mw_->clearUnavailableProfiles(false, profileIDs);
             });
         }
         MW_show_log(isUrl   ? MainWindow::tr("URL test finished!")
@@ -486,8 +492,7 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
     });
 }
 
-void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
-{
+void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent) {
     // A live-connection test stays valid for a selector: it measures whichever member carries traffic.
     const auto profileIDs = testCurrent ? requestedIDs : withoutAutoSelectors(requestedIDs);
     if (profileIDs.isEmpty() && !testCurrent) {
@@ -511,8 +516,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
             pendingTraffic_.clear();
             trafficFlushTimer_.start();
         }
-        if (!testCurrent)
-        {
+        if (!testCurrent) {
             mw_->dataViewHtmlGenerator_.seedSpeedTest(profileIDs.size());
             mw_->UpdateDataView(true);
             auto runBatch = [this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
@@ -549,8 +553,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
                 auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDsSlice);
                 runBatch(profiles);
             }
-        } else
-        {
+        } else {
             mw_->dataViewHtmlGenerator_.seedSpeedTest(1);
             Target target;
             target.testCurrent = true;
@@ -562,15 +565,14 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
         mw_->dataViewHtmlGenerator_.clearTestSections();
         mw_->UpdateDataView(true);
         session_.unlock();
-        runOnUiThread([=,this]{
+        runOnUiThread([=, this] {
             mw_->refresh_proxy_list(profileIDs);
             MW_show_log(MainWindow::tr("Speedtest finished!"));
         });
     });
 }
 
-void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile, const QString& tag, qint64 curUp, qint64 curDown)
-{
+void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile, const QString& tag, qint64 curUp, qint64 curDown) {
     if (profile == nullptr || tag.isEmpty()) return;
     if (Configs::dataManager->settingsRepo->disable_traffic_stats) return;
     bool shouldFlush = false;
@@ -590,34 +592,30 @@ void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile,
         profile->traffic_uplink += dUp;
         profile->traffic_downlink += dDown;
         pendingTraffic_[profile->id] = profile;
-        shouldFlush = !trafficFlushTimer_.isValid()
-            || trafficFlushTimer_.elapsed() >= kTrafficFlushIntervalMs;
+        shouldFlush = !trafficFlushTimer_.isValid() || trafficFlushTimer_.elapsed() >= kTrafficFlushIntervalMs;
     }
     if (shouldFlush) flushTrafficCredits();
 }
 
-void TestRunner::flushTrafficCredits()
-{
+void TestRunner::flushTrafficCredits() {
     // Keep snapshots and writes ordered if the final result races a poll tick.
     QMutexLocker flushLock(&trafficFlushMu_);
     QList<std::shared_ptr<Configs::Profile>> profiles;
     {
         QMutexLocker creditLock(&creditMu_);
         profiles.reserve(pendingTraffic_.size());
-        for (const auto& profile : std::as_const(pendingTraffic_)) profiles.append(profile);
+        for (const auto& profile: std::as_const(pendingTraffic_)) profiles.append(profile);
         pendingTraffic_.clear();
         trafficFlushTimer_.restart();
     }
     if (!profiles.isEmpty()) Configs::dataManager->profilesRepo->SaveTrafficBatch(profiles);
 }
 
-void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen)
-{
+void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen) {
     bool ok = false;
     const auto res = defaultClient->QueryCurrentSpeedTests(&ok);
     if (staleGen(gen)) return;
-    if (!ok || !res.is_running.value())
-    {
+    if (!ok || !res.is_running.value()) {
         return;
     }
     const libcore::SpeedTestResult result = res.result.value();
@@ -625,18 +623,15 @@ void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCur
     // value(tag, -1), not operator[]: a const QMap yields 0 for a missing key.
     auto profile = testCurrent ? mw_->running
                                : Configs::dataManager->profilesRepo->GetProfile(tag2entID.value(tag, -1));
-    if (profile == nullptr)
-    {
+    if (profile == nullptr) {
         return;
     }
     creditTraffic(profile, tag, result.ul_bytes.value(), result.dl_bytes.value());
-    runOnUiThread([this, profile, result]
-    {
+    runOnUiThread([this, profile, result] {
         mw_->dataViewHtmlGenerator_.setSpeedtestProgress(profile->outbound->name, result);
         mw_->UpdateDataView();
 
-        if (result.error.value().empty() && !result.cancelled.value())
-        {
+        if (result.error.value().empty() && !result.cancelled.value()) {
             if (!result.dl_speed.value().empty()) profile->dl_speed = QString::fromStdString(result.dl_speed.value());
             if (!result.ul_speed.value().empty()) profile->ul_speed = QString::fromStdString(result.ul_speed.value());
             if (profile->latency <= 0 && result.latency.value() > 0) profile->SetLatency(result.latency.value());
@@ -646,30 +641,24 @@ void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCur
     });
 }
 
-void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen)
-{
+void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen) {
     bool ok = false;
     const auto res = defaultClient->QueryCountryTestResults(&ok);
     if (staleGen(gen)) return;
-    if (!ok || res.results.empty())
-    {
+    if (!ok || res.results.empty()) {
         return;
     }
-    for (const auto& result : res.results)
-    {
+    for (const auto& result: res.results) {
         mw_->dataViewHtmlGenerator_.addTestProgress();
         mw_->UpdateDataView();
         const auto tag = QString::fromStdString(result.outbound_tag.value());
         auto profile = testCurrent ? mw_->running
                                    : Configs::dataManager->profilesRepo->GetProfile(tag2entID.value(tag, -1));
-        if (profile == nullptr)
-        {
+        if (profile == nullptr) {
             continue;
         }
-        runOnUiThread([this, profile, result]
-        {
-            if (result.error.value().empty() && !result.cancelled.value())
-            {
+        runOnUiThread([this, profile, result] {
+            if (result.error.value().empty() && !result.cancelled.value()) {
                 if (profile->latency <= 0 && result.latency.value() > 0) profile->SetLatency(result.latency.value());
                 if (!result.server_country.value().empty()) profile->test_country = CountryNameToCode(QString::fromStdString(result.server_country.value()));
                 mw_->refresh_proxy_list({profile->id});
@@ -679,8 +668,7 @@ void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testC
     mw_->UpdateDataView(true);
 }
 
-void TestRunner::runSpeedProbe(const Target& target)
-{
+void TestRunner::runSpeedProbe(const Target& target) {
     if (stopRequested_.load()) {
         MW_show_log(MainWindow::tr("Profile speed test aborted"));
         return;
@@ -716,9 +704,12 @@ void TestRunner::runSpeedProbe(const Target& target)
     {
         ResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, testCurrent = target.testCurrent, speedtestConf] {
             if (staleGen(gen)) return;
-            if (speedtestConf == Configs::TestConfig::COUNTRY) pollCountryTest(tag2entID, testCurrent, gen);
-            else pollSpeedTest(tag2entID, testCurrent, gen);
-        }, kSpeedPollIntervalMs);
+            if (speedtestConf == Configs::TestConfig::COUNTRY)
+                pollCountryTest(tag2entID, testCurrent, gen);
+            else
+                pollSpeedTest(tag2entID, testCurrent, gen);
+        },
+                            kSpeedPollIntervalMs);
 
         result = defaultClient->SpeedTest(&rpcOK, req, &coreError);
     }
@@ -730,7 +721,7 @@ void TestRunner::runSpeedProbe(const Target& target)
         return;
     }
 
-    for (const auto& res : result.results) {
+    for (const auto& res: result.results) {
         // An xray-full config is its own box with no tag map, so it must be entID.
         const int entid = target.testCurrent
                               ? (mw_->running ? mw_->running->id : -1)
@@ -768,10 +759,9 @@ void TestRunner::runSpeedProbe(const Target& target)
     }
 }
 
-
 QList<TestRunner::SiteTarget> TestRunner::configuredSites() {
     QList<SiteTarget> sites;
-    for (const auto& line : Configs::dataManager->settingsRepo->site_test_targets) {
+    for (const auto& line: Configs::dataManager->settingsRepo->site_test_targets) {
         const auto entry = line.trimmed();
         if (entry.isEmpty() || entry.startsWith(QLatin1Char('#'))) continue;
         const int bar = entry.indexOf(QLatin1Char('|'));
@@ -790,8 +780,8 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
     const auto sites = configuredSites();
     const auto profileIDs = withoutAutoSelectors(requestedIDs);
     SiteReport initialReport;
-    for (const auto& site : sites) initialReport.sites << site.name;
-    for (const int id : requestedIDs) {
+    for (const auto& site: sites) initialReport.sites << site.name;
+    for (const int id: requestedIDs) {
         if (!profileIDs.contains(id)) initialReport.skipped << id;
     }
     if (sites.isEmpty() || profileIDs.isEmpty()) {
@@ -801,7 +791,7 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
     }
     if (!session_.tryLock()) {
         MessageBoxWarning(software_name, MainWindow::tr(
-            "The last test did not exit completely, please wait. If it persists, please restart the program."));
+                                             "The last test did not exit completely, please wait. If it persists, please restart the program."));
         initialReport.error = MainWindow::tr("Another test is still running. Wait for it to finish.");
         if (onFinished) onFinished(initialReport);
         return;
@@ -819,14 +809,14 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
             auto buildObject = Configs::BuildTestConfig(profiles);
             if (!buildObject->error.isEmpty()) {
                 MW_show_log(MainWindow::tr("Failed to build test config for batch: ") + buildObject->error);
-                for (const int id : slice) report.errors.insert(id, buildObject->error);
+                for (const int id: slice) report.errors.insert(id, buildObject->error);
                 continue;
             }
 
             // Same split the other tests use: a full config is its own box, everything
             // else shares one and is told apart by outbound tag.
             QList<Target> targets;
-            for (const auto& entID : buildObject->fullConfigs.keys()) {
+            for (const auto& entID: buildObject->fullConfigs.keys()) {
                 Target target;
                 target.coreConfig = buildObject->fullConfigs[entID];
                 target.useDefaultOutbound = true;
@@ -846,7 +836,7 @@ void TestRunner::runSiteTests(const QList<int>& requestedIDs,
 
             QSemaphore batchDone;
             QMutex reportMutex;
-            for (const auto& target : targets) {
+            for (const auto& target: targets) {
                 mw_->parallelCoreCallPool->start([this, target, sites, &batchDone, &reportMutex, &report] {
                     const QSemaphoreReleaser releaser(batchDone);
                     runSiteProbe(target, sites, reportMutex, report);
@@ -869,7 +859,7 @@ void TestRunner::runSiteProbe(const Target& target, const QList<SiteTarget>& sit
     fillCommonTestReq(req, target);
     req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
     req.test_timeout_ms = Configs::dataManager->settingsRepo->site_test_timeout_ms;
-    for (const auto& site : sites) {
+    for (const auto& site: sites) {
         libcore::SiteTarget entry;
         entry.name = site.name.toStdString();
         entry.url = site.url.toStdString();
@@ -884,12 +874,14 @@ void TestRunner::runSiteProbe(const Target& target, const QList<SiteTarget>& sit
         if (coreError.isEmpty()) coreError = MainWindow::tr("The core did not return site test results.");
         MW_show_log(MainWindow::tr("Site test failed: %1").arg(coreError));
         const QMutexLocker lock(&reportMutex);
-        if (target.tag2entID.isEmpty()) report.errors.insert(target.entID, coreError);
-        else for (const int id : target.tag2entID) report.errors.insert(id, coreError);
+        if (target.tag2entID.isEmpty())
+            report.errors.insert(target.entID, coreError);
+        else
+            for (const int id: target.tag2entID) report.errors.insert(id, coreError);
         return;
     }
 
-    for (const auto& res : result.results) {
+    for (const auto& res: result.results) {
         const int entid = resolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
         if (entid == -1) continue;
         if (!res.error.value().empty()) {
@@ -956,7 +948,7 @@ void TestRunner::runDiagnostics(int profileID) {
         }
 
         QStringList lines;
-        for (const auto &step : result.results) {
+        for (const auto& step: result.results) {
             const auto label = QString::fromStdString(step.outbound_tag.value());
             const auto error = QString::fromStdString(step.error.value());
             lines << QString("%1  %2  %3 ms%4")
@@ -970,7 +962,7 @@ void TestRunner::runDiagnostics(int profileID) {
         const auto report = lines.join("\n");
         MW_show_log(MainWindow::tr("[%1] diagnostics:").arg(title) + "\n" + report);
         runOnUiThread([title, report] {
-            auto *box = new QMessageBox(QMessageBox::NoIcon, MainWindow::tr("Diagnostics: %1").arg(title),
+            auto* box = new QMessageBox(QMessageBox::NoIcon, MainWindow::tr("Diagnostics: %1").arg(title),
                                         MainWindow::tr("Each stage of the path, in order. The first failure is the cause."),
                                         QMessageBox::Close, GetMessageBoxParent());
             box->setAttribute(Qt::WA_DeleteOnClose);

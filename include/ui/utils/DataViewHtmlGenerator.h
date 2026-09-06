@@ -15,7 +15,8 @@ public:
     };
 
     struct SpeedtestPanelState {
-        enum class Kind { Speed, Country };
+        enum class Kind { Speed,
+                          Country };
         bool visible = false;
         Kind kind = Kind::Speed;
         QString profileName;
@@ -28,7 +29,9 @@ public:
     };
 
     struct LatencyTestPanelState {
-        enum class Kind { Url, Ip, Udp };
+        enum class Kind { Url,
+                          Ip,
+                          Udp };
         bool visible = false;
         Kind kind = Kind::Url;
         int totalProfiles = 0;

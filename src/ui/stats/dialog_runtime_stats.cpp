@@ -31,17 +31,17 @@
 #include <algorithm>
 
 namespace {
-    const QColor kRuntimeThroneColor = Stats::kStatsAccentColor;
-    const QColor kRuntimeCoreColor = Stats::kStatsHealthyColor;
+const QColor kRuntimeThroneColor = Stats::kStatsAccentColor;
+const QColor kRuntimeCoreColor = Stats::kStatsHealthyColor;
 
-    QString formatCpu(const Sys::ProcessMetrics::Sample& s) {
-        return s.ok ? QString::number(s.cpuPercent, 'f', 1) + QStringLiteral("%") : QStringLiteral("—");
-    }
-
-    QString formatRam(const Sys::ProcessMetrics::Sample& s) {
-        return s.ok ? ReadableSize(s.rssBytes) : QStringLiteral("—");
-    }
+QString formatCpu(const Sys::ProcessMetrics::Sample& s) {
+    return s.ok ? QString::number(s.cpuPercent, 'f', 1) + QStringLiteral("%") : QStringLiteral("—");
 }
+
+QString formatRam(const Sys::ProcessMetrics::Sample& s) {
+    return s.ok ? ReadableSize(s.rssBytes) : QStringLiteral("—");
+}
+} // namespace
 
 DialogRuntimeStats::DialogRuntimeStats(QWidget* parent) : QDialog(parent), ui(new Ui::DialogRuntimeStats) {
     ui->setupUi(this);
@@ -122,8 +122,8 @@ void DialogRuntimeStats::refreshLive() {
     const auto nextUpd = [](int interval, qint64 last) -> QString {
         if (interval < 30) return DialogRuntimeStats::tr("Disabled");
         const qint64 remaining = last > 0
-            ? last + static_cast<qint64>(interval) * 60 - QDateTime::currentSecsSinceEpoch()
-            : 0;
+                                     ? last + static_cast<qint64>(interval) * 60 - QDateTime::currentSecsSinceEpoch()
+                                     : 0;
         if (remaining <= 0) return DialogRuntimeStats::tr("Due now");
         return DialogRuntimeStats::tr("in %1").arg(Stats::HumanizeDuration(remaining));
     };
@@ -133,7 +133,7 @@ void DialogRuntimeStats::refreshLive() {
 
     qint64 dbBytes = 0;
     const QDir dir(QDir::currentPath());
-    for (const QFileInfo& fi : dir.entryInfoList(QStringList{QStringLiteral("throne*.db*")}, QDir::Files))
+    for (const QFileInfo& fi: dir.entryInfoList(QStringList{QStringLiteral("throne*.db*")}, QDir::Files))
         dbBytes += fi.size();
     ui->vDbSize->setText(ReadableSize(dbBytes));
 
@@ -167,11 +167,13 @@ void DialogRuntimeStats::refreshLive() {
         runOnNewThread([self]() {
             const auto conns = API::defaultClient->QueryConnections();
             int tcp = 0, udp = 0, total = 0;
-            for (const auto& c : conns.active) {
+            for (const auto& c: conns.active) {
                 ++total;
                 const QString net = QString::fromStdString(c.network.value());
-                if (net == QStringLiteral("tcp")) ++tcp;
-                else if (net == QStringLiteral("udp")) ++udp;
+                if (net == QStringLiteral("tcp"))
+                    ++tcp;
+                else if (net == QStringLiteral("udp"))
+                    ++udp;
             }
             runOnUiThread([self, tcp, udp, total]() {
                 if (!self) return;
@@ -191,7 +193,7 @@ void DialogRuntimeStats::refreshLive() {
             QList<Stats::VpnEndpointView> views;
             if (ok) {
                 views.reserve(static_cast<qsizetype>(status.results.size()));
-                for (const auto& result : status.results) views << Stats::MakeVpnEndpointView(result);
+                for (const auto& result: status.results) views << Stats::MakeVpnEndpointView(result);
             }
             runOnUiThread([self, views]() {
                 if (!self) return;
@@ -239,7 +241,7 @@ void DialogRuntimeStats::applyEndpoints(const QList<Stats::VpnEndpointView>& vie
 
     QStringList tags;
     tags.reserve(views.size());
-    for (const auto& view : views) tags << view.tag;
+    for (const auto& view: views) tags << view.tag;
 
     ui->groupEndpoints->setVisible(true);
 
@@ -260,8 +262,10 @@ void DialogRuntimeStats::applyEndpoints(const QList<Stats::VpnEndpointView>& vie
             table->setCellWidget(row, 2, details);
         }
         const auto keptRow = static_cast<int>(tags.indexOf(keep));
-        if (!keep.isEmpty() && keptRow >= 0) table->selectRow(keptRow);
-        else if (!keep.isEmpty()) table->clearSelection();
+        if (!keep.isEmpty() && keptRow >= 0)
+            table->selectRow(keptRow);
+        else if (!keep.isEmpty())
+            table->clearSelection();
     }
 
     for (int row = 0; row < views.size(); row++) {
@@ -280,8 +284,10 @@ void DialogRuntimeStats::applyEndpoints(const QList<Stats::VpnEndpointView>& vie
                                         [this](const Stats::VpnEndpointView& view) {
                                             return view.tag == details_->tag();
                                         });
-        if (found != views.cend()) details_->applyStatus(*found);
-        else details_->markGone();
+        if (found != views.cend())
+            details_->applyStatus(*found);
+        else
+            details_->markGone();
     }
 
     if (!endpointsGrown_) {

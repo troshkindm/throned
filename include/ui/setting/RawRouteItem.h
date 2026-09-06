@@ -14,7 +14,7 @@ class QCompleter;
 class QLabel;
 
 namespace JsonEdit {
-    class JsonIssueList;
+class JsonIssueList;
 }
 
 class RawRouteEdit : public JsonEdit::JsonCodeEdit {

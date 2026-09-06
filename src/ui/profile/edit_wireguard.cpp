@@ -4,7 +4,7 @@
 #include "include/configs/sub/warp.h"
 #include "include/global/Utils.hpp"
 
-EditWireguard::EditWireguard(QWidget *parent) : QWidget(parent), ui(new Ui::EditWireguard) {
+EditWireguard::EditWireguard(QWidget* parent) : QWidget(parent), ui(new Ui::EditWireguard) {
     ui->setupUi(this);
 
     connect(ui->amnezia_options, &QPushButton::clicked, this, [=, this] {
@@ -50,7 +50,8 @@ EditWireguard::EditWireguard(QWidget *parent) : QWidget(parent), ui(new Ui::Edit
         setTimeout([=, this] {
             ui->warp_autogen->setText(originalText);
             ui->warp_autogen->setEnabled(true);
-        }, this, 2000);
+        },
+                   this, 2000);
     });
 }
 

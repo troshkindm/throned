@@ -54,8 +54,7 @@ QString chevronAssetPath(const QColor &color, const QString &skinId) {
     const QString dir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     if (dir.isEmpty() || !QDir().mkpath(dir)) return {};
     const QString path = dir + QStringLiteral("/chevron-down-") + key + QStringLiteral(".png");
-    if (!QFileInfo::exists(path)
-        && !MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronDown, color, 28).save(path, "PNG")) return {};
+    if (!QFileInfo::exists(path) && !MaterialIcon::pixmap(MaterialIcon::Glyph::ChevronDown, color, 28).save(path, "PNG")) return {};
     generated.insert(key, path);
     return path;
 }
@@ -70,16 +69,20 @@ public:
                        QPainter *painter, const QWidget *widget) const override {
         if (element == PE_IndicatorArrowDown || element == PE_IndicatorArrowUp) {
             const auto colors = themeManager()->Colors();
-            const QColor color = !option->state.testFlag(State_Enabled) ? colors.textSubtle
-                : option->state.testFlag(State_MouseOver) ? colors.text : colors.textMuted;
+            const QColor color = !option->state.testFlag(State_Enabled)    ? colors.textSubtle
+                                 : option->state.testFlag(State_MouseOver) ? colors.text
+                                                                           : colors.textMuted;
             // The glyph carries padding inside its box, so it is drawn a little larger
             // than the slot the style hands us or it reads as a speck.
             const int side = qBound(10, qMin(option->rect.width(), option->rect.height()) + 3, 18);
             if (option->rect.width() >= 7 && option->rect.height() >= 7) {
                 const QPixmap glyph = MaterialIcon::pixmap(element == PE_IndicatorArrowDown
-                    ? MaterialIcon::Glyph::ChevronDown : MaterialIcon::Glyph::ChevronUp, color, side);
+                                                               ? MaterialIcon::Glyph::ChevronDown
+                                                               : MaterialIcon::Glyph::ChevronUp,
+                                                           color, side);
                 painter->drawPixmap(alignedRect(option->direction, Qt::AlignCenter,
-                    glyph.deviceIndependentSize().toSize(), option->rect), glyph);
+                                                glyph.deviceIndependentSize().toSize(), option->rect),
+                                    glyph);
                 return;
             }
         }
@@ -96,7 +99,7 @@ struct ThemeColors {
     QColor button, buttonText;
     QColor brightText;
     QColor highlight, highlightedText;
-    QColor link;            // paints the active/running config row
+    QColor link; // paints the active/running config row
     QColor tooltipBase, tooltipText;
     QColor placeholder;
     QColor disabledText;
@@ -111,35 +114,35 @@ static QPalette buildThemePalette(const ThemeColors &c) {
         p.setColor(QPalette::Disabled, role, col);
     };
 
-    setAll(QPalette::Window,          c.window);
-    setAll(QPalette::WindowText,      c.windowText);
-    setAll(QPalette::Base,            c.base);
-    setAll(QPalette::AlternateBase,   c.alternateBase);
-    setAll(QPalette::Text,            c.text);
-    setAll(QPalette::Button,          c.button);
-    setAll(QPalette::ButtonText,      c.buttonText);
-    setAll(QPalette::BrightText,      c.brightText);
-    setAll(QPalette::ToolTipBase,     c.tooltipBase);
-    setAll(QPalette::ToolTipText,     c.tooltipText);
-    setAll(QPalette::Highlight,       c.highlight);
+    setAll(QPalette::Window, c.window);
+    setAll(QPalette::WindowText, c.windowText);
+    setAll(QPalette::Base, c.base);
+    setAll(QPalette::AlternateBase, c.alternateBase);
+    setAll(QPalette::Text, c.text);
+    setAll(QPalette::Button, c.button);
+    setAll(QPalette::ButtonText, c.buttonText);
+    setAll(QPalette::BrightText, c.brightText);
+    setAll(QPalette::ToolTipBase, c.tooltipBase);
+    setAll(QPalette::ToolTipText, c.tooltipText);
+    setAll(QPalette::Highlight, c.highlight);
     setAll(QPalette::HighlightedText, c.highlightedText);
-    setAll(QPalette::Link,            c.link);
-    setAll(QPalette::LinkVisited,     c.link);
+    setAll(QPalette::Link, c.link);
+    setAll(QPalette::LinkVisited, c.link);
     setAll(QPalette::PlaceholderText, c.placeholder);
 
     // Frames and bevels the stylesheet doesn't cover fall back to Qt's light defaults otherwise.
-    setAll(QPalette::Light,    c.button.lighter(130));
+    setAll(QPalette::Light, c.button.lighter(130));
     setAll(QPalette::Midlight, c.button.lighter(115));
-    setAll(QPalette::Mid,      c.button.darker(130));
-    setAll(QPalette::Dark,     c.button.darker(160));
-    setAll(QPalette::Shadow,   c.window.darker(180));
+    setAll(QPalette::Mid, c.button.darker(130));
+    setAll(QPalette::Dark, c.button.darker(160));
+    setAll(QPalette::Shadow, c.window.darker(180));
 
     // Must follow setAll(), which wrote the Disabled group too.
-    p.setColor(QPalette::Disabled, QPalette::WindowText,      c.disabledText);
-    p.setColor(QPalette::Disabled, QPalette::Text,            c.disabledText);
-    p.setColor(QPalette::Disabled, QPalette::ButtonText,      c.disabledText);
+    p.setColor(QPalette::Disabled, QPalette::WindowText, c.disabledText);
+    p.setColor(QPalette::Disabled, QPalette::Text, c.disabledText);
+    p.setColor(QPalette::Disabled, QPalette::ButtonText, c.disabledText);
     p.setColor(QPalette::Disabled, QPalette::HighlightedText, c.disabledText);
-    p.setColor(QPalette::Disabled, QPalette::Link,            c.disabledText);
+    p.setColor(QPalette::Disabled, QPalette::Link, c.disabledText);
 
     return p;
 }
@@ -156,7 +159,8 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     if (qApp != nullptr) {
         const ThronedSkin *skin = Skin(theme);
         const QString family = skin != nullptr && !skin->fontFamily.isEmpty()
-            ? skin->fontFamily : base_font_family;
+                                   ? skin->fontFamily
+                                   : base_font_family;
         if (!family.isEmpty() && qApp->font().family() != family) {
             QFont font = qApp->font();
             font.setFamily(family);
@@ -178,15 +182,21 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         qApp->setStyle(new ThronedStyle(QStyleFactory::create(QStringLiteral("Fusion"))));
         const auto colors = Colors(theme);
         qApp->setPalette(buildThemePalette({
-            .window = colors.window, .windowText = colors.text,
-            .base = colors.surface, .alternateBase = colors.surfaceRaised,
+            .window = colors.window,
+            .windowText = colors.text,
+            .base = colors.surface,
+            .alternateBase = colors.surfaceRaised,
             .text = colors.text,
-            .button = colors.surfaceRaised, .buttonText = colors.text,
+            .button = colors.surfaceRaised,
+            .buttonText = colors.text,
             .brightText = QColor(Qt::white),
-            .highlight = colors.accent, .highlightedText = QColor(Qt::white),
+            .highlight = colors.accent,
+            .highlightedText = QColor(Qt::white),
             .link = colors.accent,
-            .tooltipBase = colors.surfaceRaised, .tooltipText = colors.text,
-            .placeholder = colors.textSubtle, .disabledText = colors.textSubtle,
+            .tooltipBase = colors.surfaceRaised,
+            .tooltipText = colors.text,
+            .placeholder = colors.textSubtle,
+            .disabledText = colors.textSubtle,
         }));
         qApp->setStyleSheet({});
     } else if (lowerTheme == "system") {
@@ -224,12 +234,12 @@ void ThemeManager::LoadSkins() {
         roots << base;
     }
     QFileInfoList entries;
-    for (const QString &path : roots) {
+    for (const QString &path: roots) {
         if (QDir root(path); root.exists())
             entries << root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
     }
 
-    for (const QFileInfo &entry : entries) {
+    for (const QFileInfo &entry: entries) {
         QFile manifest(entry.absoluteFilePath() + QStringLiteral("/skin.json"));
         if (!manifest.open(QIODevice::ReadOnly)) continue;
         QJsonParseError error{};
@@ -287,7 +297,7 @@ const ThronedSkin *ThemeManager::Skin(const QString &theme) const {
 
 QStringList ThemeManager::ThronedThemes() const {
     QStringList themes = ThronedPalette::ThemeNames();
-    for (const auto &skin : skins) themes << skin.name;
+    for (const auto &skin: skins) themes << skin.name;
     themes << QStringLiteral("System");
     return themes;
 }
@@ -305,7 +315,8 @@ ThronedThemeColors ThemeManager::Colors(const QString &theme) const {
     // System/legacy themes still get a coherent semantic palette derived from
     // their live QPalette, so every redesigned screen follows the selection.
     const QPalette palette = requested == QStringLiteral("system") && !system_style_name.isEmpty()
-        ? system_palette : (qApp ? qApp->palette() : QPalette());
+                                 ? system_palette
+                                 : (qApp ? qApp->palette() : QPalette());
     const QColor window = palette.color(QPalette::Window);
     const QColor surface = palette.color(QPalette::Base);
     const QColor raised = palette.color(QPalette::Button);
@@ -341,8 +352,7 @@ ThronedThemeColors ThemeManager::Colors(const QString &theme) const {
 bool ThemeManager::IsDarkTheme(const QString &theme) const {
     const QString lower = theme.toLower();
     if (lower.contains(QStringLiteral("qdarkstyle")) || lower.contains(QStringLiteral("blacksoft"))) return true;
-    if (lower.contains(QStringLiteral("flatgray")) || lower.contains(QStringLiteral("lightblue"))
-        || lower.contains(QStringLiteral("softpink")) || lower.contains(QStringLiteral("vista"))) return false;
+    if (lower.contains(QStringLiteral("flatgray")) || lower.contains(QStringLiteral("lightblue")) || lower.contains(QStringLiteral("softpink")) || lower.contains(QStringLiteral("vista"))) return false;
     return Colors(theme).dark;
 }
 
@@ -390,7 +400,7 @@ void ThemeManager::RegisterStyle(QWidget *widget, const QString &styleSheetTempl
 
 void ThemeManager::RefreshRegisteredStyles() const {
     if (!qApp) return;
-    for (QWidget *widget : qApp->allWidgets()) {
+    for (QWidget *widget: qApp->allWidgets()) {
         const QVariant styleTemplate = widget->property(StyleTemplateProperty.toUtf8().constData());
         if (styleTemplate.isValid()) widget->setStyleSheet(ResolveStyleSheet(styleTemplate.toString()));
     }

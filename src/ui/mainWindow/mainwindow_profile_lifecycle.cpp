@@ -96,7 +96,7 @@ int MainWindow::get_profile_to_start() {
     return -1;
 }
 
-bool MainWindow::handleXrayGeoAssetError(const QString& error, const QString& contextName) {
+bool MainWindow::handleXrayGeoAssetError(const QString &error, const QString &contextName) {
     // Both "failed to open geoip.dat" and "failed to load code cn ...: EOF" arrive here.
     const bool refGeoip = error.contains("geoip.dat");
     const bool refGeosite = error.contains("geosite.dat");
@@ -122,8 +122,8 @@ bool MainWindow::handleXrayGeoAssetError(const QString& error, const QString& co
                 const auto m = re.match(error);
                 if (m.hasMatch()) category = m.captured(1);
                 const QString needed = category.isEmpty()
-                    ? tr("a required category")
-                    : QStringLiteral("%1:%2").arg(ruleType, category);
+                                           ? tr("a required category")
+                                           : QStringLiteral("%1:%2").arg(ruleType, category);
 
                 MessageBoxWarning(
                     tr("Geo asset missing category"),
@@ -139,9 +139,10 @@ bool MainWindow::handleXrayGeoAssetError(const QString& error, const QString& co
             }
 
             if (QMessageBox::question(this, tr("Geo asset files required"),
-                    tr("The Xray config \"%1\" uses geoip/geosite routing rules, but the "
-                       "required data files (geoip.dat / geosite.dat) are not installed.\n\n"
-                       "Download them now?").arg(contextName)) != QMessageBox::Yes) {
+                                      tr("The Xray config \"%1\" uses geoip/geosite routing rules, but the "
+                                         "required data files (geoip.dat / geosite.dat) are not installed.\n\n"
+                                         "Download them now?")
+                                          .arg(contextName)) != QMessageBox::Yes) {
                 m_xrayGeoAssetBusy = false;
                 return;
             }
@@ -164,12 +165,13 @@ bool MainWindow::handleXrayGeoAssetError(const QString& error, const QString& co
                     } else {
                         MW_show_log(tr("Downloaded Xray geo asset files."));
                         QMessageBox::information(this, tr("Geo assets installed"),
-                            tr("Geo data files were downloaded successfully.\n\n"
-                               "Please try again."));
+                                                 tr("Geo data files were downloaded successfully.\n\n"
+                                                    "Please try again."));
                     }
                 });
             });
-        }, this, 300);
+        },
+                   this, 300);
     });
     return true;
 }
@@ -243,7 +245,7 @@ void MainWindow::profile_start(int _id) {
             xrayConfigs << QJsonObject2QString(result->xrayConfig, true);
         }
         xrayConfigs.append(result->xrayFullConfigs);
-        for (const auto &xrayConfig : xrayConfigs) {
+        for (const auto &xrayConfig: xrayConfigs) {
             bool rpcOK = false;
             const QString checkError = defaultClient->CheckConfig(&rpcOK, xrayConfig, true);
             if (rpcOK && handleXrayGeoAssetError(checkError, ent->outbound->DisplayTypeAndName())) {
@@ -259,7 +261,7 @@ void MainWindow::profile_start(int _id) {
         req.disable_stats = Configs::dataManager->settingsRepo->disable_traffic_stats;
         req.xray_config = QJsonObject2QString(result->xrayConfig, true).toStdString();
         req.need_xray = !result->xrayConfig.isEmpty();
-        for (const auto &full : result->xrayFullConfigs) req.xray_full_configs.push_back(full.toStdString());
+        for (const auto &full: result->xrayFullConfigs) req.xray_full_configs.push_back(full.toStdString());
         if (req.need_xray || !req.xray_full_configs.empty()) {
             // Wired in the core, not the config: Xray resolves in-process through the box's dns-direct.
             req.xray_outbound_dns_strategy = Configs::getXrayOutboundDomainStrategy().toStdString();
@@ -271,8 +273,7 @@ void MainWindow::profile_start(int _id) {
                 req.xray_full_idle_seconds = 0;
             }
         }
-        if (!result->extraCoreData->path.isEmpty())
-        {
+        if (!result->extraCoreData->path.isEmpty()) {
             req.need_extra_process = true;
             req.extra_process_path = result->extraCoreData->path.toStdString();
             req.extra_process_args = result->extraCoreData->args.toStdString();
@@ -295,20 +296,19 @@ void MainWindow::profile_start(int _id) {
                         tr("Strict routing unavailable"),
                         tr("Windows could not enable strict routing. Open Tun Settings, "
                            "disable Strict Route, and start the profile again.\n\n"
-                           "Disabling Strict Route may cause DNS leaks.\n\nError: %1").arg(error));
+                           "Disabling Strict Route may cause DNS leaks.\n\nError: %1")
+                            .arg(error));
                 });
                 return false;
             }
             if (error.contains("configure tun interface")) {
                 runOnUiThread([=, this] {
-
                     QMessageBox msg(
                         QMessageBox::Information,
                         tr("Tun device misbehaving"),
                         tr("If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1").arg(error),
                         QMessageBox::NoButton,
-                        this
-                    );
+                        this);
                     auto reset = msg.addButton(tr("Reset"), QMessageBox::ActionRole);
                     auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
 
@@ -341,11 +341,11 @@ void MainWindow::profile_start(int _id) {
         Stats::connection_lister->suspend = false;
         Stats::autoSelectorMonitor->SetBuild(result->autoSelectors);
         if (!result->autoSelectors.isEmpty()) {
-            const auto& info = result->autoSelectors.first();
+            const auto &info = result->autoSelectors.first();
             if (auto selector = ent->AutoSelector(); selector != nullptr) {
                 QList<int> builtIDs;
                 QHash<int, QString> names;
-                for (const auto& [tag, member] : info.members) {
+                for (const auto &[tag, member]: info.members) {
                     if (member == nullptr) continue;
                     builtIDs << member->id;
                     names.insert(member->id, member->outbound ? member->outbound->DisplayName() : member->name);
@@ -423,8 +423,8 @@ void MainWindow::profile_start(int _id) {
     }
 
     const auto restartMsgbox = new QMessageBox(QMessageBox::Question, software_name, tr("If there is no response for a long time, it is recommended to restart the software."),
-                                         QMessageBox::Yes | QMessageBox::No, this);
-    connect(restartMsgbox, &QMessageBox::accepted, this, [=,this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
+                                               QMessageBox::Yes | QMessageBox::No, this);
+    connect(restartMsgbox, &QMessageBox::accepted, this, [=, this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
     const auto restartMsgboxTimer = new MessageBoxTimer(this, restartMsgbox, 10000);
 
     runOnUiThread([this] {
@@ -485,7 +485,7 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
     Configs::dataManager->settingsRepo->internal_proxy_port = 0;
     Configs::dataManager->settingsRepo->internal_proxy_auth.clear();
 
-    auto profile_stop_stage2 = [=,this] {
+    auto profile_stop_stage2 = [=, this] {
         if (testRunner->isTestingCurrent()) {
             bool ok;
             defaultClient->StopTests(&ok);
@@ -495,7 +495,7 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             bool rpcOK;
             const QString error = defaultClient->Stop(&rpcOK);
             if (rpcOK && !error.isEmpty()) {
-                runOnUiThread([=,this] { MessageBoxWarning(tr("Stop return error"), error); });
+                runOnUiThread([=, this] { MessageBoxWarning(tr("Stop return error"), error); });
                 return false;
             } else if (!rpcOK) {
                 return false;
@@ -530,14 +530,15 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
         Stats::trafficStatsManager->Flush();
 
         // runOnUiThread is a no-op before qApp exists, so the teardown must not chase these.
-        QMessageBox* restartMsgbox = nullptr;
-        MessageBoxTimer* restartMsgboxTimer = nullptr;
+        QMessageBox *restartMsgbox = nullptr;
+        MessageBoxTimer *restartMsgboxTimer = nullptr;
         runOnUiThread([=, this, &restartMsgbox, &restartMsgboxTimer] {
             restartMsgbox = new QMessageBox(QMessageBox::Question, software_name, tr("If there is no response for a long time, it is recommended to restart the software."),
-                             QMessageBox::Yes | QMessageBox::No, this);
+                                            QMessageBox::Yes | QMessageBox::No, this);
             connect(restartMsgbox, &QMessageBox::accepted, this, [=, this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
             restartMsgboxTimer = new MessageBoxTimer(this, restartMsgbox, 5000);
-        }, true);
+        },
+                      true);
 
         // Snapshot: `running` is cleared below and a racing start can reassign it.
         const auto stopping = running;
@@ -569,8 +570,10 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             refresh_proxy_list({id});
 
             mu_stopping.unlock();
-        }, true);
-    }, block);
+        },
+                      true);
+    },
+                   block);
 }
 
 void MainWindow::start_vpn_challenge_poll() {
@@ -617,7 +620,7 @@ void MainWindow::poll_vpn_challenges() {
         QList<QPair<QString, QString>> authFailures;
         QList<VpnEndpointState> endpointStates;
         if (rpcOK) {
-            for (const auto &res : status.results) {
+            for (const auto &res: status.results) {
                 const auto tag = QString::fromStdString(res.tag.value());
 
                 VpnEndpointState endpointState;
@@ -646,7 +649,7 @@ void MainWindow::poll_vpn_challenges() {
                 challenge.url = QString::fromStdString(raw.url.value());
                 challenge.echo = raw.echo.value();
                 challenge.deadline = raw.deadline.value();
-                for (const auto &rawField : raw.fields) {
+                for (const auto &rawField: raw.fields) {
                     VpnAuthField field;
                     field.submissionKey = QString::fromStdString(rawField.submission_key.value());
                     field.name = QString::fromStdString(rawField.name.value());
@@ -654,7 +657,7 @@ void MainWindow::poll_vpn_challenges() {
                     if (field.label.isEmpty()) field.label = field.name;
                     field.kind = QString::fromStdString(rawField.kind.value());
                     field.value = QString::fromStdString(rawField.value.value());
-                    for (const auto &rawOption : rawField.options) {
+                    for (const auto &rawOption: rawField.options) {
                         field.options.append({QString::fromStdString(rawOption.value.value()),
                                               QString::fromStdString(rawOption.label.value())});
                     }
@@ -668,87 +671,87 @@ void MainWindow::poll_vpn_challenges() {
             m_vpnChallengeBusy.store(false);
             if (m_vpnChallengeTimer == nullptr || !m_vpnChallengeTimer->isActive()) return;
             update_vpn_endpoint_states(endpointStates);
-            for (const auto &challenge : pending) {
+            for (const auto &challenge: pending) {
                 if (auto_answer_vpn_challenge(challenge)) continue;
                 show_vpn_challenge(challenge);
             }
-            for (const auto &[tag, error] : authFailures) show_vpn_auth_failure(tag, error);
+            for (const auto &[tag, error]: authFailures) show_vpn_auth_failure(tag, error);
         });
     });
 }
 
 namespace {
-    constexpr int kMaxVpnOtpRejects = 3;
-    constexpr int kMaxVpnAutoRestarts = 3;
-    constexpr qint64 kVpnAutoRestartCooldownSecs = 20;
+constexpr int kMaxVpnOtpRejects = 3;
+constexpr int kMaxVpnAutoRestarts = 3;
+constexpr qint64 kVpnAutoRestartCooldownSecs = 20;
 
-    QString vpnFieldHaystack(const VpnAuthField &field) {
-        return (field.name + QChar(' ') + field.label).toLower();
-    }
-
-    // A secret labelled this way is the token, not the account password.
-    bool vpnFieldLooksLikeToken(const VpnAuthField &field) {
-        static const QStringList hints = {QStringLiteral("token"),        QStringLiteral("otp"),
-                                          QStringLiteral("passcode"),     QStringLiteral("one-time"),
-                                          QStringLiteral("onetime"),      QStringLiteral("second"),
-                                          QStringLiteral("challenge"),    QStringLiteral("verification"),
-                                          QStringLiteral("authenticator")};
-        const auto haystack = vpnFieldHaystack(field);
-        return std::any_of(hints.begin(), hints.end(),
-                           [&](const QString &hint) { return haystack.contains(hint); });
-    }
-
-    bool vpnFieldLooksLikeUsername(const VpnAuthField &field) {
-        const auto haystack = vpnFieldHaystack(field);
-        return haystack.contains(QStringLiteral("user")) || haystack.contains(QStringLiteral("login")) ||
-               haystack.contains(QStringLiteral("account"));
-    }
-
-    // All or nothing: a half-filled form is submitted and refused, where bailing out still prompts.
-    bool buildVpnFormAnswer(const VpnAuthChallenge &challenge, const Configs::openconnect *ocon,
-                            const QString &user, const QString &pass, const QString &code,
-                            QMap<QString, QString> *out) {
-        if (ocon == nullptr || challenge.fields.isEmpty()) return false;
-        bool passwordUsed = false;
-        for (const auto &field : challenge.fields) {
-            QString value;
-            bool resolved = false;
-            for (const auto &entry : ocon->form_entries) {
-                if (entry == nullptr || entry->promote) continue;
-                const bool byKey = !entry->submission_key.isEmpty() &&
-                                   entry->submission_key == field.submissionKey;
-                // A field reaches a challenge only when the core matched no entry, so a name match
-                // can only be the one the build withheld for carrying an {otp}.
-                const bool byName = entry->submission_key.isEmpty() && !entry->name.isEmpty() &&
-                                    entry->name == field.name &&
-                                    entry->value.contains(Configs::kOtpPlaceholder);
-                if (!byKey && !byName) continue;
-                value = Configs::SubstituteOtp(entry->value, code);
-                resolved = true;
-            }
-            if (!resolved && field.kind == QStringLiteral("password")) {
-                if (!passwordUsed && !vpnFieldLooksLikeToken(field) && !pass.isEmpty()) {
-                    value = Configs::SubstituteOtp(pass, code);
-                    passwordUsed = true;
-                } else {
-                    value = code;
-                }
-                resolved = true;
-            }
-            if (!resolved && vpnFieldLooksLikeUsername(field) && !user.isEmpty()) {
-                value = Configs::SubstituteOtp(user, code);
-                resolved = true;
-            }
-            if (!resolved && !field.value.isEmpty()) {
-                value = field.value;
-                resolved = true;
-            }
-            if (!resolved) return false;
-            out->insert(field.submissionKey, value);
-        }
-        return !out->isEmpty();
-    }
+QString vpnFieldHaystack(const VpnAuthField &field) {
+    return (field.name + QChar(' ') + field.label).toLower();
 }
+
+// A secret labelled this way is the token, not the account password.
+bool vpnFieldLooksLikeToken(const VpnAuthField &field) {
+    static const QStringList hints = {QStringLiteral("token"), QStringLiteral("otp"),
+                                      QStringLiteral("passcode"), QStringLiteral("one-time"),
+                                      QStringLiteral("onetime"), QStringLiteral("second"),
+                                      QStringLiteral("challenge"), QStringLiteral("verification"),
+                                      QStringLiteral("authenticator")};
+    const auto haystack = vpnFieldHaystack(field);
+    return std::any_of(hints.begin(), hints.end(),
+                       [&](const QString &hint) { return haystack.contains(hint); });
+}
+
+bool vpnFieldLooksLikeUsername(const VpnAuthField &field) {
+    const auto haystack = vpnFieldHaystack(field);
+    return haystack.contains(QStringLiteral("user")) || haystack.contains(QStringLiteral("login")) ||
+           haystack.contains(QStringLiteral("account"));
+}
+
+// All or nothing: a half-filled form is submitted and refused, where bailing out still prompts.
+bool buildVpnFormAnswer(const VpnAuthChallenge &challenge, const Configs::openconnect *ocon,
+                        const QString &user, const QString &pass, const QString &code,
+                        QMap<QString, QString> *out) {
+    if (ocon == nullptr || challenge.fields.isEmpty()) return false;
+    bool passwordUsed = false;
+    for (const auto &field: challenge.fields) {
+        QString value;
+        bool resolved = false;
+        for (const auto &entry: ocon->form_entries) {
+            if (entry == nullptr || entry->promote) continue;
+            const bool byKey = !entry->submission_key.isEmpty() &&
+                               entry->submission_key == field.submissionKey;
+            // A field reaches a challenge only when the core matched no entry, so a name match
+            // can only be the one the build withheld for carrying an {otp}.
+            const bool byName = entry->submission_key.isEmpty() && !entry->name.isEmpty() &&
+                                entry->name == field.name &&
+                                entry->value.contains(Configs::kOtpPlaceholder);
+            if (!byKey && !byName) continue;
+            value = Configs::SubstituteOtp(entry->value, code);
+            resolved = true;
+        }
+        if (!resolved && field.kind == QStringLiteral("password")) {
+            if (!passwordUsed && !vpnFieldLooksLikeToken(field) && !pass.isEmpty()) {
+                value = Configs::SubstituteOtp(pass, code);
+                passwordUsed = true;
+            } else {
+                value = code;
+            }
+            resolved = true;
+        }
+        if (!resolved && vpnFieldLooksLikeUsername(field) && !user.isEmpty()) {
+            value = Configs::SubstituteOtp(user, code);
+            resolved = true;
+        }
+        if (!resolved && !field.value.isEmpty()) {
+            value = field.value;
+            resolved = true;
+        }
+        if (!resolved) return false;
+        out->insert(field.submissionKey, value);
+    }
+    return !out->isEmpty();
+}
+} // namespace
 
 void MainWindow::update_vpn_endpoint_states(const QList<VpnEndpointState> &states) {
     QString exitState;
@@ -757,7 +760,7 @@ void MainWindow::update_vpn_endpoint_states(const QList<VpnEndpointState> &state
     QHash<QString, QString> seenStates;
     bool problem = false;
 
-    for (const auto &state : states) {
+    for (const auto &state: states) {
         const auto name = Stats::VpnEndpointDisplayName(state.tag);
         const auto text = vpn_state_text(state.state, state.error);
         if (state.tag == QStringLiteral("proxy")) exitState = text;
@@ -894,7 +897,8 @@ bool MainWindow::auto_restart_for_vpn_auth(const QString &endpointTag, int profi
     if (ent == nullptr || running == nullptr) return false;
 
     int otpID = -1;
-    if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr) otpID = ovpn->otp_profile_id;
+    if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr)
+        otpID = ovpn->otp_profile_id;
     else if (const auto *ocon = ent->OpenConnect(); ocon != nullptr) {
         if (ocon->password_authentication_disabled) return false;
         otpID = ocon->otp_profile_id;
@@ -955,16 +959,18 @@ void MainWindow::show_vpn_auth_failure(const QString &endpointTag, const QString
     VpnAuthChallenge challenge;
     challenge.endpointTag = endpointTag;
     challenge.kind = "credentials";
-    if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr) challenge.username = ovpn->username;
+    if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr)
+        challenge.username = ovpn->username;
     else if (const auto *ocon = ent->OpenConnect(); ocon != nullptr) {
         // The core reports a refused password-less login the same way, and credentials cannot fix it.
         if (ocon->password_authentication_disabled) return;
         challenge.username = ocon->username;
-    }
-    else return;
+    } else
+        return;
     challenge.error = error;
-    challenge.message = tr("The server refused the credentials saved with this profile. Enter the ones "
-                           "to use for this session; the profile itself is left unchanged.");
+    challenge.message = tr(
+        "The server refused the credentials saved with this profile. Enter the ones "
+        "to use for this session; the profile itself is left unchanged.");
 
     m_vpnAuthPrompted[profileID] = m_vpnAuthPrompted.value(profileID) + 1;
     MW_show_log(tr("[VPN] %1 rejected the saved credentials.").arg(Stats::VpnEndpointDisplayName(endpointTag)));

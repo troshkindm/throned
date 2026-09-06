@@ -21,12 +21,14 @@ class QMouseEvent;
 // database/import callbacks, while this widget owns validation and theming.
 class QuickAddOverlay final : public QWidget {
 public:
-    enum class LinkKind { Profile, Subscription };
+    enum class LinkKind { Profile,
+                          Subscription };
 
     struct Callbacks {
         std::function<void(LinkKind, const QString &)> addLink;
         std::function<void(const QString &type, int groupId, const QString &name,
-                           const QString &address, const QString &port)> addProfile;
+                           const QString &address, const QString &port)>
+            addProfile;
         std::function<void(const QString &name, const QString &subscriptionUrl)> addGroup;
     };
 
@@ -40,7 +42,8 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
 
 private:
-    enum class ManualPage { Profile, Group };
+    enum class ManualPage { Profile,
+                            Group };
 
     Callbacks callbacks;
     LinkKind detectedKind = LinkKind::Profile;

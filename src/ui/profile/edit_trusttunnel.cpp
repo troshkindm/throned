@@ -3,7 +3,6 @@
 EditTrustTunnel::EditTrustTunnel(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditTrustTunnel) {
-
     ui->setupUi(this);
 }
 

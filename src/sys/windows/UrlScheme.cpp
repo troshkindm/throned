@@ -55,7 +55,7 @@ static void removeLegacyRegistrations() {
     // created another Applications\\<exe> entry. Remove only entries written by
     // our previous registration code; unrelated applications are left intact.
     QSettings applications(kClasses + "\\Applications", QSettings::NativeFormat);
-    for (const QString &key : applications.childGroups()) {
+    for (const QString &key: applications.childGroups()) {
         if (key.compare(kApplicationKey, Qt::CaseInsensitive) == 0 || !isLegacyApplicationKey(key)) continue;
 
         QSettings app(kClasses + "\\Applications\\" + key, QSettings::NativeFormat);
@@ -70,7 +70,7 @@ static void removeLegacyRegistrations() {
     legacyProgId.remove("");
     legacyProgId.sync();
 
-    for (const QString &ext : kConfigExtensions) {
+    for (const QString &ext: kConfigExtensions) {
         QSettings assoc(kClasses + "\\" + ext + "\\OpenWithProgids", QSettings::NativeFormat);
         assoc.remove(kLegacyProgId);
         assoc.sync();
@@ -79,7 +79,7 @@ static void removeLegacyRegistrations() {
 
 bool UrlScheme_IsCurrent() {
     const QString command = openCommand();
-    for (const QString &key : commandKeys()) {
+    for (const QString &key: commandKeys()) {
         QSettings s(key, QSettings::NativeFormat);
         if (s.value("shell/open/command/Default").toString() != command) return false;
     }
@@ -103,7 +103,7 @@ void UrlScheme_Apply() {
     progId.setValue("shell/open/command/Default", command);
 
     // OpenWithProgids is the additive half of an association: the extension's own default is left alone.
-    for (const QString &ext : kConfigExtensions) {
+    for (const QString &ext: kConfigExtensions) {
         QSettings assoc(kClasses + "\\" + ext + "\\OpenWithProgids", QSettings::NativeFormat);
         assoc.setValue(kProgId, "");
     }
@@ -115,7 +115,7 @@ void UrlScheme_Apply() {
     app.setValue("FriendlyAppName", "Throned");
     app.setValue("DefaultIcon/Default", exe + ",0");
     app.setValue("shell/open/command/Default", command);
-    for (const QString &ext : kConfigExtensions) {
+    for (const QString &ext: kConfigExtensions) {
         app.setValue("SupportedTypes/" + ext, "");
     }
 
@@ -135,7 +135,7 @@ void UrlScheme_Remove() {
     classes.sync();
 
     // Only our own progid goes; the extension's default was never ours to touch.
-    for (const QString &ext : kConfigExtensions) {
+    for (const QString &ext: kConfigExtensions) {
         QSettings assoc(kClasses + "\\" + ext + "\\OpenWithProgids", QSettings::NativeFormat);
         assoc.remove(kProgId);
         assoc.sync();

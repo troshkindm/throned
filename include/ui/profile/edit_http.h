@@ -5,7 +5,7 @@
 #include "ui_edit_http.h"
 
 namespace Ui {
-    class EditHttp;
+class EditHttp;
 }
 
 class EditHttp : public QWidget, public ProfileEditor {
@@ -24,4 +24,3 @@ private:
     Ui::EditHttp *ui;
     std::shared_ptr<Configs::Profile> ent;
 };
-

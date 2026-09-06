@@ -55,13 +55,13 @@
 #endif
 
 namespace Configs_sys {
-    class CoreProcess;
+class CoreProcess;
 }
 
 namespace Configs {
-    class Group;
-    struct SubInfo;
-}
+class Group;
+struct SubInfo;
+} // namespace Configs
 
 class TrayProfileSelector;
 class RoutingQuickMenu;
@@ -79,11 +79,13 @@ struct VpnEndpointState {
     bool authFailed = false;
 };
 
-namespace Qv2ray::ui { class SyntaxHighlighter; }
+namespace Qv2ray::ui {
+class SyntaxHighlighter;
+}
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class MainWindow;
+class MainWindow;
 }
 QT_END_NAMESPACE
 
@@ -216,7 +218,7 @@ public:
     void RestartCore();
 
     // Takes a whole poll snapshot in the lister's order; row N is always its Nth entry. UI thread only.
-    void UpdateConnectionList(const QList<Stats::ConnectionMetadata>& connections);
+    void UpdateConnectionList(const QList<Stats::ConnectionMetadata> &connections);
 
     void UpdateDataView(bool force = false);
 
@@ -227,7 +229,7 @@ public:
     // Non-owning: cleared by the dialog's finished() handler.
     class DialogAutoSelector *m_autoSelectorDialog = nullptr;
 
-    void setDownloadReport(const DownloadProgressReport& report, bool show);
+    void setDownloadReport(const DownloadProgressReport &report, bool show);
 
 signals:
 
@@ -305,7 +307,7 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
-    void on_tabWidget_customContextMenuRequested(const QPoint& p);
+    void on_tabWidget_customContextMenuRequested(const QPoint &p);
 
 private:
     Ui::MainWindow *ui;
@@ -354,7 +356,7 @@ private:
     // proxy rows, not profilesTableModel rows.
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;
     QSystemTrayIcon *tray;
-    QMenu *trayMenu = nullptr;    // tray context menu
+    QMenu *trayMenu = nullptr; // tray context menu
     // Tray "Select Server"/"Select Routing" open this small Qt-drawn popup instead of a
     // submenu, because a tray submenu isn't painted by Qt on Linux (SNI/DBusMenu) or macOS
     // (native NSMenu) and so can't reliably expand a dynamic list. Recreated on each open.
@@ -464,7 +466,7 @@ private:
     std::atomic<qint64> lastUpdatedMs = QDateTime::currentMSecsSinceEpoch();
     DataViewHtmlGenerator dataViewHtmlGenerator_;
 
-    QList<QShortcut*> hiddenMenuShortcuts;
+    QList<QShortcut *> hiddenMenuShortcuts;
 
     QString addressFilterString;
     QString nameFilterString;
@@ -567,7 +569,7 @@ private:
 
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);
 
-    void refresh_proxy_list_impl_refresh_data(const QList<int>& ids = {}, bool mayNeedReset = false);
+    void refresh_proxy_list_impl_refresh_data(const QList<int> &ids = {}, bool mayNeedReset = false);
 
     void parseQrImage(const QPixmap *image);
 
@@ -598,7 +600,7 @@ private:
 
     void dragEnterEvent(QDragEnterEvent *event);
 
-    void dropEvent(QDropEvent* event) override;
+    void dropEvent(QDropEvent *event) override;
 
     void applyLogBrowserFont();
 
@@ -633,7 +635,7 @@ private:
 
     void setActionsData();
 
-    QList<QAction*> getActionsForShortcut();
+    QList<QAction *> getActionsForShortcut();
 
     void loadShortcuts();
 
@@ -644,7 +646,7 @@ private:
     // Measures the members of an auto selector that have no test result yet
     // (plus `stale`, whose stored result is known to be out of date) and
     // rewrites its ranked pool. Blocks — call from a worker thread.
-    void rank_auto_selector(const std::shared_ptr<Configs::Profile>& ent, const QList<int>& stale = {});
+    void rank_auto_selector(const std::shared_ptr<Configs::Profile> &ent, const QList<int> &stale = {});
 
     // Every running member of the auto selector died: re-rank and restart on
     // the next batch of good ones.
@@ -654,7 +656,7 @@ private:
     // longer exist from every selector tracking that group, and rebuilds the
     // running one only if the refresh touched a member it actually built.
     // `disturbed` holds the profiles the refresh deleted or replaced in place.
-    void on_subscription_group_changed(int gid, const QList<int>& disturbed);
+    void on_subscription_group_changed(int gid, const QList<int> &disturbed);
 
     // Guards the re-entrant profile_start used to rank before building.
     bool auto_selector_ranked = false;
@@ -664,7 +666,7 @@ private:
     // the background. Shared by profile start and the test paths. `contextName` is
     // the profile/config name shown in the prompt. Returns true when the error was
     // a geo-asset error (and thus handled), false otherwise.
-    bool handleXrayGeoAssetError(const QString& error, const QString& contextName);
+    bool handleXrayGeoAssetError(const QString &error, const QString &contextName);
 
     void url_test_current();
     // Jumps the table to the running profile and flashes it: a status bar that
@@ -803,20 +805,18 @@ inline MainWindow *GetMainWindow() {
 void UI_InitMainWindow();
 
 #ifdef Q_OS_LINUX
-class OrgFreedesktopPortalRequestInterface : public QDBusAbstractInterface
-{
+class OrgFreedesktopPortalRequestInterface : public QDBusAbstractInterface {
     Q_OBJECT
 public:
-    OrgFreedesktopPortalRequestInterface(const QString& service,
-                                         const QString& path,
-                                         const QDBusConnection& connection,
-                                         QObject* parent = nullptr);
+    OrgFreedesktopPortalRequestInterface(const QString &service,
+                                         const QString &path,
+                                         const QDBusConnection &connection,
+                                         QObject *parent = nullptr);
 
     ~OrgFreedesktopPortalRequestInterface();
 
 public Q_SLOTS:
-    inline QDBusPendingReply<> Close()
-    {
+    inline QDBusPendingReply<> Close() {
         QList<QVariant> argumentList;
         return asyncCallWithArgumentList(QStringLiteral("Close"), argumentList);
     }
@@ -830,6 +830,6 @@ namespace freedesktop {
 namespace portal {
 typedef ::OrgFreedesktopPortalRequestInterface Request;
 }
-}
-}
+} // namespace freedesktop
+} // namespace org
 #endif

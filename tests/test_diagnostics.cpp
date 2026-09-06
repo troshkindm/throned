@@ -18,13 +18,16 @@
 #include <QPlainTextEdit>
 #include <QTest>
 
-ThemeManager *themeManager() { static ThemeManager manager; return &manager; }
+ThemeManager *themeManager() {
+    static ThemeManager manager;
+    return &manager;
+}
 ThronedThemeColors ThemeManager::Colors(const QString &) const { return {}; }
 const ThronedSkin *ThemeManager::Skin(const QString &) const { return nullptr; }
 void ThemeManager::RegisterStyle(QWidget *, const QString &) const {}
 namespace ThronedChrome {
 ThronedTitleBar *install(QWidget *window, const QString &context) { return new ThronedTitleBar(context, window); }
-}
+} // namespace ThronedChrome
 // Pulled in by the traffic chart's tooltip; stubbed rather than linking all of Utils.
 QString ReadableSize(const qint64 &size) { return QLocale().formattedDataSize(size); }
 
@@ -32,10 +35,16 @@ class TestDiagnostics : public QObject {
     Q_OBJECT
     static libcore::ConnectionMetaData connection(const char *id, const char *network = "tcp") {
         libcore::ConnectionMetaData c;
-        c.id = id; c.network = network; c.process = "demo.exe"; c.process_path = "C:/demo.exe";
-        c.domain = "example.org"; c.dest = "203.0.113.10:443"; c.outbound = "chosen-proxy";
+        c.id = id;
+        c.network = network;
+        c.process = "demo.exe";
+        c.process_path = "C:/demo.exe";
+        c.domain = "example.org";
+        c.dest = "203.0.113.10:443";
+        c.outbound = "chosen-proxy";
         c.matched_rule = "process_name=demo.exe => route(chosen-proxy)";
-        c.upload = 42; c.download = 0;
+        c.upload = 42;
+        c.download = 0;
         return c;
     }
 private slots:
@@ -57,8 +66,7 @@ private slots:
         window.usageTab = 0;
         window.usageProxyOnlyOn = true;
         for (int i = 0; i < 6; ++i)
-            window.usage.apps.append({QStringLiteral("direct-%1").arg(i), {}, 0, 1000 - i,
-                                      0, 999 - i});
+            window.usage.apps.append({QStringLiteral("direct-%1").arg(i), {}, 0, 1000 - i, 0, 999 - i});
         window.usage.apps.append({"proxy-leader", {}, 0, 100, 0, 0});
 
         const auto rows = window.visibleUsageRows();
@@ -74,7 +82,7 @@ private slots:
         connect(&window, &DiagnosticsWindow::routeRequested, &window, [&] { ++calls; });
         connect(&window, &DiagnosticsWindow::siteRequested, &window, [&] { ++calls; });
         auto *input = window.findChild<QLineEdit *>("diagnosticAddress");
-        for (const auto &url : {"", "file:///etc/hosts", "https://user:secret@example.org", "https://example.org/#fragment"}) {
+        for (const auto &url: {"", "file:///etc/hosts", "https://user:secret@example.org", "https://example.org/#fragment"}) {
             input->setText(url);
             window.findChild<QPushButton *>("diagnosticCheck")->click();
         }
@@ -84,7 +92,8 @@ private slots:
         DiagnosticsWindow window;
         auto *input = window.findChild<QLineEdit *>("diagnosticAddress");
         auto *check = window.findChild<QPushButton *>("diagnosticCheck");
-        input->setText("example.org"); check->click();
+        input->setText("example.org");
+        check->click();
         QVERIFY(!check->isEnabled());
         window.applySiteResult({}, "unknown method: DiagnoseSite");
         QVERIFY(check->isEnabled());
@@ -195,10 +204,11 @@ private slots:
         DiagnosticsWindow window;
         auto *tree = window.findChild<QTreeWidget *>("diagnosticConnections");
         libcore::QueryConnectionsResp snapshot;
-        for (const char *id : {"1", "2", "3"}) snapshot.active.push_back(connection(id));
+        for (const char *id: {"1", "2", "3"}) snapshot.active.push_back(connection(id));
         auto other = connection("4");
         other.domain = "elsewhere.example";
-        other.upload = 10; other.download = 20;
+        other.upload = 10;
+        other.download = 20;
         snapshot.active.push_back(other);
         window.applyConnections(snapshot);
         QCOMPARE(tree->topLevelItemCount(), 2);
@@ -239,7 +249,7 @@ private slots:
         QVERIFY(!rows[4]->findChild<QPushButton *>("diagnosticHealthAction")->isHidden());
         const auto labels = rows[6]->findChildren<QLabel *>();
         bool mentionsTLS = false;
-        for (const auto *text : labels) mentionsTLS = mentionsTLS || text->text().contains("TLS will fail");
+        for (const auto *text: labels) mentionsTLS = mentionsTLS || text->text().contains("TLS will fail");
         QVERIFY(mentionsTLS);
     }
     void aClockInsideTheMeasurementNoiseReportsNoNumber() {
@@ -252,8 +262,7 @@ private slots:
         window.applyHealth(health);
         const auto labels = window.findChildren<QWidget *>("diagnosticHealthRow")[6]->findChildren<QLabel *>();
         bool statesNumber = false;
-        for (const auto *text : labels) statesNumber = statesNumber || text->text().contains(QStringLiteral("0,0"))
-            || text->text().contains(QStringLiteral("0.0"));
+        for (const auto *text: labels) statesNumber = statesNumber || text->text().contains(QStringLiteral("0,0")) || text->text().contains(QStringLiteral("0.0"));
         QVERIFY(!statesNumber);
     }
     void aGeositeRuleIsCondensedInTheCardAndWholeInTheTooltip() {
@@ -291,7 +300,7 @@ private slots:
         const auto rows = window.findChildren<QWidget *>("diagnosticHealthRow");
         QVERIFY(rows[4]->findChild<QPushButton *>("diagnosticHealthAction")->isHidden());
         bool explainsFakeIP = false;
-        for (const auto *label : rows[4]->findChildren<QLabel *>())
+        for (const auto *label: rows[4]->findChildren<QLabel *>())
             explainsFakeIP = explainsFakeIP || label->text().contains("FakeIP");
         QVERIFY(explainsFakeIP);
     }
@@ -317,7 +326,7 @@ private slots:
         window.applySiteResult(site);
         QCOMPARE(window.findChild<QLabel *>("diagnosticVerdictTitle")->text(),
                  QString("The site returned a temporary or restricted response"));
-        for (auto *action : window.findChildren<QPushButton *>("diagnosticVerdictAction"))
+        for (auto *action: window.findChildren<QPushButton *>("diagnosticVerdictAction"))
             if (action->property("target").toString() == QStringLiteral("matrix")) action->click();
         auto *matrix = window.findChild<QTreeWidget *>("diagnosticMatrix");
         QVERIFY(matrix->topLevelItemCount() >= 2);
@@ -362,7 +371,7 @@ private slots:
         const auto masked = preview->toPlainText();
         QVERIFY(!masked.contains("Secret Node"));
         QVERIFY(!masked.contains("198.51.100.24"));
-        for (auto *box : window.findChildren<QCheckBox *>())
+        for (auto *box: window.findChildren<QCheckBox *>())
             if (box->text().contains("Hide personal")) box->setChecked(false);
         QVERIFY(window.findChild<QPlainTextEdit *>("diagnosticReportPreview")->toPlainText().contains("Secret Node"));
     }
@@ -372,9 +381,10 @@ private slots:
         libcore::QueryConnectionsResp snapshot;
         // Two LAN devices reaching the same host: no process either way, so only the
         // client address tells them apart. They must not collapse into one row.
-        for (const auto *pair : {"1|192.168.1.42:5510", "2|192.168.1.99:4410"}) {
+        for (const auto *pair: {"1|192.168.1.42:5510", "2|192.168.1.99:4410"}) {
             auto c = connection(QString(pair).section('|', 0, 0).toUtf8().constData());
-            c.process = ""; c.process_path = "";
+            c.process = "";
+            c.process_path = "";
             c.source = QString(pair).section('|', 1).toStdString();
             snapshot.active.push_back(c);
         }
@@ -384,7 +394,7 @@ private slots:
         // Nothing in the snapshot has a process, so the window says why rather than
         // leaving the user to conclude the capture is broken.
         bool explained = false;
-        for (const auto *text : window.findChildren<QLabel *>())
+        for (const auto *text: window.findChildren<QLabel *>())
             explained = explained || text->text().contains("no rules that match on a program");
         QVERIFY(explained);
         // And they can be isolated from the applications that do report a name.
@@ -424,7 +434,7 @@ private slots:
         // The per-process entries are always offered; the family entry only when a
         // different parent was actually found, which depends on how the test was run.
         bool hasProcessEntry = false;
-        for (const auto *action : rule->menu()->actions())
+        for (const auto *action: rule->menu()->actions())
             hasProcessEntry = hasProcessEntry || action->text().contains("This process");
         QVERIFY(hasProcessEntry);
     }
@@ -451,7 +461,7 @@ private slots:
         window.applyConnections(snapshot);
 
         const DiagnosticsWindow::ConnectionGroup *chrome = nullptr;
-        for (const auto &group : window.groups)
+        for (const auto &group: window.groups)
             if (group.process == QStringLiteral("chrome.exe")) chrome = &group;
         QVERIFY(chrome != nullptr);
         window.rebuildRuleMenu(*chrome);
@@ -459,7 +469,7 @@ private slots:
         QStringList emitted;
         connect(&window, &DiagnosticsWindow::rulesRequested, &window,
                 [&](const QStringList &entries, int) { emitted = entries; });
-        for (auto *action : window.addRule->menu()->actions())
+        for (auto *action: window.addRule->menu()->actions())
             if (action->menu() != nullptr && action->text().contains("The whole application")) {
                 QVERIFY(action->text().contains(QStringLiteral("chrome.exe")));
                 action->menu()->actions().first()->trigger();
@@ -478,7 +488,7 @@ private slots:
         libcore::QueryConnectionsResp snapshot;
         snapshot.active.push_back(connection("1"));
         window.applyConnections(snapshot);
-        for (auto *action : window.findChild<QPushButton *>("diagnosticAddRule")->menu()->actions())
+        for (auto *action: window.findChild<QPushButton *>("diagnosticAddRule")->menu()->actions())
             if (action->menu() != nullptr && action->text().contains("Domain and subdomains"))
                 action->menu()->actions().first()->trigger();
         QCOMPARE(emitted, QStringList{QStringLiteral("suffix:example.org")});
@@ -492,7 +502,8 @@ private slots:
         snapshot.active.push_back(connection("1"));
         window.applyConnections(snapshot);
         snapshot.active.clear();
-        auto c = connection("1"); c.closed_at = QDateTime::currentMSecsSinceEpoch();
+        auto c = connection("1");
+        c.closed_at = QDateTime::currentMSecsSinceEpoch();
         snapshot.closed.push_back(c);
         window.applyConnections(snapshot);
         QCOMPARE(tree->topLevelItemCount(), 1);

@@ -5,7 +5,6 @@
 #include "include/global/Configs.hpp"
 #include <QSettings>
 
-
 #include <QStandardPaths>
 #include <QProcessEnvironment>
 #include <QTextStream>

@@ -51,10 +51,10 @@ QByteArray DecodeB64IfValid(const QString &input, QByteArray::Base64Options opti
     return {};
 }
 
-QStringList SplitAndTrim(const QString& raw, const QString& separator, bool keepEmpty) {
+QStringList SplitAndTrim(const QString &raw, const QString &separator, bool keepEmpty) {
     QStringList result;
     auto spl = raw.split(separator);
-    for (const auto& str : spl) {
+    for (const auto &str: spl) {
         auto trimmed = str.trimmed();
         if (!keepEmpty && trimmed.isEmpty()) continue;
         result << trimmed;
@@ -144,7 +144,7 @@ QList<QString> QJsonArray2QListString(const QJsonArray &arr) {
     return list2;
 }
 
-QJsonArray QString2QJsonArray(const QString& str) {
+QJsonArray QString2QJsonArray(const QString &str) {
     auto doc = QJsonDocument::fromJson(str.toUtf8());
     if (doc.isArray()) {
         return doc.array();
@@ -152,7 +152,7 @@ QJsonArray QString2QJsonArray(const QString& str) {
     return {};
 }
 
-QJsonObject QMapString2QJsonObject(const QMap<QString,QString> &mp) {
+QJsonObject QMapString2QJsonObject(const QMap<QString, QString> &mp) {
     QJsonObject res;
     for (auto it = mp.cbegin(); it != mp.cend(); ++it) {
         res.insert(it.key(), it.value());
@@ -162,14 +162,14 @@ QJsonObject QMapString2QJsonObject(const QMap<QString,QString> &mp) {
 
 QList<QString> QListInt2QListString(const QList<int> &list) {
     QList<QString> resp;
-    for (int item : list) resp << Int2String(item);
+    for (int item: list) resp << Int2String(item);
     return resp;
 }
 
 QList<int> QStringList2QListInt(const QList<QString> &list) {
     QList<int> resp;
     resp.reserve(list.size());
-    for (const auto& item: list) resp.append(item.toInt());
+    for (const auto &item: list) resp.append(item.toInt());
     return resp;
 }
 
@@ -208,8 +208,8 @@ int MkPort(const QString &address) {
 
 QList<int> MkManyPorts(int num, const QString &address) {
     QList<int> res;
-    QList<QTcpServer*> servers;
-    for (int i=0;i<num;i++) {
+    QList<QTcpServer *> servers;
+    for (int i = 0; i < num; i++) {
         auto server = new QTcpServer();
         listenWithRetry(server, address);
         servers.append(server);
@@ -329,7 +329,7 @@ int MessageBoxCheck(const QString &title, const QString &text, const QString &ch
     QCheckBox *checkBox = new QCheckBox(checkBoxText);
     checkBox->setChecked(isChecked);
 
-    dynamic_cast< QGridLayout *>(msgBox.layout())->addWidget(checkBox, 1, 2);
+    dynamic_cast<QGridLayout *>(msgBox.layout())->addWidget(checkBox, 1, 2);
 
     int result = msgBox.exec();
 
@@ -362,13 +362,16 @@ UpdatePromptChoice ShowUpdatePrompt(QWidget *parent, const QString &title, const
     auto *notes = new QTextBrowser(&box);
     notes->setOpenExternalLinks(true);
     const QString visibleReleaseNote = ReleaseNotes::LocalizedMarkdown(releaseNote, QLocale().name());
-    if (visibleReleaseNote.trimmed().isEmpty()) notes->setPlainText(QObject::tr("No release note."));
-    else notes->setMarkdown(visibleReleaseNote);
+    if (visibleReleaseNote.trimmed().isEmpty())
+        notes->setPlainText(QObject::tr("No release note."));
+    else
+        notes->setMarkdown(visibleReleaseNote);
     layout->addWidget(notes, 1);
 
     auto *buttons = new QDialogButtonBox(&box);
     QAbstractButton *updateButton = allowUpdater
-        ? buttons->addButton(QObject::tr("Update"), QDialogButtonBox::AcceptRole) : nullptr;
+                                        ? buttons->addButton(QObject::tr("Update"), QDialogButtonBox::AcceptRole)
+                                        : nullptr;
     QAbstractButton *browserButton = buttons->addButton(QObject::tr("Open in browser"), QDialogButtonBox::AcceptRole);
     buttons->addButton(QObject::tr("Close"), QDialogButtonBox::RejectRole);
     QAbstractButton *clicked = nullptr;
@@ -392,7 +395,7 @@ void ActivateWindow(QWidget *w) {
 #ifdef Q_OS_WIN
     Windows_QWidget_SetForegroundWindow(w);
 #elif defined(Q_OS_MAC)
-    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    ProcessSerialNumber psn = {0, kCurrentProcess};
     TransformProcessType(&psn, kProcessTransformToForegroundApplication);
 #endif
     w->raise();
@@ -402,7 +405,7 @@ void ActivateWindow(QWidget *w) {
 void HideWindow(QWidget *w) {
     w->hide();
 #ifdef Q_OS_MAC
-    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    ProcessSerialNumber psn = {0, kCurrentProcess};
     TransformProcessType(&psn, kProcessTransformToUIElementApplication);
 #endif
 }
@@ -433,8 +436,7 @@ void runOnUiThread(const std::function<void()> &callback, bool wait) {
         callback();
         timer->deleteLater();
 
-        if (wait)
-        {
+        if (wait) {
             QMetaObject::invokeMethod(&loop, "quit", Qt::QueuedConnection);
         }
     });
@@ -448,7 +450,7 @@ void runOnUiThread(const std::function<void()> &callback, bool wait) {
 static QString g_pendingDeeplink;
 
 QString Deeplink_ExtractFromArgs(const QStringList &args) {
-    for (const auto &arg : args) {
+    for (const auto &arg: args) {
         if (arg.startsWith("throne://")) return arg;
     }
     return {};
@@ -523,8 +525,7 @@ void runOnNewThread(const std::function<void()> &callback, bool wait) {
         timer->deleteLater();
         QMetaObject::invokeMethod(thread, "quit", Qt::QueuedConnection);
 
-        if (wait)
-        {
+        if (wait) {
             QMetaObject::invokeMethod(&loop, "quit", Qt::QueuedConnection);
         }
     });
@@ -551,8 +552,7 @@ void runOnThread(const std::function<void()> &callback, QObject *parent, bool wa
         callback();
         timer->deleteLater();
 
-        if (wait)
-        {
+        if (wait) {
             QMetaObject::invokeMethod(&loop, "quit", Qt::QueuedConnection);
         }
     });

@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class GroupItem;
+class GroupItem;
 }
 QT_END_NAMESPACE
 

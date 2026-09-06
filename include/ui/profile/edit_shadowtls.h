@@ -4,7 +4,7 @@
 #include "ui_edit_shadowtls.h"
 
 namespace Ui {
-    class EditShadowTLS;
+class EditShadowTLS;
 }
 
 class EditShadowTLS : public QWidget, public ProfileEditor {

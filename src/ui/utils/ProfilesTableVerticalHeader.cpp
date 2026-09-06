@@ -68,19 +68,16 @@ void ProfilesTableVerticalHeader::updateWidthFromRowCount() {
 void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const {
     painter->save();
     const auto *view = qobject_cast<const QTableView *>(parentWidget());
-    const bool selected = view != nullptr && view->selectionModel() != nullptr
-        && view->selectionModel()->isRowSelected(logicalIndex, QModelIndex());
+    const bool selected = view != nullptr && view->selectionModel() != nullptr && view->selectionModel()->isRowSelected(logicalIndex, QModelIndex());
     // logicalIndex counts visible rows; the model is indexed by source row.
     const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
     // The id, not the whole RowVisual: building one costs a group lookup and half
     // a dozen strings, and this runs for every visible row on every repaint.
-    const bool running = m_model != nullptr && sourceRow >= 0
-        && m_model->index(sourceRow, 0).data(ProfilesTableModel::ProfileIdRole).toInt()
-               == Configs::dataManager->settingsRepo->started_id;
+    const bool running = m_model != nullptr && sourceRow >= 0 && m_model->index(sourceRow, 0).data(ProfilesTableModel::ProfileIdRole).toInt() == Configs::dataManager->settingsRepo->started_id;
     const auto colors = themeManager()->Colors();
     const QColor background = selected
-        ? colors.selection
-        : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base));
+                                  ? colors.selection
+                                  : (m_sectionBackground.isValid() ? m_sectionBackground : palette().color(QPalette::Base));
     const QColor separator = m_sectionBorder.isValid() ? m_sectionBorder : palette().color(QPalette::Mid);
     painter->fillRect(rect, background);
 
@@ -93,19 +90,20 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     if (selected)
         painter->drawLine(rect.topLeft() + QPoint(1, 0), rect.topRight());
     const QColor foreground = selected && view != nullptr
-        ? view->palette().color(QPalette::HighlightedText)
-        : (running
-               ? colors.success
-               : (m_sectionForeground.isValid() ? m_sectionForeground : palette().color(QPalette::Text)));
+                                  ? view->palette().color(QPalette::HighlightedText)
+                                  : (running
+                                         ? colors.success
+                                         : (m_sectionForeground.isValid() ? m_sectionForeground : palette().color(QPalette::Text)));
     if (running) {
         constexpr int iconSize = 18;
         const QPixmap check = MaterialIcon::pixmap(MaterialIcon::Glyph::Check, foreground, iconSize);
         painter->drawPixmap(QPoint(rect.center().x() - iconSize / 2,
-                                   rect.center().y() - iconSize / 2), check);
+                                   rect.center().y() - iconSize / 2),
+                            check);
     } else {
         const QString text = m_model
-            ? m_model->rowLabel(sourceRow, logicalIndex)
-            : QString::number(logicalIndex + 1);
+                                 ? m_model->rowLabel(sourceRow, logicalIndex)
+                                 : QString::number(logicalIndex + 1);
         painter->setPen(foreground);
         painter->drawText(rect, Qt::AlignCenter, text);
     }

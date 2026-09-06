@@ -83,12 +83,12 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_STRING(inbound_pass)
 
     ui->url_scheme_auto_register->setChecked(Configs::dataManager->settingsRepo->url_scheme_auto_register);
-    connect(ui->url_scheme_install, &QPushButton::clicked, this, [=,this] {
+    connect(ui->url_scheme_install, &QPushButton::clicked, this, [=, this] {
         const bool ok = UrlScheme_Install();
         refreshUrlSchemeStatus();
         if (!ok) QMessageBox::warning(this, tr("URL Scheme"), tr("Could not register the handler for throne:// links."));
     });
-    connect(ui->url_scheme_uninstall, &QPushButton::clicked, this, [=,this] {
+    connect(ui->url_scheme_uninstall, &QPushButton::clicked, this, [=, this] {
         UrlScheme_Uninstall();
         // Leaving auto registration on would put everything back on the next start.
         ui->url_scheme_auto_register->setChecked(false);
@@ -113,19 +113,16 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->url_scheme_uninstall->setEnabled(urlSchemeSupported);
     refreshUrlSchemeStatus();
 
-    connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=,this] {
+    connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=, this] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound, JsonEdit::SingBox::Config)
     });
-    connect(ui->disable_tray, &QCheckBox::stateChanged, this, [=,this](const bool &) {
+    connect(ui->disable_tray, &QCheckBox::stateChanged, this, [=, this](const bool &) {
         CACHE.updateDisableTray = true;
     });
-    connect(ui->random_listen_port, &QCheckBox::stateChanged, this, [=,this](const bool &state)
-    {
-        if (state)
-        {
+    connect(ui->random_listen_port, &QCheckBox::stateChanged, this, [=, this](const bool &state) {
+        if (state) {
             ui->inbound_socks_port->setDisabled(true);
-        } else
-        {
+        } else {
             ui->inbound_socks_port->setDisabled(false);
         }
     });
@@ -155,8 +152,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->connection_statistics->setChecked(Configs::dataManager->settingsRepo->enable_stats);
     ui->disable_traffic_aggregation->setChecked(Configs::dataManager->settingsRepo->disable_traffic_aggregation);
     ui->show_sys_dns->setChecked(Configs::dataManager->settingsRepo->show_system_dns);
-    connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=]
-    {
+    connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=] {
         CACHE.updateSystemDns = true;
     });
 #ifndef Q_OS_WIN
@@ -166,10 +162,10 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->skip_delete_confirm->setChecked(Configs::dataManager->settingsRepo->skip_delete_confirmation);
     D_LOAD_BOOL(show_config_security)
     ui->language->setCurrentIndex(Configs::dataManager->settingsRepo->language);
-    connect(ui->language, &QComboBox::currentIndexChanged, this, [=,this](int index) {
+    connect(ui->language, &QComboBox::currentIndexChanged, this, [=, this](int index) {
         CACHE.needRestart = true;
     });
-    connect(ui->font, &QComboBox::currentTextChanged, this, [=,this](const QString &fontName) {
+    connect(ui->font, &QComboBox::currentTextChanged, this, [=, this](const QString &fontName) {
         auto font = qApp->font();
         font.setFamily(fontName);
         qApp->setFont(font);
@@ -178,11 +174,11 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         themeManager()->RefreshRegisteredStyles();
         updateGeometry();
     });
-    for (int i=7;i<=26;i++) {
+    for (int i = 7; i <= 26; i++) {
         ui->font_size->addItem(Int2String(i));
     }
     ui->font_size->setCurrentText(Int2String(qApp->font().pointSize()));
-    connect(ui->font_size, &QComboBox::currentTextChanged, this, [=,this](const QString &sizeStr) {
+    connect(ui->font_size, &QComboBox::currentTextChanged, this, [=, this](const QString &sizeStr) {
         auto font = qApp->font();
         font.setPointSize(sizeStr.toInt());
         qApp->setFont(font);
@@ -194,7 +190,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     //
     ui->theme->setIconSize(QSize(64, 22));
     ui->theme->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-    for (const QString &theme : themeManager()->ThronedThemes())
+    for (const QString &theme: themeManager()->ThronedThemes())
         ui->theme->addItem(themeManager()->PreviewIcon(theme), theme);
     ui->enable_custom_icon->setChecked(Configs::dataManager->settingsRepo->use_custom_icons);
     ui->follow_status_in_taskbar->setChecked(Configs::dataManager->settingsRepo->follow_status_in_taskbar);
@@ -206,14 +202,17 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         auto n = QMessageBox::information(this, "Custom Icon Manual", tr(Configs::Information::CustomIconManual.toStdString().c_str()), QMessageBox::Open | QMessageBox::Cancel);
         if (n == QMessageBox::Open) {
             auto fileNames = QFileDialog::getOpenFileNames(this,
-                tr("Select png icons"), QDir::homePath(), tr("Image Files (*.png)"));
+                                                           tr("Select png icons"), QDir::homePath(), tr("Image Files (*.png)"));
             QString errors;
-            for (const auto& fileName : fileNames) {
+            for (const auto &fileName: fileNames) {
                 CACHE.updateTrayIcon = true;
                 QFileInfo fileInfo(fileName);
-                if (auto pixMap = QPixmap(fileName); pixMap.isNull()) errors += "Failed to load " + fileName + "\n";
-                else if (pixMap.width() != pixMap.height()) errors += "Image does not have equal width and height: " + fileName + "\n";
-                else if (!Configs::Information::iconNames.contains(fileInfo.fileName())) errors += "Icon name is not valid: " + fileInfo.fileName() + "\n";
+                if (auto pixMap = QPixmap(fileName); pixMap.isNull())
+                    errors += "Failed to load " + fileName + "\n";
+                else if (pixMap.width() != pixMap.height())
+                    errors += "Image does not have equal width and height: " + fileName + "\n";
+                else if (!Configs::Information::iconNames.contains(fileInfo.fileName()))
+                    errors += "Icon name is not valid: " + fileInfo.fileName() + "\n";
                 else {
                     QFile::remove(QDir("icons").filePath(fileInfo.fileName()));
                     if (!QFile::copy(fileName, QDir("icons").filePath(fileInfo.fileName()))) errors += "Failed to copy " + fileName + "\n";
@@ -228,7 +227,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     QString selectedTheme = Configs::dataManager->settingsRepo->theme;
     if (ui->theme->findText(selectedTheme) < 0)
         selectedTheme = themeManager()->IsDarkTheme(selectedTheme) ? QStringLiteral("Throned Midnight")
-                                                                 : QStringLiteral("System");
+                                                                   : QStringLiteral("System");
     ui->theme->setCurrentText(selectedTheme);
     //
     // Applying a theme restyles the whole application: qApp->setStyle, setPalette and
@@ -256,12 +255,12 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
     D_LOAD_INT_ENABLE(app_auto_update, app_auto_update_enable)
     auto details = GetDeviceDetails();
-	ui->sub_send_hwid->setToolTip(
+    ui->sub_send_hwid->setToolTip(
         ui->sub_send_hwid->toolTip()
             .arg(details.hwid.isEmpty() ? "N/A" : details.hwid,
-                details.os.isEmpty() ? "N/A" : details.os,
-                details.osVersion.isEmpty() ? "N/A" : details.osVersion,
-                details.model.isEmpty() ? "N/A" : details.model));
+                 details.os.isEmpty() ? "N/A" : details.os,
+                 details.osVersion.isEmpty() ? "N/A" : details.osVersion,
+                 details.model.isEmpty() ? "N/A" : details.model));
 
     ui->dns_in_port->setValidator(new QIntValidator(1, 65535, ui->dns_in_port));
     ui->dns_in_port->setText(Int2String(Configs::dataManager->settingsRepo->core_dns_in_port));
@@ -298,7 +297,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->ntp_port->setText(Int2String(Configs::dataManager->settingsRepo->ntp_server_port));
     ui->ntp_interval->setCurrentText(Configs::dataManager->settingsRepo->ntp_interval);
     ui->ntp_outbound->setCurrentText(Configs::dataManager->settingsRepo->ntp_outbound);
-    connect(ui->ntp_enable, &QCheckBox::stateChanged, this, [=,this](const bool &state) {
+    connect(ui->ntp_enable, &QCheckBox::stateChanged, this, [=, this](const bool &state) {
         ui->ntp_server->setEnabled(state);
         ui->ntp_port->setEnabled(state);
         ui->ntp_interval->setEnabled(state);
@@ -559,215 +558,215 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         };
 
         switch (index) {
-        case 1: { // Logging
-            auto *output = makeSection(tr("Log output"), tr("Control verbosity and retained history."));
-            auto *layout = qobject_cast<QVBoxLayout *>(output->layout());
-            addControlRow(layout, tr("Max log lines"), ui->max_log_line);
-            addToggleRow(layout, tr("Auto-scroll log"), ui->log_auto_scroll);
-            addControlRow(layout, tr("Sing-box log level"), ui->log_level);
-            addControlRow(layout, tr("Xray log level"), ui->xray_loglevel);
-            pageLayout->addWidget(output);
+            case 1: { // Logging
+                auto *output = makeSection(tr("Log output"), tr("Control verbosity and retained history."));
+                auto *layout = qobject_cast<QVBoxLayout *>(output->layout());
+                addControlRow(layout, tr("Max log lines"), ui->max_log_line);
+                addToggleRow(layout, tr("Auto-scroll log"), ui->log_auto_scroll);
+                addControlRow(layout, tr("Sing-box log level"), ui->log_level);
+                addControlRow(layout, tr("Xray log level"), ui->xray_loglevel);
+                pageLayout->addWidget(output);
 
-            auto *include = makeSection(tr("Include filters"), tr("Keep only matching log entries when enabled."));
-            layout = qobject_cast<QVBoxLayout *>(include->layout());
-            addToggleRow(layout, tr("Enable include rules"), ui->enable_log_include);
-            addControlRow(layout, tr("Keywords"), prepareEditor(ui->log_include_keyword));
-            addControlRow(layout, tr("Regular expressions"), prepareEditor(ui->log_include_regex));
-            pageLayout->addWidget(include);
+                auto *include = makeSection(tr("Include filters"), tr("Keep only matching log entries when enabled."));
+                layout = qobject_cast<QVBoxLayout *>(include->layout());
+                addToggleRow(layout, tr("Enable include rules"), ui->enable_log_include);
+                addControlRow(layout, tr("Keywords"), prepareEditor(ui->log_include_keyword));
+                addControlRow(layout, tr("Regular expressions"), prepareEditor(ui->log_include_regex));
+                pageLayout->addWidget(include);
 
-            auto *exclude = makeSection(tr("Exclude filters"), tr("Hide matching log entries when enabled."));
-            layout = qobject_cast<QVBoxLayout *>(exclude->layout());
-            addToggleRow(layout, tr("Enable exclude rules"), ui->enable_log_exclude);
-            addControlRow(layout, tr("Keywords"), prepareEditor(ui->log_exclude_keyword));
-            addControlRow(layout, tr("Regular expressions"), prepareEditor(ui->log_exclude_regex));
-            pageLayout->addWidget(exclude);
-            break;
-        }
-        case 2: { // Appearance
-            auto *visuals = makeSection(tr("Theme and language"), tr("Fonts, colors, language, and application icons."));
-            auto *layout = qobject_cast<QVBoxLayout *>(visuals->layout());
-            addControlRow(layout, tr("Color theme"), ui->theme, tr("Previewed immediately across every redesigned screen."));
-            addControlRow(layout, tr("Language"), ui->language);
-            addControlRow(layout, tr("Font"), ui->font);
-            addControlRow(layout, tr("Font size"), ui->font_size, tr("Changes the base interface size without restarting."));
-            addToggleRow(layout, tr("Use custom icons"), ui->enable_custom_icon);
-            addToggleRow(layout, tr("Follow status icon in taskbar"), ui->follow_status_in_taskbar,
-                         tr("Turn this off to keep the regular Throned icon while connected."));
-            ui->select_custom_icon->setObjectName(QStringLiteral("settingsSecondaryButton"));
-            addControlRow(layout, tr("Custom icon files"), ui->select_custom_icon,
-                          tr("PNG files must use Throned's supported tray-icon names."));
-            pageLayout->addWidget(visuals);
+                auto *exclude = makeSection(tr("Exclude filters"), tr("Hide matching log entries when enabled."));
+                layout = qobject_cast<QVBoxLayout *>(exclude->layout());
+                addToggleRow(layout, tr("Enable exclude rules"), ui->enable_log_exclude);
+                addControlRow(layout, tr("Keywords"), prepareEditor(ui->log_exclude_keyword));
+                addControlRow(layout, tr("Regular expressions"), prepareEditor(ui->log_exclude_regex));
+                pageLayout->addWidget(exclude);
+                break;
+            }
+            case 2: { // Appearance
+                auto *visuals = makeSection(tr("Theme and language"), tr("Fonts, colors, language, and application icons."));
+                auto *layout = qobject_cast<QVBoxLayout *>(visuals->layout());
+                addControlRow(layout, tr("Color theme"), ui->theme, tr("Previewed immediately across every redesigned screen."));
+                addControlRow(layout, tr("Language"), ui->language);
+                addControlRow(layout, tr("Font"), ui->font);
+                addControlRow(layout, tr("Font size"), ui->font_size, tr("Changes the base interface size without restarting."));
+                addToggleRow(layout, tr("Use custom icons"), ui->enable_custom_icon);
+                addToggleRow(layout, tr("Follow status icon in taskbar"), ui->follow_status_in_taskbar,
+                             tr("Turn this off to keep the regular Throned icon while connected."));
+                ui->select_custom_icon->setObjectName(QStringLiteral("settingsSecondaryButton"));
+                addControlRow(layout, tr("Custom icon files"), ui->select_custom_icon,
+                              tr("PNG files must use Throned's supported tray-icon names."));
+                pageLayout->addWidget(visuals);
 
-            auto *window = makeSection(tr("Window and statistics"), tr("Startup behavior and information shown in the main window."));
-            layout = qobject_cast<QVBoxLayout *>(window->layout());
-            addToggleRow(layout, tr("Connection statistics"), ui->connection_statistics);
-            addToggleRow(layout, ui->disable_traffic_aggregation->text(), ui->disable_traffic_aggregation);
-            addToggleRow(layout, ui->show_config_security->text(), ui->show_config_security);
-            addToggleRow(layout, ui->start_minimal->text(), ui->start_minimal);
-            addToggleRow(layout, ui->show_sys_dns->text(), ui->show_sys_dns);
-            addToggleRow(layout, ui->disable_tray->text(), ui->disable_tray);
-            addToggleRow(layout, tr("Delete profiles without confirmation"), ui->skip_delete_confirm);
-            pageLayout->addWidget(window);
-            break;
-        }
-        case 3: { // Subscription
-            auto *updates = makeSection(tr("Automatic updates"), tr("Schedule subscription and routing-profile refreshes."));
-            auto *layout = qobject_cast<QVBoxLayout *>(updates->layout());
-            addControlRow(layout, tr("User agent"), ui->user_agent);
-            addToggleRow(layout, tr("Update subscriptions automatically"), ui->sub_auto_update_enable);
-            addControlRow(layout, tr("Subscription interval (minutes)"), ui->sub_auto_update);
-            addToggleRow(layout, tr("Update routing profiles automatically"), ui->route_auto_update_enable);
-            addControlRow(layout, tr("Routing interval (minutes)"), ui->route_auto_update);
-            addToggleRow(layout, tr("Check for Throned updates automatically"), ui->app_auto_update_enable);
-            addControlRow(layout, tr("Update check interval (minutes)"), ui->app_auto_update,
-                          tr("A found release is announced in the tray; nothing installs on its own."));
-            pageLayout->addWidget(updates);
+                auto *window = makeSection(tr("Window and statistics"), tr("Startup behavior and information shown in the main window."));
+                layout = qobject_cast<QVBoxLayout *>(window->layout());
+                addToggleRow(layout, tr("Connection statistics"), ui->connection_statistics);
+                addToggleRow(layout, ui->disable_traffic_aggregation->text(), ui->disable_traffic_aggregation);
+                addToggleRow(layout, ui->show_config_security->text(), ui->show_config_security);
+                addToggleRow(layout, ui->start_minimal->text(), ui->start_minimal);
+                addToggleRow(layout, ui->show_sys_dns->text(), ui->show_sys_dns);
+                addToggleRow(layout, ui->disable_tray->text(), ui->disable_tray);
+                addToggleRow(layout, tr("Delete profiles without confirmation"), ui->skip_delete_confirm);
+                pageLayout->addWidget(window);
+                break;
+            }
+            case 3: { // Subscription
+                auto *updates = makeSection(tr("Automatic updates"), tr("Schedule subscription and routing-profile refreshes."));
+                auto *layout = qobject_cast<QVBoxLayout *>(updates->layout());
+                addControlRow(layout, tr("User agent"), ui->user_agent);
+                addToggleRow(layout, tr("Update subscriptions automatically"), ui->sub_auto_update_enable);
+                addControlRow(layout, tr("Subscription interval (minutes)"), ui->sub_auto_update);
+                addToggleRow(layout, tr("Update routing profiles automatically"), ui->route_auto_update_enable);
+                addControlRow(layout, tr("Routing interval (minutes)"), ui->route_auto_update);
+                addToggleRow(layout, tr("Check for Throned updates automatically"), ui->app_auto_update_enable);
+                addControlRow(layout, tr("Update check interval (minutes)"), ui->app_auto_update,
+                              tr("A found release is announced in the tray; nothing installs on its own."));
+                pageLayout->addWidget(updates);
 
-            auto *behavior = makeSection(tr("Update behavior"), tr("Choose how imported profiles and device metadata are handled."));
-            layout = qobject_cast<QVBoxLayout *>(behavior->layout());
-            addToggleRow(layout, ui->allow_stopping_active_profile->text(), ui->allow_stopping_active_profile);
-            addToggleRow(layout, ui->sub_clear->text(), ui->sub_clear);
-            addToggleRow(layout, ui->sub_show_change_popup->text(), ui->sub_show_change_popup);
-            addToggleRow(layout, ui->sub_send_hwid->text(), ui->sub_send_hwid);
-            addControlRow(layout, tr("Custom system parameters"), ui->sub_custom_hwid_params,
-                          tr("Optional overrides for HWID, OS, version, or model."));
-            pageLayout->addWidget(behavior);
-            break;
-        }
-        case 4: { // Core
-            // Keep the complete controller setup together. All four widgets come from
-            // the retired Designer page, so every one of them must be re-hosted here.
-            auto *singboxApi = makeSection(tr("sing-box API"), tr("Local controller endpoint used by the built-in dashboard."));
-            auto *layout = qobject_cast<QVBoxLayout *>(singboxApi->layout());
-            addControlRow(layout, tr("API port"), ui->core_box_api_port);
-            addControlRow(layout, tr("API secret"), makeInlineControl(ui->core_box_api_secret, ui->core_box_api_regen));
-            ui->core_box_api_hint->setParent(singboxApi);
-            ui->core_box_api_hint->setObjectName(QStringLiteral("settingsMuted"));
-            ui->core_box_api_hint->setWordWrap(true);
-            layout->addWidget(ui->core_box_api_hint);
-            pageLayout->addWidget(singboxApi);
+                auto *behavior = makeSection(tr("Update behavior"), tr("Choose how imported profiles and device metadata are handled."));
+                layout = qobject_cast<QVBoxLayout *>(behavior->layout());
+                addToggleRow(layout, ui->allow_stopping_active_profile->text(), ui->allow_stopping_active_profile);
+                addToggleRow(layout, ui->sub_clear->text(), ui->sub_clear);
+                addToggleRow(layout, ui->sub_show_change_popup->text(), ui->sub_show_change_popup);
+                addToggleRow(layout, ui->sub_send_hwid->text(), ui->sub_send_hwid);
+                addControlRow(layout, tr("Custom system parameters"), ui->sub_custom_hwid_params,
+                              tr("Optional overrides for HWID, OS, version, or model."));
+                pageLayout->addWidget(behavior);
+                break;
+            }
+            case 4: { // Core
+                // Keep the complete controller setup together. All four widgets come from
+                // the retired Designer page, so every one of them must be re-hosted here.
+                auto *singboxApi = makeSection(tr("sing-box API"), tr("Local controller endpoint used by the built-in dashboard."));
+                auto *layout = qobject_cast<QVBoxLayout *>(singboxApi->layout());
+                addControlRow(layout, tr("API port"), ui->core_box_api_port);
+                addControlRow(layout, tr("API secret"), makeInlineControl(ui->core_box_api_secret, ui->core_box_api_regen));
+                ui->core_box_api_hint->setParent(singboxApi);
+                ui->core_box_api_hint->setObjectName(QStringLiteral("settingsMuted"));
+                ui->core_box_api_hint->setWordWrap(true);
+                layout->addWidget(ui->core_box_api_hint);
+                pageLayout->addWidget(singboxApi);
 
-            auto *clash = makeSection(tr("Clash API"), tr("Local controller endpoint exposed by the core."));
-            layout = qobject_cast<QVBoxLayout *>(clash->layout());
-            addControlRow(layout, tr("Listen address"), ui->core_box_clash_listen_addr);
-            addControlRow(layout, tr("API port"), ui->core_box_clash_api);
-            addControlRow(layout, tr("API secret"), ui->core_box_clash_api_secret);
-            pageLayout->addWidget(clash);
+                auto *clash = makeSection(tr("Clash API"), tr("Local controller endpoint exposed by the core."));
+                layout = qobject_cast<QVBoxLayout *>(clash->layout());
+                addControlRow(layout, tr("Listen address"), ui->core_box_clash_listen_addr);
+                addControlRow(layout, tr("API port"), ui->core_box_clash_api);
+                addControlRow(layout, tr("API secret"), ui->core_box_clash_api_secret);
+                pageLayout->addWidget(clash);
 
-            auto *xray = makeSection(tr("Xray core"), tr("Profile preference used by Xray-backed VLESS connections."));
-            layout = qobject_cast<QVBoxLayout *>(xray->layout());
-            addControlRow(layout, tr("VLESS preference"), ui->vless_xray_pref);
-            pageLayout->addWidget(xray);
-            break;
-        }
-        case 5: { // Miscellaneous
-            auto *network = makeSection(tr("Network"), tr("Application updates and outbound network behavior."));
-            auto *layout = qobject_cast<QVBoxLayout *>(network->layout());
-            addToggleRow(layout, ui->allow_beta->text(), ui->allow_beta);
-            addToggleRow(layout, ui->net_insecure->text(), ui->net_insecure);
-            addToggleRow(layout, ui->reset_proxy_on_disable_sp->text(), ui->reset_proxy_on_disable_sp);
-            addToggleRow(layout, ui->net_use_proxy->text(), ui->net_use_proxy);
-            pageLayout->addWidget(network);
+                auto *xray = makeSection(tr("Xray core"), tr("Profile preference used by Xray-backed VLESS connections."));
+                layout = qobject_cast<QVBoxLayout *>(xray->layout());
+                addControlRow(layout, tr("VLESS preference"), ui->vless_xray_pref);
+                pageLayout->addWidget(xray);
+                break;
+            }
+            case 5: { // Miscellaneous
+                auto *network = makeSection(tr("Network"), tr("Application updates and outbound network behavior."));
+                auto *layout = qobject_cast<QVBoxLayout *>(network->layout());
+                addToggleRow(layout, ui->allow_beta->text(), ui->allow_beta);
+                addToggleRow(layout, ui->net_insecure->text(), ui->net_insecure);
+                addToggleRow(layout, ui->reset_proxy_on_disable_sp->text(), ui->reset_proxy_on_disable_sp);
+                addToggleRow(layout, ui->net_use_proxy->text(), ui->net_use_proxy);
+                pageLayout->addWidget(network);
 
-            auto *core = makeSection(tr("Core services"), tr("Traffic statistics and the local DNS endpoint."));
-            layout = qobject_cast<QVBoxLayout *>(core->layout());
-            addToggleRow(layout, ui->disable_stats->text(), ui->disable_stats);
-            addControlRow(layout, tr("DNS inbound port"), ui->dns_in_port);
-            pageLayout->addWidget(core);
+                auto *core = makeSection(tr("Core services"), tr("Traffic statistics and the local DNS endpoint."));
+                layout = qobject_cast<QVBoxLayout *>(core->layout());
+                addToggleRow(layout, ui->disable_stats->text(), ui->disable_stats);
+                addControlRow(layout, tr("DNS inbound port"), ui->dns_in_port);
+                pageLayout->addWidget(core);
 
-            auto *ntp = makeSection(tr("NTP client"), tr("Time synchronization used by sing-box."));
-            layout = qobject_cast<QVBoxLayout *>(ntp->layout());
-            addToggleRow(layout, ui->ntp_enable->text(), ui->ntp_enable);
-            addControlRow(layout, tr("Server"), ui->ntp_server);
-            addControlRow(layout, tr("Port"), ui->ntp_port);
-            addControlRow(layout, tr("Interval"), ui->ntp_interval);
-            addControlRow(layout, tr("Outbound"), ui->ntp_outbound);
-            pageLayout->addWidget(ntp);
+                auto *ntp = makeSection(tr("NTP client"), tr("Time synchronization used by sing-box."));
+                layout = qobject_cast<QVBoxLayout *>(ntp->layout());
+                addToggleRow(layout, ui->ntp_enable->text(), ui->ntp_enable);
+                addControlRow(layout, tr("Server"), ui->ntp_server);
+                addControlRow(layout, tr("Port"), ui->ntp_port);
+                addControlRow(layout, tr("Interval"), ui->ntp_interval);
+                addControlRow(layout, tr("Outbound"), ui->ntp_outbound);
+                pageLayout->addWidget(ntp);
 
-            auto *assets = makeSection(tr("Xray geo assets"), tr("Sources used for geoip.dat and geosite.dat."));
-            layout = qobject_cast<QVBoxLayout *>(assets->layout());
-            addControlRow(layout, tr("GeoIP asset URL"), makeInlineControl(ui->xray_geoip_url, ui->xray_geoip_download));
-            addControlRow(layout, tr("Geosite asset URL"), makeInlineControl(ui->xray_geosite_url, ui->xray_geosite_download));
-            pageLayout->addWidget(assets);
-            break;
-        }
-        case 6: { // Backup and restore
-            auto *create = makeSection(tr("Create backup"), tr("Choose which local data to include."));
-            auto *layout = qobject_cast<QVBoxLayout *>(create->layout());
-            addToggleRow(layout, ui->backup_inc_profiles->text(), ui->backup_inc_profiles);
-            addToggleRow(layout, ui->backup_inc_routes->text(), ui->backup_inc_routes);
-            addToggleRow(layout, ui->backup_inc_settings->text(), ui->backup_inc_settings);
-            addToggleRow(layout, ui->backup_inc_otp->text(), ui->backup_inc_otp);
-            addToggleRow(layout, ui->backup_inc_icons->text(), ui->backup_inc_icons);
-            ui->backup_create->setObjectName(QStringLiteral("settingsSecondaryButton"));
-            addControlRow(layout, tr("Backup file"), ui->backup_create);
-            pageLayout->addWidget(create);
+                auto *assets = makeSection(tr("Xray geo assets"), tr("Sources used for geoip.dat and geosite.dat."));
+                layout = qobject_cast<QVBoxLayout *>(assets->layout());
+                addControlRow(layout, tr("GeoIP asset URL"), makeInlineControl(ui->xray_geoip_url, ui->xray_geoip_download));
+                addControlRow(layout, tr("Geosite asset URL"), makeInlineControl(ui->xray_geosite_url, ui->xray_geosite_download));
+                pageLayout->addWidget(assets);
+                break;
+            }
+            case 6: { // Backup and restore
+                auto *create = makeSection(tr("Create backup"), tr("Choose which local data to include."));
+                auto *layout = qobject_cast<QVBoxLayout *>(create->layout());
+                addToggleRow(layout, ui->backup_inc_profiles->text(), ui->backup_inc_profiles);
+                addToggleRow(layout, ui->backup_inc_routes->text(), ui->backup_inc_routes);
+                addToggleRow(layout, ui->backup_inc_settings->text(), ui->backup_inc_settings);
+                addToggleRow(layout, ui->backup_inc_otp->text(), ui->backup_inc_otp);
+                addToggleRow(layout, ui->backup_inc_icons->text(), ui->backup_inc_icons);
+                ui->backup_create->setObjectName(QStringLiteral("settingsSecondaryButton"));
+                addControlRow(layout, tr("Backup file"), ui->backup_create);
+                pageLayout->addWidget(create);
 
-            auto *restore = makeSection(tr("Restore backup"), tr("Import data from an existing Throned backup."));
-            layout = qobject_cast<QVBoxLayout *>(restore->layout());
-            ui->backup_restore->setObjectName(QStringLiteral("settingsSecondaryButton"));
-            addControlRow(layout, tr("Backup file"), ui->backup_restore);
-            pageLayout->addWidget(restore);
-            break;
-        }
-        case 7: { // Security -- first page off the .ui; see SettingsBindings.
-            auto &settings = *Configs::dataManager->settingsRepo;
+                auto *restore = makeSection(tr("Restore backup"), tr("Import data from an existing Throned backup."));
+                layout = qobject_cast<QVBoxLayout *>(restore->layout());
+                ui->backup_restore->setObjectName(QStringLiteral("settingsSecondaryButton"));
+                addControlRow(layout, tr("Backup file"), ui->backup_restore);
+                pageLayout->addWidget(restore);
+                break;
+            }
+            case 7: { // Security -- first page off the .ui; see SettingsBindings.
+                auto &settings = *Configs::dataManager->settingsRepo;
 
-            // Creates the control, binds it to its setting and puts it in the section.
-            // One call is the whole description of a preference.
-            const auto addToggle = [&](QVBoxLayout *section, const QString &text,
-                                       bool &target, const QString &tip = {}) {
-                auto *box = new QCheckBox(text, this);
-                if (!tip.isEmpty()) box->setToolTip(tip);
-                bindings_.bind(box, target);
-                addToggleRow(section, box->text(), box);
-                return box;
-            };
+                // Creates the control, binds it to its setting and puts it in the section.
+                // One call is the whole description of a preference.
+                const auto addToggle = [&](QVBoxLayout *section, const QString &text,
+                                           bool &target, const QString &tip = {}) {
+                    auto *box = new QCheckBox(text, this);
+                    if (!tip.isEmpty()) box->setToolTip(tip);
+                    bindings_.bind(box, target);
+                    addToggleRow(section, box->text(), box);
+                    return box;
+                };
 
-            auto *permissions = makeSection(tr("Permissions"), tr("Administrative privileges and startup behavior."));
-            auto *layout = qobject_cast<QVBoxLayout *>(permissions->layout());
-            addToggle(layout, tr("Disable Privilege request"), settings.disable_privilege_req);
+                auto *permissions = makeSection(tr("Permissions"), tr("Administrative privileges and startup behavior."));
+                auto *layout = qobject_cast<QVBoxLayout *>(permissions->layout());
+                addToggle(layout, tr("Disable Privilege request"), settings.disable_privilege_req);
 #ifdef Q_OS_WIN
-            alwaysStandardUser_ = addToggle(layout, tr("Always Start as Standard User"), settings.disable_run_admin,
-                                            tr("Do not attempt to start as Admin unless explicitly requested"));
+                alwaysStandardUser_ = addToggle(layout, tr("Always Start as Standard User"), settings.disable_run_admin,
+                                                tr("Do not attempt to start as Admin unless explicitly requested"));
 #endif
-            pageLayout->addWidget(permissions);
+                pageLayout->addWidget(permissions);
 
-            auto *urlScheme = makeSection(tr("URL scheme"), tr("Handler registration for throne:// links and config files."));
-            layout = qobject_cast<QVBoxLayout *>(urlScheme->layout());
-            addToggleRow(layout, ui->url_scheme_auto_register->text(), ui->url_scheme_auto_register);
-            auto *schemeTools = new QWidget(this);
-            auto *schemeLayout = new QHBoxLayout(schemeTools);
-            schemeLayout->setContentsMargins(0, 0, 0, 0);
-            schemeLayout->setSpacing(6);
-            ui->url_scheme_install->setObjectName(QStringLiteral("settingsSecondaryButton"));
-            ui->url_scheme_uninstall->setObjectName(QStringLiteral("settingsSecondaryButton"));
-            schemeLayout->addWidget(ui->url_scheme_status);
-            schemeLayout->addWidget(ui->url_scheme_install);
-            schemeLayout->addWidget(ui->url_scheme_uninstall);
-            addControlRow(layout, tr("Registration"), schemeTools);
-            pageLayout->addWidget(urlScheme);
+                auto *urlScheme = makeSection(tr("URL scheme"), tr("Handler registration for throne:// links and config files."));
+                layout = qobject_cast<QVBoxLayout *>(urlScheme->layout());
+                addToggleRow(layout, ui->url_scheme_auto_register->text(), ui->url_scheme_auto_register);
+                auto *schemeTools = new QWidget(this);
+                auto *schemeLayout = new QHBoxLayout(schemeTools);
+                schemeLayout->setContentsMargins(0, 0, 0, 0);
+                schemeLayout->setSpacing(6);
+                ui->url_scheme_install->setObjectName(QStringLiteral("settingsSecondaryButton"));
+                ui->url_scheme_uninstall->setObjectName(QStringLiteral("settingsSecondaryButton"));
+                schemeLayout->addWidget(ui->url_scheme_status);
+                schemeLayout->addWidget(ui->url_scheme_install);
+                schemeLayout->addWidget(ui->url_scheme_uninstall);
+                addControlRow(layout, tr("Registration"), schemeTools);
+                pageLayout->addWidget(urlScheme);
 
-            auto *certificates = makeSection(tr("Certificates"), tr("Certificate stores and TLS validation defaults."));
-            layout = qobject_cast<QVBoxLayout *>(certificates->layout());
-            addToggle(layout, tr("Use Mozilla Certificate Store"), settings.use_mozilla_certs);
-            addToggle(layout, tr("Skip TLS certificate authentication by default (allowInsecure)"), settings.skip_cert);
+                auto *certificates = makeSection(tr("Certificates"), tr("Certificate stores and TLS validation defaults."));
+                layout = qobject_cast<QVBoxLayout *>(certificates->layout());
+                addToggle(layout, tr("Use Mozilla Certificate Store"), settings.use_mozilla_certs);
+                addToggle(layout, tr("Skip TLS certificate authentication by default (allowInsecure)"), settings.skip_cert);
 
-            auto *fingerprint = new QComboBox(this);
-            fingerprint->setEditable(true);
-            fingerprint->addItems(Configs::tlsFingerprints);
-            bindings_.bind(fingerprint, settings.utlsFingerprint);
-            addControlRow(layout, tr("uTLS fingerprint"), fingerprint);
+                auto *fingerprint = new QComboBox(this);
+                fingerprint->setEditable(true);
+                fingerprint->addItems(Configs::tlsFingerprints);
+                bindings_.bind(fingerprint, settings.utlsFingerprint);
+                addControlRow(layout, tr("uTLS fingerprint"), fingerprint);
 
-            pageLayout->addWidget(certificates);
-            break;
-        }
-        default:
-            legacyPages[index]->setParent(pageHost);
-            legacyPages[index]->setObjectName(QStringLiteral("settingsLegacyPage"));
-            legacyPages[index]->setVisible(true);
-            pageLayout->addWidget(legacyPages[index], 1);
-            break;
+                pageLayout->addWidget(certificates);
+                break;
+            }
+            default:
+                legacyPages[index]->setParent(pageHost);
+                legacyPages[index]->setObjectName(QStringLiteral("settingsLegacyPage"));
+                legacyPages[index]->setVisible(true);
+                pageLayout->addWidget(legacyPages[index], 1);
+                break;
         }
         pageLayout->addStretch(1);
         pageScroll->setWidget(pageHost);
@@ -787,9 +786,14 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     navGroup->setExclusive(true);
     settingsNavGroup_ = navGroup;
     const QList<MaterialIcon::Glyph> pageIcons{
-        MaterialIcon::Glyph::Settings, MaterialIcon::Glyph::List, MaterialIcon::Glyph::Desktop,
-        MaterialIcon::Glyph::Reload, MaterialIcon::Glyph::Tools, MaterialIcon::Glyph::Apps,
-        MaterialIcon::Glyph::Folder, MaterialIcon::Glyph::Shield,
+        MaterialIcon::Glyph::Settings,
+        MaterialIcon::Glyph::List,
+        MaterialIcon::Glyph::Desktop,
+        MaterialIcon::Glyph::Reload,
+        MaterialIcon::Glyph::Tools,
+        MaterialIcon::Glyph::Apps,
+        MaterialIcon::Glyph::Folder,
+        MaterialIcon::Glyph::Shield,
     };
     for (int index = 0; index < stack->count(); ++index) {
         const QString name = index < pageNames.size() ? pageNames[index] : tr("Settings");
@@ -1032,8 +1036,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_STRING(inbound_address)
     Configs::dataManager->settingsRepo->custom_inbound = CACHE.custom_inbound;
     D_SAVE_INT(inbound_socks_port)
-    if (!Configs::dataManager->settingsRepo->random_inbound_port && ui->random_listen_port->isChecked())
-    {
+    if (!Configs::dataManager->settingsRepo->random_inbound_port && ui->random_listen_port->isChecked()) {
         needChoosePort = true;
     }
     Configs::dataManager->settingsRepo->random_inbound_port = ui->random_listen_port->isChecked();
@@ -1072,10 +1075,10 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->log_include_regex.clear();
     Configs::dataManager->settingsRepo->log_exclude_regex.clear();
     QRegularExpression regexValidator;
-    for (QStringList log_include_lines = SplitAndTrim(ui->log_include_regex->toPlainText(), "\n", false); const QString &line : log_include_lines) {
+    for (QStringList log_include_lines = SplitAndTrim(ui->log_include_regex->toPlainText(), "\n", false); const QString &line: log_include_lines) {
         if (regexValidator.setPattern(line); regexValidator.isValid()) Configs::dataManager->settingsRepo->log_include_regex << line;
     }
-    for (QStringList log_exclude_lines = SplitAndTrim(ui->log_exclude_regex->toPlainText(), "\n", false); const QString &line : log_exclude_lines) {
+    for (QStringList log_exclude_lines = SplitAndTrim(ui->log_exclude_regex->toPlainText(), "\n", false); const QString &line: log_exclude_lines) {
         if (regexValidator.setPattern(line); regexValidator.isValid()) Configs::dataManager->settingsRepo->log_exclude_regex << line;
     }
 
@@ -1136,8 +1139,7 @@ void DialogBasicSettings::accept() {
     // Security
 
     // Has to be asked before the bindings overwrite the stored value.
-    if (alwaysStandardUser_ != nullptr
-        && Configs::dataManager->settingsRepo->disable_run_admin != alwaysStandardUser_->isChecked()) {
+    if (alwaysStandardUser_ != nullptr && Configs::dataManager->settingsRepo->disable_run_admin != alwaysStandardUser_->isChecked()) {
         CACHE.updateDisableAdmin = true;
     }
     bindings_.save();
@@ -1166,12 +1168,15 @@ void DialogBasicSettings::accept() {
 static constexpr quint32 BACKUP_FORMAT_VERSION = 2;
 static constexpr int BACKUP_CONTENT_VERSION = 2;
 
-static Configs::BackupParts BackupPartsFromMeta(quint32 formatVersion, const QJsonObject& meta,
-                                                const QMap<QString, QByteArray>& files) {
+static Configs::BackupParts BackupPartsFromMeta(quint32 formatVersion, const QJsonObject &meta,
+                                                const QMap<QString, QByteArray> &files) {
     Configs::BackupParts p;
     bool hasIcons = false;
     for (auto it = files.constBegin(); it != files.constEnd(); ++it) {
-        if (it.key().startsWith("icons/")) { hasIcons = true; break; }
+        if (it.key().startsWith("icons/")) {
+            hasIcons = true;
+            break;
+        }
     }
     if (formatVersion >= 2 && meta.contains("parts")) {
         const QJsonObject po = meta["parts"].toObject();
@@ -1191,7 +1196,7 @@ void DialogBasicSettings::downloadXrayGeoAsset(const QString &url, const QString
     const QString effectiveUrl = url.trimmed();
     if (effectiveUrl.isEmpty()) {
         QMessageBox::warning(this, tr("Download geo asset"),
-            tr("Please enter a URL for %1 first.").arg(fileName));
+                             tr("Please enter a URL for %1 first.").arg(fileName));
         return;
     }
     MW_show_log(tr("Downloading Xray geo asset: %1").arg(fileName));
@@ -1203,10 +1208,10 @@ void DialogBasicSettings::downloadXrayGeoAsset(const QString &url, const QString
             if (err.isEmpty()) {
                 MW_show_log(QObject::tr("Downloaded Xray geo asset: %1").arg(fileName));
                 QMessageBox::information(GetMainWindow(), QObject::tr("Download geo asset"),
-                    QObject::tr("%1 was downloaded successfully.").arg(fileName));
+                                         QObject::tr("%1 was downloaded successfully.").arg(fileName));
             } else {
                 MessageBoxWarning(QObject::tr("Download geo asset"),
-                    QObject::tr("Failed to download %1:\n%2").arg(fileName, err));
+                                  QObject::tr("Failed to download %1:\n%2").arg(fileName, err));
             }
         });
     });
@@ -1234,7 +1239,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
 
     if (!parts.any()) {
         QMessageBox::warning(this, tr("Create Backup"),
-            tr("Select at least one part to include in the backup."));
+                             tr("Select at least one part to include in the backup."));
         return;
     }
 
@@ -1244,8 +1249,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
         this,
         tr("Create Backup"),
         QDir::homePath() + "/Throned-backup.thrbackup",
-        tr("Throned Backup (*.thrbackup)")
-    );
+        tr("Throned Backup (*.thrbackup)"));
     if (filePath.isEmpty()) return;
 
     QMap<QString, QByteArray> files;
@@ -1256,10 +1260,10 @@ void DialogBasicSettings::on_backup_create_clicked() {
 
         try {
             Configs::dataManager->getDatabase().backupSelective(tempDbPath.toStdString(), parts);
-        } catch (std::exception& e) {
+        } catch (std::exception &e) {
             QFile::remove(tempDbPath);
             QMessageBox::critical(this, tr("Backup Failed"),
-                tr("Failed to create database snapshot: %1").arg(e.what()));
+                                  tr("Failed to create database snapshot: %1").arg(e.what()));
             return;
         }
 
@@ -1277,7 +1281,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
     if (parts.icons) {
         QDir iconsDir("icons");
         if (iconsDir.exists()) {
-            for (const QFileInfo& entry : iconsDir.entryInfoList(QDir::Files)) {
+            for (const QFileInfo &entry: iconsDir.entryInfoList(QDir::Files)) {
                 QFile iconFile(entry.absoluteFilePath());
                 if (iconFile.open(QIODevice::ReadOnly)) {
                     files["icons/" + entry.fileName()] = iconFile.readAll();
@@ -1289,7 +1293,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
     QFile outFile(filePath);
     if (!outFile.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, tr("Backup Failed"),
-            tr("Cannot write to: %1").arg(filePath));
+                              tr("Cannot write to: %1").arg(filePath));
         return;
     }
 
@@ -1325,8 +1329,8 @@ void DialogBasicSettings::on_backup_create_clicked() {
     if (parts.icons) included << tr("Custom icons");
 
     QMessageBox::information(this, tr("Backup Created"),
-        tr("Backup created successfully:\n%1\n\nIncluded: %2")
-            .arg(filePath, included.join(", ")));
+                             tr("Backup created successfully:\n%1\n\nIncluded: %2")
+                                 .arg(filePath, included.join(", ")));
 }
 
 void DialogBasicSettings::on_backup_restore_clicked() {
@@ -1334,14 +1338,13 @@ void DialogBasicSettings::on_backup_restore_clicked() {
         this,
         tr("Restore Backup"),
         QDir::homePath(),
-        tr("Throned Backup (*.thrbackup)")
-    );
+        tr("Throned Backup (*.thrbackup)"));
     if (filePath.isEmpty()) return;
 
     QFile inFile(filePath);
     if (!inFile.open(QIODevice::ReadOnly)) {
         QMessageBox::critical(this, tr("Restore Failed"),
-            tr("Cannot open backup file: %1").arg(filePath));
+                              tr("Cannot open backup file: %1").arg(filePath));
         return;
     }
 
@@ -1352,7 +1355,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     char magic[4];
     if (stream.readRawData(magic, 4) != 4 || strncmp(magic, "THRN", 4) != 0) {
         QMessageBox::critical(this, tr("Restore Failed"),
-            tr("Not a valid Throned backup file."));
+                              tr("Not a valid Throned backup file."));
         return;
     }
 
@@ -1360,8 +1363,8 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     stream >> formatVersion;
     if (formatVersion < 1 || formatVersion > BACKUP_FORMAT_VERSION) {
         QMessageBox::critical(this, tr("Restore Failed"),
-            tr("Unsupported backup format version: %1.\nThis backup may have been created with a newer version of the application.")
-                .arg(formatVersion));
+                              tr("Unsupported backup format version: %1.\nThis backup may have been created with a newer version of the application.")
+                                  .arg(formatVersion));
         return;
     }
 
@@ -1377,25 +1380,26 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     Configs::BackupParts avail = BackupPartsFromMeta(formatVersion, meta, files);
     if (!avail.any()) {
         QMessageBox::critical(this, tr("Restore Failed"),
-            tr("This backup file does not contain any restorable data."));
+                              tr("This backup file does not contain any restorable data."));
         return;
     }
 
     QDialog dlg(this);
     dlg.setWindowTitle(tr("Restore Backup"));
-    auto* layout = new QVBoxLayout(&dlg);
-    auto* header = new QLabel(
+    auto *layout = new QVBoxLayout(&dlg);
+    auto *header = new QLabel(
         tr("Backup created on %1.\nSelect which parts to restore:")
-            .arg(createdAt.isEmpty() ? tr("unknown date") : createdAt), &dlg);
+            .arg(createdAt.isEmpty() ? tr("unknown date") : createdAt),
+        &dlg);
     header->setWordWrap(true);
     layout->addWidget(header);
 
-    auto* cbProfiles = new QCheckBox(tr("Profiles (groups and proxies)"), &dlg);
-    auto* cbRoutes = new QCheckBox(tr("Routing profiles"), &dlg);
-    auto* cbSettings = new QCheckBox(tr("Settings"), &dlg);
-    auto* cbOtp = new QCheckBox(tr("OTP profiles"), &dlg);
-    auto* cbIcons = new QCheckBox(tr("Custom icons"), &dlg);
-    for (auto* cb : {cbProfiles, cbRoutes, cbSettings, cbOtp, cbIcons}) cb->setChecked(true);
+    auto *cbProfiles = new QCheckBox(tr("Profiles (groups and proxies)"), &dlg);
+    auto *cbRoutes = new QCheckBox(tr("Routing profiles"), &dlg);
+    auto *cbSettings = new QCheckBox(tr("Settings"), &dlg);
+    auto *cbOtp = new QCheckBox(tr("OTP profiles"), &dlg);
+    auto *cbIcons = new QCheckBox(tr("Custom icons"), &dlg);
+    for (auto *cb: {cbProfiles, cbRoutes, cbSettings, cbOtp, cbIcons}) cb->setChecked(true);
     cbProfiles->setEnabled(avail.profiles);
     cbProfiles->setChecked(avail.profiles);
     cbRoutes->setEnabled(avail.routes);
@@ -1412,13 +1416,14 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     layout->addWidget(cbOtp);
     layout->addWidget(cbIcons);
 
-    auto* warn = new QLabel(
+    auto *warn = new QLabel(
         tr("Each selected part replaces the current data. This cannot be undone.\n"
-           "Throned will restart to complete the restore."), &dlg);
+           "Throned will restart to complete the restore."),
+        &dlg);
     warn->setWordWrap(true);
     layout->addWidget(warn);
 
-    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
     buttons->button(QDialogButtonBox::Ok)->setText(tr("Restore"));
     layout->addWidget(buttons);
     connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
@@ -1435,7 +1440,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
 
     if (!chosen.any()) {
         QMessageBox::warning(this, tr("Restore Backup"),
-            tr("Select at least one part to restore."));
+                             tr("Select at least one part to restore."));
         return;
     }
 
@@ -1445,7 +1450,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
         QFile tempDbFile(tempDbPath);
         if (!tempDbFile.open(QIODevice::WriteOnly)) {
             QMessageBox::critical(this, tr("Restore Failed"),
-                tr("Failed to create temporary file for restore."));
+                                  tr("Failed to create temporary file for restore."));
             return;
         }
         tempDbFile.write(files["database"]);
@@ -1453,10 +1458,10 @@ void DialogBasicSettings::on_backup_restore_clicked() {
 
         try {
             Configs::dataManager->getDatabase().restoreSelective(tempDbPath.toStdString(), chosen);
-        } catch (std::exception& e) {
+        } catch (std::exception &e) {
             QFile::remove(tempDbPath);
             QMessageBox::critical(this, tr("Restore Failed"),
-                tr("Failed to restore database: %1").arg(e.what()));
+                                  tr("Failed to restore database: %1").arg(e.what()));
             return;
         }
         QFile::remove(tempDbPath);
@@ -1481,7 +1486,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     if (chosen.settings) Configs::dataManager->settingsRepo->noSave = true;
 
     QMessageBox::information(this, tr("Restore Complete"),
-        tr("Backup restored successfully. Throned will now restart for the changes to take effect."));
+                             tr("Backup restored successfully. Throned will now restart for the changes to take effect."));
     MW_dialog_message(MwMessage::RestartProgram, {});
     QDialog::reject();
 }

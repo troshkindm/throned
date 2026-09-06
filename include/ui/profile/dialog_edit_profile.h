@@ -7,7 +7,7 @@
 #include "include/database/entities/Profile.h"
 
 namespace Ui {
-    class DialogEditProfile;
+class DialogEditProfile;
 }
 
 class DialogEditProfile : public QDialog {
@@ -34,6 +34,7 @@ private slots:
     void on_certificate_edit_clicked();
     void on_xray_downloadsettings_edit_clicked();
     void on_xray_finalmask_edit_clicked();
+
 private:
     Ui::DialogEditProfile *ui;
 

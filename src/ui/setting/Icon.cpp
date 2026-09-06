@@ -8,32 +8,38 @@
 #include <optional>
 
 namespace {
-    QHash<Icon::TrayIconStatus, QIcon> g_trayIcons;
-    std::optional<bool> g_trayIconsCustom;
+QHash<Icon::TrayIconStatus, QIcon> g_trayIcons;
+std::optional<bool> g_trayIconsCustom;
 
-    QString statusName(Icon::TrayIconStatus status) {
-        switch (status) {
-            case Icon::TrayIconStatus::None: return QStringLiteral("Off");
-            case Icon::TrayIconStatus::Running: return QStringLiteral("Throned");
-            case Icon::TrayIconStatus::SystemProxy: return QStringLiteral("Proxy");
-            case Icon::TrayIconStatus::Vpn: return QStringLiteral("Tun");
-            case Icon::TrayIconStatus::Dns: return QStringLiteral("Dns");
-            case Icon::TrayIconStatus::SystemProxyDns: return QStringLiteral("Proxy-Dns");
-        }
-        MW_show_log("Icon::GetTrayIcon: Unknown status");
-        return QStringLiteral("Off");
+QString statusName(Icon::TrayIconStatus status) {
+    switch (status) {
+        case Icon::TrayIconStatus::None:
+            return QStringLiteral("Off");
+        case Icon::TrayIconStatus::Running:
+            return QStringLiteral("Throned");
+        case Icon::TrayIconStatus::SystemProxy:
+            return QStringLiteral("Proxy");
+        case Icon::TrayIconStatus::Vpn:
+            return QStringLiteral("Tun");
+        case Icon::TrayIconStatus::Dns:
+            return QStringLiteral("Dns");
+        case Icon::TrayIconStatus::SystemProxyDns:
+            return QStringLiteral("Proxy-Dns");
     }
+    MW_show_log("Icon::GetTrayIcon: Unknown status");
+    return QStringLiteral("Off");
+}
 
-    QIcon loadNamedIcon(const QString &name, bool useCustom) {
-        if (useCustom) {
-            // QIcon(path).isNull() is not a decode check: a PNG with a valid signature and a corrupt body passes it.
-            if (const auto custom = QPixmap(QStringLiteral("icons/") + name + QStringLiteral(".png")); !custom.isNull()) return QIcon(custom);
-            if (name == QStringLiteral("Throned")) {
-                if (const QPixmap legacy(QStringLiteral("icons/Throne.png")); !legacy.isNull()) return QIcon(legacy);
-            }
+QIcon loadNamedIcon(const QString &name, bool useCustom) {
+    if (useCustom) {
+        // QIcon(path).isNull() is not a decode check: a PNG with a valid signature and a corrupt body passes it.
+        if (const auto custom = QPixmap(QStringLiteral("icons/") + name + QStringLiteral(".png")); !custom.isNull()) return QIcon(custom);
+        if (name == QStringLiteral("Throned")) {
+            if (const QPixmap legacy(QStringLiteral("icons/Throne.png")); !legacy.isNull()) return QIcon(legacy);
         }
-        return QIcon(QStringLiteral(":/Throned/") + name + QStringLiteral(".png"));
     }
+    return QIcon(QStringLiteral(":/Throned/") + name + QStringLiteral(".png"));
+}
 } // namespace
 
 void Icon::InvalidateTrayIconCache() {

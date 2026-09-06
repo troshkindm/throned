@@ -11,51 +11,51 @@
 #include <functional>
 
 namespace Subscription {
-    // Jobs run one at a time on a background worker, in FIFO order.
-    class GroupUpdater : public QObject {
-        Q_OBJECT
+// Jobs run one at a time on a background worker, in FIFO order.
+class GroupUpdater : public QObject {
+    Q_OBJECT
 
-    public:
-        using Finish = std::function<void()>;
+public:
+    using Finish = std::function<void()>;
 
-        // showDiff: a manual refresh pops up the diff; automatic paths leave it false and only log.
-        void RefreshGroup(int gid, const Finish &finish = nullptr, bool showDiff = false);
+    // showDiff: a manual refresh pops up the diff; automatic paths leave it false and only log.
+    void RefreshGroup(int gid, const Finish &finish = nullptr, bool showDiff = false);
 
-        void RefreshAll(bool onlyAllowed = false);
+    void RefreshAll(bool onlyAllowed = false);
 
-        void SubscribeUrl(const QString &url, const Finish &finish = nullptr);
+    void SubscribeUrl(const QString &url, const Finish &finish = nullptr);
 
-        void ImportUrl(const QString &url, const Finish &finish = nullptr);
+    void ImportUrl(const QString &url, const Finish &finish = nullptr);
 
-        void ImportText(const QString &text, int gid = -1, const Finish &finish = nullptr);
+    void ImportText(const QString &text, int gid = -1, const Finish &finish = nullptr);
 
-        void ImportBatch(const QStringList &payloads, const Finish &finish = nullptr);
+    void ImportBatch(const QStringList &payloads, const Finish &finish = nullptr);
 
-    signals:
-        void asyncUpdateCallback(int gid);
+signals:
+    void asyncUpdateCallback(int gid);
 
-    private:
-        struct Job {
-            int gid = -1;
-            bool batch = false;
-            std::function<void()> run;
-        };
-
-        void enqueue(Job job);
-        void enqueueLocked(Job job);
-        void drain();
-        void refresh(int gid, bool showDiff);
-        void importDocuments(int gid, QList<QByteArray> documents);
-        bool fetch(const QString &url, const QString &name, QByteArray &body, QString &userInfo,
-                   const QString &fallbackUrl = {},
-                   QList<QPair<QByteArray, QByteArray>> *responseHeaders = nullptr);
-
-        QMutex mutex;
-        QList<Job> queue;
-        QSet<int> pending;
-        int pendingBatch = 0;
-        bool running = false;
+private:
+    struct Job {
+        int gid = -1;
+        bool batch = false;
+        std::function<void()> run;
     };
 
-    GroupUpdater *updater();
+    void enqueue(Job job);
+    void enqueueLocked(Job job);
+    void drain();
+    void refresh(int gid, bool showDiff);
+    void importDocuments(int gid, QList<QByteArray> documents);
+    bool fetch(const QString &url, const QString &name, QByteArray &body, QString &userInfo,
+               const QString &fallbackUrl = {},
+               QList<QPair<QByteArray, QByteArray>> *responseHeaders = nullptr);
+
+    QMutex mutex;
+    QList<Job> queue;
+    QSet<int> pending;
+    int pendingBatch = 0;
+    bool running = false;
+};
+
+GroupUpdater *updater();
 } // namespace Subscription

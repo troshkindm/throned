@@ -10,15 +10,15 @@
 #include <QFontMetrics>
 
 namespace {
-    // Prefixed: the unity build merges anonymous-namespace symbols from batched translation units.
-    const QColor kChartDownColor(0x4F, 0x8A, 0xF7); // blue
-    const QColor kChartUpColor(0x34, 0xC9, 0x8A);   // green
-    constexpr int kChartMarginLeft = 66;
-    constexpr int kChartMarginRight = 14;
-    constexpr int kChartMarginTop = 24;
-    constexpr int kChartMarginBottom = 30;
-    constexpr int kChartGridLines = 4; // intervals between 0 and the top
-}
+// Prefixed: the unity build merges anonymous-namespace symbols from batched translation units.
+const QColor kChartDownColor(0x4F, 0x8A, 0xF7); // blue
+const QColor kChartUpColor(0x34, 0xC9, 0x8A);   // green
+constexpr int kChartMarginLeft = 66;
+constexpr int kChartMarginRight = 14;
+constexpr int kChartMarginTop = 24;
+constexpr int kChartMarginBottom = 30;
+constexpr int kChartGridLines = 4; // intervals between 0 and the top
+} // namespace
 
 TrafficChartWidget::TrafficChartWidget(QWidget* parent) : QWidget(parent) {
     setMinimumHeight(190);
@@ -40,8 +40,7 @@ QString TrafficChartWidget::bucketRangeText(long long bucketStart) const {
         return start.toString("ddd, yyyy-MM-dd");
     }
     const QDateTime end = QDateTime::fromSecsSinceEpoch(bucketStart + bucketSecs_);
-    return QString("%1  %2 – %3").arg(start.toString("yyyy-MM-dd"),
-                                      start.toString("HH:mm"), end.toString("HH:mm"));
+    return QString("%1  %2 – %3").arg(start.toString("yyyy-MM-dd"), start.toString("HH:mm"), end.toString("HH:mm"));
 }
 
 void TrafficChartWidget::paintEvent(QPaintEvent*) {
@@ -60,7 +59,7 @@ void TrafficChartWidget::paintEvent(QPaintEvent*) {
     barRects_.clear();
 
     long long maxTotal = 0;
-    for (const auto& b : bars_) maxTotal = qMax(maxTotal, b.down + b.up);
+    for (const auto& b: bars_) maxTotal = qMax(maxTotal, b.down + b.up);
     if (bars_.isEmpty() || maxTotal <= 0 || plot.width() <= 0 || plot.height() <= 0) {
         p.setPen(mutedColor);
         p.drawText(rect(), Qt::AlignCenter, tr("No traffic recorded for this period"));
@@ -131,7 +130,10 @@ void TrafficChartWidget::mouseMoveEvent(QMouseEvent* event) {
     const QPointF pos = event->position();
     int hit = -1;
     for (int i = 0; i < barRects_.size(); ++i) {
-        if (barRects_[i].contains(pos)) { hit = i; break; }
+        if (barRects_[i].contains(pos)) {
+            hit = i;
+            break;
+        }
     }
     if (hit != hovered_) {
         hovered_ = hit;

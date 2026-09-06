@@ -4,8 +4,7 @@
 
 struct quirc;
 
-class QrDecoder
-{
+class QrDecoder {
 public:
     QrDecoder(const QrDecoder &) = delete;
     QrDecoder &operator=(const QrDecoder &) = delete;

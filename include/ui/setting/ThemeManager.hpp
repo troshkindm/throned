@@ -35,7 +35,7 @@ signals:
     void themeChanged(QString themeName);
 
 private:
-    QMap<QString, ThronedSkin> skins;   // keyed by lowercased display name
+    QMap<QString, ThronedSkin> skins; // keyed by lowercased display name
     QString base_font_family;
 };
 

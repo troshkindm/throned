@@ -57,7 +57,7 @@ QStringList ProfilesTableModel::mimeTypes() const {
     return {"application/profile-row-number"};
 }
 
-QMimeData* ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
+QMimeData *ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
     auto *mimeData = new QMimeData;
     QByteArray encodedData;
 
@@ -117,9 +117,12 @@ ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
     if (showIP) visual.exitIp = profile->ip_out;
 
     visual.latencyMs = profile->latency;
-    if (profile->latency == Configs::kLatencyConnectOnly) visual.latency = tr("Connect OK");
-    else if (profile->latency < 0) visual.latency = tr("Unavailable");
-    else if (profile->latency > 0) visual.latency = QStringLiteral("%1 ms").arg(profile->latency);
+    if (profile->latency == Configs::kLatencyConnectOnly)
+        visual.latency = tr("Connect OK");
+    else if (profile->latency < 0)
+        visual.latency = tr("Unavailable");
+    else if (profile->latency > 0)
+        visual.latency = QStringLiteral("%1 ms").arg(profile->latency);
 
     visual.favorite = profile->favorite;
     visual.udp = profile->DisplayUDPResult();
@@ -139,8 +142,7 @@ ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
 }
 
 QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid() || index.row() < 0 || index.row() >= m_profileIds.size()
-        || index.column() < 0 || index.column() >= columnCount()) {
+    if (!index.isValid() || index.row() < 0 || index.row() >= m_profileIds.size() || index.column() < 0 || index.column() >= columnCount()) {
         return {};
     }
     const int profileId = m_profileIds[index.row()];
@@ -160,17 +162,21 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (m_rowStyle == RowStyle::Comfortable) {
         if (role == RowVisualRole) return QVariant::fromValue(buildRowVisual(profile, isRunning));
         if (role == Qt::TextAlignmentRole) {
-            return static_cast<int>((index.column() == ColcServer ? Qt::AlignLeft : Qt::AlignRight)
-                                    | Qt::AlignVCenter);
+            return static_cast<int>((index.column() == ColcServer ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignVCenter);
         }
         // The delegate paints; these keep keyboard search and accessibility honest.
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
-            case ColcServer: return profile->outbound ? profile->outbound->name : QString();
-            case ColcPing: return profile->DisplayTestResult();
-            case ColcSpeed: return QString();
-            case ColcTraffic: return profile->DisplayTraffic();
-            default: return {};
+                case ColcServer:
+                    return profile->outbound ? profile->outbound->name : QString();
+                case ColcPing:
+                    return profile->DisplayTestResult();
+                case ColcSpeed:
+                    return QString();
+                case ColcTraffic:
+                    return profile->DisplayTraffic();
+                default:
+                    return {};
             }
         }
         if (role == Qt::ToolTipRole && index.column() == ColcPing && !profile->udp_error.isEmpty()) {
@@ -181,29 +187,34 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-        case ColType: {
-            if (!profile->outbound) return QString();
-            auto type = profile->outbound->DisplayType();
-            if (Configs::dataManager->settingsRepo->show_config_security) {
-                auto sec = profile->outbound->DisplaySecurity();
-                if (!sec.isEmpty()) type += QStringLiteral(" (%1)").arg(sec);
+            case ColType: {
+                if (!profile->outbound) return QString();
+                auto type = profile->outbound->DisplayType();
+                if (Configs::dataManager->settingsRepo->show_config_security) {
+                    auto sec = profile->outbound->DisplaySecurity();
+                    if (!sec.isEmpty()) type += QStringLiteral(" (%1)").arg(sec);
+                }
+                return type;
             }
-            return type;
-        }
-        case ColAddress: return profile->outbound ? profile->outbound->DisplayAddress() : QString();
-        case ColName: return profile->outbound ? profile->outbound->name : QString();
-        case ColTestResult: return profile->DisplayTestResult();
-        case ColTraffic: return profile->DisplayTraffic();
-        case ColUDP: return profile->DisplayUDPResult();
-        default: return {};
+            case ColAddress:
+                return profile->outbound ? profile->outbound->DisplayAddress() : QString();
+            case ColName:
+                return profile->outbound ? profile->outbound->name : QString();
+            case ColTestResult:
+                return profile->DisplayTestResult();
+            case ColTraffic:
+                return profile->DisplayTraffic();
+            case ColUDP:
+                return profile->DisplayUDPResult();
+            default:
+                return {};
         }
     }
     if (role == Qt::ToolTipRole) {
         if (index.column() == ColUDP && !profile->udp_error.isEmpty()) {
             return tr("UDP probe error: %1").arg(profile->udp_error);
         }
-        if (index.column() == ColType && Configs::dataManager->settingsRepo->show_config_security
-            && profile->outbound && profile->outbound->GetSecurity().isDangerous()) {
+        if (index.column() == ColType && Configs::dataManager->settingsRepo->show_config_security && profile->outbound && profile->outbound->GetSecurity().isDangerous()) {
             return tr("This config's traffic is not properly protected.");
         }
         return {};
@@ -243,11 +254,16 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
             return static_cast<int>((section == ColcServer ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignVCenter);
         if (role != Qt::DisplayRole) return {};
         switch (section) {
-        case ColcServer: return marked(tr("Server"));
-        case ColcPing: return marked(tr("Ping · UDP"));
-        case ColcSpeed: return tr("Speed");
-        case ColcTraffic: return marked(tr("Traffic"));
-        default: return {};
+            case ColcServer:
+                return marked(tr("Server"));
+            case ColcPing:
+                return marked(tr("Ping · UDP"));
+            case ColcSpeed:
+                return tr("Speed");
+            case ColcTraffic:
+                return marked(tr("Traffic"));
+            default:
+                return {};
         }
     }
     if (role == Qt::TextAlignmentRole && orientation == Qt::Horizontal) {
@@ -259,13 +275,20 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
     if (role != Qt::DisplayRole) return {};
     if (orientation == Qt::Horizontal) {
         switch (section) {
-        case ColType: return marked(tr("Type"));
-        case ColAddress: return marked(tr("Address"));
-        case ColName: return marked(tr("Name"));
-        case ColTestResult: return marked(tr("Test Result"));
-        case ColTraffic: return marked(tr("Traffic"));
-        case ColUDP: return tr("UDP");
-        default: return {};
+            case ColType:
+                return marked(tr("Type"));
+            case ColAddress:
+                return marked(tr("Address"));
+            case ColName:
+                return marked(tr("Name"));
+            case ColTestResult:
+                return marked(tr("Test Result"));
+            case ColTraffic:
+                return marked(tr("Traffic"));
+            case ColUDP:
+                return tr("UDP");
+            default:
+                return {};
         }
     }
     return {};
@@ -275,8 +298,8 @@ void ProfilesTableModel::setProfileIds(const QList<int> &ids) {
     beginResetModel();
     m_profileIds = ids;
     id2row.clear();
-    int idx=0;
-    for (const auto &id : ids) {
+    int idx = 0;
+    for (const auto &id: ids) {
         id2row.insert(id, idx++);
     }
     m_cache.clear();
@@ -287,25 +310,25 @@ void ProfilesTableModel::setProfileIds(const QList<int> &ids) {
 }
 
 namespace {
-    ProfilesTableModel::FilterKey makeFilterKey(const std::shared_ptr<Configs::Profile> &profile) {
-        ProfilesTableModel::FilterKey key;
-        key.type = profile->type;
-        key.country = profile->test_country;
-        if (profile->outbound) {
-            key.address = profile->outbound->server;
-            key.name = profile->outbound->name;
-            key.port = profile->outbound->server_port;
-        }
-        return key;
+ProfilesTableModel::FilterKey makeFilterKey(const std::shared_ptr<Configs::Profile> &profile) {
+    ProfilesTableModel::FilterKey key;
+    key.type = profile->type;
+    key.country = profile->test_country;
+    if (profile->outbound) {
+        key.address = profile->outbound->server;
+        key.name = profile->outbound->name;
+        key.port = profile->outbound->server_port;
     }
+    return key;
 }
+} // namespace
 
 void ProfilesTableModel::ensureFilterIndex() const {
     if (m_filterIndexBuilt) return;
     m_filterIndexBuilt = true;
     m_filterKeys.clear();
     m_filterKeys.reserve(m_profileIds.size());
-    for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(m_profileIds)) {
+    for (const auto &profile: Configs::dataManager->profilesRepo->GetProfileBatch(m_profileIds)) {
         if (profile) m_filterKeys.insert(profile->id, makeFilterKey(profile));
     }
 }
@@ -320,10 +343,8 @@ const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) co
 void ProfilesTableModel::refreshTable(const QList<int> &ids, bool mayNeedReset) {
     if (m_profileIds.isEmpty() && ids.isEmpty()) return;
 
-    const bool needFullReset = mayNeedReset && (
-    ids.size() != m_profileIds.size() ||
-    !std::equal(ids.begin(), ids.end(), m_profileIds.begin())
-    );
+    const bool needFullReset = mayNeedReset && (ids.size() != m_profileIds.size() ||
+                                                !std::equal(ids.begin(), ids.end(), m_profileIds.begin()));
 
     if (needFullReset) {
         setProfileIds(ids);
@@ -355,9 +376,11 @@ void ProfilesTableModel::refreshProfileId(int profileId) {
 
 void ProfilesTableModel::emplaceProfiles(int row1, int row2) {
     if (m_profileIds.size() <= row1 || m_profileIds.size() <= row2) return;
-    m_profileIds.insert(row2+1, m_profileIds[row1]);
-    if (row1 < row2) m_profileIds.remove(row1);
-    else m_profileIds.remove(row1+1);
+    m_profileIds.insert(row2 + 1, m_profileIds[row1]);
+    if (row1 < row2)
+        m_profileIds.remove(row1);
+    else
+        m_profileIds.remove(row1 + 1);
 
     // Every row between the two shifted by one; id2row has to follow.
     const int from = std::max(std::min(row1, row2), 0);

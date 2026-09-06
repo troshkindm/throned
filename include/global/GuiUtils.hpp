@@ -22,7 +22,7 @@
     ui->a->setValidator(QRegExpValidator_Number);
 #define P_SAVE_INT(a) bean->a = ui->a->text().toInt();
 
-#define D_LOAD_INT(a)                                  \
+#define D_LOAD_INT(a)                                                  \
     ui->a->setText(Int2String(Configs::dataManager->settingsRepo->a)); \
     ui->a->setValidator(QRegExpValidator_Number);
 #define D_SAVE_INT(a) Configs::dataManager->settingsRepo->a = ui->a->text().toInt();
@@ -42,23 +42,29 @@
 #define P_LOAD_BOOL(a) ui->a->setChecked(bean->a);
 #define P_SAVE_BOOL(a) bean->a = ui->a->isChecked();
 
-#define D_LOAD_INT_ENABLE(i, e)                             \
+#define D_LOAD_INT_ENABLE(i, e)                                             \
     if (Configs::dataManager->settingsRepo->i > 0) {                        \
-        ui->e->setChecked(true);                            \
+        ui->e->setChecked(true);                                            \
         ui->i->setText(Int2String(Configs::dataManager->settingsRepo->i));  \
-    } else {                                                \
-        ui->e->setChecked(false);                           \
+    } else {                                                                \
+        ui->e->setChecked(false);                                           \
         ui->i->setText(Int2String(-Configs::dataManager->settingsRepo->i)); \
-    }                                                       \
+    }                                                                       \
     ui->i->setValidator(QRegExpValidator_Number);
-#define D_SAVE_INT_ENABLE(i, e)                         \
-    if (ui->e->isChecked()) {                           \
+#define D_SAVE_INT_ENABLE(i, e)                                         \
+    if (ui->e->isChecked()) {                                           \
         Configs::dataManager->settingsRepo->i = ui->i->text().toInt();  \
-    } else {                                            \
+    } else {                                                            \
         Configs::dataManager->settingsRepo->i = -ui->i->text().toInt(); \
     }
 
-#define C_EDIT_JSON_ALLOW_EMPTY(a, schemaRef)                                            auto editor = new JsonEdit::JsonEditorDialog(QString2QJsonObject(CACHE.a), this);     editor->SetValidator(JsonEdit::SingBoxValidator(schemaRef));                          auto result = editor->OpenEditor();                                                   CACHE.a = QJsonObject2QString(result, true);                                          if (result.isEmpty()) CACHE.a = "";                                                   editor->deleteLater();
+#define C_EDIT_JSON_ALLOW_EMPTY(a, schemaRef)                                         \
+    auto editor = new JsonEdit::JsonEditorDialog(QString2QJsonObject(CACHE.a), this); \
+    editor->SetValidator(JsonEdit::SingBoxValidator(schemaRef));                      \
+    auto result = editor->OpenEditor();                                               \
+    CACHE.a = QJsonObject2QString(result, true);                                      \
+    if (result.isEmpty()) CACHE.a = "";                                               \
+    editor->deleteLater();
 
 #define ADD_ASTERISK(parent)                                         \
     for (auto label: parent->findChildren<QLabel *>()) {             \

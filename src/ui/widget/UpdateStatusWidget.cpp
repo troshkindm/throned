@@ -61,8 +61,10 @@ UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
     outer->addWidget(progress_);
 
     connect(primary_, &QPushButton::clicked, this, [this] {
-        if (state_ == State::Ready) emit restartRequested();
-        else if (state_ == State::Error) emit retryRequested();
+        if (state_ == State::Ready)
+            emit restartRequested();
+        else if (state_ == State::Error)
+            emit retryRequested();
     });
     connect(secondary_, &QPushButton::clicked, this, &UpdateStatusWidget::dismiss);
     connect(themeManager(), &ThemeManager::themeChanged, this, [this] { refreshIcon(); });
@@ -76,8 +78,8 @@ QString UpdateStatusWidget::displayName(const QString &assetName) {
         base.remove(0, QStringLiteral("Throned-").size());
 
     static const QRegularExpression platformSuffix(QStringLiteral(
-        R"(-(windows(?:legacy)?(?:32|64)|windows-arm64|linux-(?:amd64|arm64)|macos-(?:amd64|arm64))$)"),
-        QRegularExpression::CaseInsensitiveOption);
+                                                       R"(-(windows(?:legacy)?(?:32|64)|windows-arm64|linux-(?:amd64|arm64)|macos-(?:amd64|arm64))$)"),
+                                                   QRegularExpression::CaseInsensitiveOption);
     base.remove(platformSuffix);
     return base.isEmpty() ? QStringLiteral("Throned") : QStringLiteral("Throned %1").arg(base);
 }
@@ -126,8 +128,8 @@ void UpdateStatusWidget::showDownloading(const QString &assetName, qint64 receiv
     } else {
         progress_->setRange(0, 0);
         detail_->setText(received > 0
-            ? tr("%1 downloaded").arg(ReadableSize(received))
-            : tr("Starting download…"));
+                             ? tr("%1 downloaded").arg(ReadableSize(received))
+                             : tr("Starting download…"));
     }
     detail_->setToolTip(detail_->text());
 }

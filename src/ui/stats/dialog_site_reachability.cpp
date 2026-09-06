@@ -8,31 +8,33 @@
 #include <QVBoxLayout>
 
 namespace {
-    constexpr int kNameColumn = 0;
+constexpr int kNameColumn = 0;
 
-    QString cellText(const TestRunner::SiteVerdict &verdict) {
-        if (verdict.served()) return SiteReachabilityDialog::tr("%1 ms").arg(verdict.latencyMs);
-        if (verdict.reached()) return QString::number(verdict.status);
-        return QStringLiteral("—");
-    }
-
-    QColor cellColor(const TestRunner::SiteVerdict &verdict) {
-        const auto colors = themeManager()->Colors();
-        if (verdict.served()) return colors.success;
-        // Answered but refused: reached the service, and the service said no.
-        if (verdict.reached()) return colors.warning;
-        return colors.textSubtle;
-    }
-
-    QString cellTip(const TestRunner::SiteVerdict &verdict) {
-        if (verdict.served()) return SiteReachabilityDialog::tr("Answered %1 in %2 ms")
-                                       .arg(verdict.status).arg(verdict.latencyMs);
-        if (verdict.reached()) return SiteReachabilityDialog::tr(
-            "Reached the site, which answered %1").arg(verdict.status);
-        return verdict.error.isEmpty() ? SiteReachabilityDialog::tr("Nothing answered")
-                                       : verdict.error;
-    }
+QString cellText(const TestRunner::SiteVerdict &verdict) {
+    if (verdict.served()) return SiteReachabilityDialog::tr("%1 ms").arg(verdict.latencyMs);
+    if (verdict.reached()) return QString::number(verdict.status);
+    return QStringLiteral("—");
 }
+
+QColor cellColor(const TestRunner::SiteVerdict &verdict) {
+    const auto colors = themeManager()->Colors();
+    if (verdict.served()) return colors.success;
+    // Answered but refused: reached the service, and the service said no.
+    if (verdict.reached()) return colors.warning;
+    return colors.textSubtle;
+}
+
+QString cellTip(const TestRunner::SiteVerdict &verdict) {
+    if (verdict.served()) return SiteReachabilityDialog::tr("Answered %1 in %2 ms")
+        .arg(verdict.status)
+        .arg(verdict.latencyMs);
+    if (verdict.reached()) return SiteReachabilityDialog::tr(
+                                      "Reached the site, which answered %1")
+        .arg(verdict.status);
+    return verdict.error.isEmpty() ? SiteReachabilityDialog::tr("Nothing answered")
+                                   : verdict.error;
+}
+} // namespace
 
 SiteReachabilityDialog::SiteReachabilityDialog(QWidget *parent) : QDialog(parent) {
     setObjectName(QStringLiteral("siteReachabilityDialog"));
@@ -71,7 +73,7 @@ QLabel#siteReachabilityStatus { color: #A4ABB4; font-size: 12px; }
 
 void SiteReachabilityDialog::beginRun(const QList<QPair<int, QString>> &profiles, const QStringList &sites) {
     m_profileIDs.clear();
-    for (const auto &profile : profiles) m_profileIDs << profile.first;
+    for (const auto &profile: profiles) m_profileIDs << profile.first;
 
     m_table->clear();
     m_table->setColumnCount(sites.size() + 1);
@@ -109,10 +111,12 @@ void SiteReachabilityDialog::applyReport(const TestRunner::SiteReport &report) {
             const int id = m_profileIDs.at(row);
             const bool isSkipped = report.skipped.contains(id);
             const QString reason = isSkipped
-                ? tr("Auto-selectors are skipped. Select their individual profiles to test.")
-                : report.errors.value(id, report.error.isEmpty()
-                    ? tr("No test result was returned for this profile.") : report.error);
-            if (isSkipped) ++skipped;
+                                       ? tr("Auto-selectors are skipped. Select their individual profiles to test.")
+                                       : report.errors.value(id, report.error.isEmpty()
+                                                                     ? tr("No test result was returned for this profile.")
+                                                                     : report.error);
+            if (isSkipped)
+                ++skipped;
             else {
                 ++failed;
                 if (firstError.isEmpty()) firstError = reason;
@@ -140,8 +144,7 @@ void SiteReachabilityDialog::applyReport(const TestRunner::SiteReport &report) {
         m_table->resizeColumnToContents(column);
         resultWidth += m_table->columnWidth(column);
     }
-    resize(qMax(width(), resultWidth + 180 + 2 * m_table->frameWidth()
-                             + layout()->contentsMargins().left() + layout()->contentsMargins().right()), height());
+    resize(qMax(width(), resultWidth + 180 + 2 * m_table->frameWidth() + layout()->contentsMargins().left() + layout()->contentsMargins().right()), height());
 }
 
 void SiteReachabilityDialog::fillRow(int row, const QList<TestRunner::SiteVerdict> &verdicts) {

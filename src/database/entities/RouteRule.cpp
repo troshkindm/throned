@@ -3,168 +3,162 @@
 #include "include/database/entities/RouteRule.h"
 #include "include/configs/common/TLS.h"
 
-
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
 
 namespace Configs {
-    template<typename Converter = std::nullptr_t>
-    QJsonArray get_as_array(const QList<QString>& str, bool castToNum = false, Converter converter = nullptr)
-    {
-        QJsonArray result;
+template<typename Converter = std::nullptr_t>
+QJsonArray get_as_array(const QList<QString>& str, bool castToNum = false, Converter converter = nullptr) {
+    QJsonArray result;
 
-        // Last gate before the core: heals values already stored with stray whitespace.
-        for (const QString& raw : str) {
-            const QString item = raw.trimmed();
-            if (item.isEmpty()) continue;
-            const QString converted = [&] {
-                if constexpr (std::is_same_v<Converter, std::nullptr_t>)
-                    return item;
-                else
-                    return converter(item);
-            }();
-
-            if (castToNum)
-                result.append(converted.toInt());
+    // Last gate before the core: heals values already stored with stray whitespace.
+    for (const QString& raw: str) {
+        const QString item = raw.trimmed();
+        if (item.isEmpty()) continue;
+        const QString converted = [&] {
+            if constexpr (std::is_same_v<Converter, std::nullptr_t>)
+                return item;
             else
-                result.append(converted);
+                return converter(item);
+        }();
+
+        if (castToNum)
+            result.append(converted.toInt());
+        else
+            result.append(converted);
+    }
+
+    return result;
+}
+
+static bool isValidStrArray(const QStringList& arr) {
+    return std::ranges::any_of(arr,
+                               [](const QString& item) { return !QStringView(item).trimmed().isEmpty(); });
+}
+
+RouteRule::RouteRule(const RouteRule& other) {
+    name = other.name;
+    ip_version = other.ip_version;
+    network = other.network;
+    protocol = other.protocol;
+    inbound << other.inbound;
+    domain << other.domain;
+    domain_suffix << other.domain_suffix;
+    domain_keyword << other.domain_keyword;
+    domain_regex << other.domain_regex;
+    source_ip_cidr << other.source_ip_cidr;
+    source_ip_is_private = other.source_ip_is_private;
+    ip_cidr << other.ip_cidr;
+    ip_is_private = other.ip_is_private;
+    source_port << other.source_port;
+    source_port_range << other.source_port_range;
+    port << other.port;
+    port_range << other.port_range;
+    process_name << other.process_name;
+    process_path << other.process_path;
+    process_path_regex << other.process_path_regex;
+    wifi_ssid << other.wifi_ssid;
+    wifi_bssid << other.wifi_bssid;
+    rule_set << other.rule_set;
+    invert = other.invert;
+    outboundID = other.outboundID;
+    action = other.action;
+    rejectMethod = other.rejectMethod;
+    no_drop = other.no_drop;
+    override_address = other.override_address;
+    override_port = other.override_port;
+    tls_fragment = other.tls_fragment;
+    tls_fragment_fallback_delay = other.tls_fragment_fallback_delay;
+    tls_record_fragment = other.tls_record_fragment;
+    tls_spoof = other.tls_spoof;
+    tls_spoof_method = other.tls_spoof_method;
+    sniffers << other.sniffers;
+    sniffOverrideDest = other.sniffOverrideDest;
+    strategy = other.strategy;
+    type = other.type;
+    uiVisibleAttributes = other.uiVisibleAttributes;
+    uiAttributeTabsSeeded = other.uiAttributeTabsSeeded;
+}
+
+QJsonObject RouteRule::get_rule_json(bool forView, const QString& outboundTag) {
+    QJsonObject obj;
+
+    // Placeholder rule: it persists only the endpoint id, the gate comes from its resolved tag.
+    if (type == endpointPreferredBy) {
+        QString tag = outboundTag;
+        if (forView) {
+            const auto prof = Configs::dataManager->profilesRepo->GetProfile(outboundID);
+            if (prof == nullptr || prof->outbound == nullptr) return {};
+            tag = prof->outbound->DisplayName();
+        }
+        if (tag.isEmpty()) return {};
+        return QJsonObject{
+            {"preferred_by", QJsonArray{tag}},
+            {"action", "route"},
+            {"outbound", tag},
+        };
+    }
+
+    if (!ip_version.trimmed().isEmpty()) obj["ip_version"] = ip_version.trimmed().toInt();
+    if (!network.trimmed().isEmpty()) obj["network"] = network.trimmed();
+    if (!protocol.trimmed().isEmpty()) obj["protocol"] = protocol.trimmed();
+    if (isValidStrArray(inbound)) obj["inbound"] = get_as_array(inbound);
+    if (isValidStrArray(domain)) obj["domain"] = get_as_array(domain);
+    if (isValidStrArray(domain_suffix)) obj["domain_suffix"] = get_as_array(domain_suffix);
+    if (isValidStrArray(domain_keyword)) obj["domain_keyword"] = get_as_array(domain_keyword);
+    if (isValidStrArray(domain_regex)) obj["domain_regex"] = get_as_array(domain_regex);
+    if (isValidStrArray(source_ip_cidr)) obj["source_ip_cidr"] = get_as_array(source_ip_cidr);
+    if (source_ip_is_private) obj["source_ip_is_private"] = source_ip_is_private;
+    if (isValidStrArray(ip_cidr)) obj["ip_cidr"] = get_as_array(ip_cidr);
+    if (ip_is_private) obj["ip_is_private"] = ip_is_private;
+    if (isValidStrArray(source_port)) obj["source_port"] = get_as_array(source_port, true);
+    if (isValidStrArray(source_port_range)) obj["source_port_range"] = get_as_array(source_port_range);
+    if (isValidStrArray(port)) obj["port"] = get_as_array(port, true);
+    if (isValidStrArray(port_range)) obj["port_range"] = get_as_array(port_range);
+    if (isValidStrArray(process_name)) obj["process_name"] = get_as_array(process_name);
+    if (isValidStrArray(process_path)) obj["process_path"] = get_as_array(process_path);
+    if (isValidStrArray(process_path_regex)) obj["process_path_regex"] = get_as_array(process_path_regex);
+    if (isValidStrArray(wifi_ssid)) obj["wifi_ssid"] = get_as_array(wifi_ssid);
+    if (isValidStrArray(wifi_bssid)) obj["wifi_bssid"] = get_as_array(wifi_bssid);
+    if (isValidStrArray(rule_set))
+        if (forView)
+            obj["rule_set"] = get_as_array(rule_set);
+        else
+            obj["rule_set"] = get_as_array(rule_set, false, get_rule_set_name);
+    if (invert) obj["invert"] = invert;
+    if (action == "route") {
+        if (outboundID == -3) action = "reject";
+        if (outboundID == -4) action = "hijack-dns";
+    }
+    obj["action"] = action;
+
+    if (action == "reject") {
+        if (!rejectMethod.trimmed().isEmpty()) obj["method"] = rejectMethod.trimmed();
+        if (no_drop) obj["no_drop"] = no_drop;
+    }
+    if (action == "route" || action == "route-options" || action == "bypass") {
+        if (!override_address.trimmed().isEmpty()) obj["override_address"] = override_address.trimmed();
+        if (override_port.trimmed().toInt() > 0) obj["override_port"] = override_port.trimmed().toInt();
+
+        if (action == "route-options") {
+            // Both fragment modes at once is a hard core error, so one wins rather than shipping a config that cannot load.
+            if (tls_fragment)
+                obj["tls_fragment"] = true;
+            else if (tls_record_fragment)
+                obj["tls_record_fragment"] = true;
+            if (tls_fragment && !tls_fragment_fallback_delay.trimmed().isEmpty())
+                obj["tls_fragment_fallback_delay"] = tls_fragment_fallback_delay.trimmed();
+            if (!tls_spoof.trimmed().isEmpty()) {
+                obj["tls_spoof"] = tls_spoof.trimmed();
+                // The method only qualifies a spoof; the core rejects it standalone.
+                if (!tls_spoof_method.trimmed().isEmpty())
+                    obj["tls_spoof_method"] = tls_spoof_method.trimmed();
+            }
         }
 
-        return result;
-    }
-
-    static bool isValidStrArray(const QStringList& arr) {
-        return std::ranges::any_of(arr,
-                                   [](const QString& item) { return !QStringView(item).trimmed().isEmpty(); });
-    }
-
-    RouteRule::RouteRule(const RouteRule& other) {
-        name = other.name;
-        ip_version = other.ip_version;
-        network = other.network;
-        protocol = other.protocol;
-        inbound << other.inbound;
-        domain << other.domain;
-        domain_suffix << other.domain_suffix;
-        domain_keyword << other.domain_keyword;
-        domain_regex << other.domain_regex;
-        source_ip_cidr << other.source_ip_cidr;
-        source_ip_is_private = other.source_ip_is_private;
-        ip_cidr << other.ip_cidr;
-        ip_is_private = other.ip_is_private;
-        source_port << other.source_port;
-        source_port_range << other.source_port_range;
-        port << other.port;
-        port_range << other.port_range;
-        process_name << other.process_name;
-        process_path << other.process_path;
-        process_path_regex << other.process_path_regex;
-        wifi_ssid << other.wifi_ssid;
-        wifi_bssid << other.wifi_bssid;
-        rule_set << other.rule_set;
-        invert = other.invert;
-        outboundID = other.outboundID;
-        action = other.action;
-        rejectMethod = other.rejectMethod;
-        no_drop = other.no_drop;
-        override_address = other.override_address;
-        override_port = other.override_port;
-        tls_fragment = other.tls_fragment;
-        tls_fragment_fallback_delay = other.tls_fragment_fallback_delay;
-        tls_record_fragment = other.tls_record_fragment;
-        tls_spoof = other.tls_spoof;
-        tls_spoof_method = other.tls_spoof_method;
-        sniffers << other.sniffers;
-        sniffOverrideDest = other.sniffOverrideDest;
-        strategy = other.strategy;
-        type = other.type;
-        uiVisibleAttributes = other.uiVisibleAttributes;
-        uiAttributeTabsSeeded = other.uiAttributeTabsSeeded;
-    }
-
-    QJsonObject RouteRule::get_rule_json(bool forView, const QString& outboundTag) {
-        QJsonObject obj;
-
-        // Placeholder rule: it persists only the endpoint id, the gate comes from its resolved tag.
-        if (type == endpointPreferredBy) {
-            QString tag = outboundTag;
+        if (action == "route" || action == "bypass") {
             if (forView) {
-                const auto prof = Configs::dataManager->profilesRepo->GetProfile(outboundID);
-                if (prof == nullptr || prof->outbound == nullptr) return {};
-                tag = prof->outbound->DisplayName();
-            }
-            if (tag.isEmpty()) return {};
-            return QJsonObject{
-                {"preferred_by", QJsonArray{tag}},
-                {"action", "route"},
-                {"outbound", tag},
-            };
-        }
-
-        if (!ip_version.trimmed().isEmpty()) obj["ip_version"] = ip_version.trimmed().toInt();
-        if (!network.trimmed().isEmpty()) obj["network"] = network.trimmed();
-        if (!protocol.trimmed().isEmpty()) obj["protocol"] = protocol.trimmed();
-        if (isValidStrArray(inbound)) obj["inbound"] = get_as_array(inbound);
-        if (isValidStrArray(domain)) obj["domain"] = get_as_array(domain);
-        if (isValidStrArray(domain_suffix)) obj["domain_suffix"] = get_as_array(domain_suffix);
-        if (isValidStrArray(domain_keyword)) obj["domain_keyword"] = get_as_array(domain_keyword);
-        if (isValidStrArray(domain_regex)) obj["domain_regex"] = get_as_array(domain_regex);
-        if (isValidStrArray(source_ip_cidr)) obj["source_ip_cidr"] = get_as_array(source_ip_cidr);
-        if (source_ip_is_private) obj["source_ip_is_private"] = source_ip_is_private;
-        if (isValidStrArray(ip_cidr)) obj["ip_cidr"] = get_as_array(ip_cidr);
-        if (ip_is_private) obj["ip_is_private"] = ip_is_private;
-        if (isValidStrArray(source_port)) obj["source_port"] = get_as_array(source_port, true);
-        if (isValidStrArray(source_port_range)) obj["source_port_range"] = get_as_array(source_port_range);
-        if (isValidStrArray(port)) obj["port"] = get_as_array(port, true);
-        if (isValidStrArray(port_range)) obj["port_range"] = get_as_array(port_range);
-        if (isValidStrArray(process_name)) obj["process_name"] = get_as_array(process_name);
-        if (isValidStrArray(process_path)) obj["process_path"] = get_as_array(process_path);
-        if (isValidStrArray(process_path_regex)) obj["process_path_regex"] = get_as_array(process_path_regex);
-        if (isValidStrArray(wifi_ssid)) obj["wifi_ssid"] = get_as_array(wifi_ssid);
-        if (isValidStrArray(wifi_bssid)) obj["wifi_bssid"] = get_as_array(wifi_bssid);
-        if (isValidStrArray(rule_set))
-            if (forView)
-                obj["rule_set"] = get_as_array(rule_set);
-            else
-                obj["rule_set"] = get_as_array(rule_set, false, get_rule_set_name);
-        if (invert) obj["invert"] = invert;
-        if (action == "route")
-        {
-            if (outboundID == -3) action = "reject";
-            if (outboundID == -4) action = "hijack-dns";
-        }
-        obj["action"] = action;
-
-        if (action == "reject")
-        {
-            if (!rejectMethod.trimmed().isEmpty()) obj["method"] = rejectMethod.trimmed();
-            if (no_drop) obj["no_drop"] = no_drop;
-        }
-        if (action == "route" || action == "route-options" || action == "bypass")
-        {
-            if (!override_address.trimmed().isEmpty()) obj["override_address"] = override_address.trimmed();
-            if (override_port.trimmed().toInt() > 0) obj["override_port"] = override_port.trimmed().toInt();
-
-            if (action == "route-options")
-            {
-                // Both fragment modes at once is a hard core error, so one wins rather than shipping a config that cannot load.
-                if (tls_fragment) obj["tls_fragment"] = true;
-                else if (tls_record_fragment) obj["tls_record_fragment"] = true;
-                if (tls_fragment && !tls_fragment_fallback_delay.trimmed().isEmpty())
-                    obj["tls_fragment_fallback_delay"] = tls_fragment_fallback_delay.trimmed();
-                if (!tls_spoof.trimmed().isEmpty())
-                {
-                    obj["tls_spoof"] = tls_spoof.trimmed();
-                    // The method only qualifies a spoof; the core rejects it standalone.
-                    if (!tls_spoof_method.trimmed().isEmpty())
-                        obj["tls_spoof_method"] = tls_spoof_method.trimmed();
-                }
-            }
-
-            if (action == "route" || action == "bypass")
-            {
-                if (forView) {
-                    switch (outboundID) { // TODO use constants
+                switch (outboundID) { // TODO use constants
                     case -1:
                         obj["outbound"] = "proxy";
                         break;
@@ -178,488 +172,490 @@ namespace Configs {
                             return {};
                         }
                         obj["outbound"] = prof->outbound->DisplayName();
-                    }
-                } else {
-                    if (!outboundTag.isEmpty()) obj["outbound"] = outboundTag;
-                    else obj["outbound"] = outboundID;
                 }
-            }
-        }
-        if (action == "sniff")
-        {
-            //if (isValidStrArray(sniffers)) obj["sniffers"] = get_as_array(sniffers); TODO maybe allow customization?
-            if (sniffOverrideDest) obj["override_destination"] = sniffOverrideDest;
-        }
-        if (action == "resolve")
-        {
-            if (!strategy.trimmed().isEmpty()) obj["strategy"] = strategy.trimmed();
-        }
-
-        return obj;
-    }
-
-    QJsonObject RouteRule::to_share_json() {
-        // Same key space as the endpoints list, so a rule and its endpoint drop or survive together.
-        if (type == endpointPreferredBy) {
-            return QJsonObject{
-                {"name", name},
-                {"type", ruleTypeToToken(type)},
-                {"outbound", outboundID},
-            };
-        }
-        // forView=true renders outbound as a portable string and skips the adblock injection.
-        QJsonObject obj = get_rule_json(true);
-        if (obj.isEmpty()) return obj; // outbound profile missing; caller skips it
-        obj["name"] = name;
-        obj["type"] = ruleTypeToToken(type);
-        return obj;
-    }
-
-    // TODO use constant for field names
-    QStringList RouteRule::tab_attributes() {
-        QStringList out;
-        for (const QString& a : get_attributes()) {
-            if (a != QStringLiteral("action")) out << a;
-        }
-        return out;
-    }
-
-    bool RouteRule::is_attribute_at_default(RouteRule& rule, const QString& attr) {
-        if (attr == QStringLiteral("action")) return true;
-        switch (RouteRule::get_input_type(attr)) {
-            case trufalse:
-                if (attr == QStringLiteral("source_ip_is_private")) return !rule.source_ip_is_private;
-                if (attr == QStringLiteral("ip_is_private")) return !rule.ip_is_private;
-                if (attr == QStringLiteral("invert")) return !rule.invert;
-                if (attr == QStringLiteral("no_drop")) return !rule.no_drop;
-                if (attr == QStringLiteral("override_destination")) return !rule.sniffOverrideDest;
-                if (attr == QStringLiteral("tls_fragment")) return !rule.tls_fragment;
-                if (attr == QStringLiteral("tls_record_fragment")) return !rule.tls_record_fragment;
-                return true;
-            case select:
-                if (attr == QStringLiteral("outbound")) return rule.outboundID == directID;
-                {
-                    const QStringList s = rule.get_current_value_string(attr);
-                    return s.isEmpty() || s.first().isEmpty();
-                }
-            case text:
-                if (attr == QStringLiteral("override_address")) return rule.override_address.isEmpty();
-                if (attr == QStringLiteral("override_port"))
-                    return rule.override_port.isEmpty() || rule.override_port.trimmed().isEmpty() || rule.override_port.toInt() <= 0;
-                if (attr == QStringLiteral("tls_spoof")) return rule.tls_spoof.isEmpty();
-                return !isValidStrArray(rule.get_current_value_string(attr));
-        }
-        return true;
-    }
-
-    void RouteRule::clear_attribute_value(const QString& attr) {
-        if (attr == QStringLiteral("ip_version")) ip_version.clear();
-        else if (attr == QStringLiteral("network")) network.clear();
-        else if (attr == QStringLiteral("protocol")) protocol.clear();
-        else if (attr == QStringLiteral("inbound")) inbound.clear();
-        else if (attr == QStringLiteral("domain")) domain.clear();
-        else if (attr == QStringLiteral("domain_suffix")) domain_suffix.clear();
-        else if (attr == QStringLiteral("domain_keyword")) domain_keyword.clear();
-        else if (attr == QStringLiteral("domain_regex")) domain_regex.clear();
-        else if (attr == QStringLiteral("source_ip_cidr")) source_ip_cidr.clear();
-        else if (attr == QStringLiteral("source_ip_is_private")) source_ip_is_private = false;
-        else if (attr == QStringLiteral("ip_cidr")) ip_cidr.clear();
-        else if (attr == QStringLiteral("ip_is_private")) ip_is_private = false;
-        else if (attr == QStringLiteral("source_port")) source_port.clear();
-        else if (attr == QStringLiteral("source_port_range")) source_port_range.clear();
-        else if (attr == QStringLiteral("port")) port.clear();
-        else if (attr == QStringLiteral("port_range")) port_range.clear();
-        else if (attr == QStringLiteral("process_name")) process_name.clear();
-        else if (attr == QStringLiteral("process_path")) process_path.clear();
-        else if (attr == QStringLiteral("process_path_regex")) process_path_regex.clear();
-        else if (attr == QStringLiteral("wifi_ssid")) wifi_ssid.clear();
-        else if (attr == QStringLiteral("wifi_bssid")) wifi_bssid.clear();
-        else if (attr == QStringLiteral("rule_set")) rule_set.clear();
-        else if (attr == QStringLiteral("invert")) invert = false;
-        else if (attr == QStringLiteral("outbound")) outboundID = directID;
-        else if (attr == QStringLiteral("method")) rejectMethod.clear();
-        else if (attr == QStringLiteral("no_drop")) no_drop = false;
-        else if (attr == QStringLiteral("override_address")) override_address.clear();
-        else if (attr == QStringLiteral("override_port")) override_port.clear();
-        else if (attr == QStringLiteral("tls_fragment")) tls_fragment = false;
-        else if (attr == QStringLiteral("tls_fragment_fallback_delay")) tls_fragment_fallback_delay.clear();
-        else if (attr == QStringLiteral("tls_record_fragment")) tls_record_fragment = false;
-        else if (attr == QStringLiteral("tls_spoof")) tls_spoof.clear();
-        else if (attr == QStringLiteral("tls_spoof_method")) tls_spoof_method.clear();
-        else if (attr == QStringLiteral("override_destination")) sniffOverrideDest = false;
-        else if (attr == QStringLiteral("strategy")) strategy.clear();
-    }
-
-    void RouteRule::ensure_ui_visible_attribute_tabs_seeded() {
-        if (uiAttributeTabsSeeded) return;
-        uiAttributeTabsSeeded = true;
-        for (const QString& a : tab_attributes()) {
-            if (!is_attribute_at_default(*this, a)) uiVisibleAttributes.insert(a);
-        }
-    }
-
-    QStringList RouteRule::get_attributes()
-    {
-        auto res = QStringList{
-            "ip_version",
-            "network",
-            "protocol",
-            "inbound",
-            "domain",
-            "domain_suffix",
-            "domain_keyword",
-            "domain_regex",
-            "source_ip_cidr",
-            "source_ip_is_private",
-            "ip_cidr",
-            "ip_is_private",
-            "source_port",
-            "source_port_range",
-            "port",
-            "port_range",
-            "process_name",
-            "process_path",
-            "process_path_regex",
-            "wifi_ssid",
-            "wifi_bssid",
-            "rule_set",
-            "invert",
-            "action",
-            "outbound",
-            "override_address",
-            "override_port",
-            "tls_fragment",
-            "tls_fragment_fallback_delay",
-            "tls_record_fragment",
-            "tls_spoof",
-            "tls_spoof_method",
-            "method",
-            "no_drop",
-            "override_destination",
-            "strategy",
-        };
-        if (getOS() == Darwin) res.removeAll("wifi_ssid"), res.removeAll("wifi_bssid");
-        return res;
-    }
-
-    inputType RouteRule::get_input_type(const QString& fieldName) {
-        if (fieldName == "invert" ||
-            fieldName == "source_ip_is_private" ||
-            fieldName == "ip_is_private" ||
-            fieldName == "no_drop" ||
-            fieldName == "tls_fragment" ||
-            fieldName == "tls_record_fragment" ||
-            fieldName == "override_destination") return trufalse;
-
-        if (fieldName == "ip_version" ||
-            fieldName == "network" ||
-            fieldName == "protocol" ||
-            fieldName == "action" ||
-            fieldName == "method" ||
-            fieldName == "strategy" ||
-            fieldName == "tls_spoof_method" ||
-            fieldName == "outbound") return select;
-
-        return text;
-    }
-
-    QStringList RouteRule::get_values_for_field(const QString& fieldName) {
-        if (fieldName == "ip_version") {
-            return {"", "4", "6"};
-        }
-        if (fieldName == "network") {
-            return {"", "tcp", "udp", "icmp"};
-        }
-        if (fieldName == "protocol") {
-            auto resp = SingboxOptions::SniffProtocols;
-            resp.prepend("");
-            return resp;
-        }
-        if (fieldName == "action")
-        {
-            auto actions = SingboxOptions::ActionTypes;
-            if (getOS() == Linux) actions.insert(1, "bypass");
-            return actions;
-        }
-        if (fieldName == "method")
-        {
-            auto resp = SingboxOptions::rejectMethods;
-            resp.prepend("");
-            return resp;
-        }
-        if (fieldName == "strategy")
-        {
-            auto resp = DomainStrategy::DomainStrategy;
-            resp.prepend("");
-            return resp;
-        }
-        if (fieldName == "tls_spoof_method")
-        {
-            return tlsSpoofMethods;
-        }
-        return {};
-    }
-
-    QStringList RouteRule::get_current_value_string(const QString& fieldName) {
-        if (fieldName == "ip_version") {
-            return {ip_version};
-        }
-        if (fieldName == "network") {
-            return {network};
-        }
-        if (fieldName == "protocol") {
-            return {protocol};
-        }
-        if (fieldName == "action")
-        {
-            return {action};
-        }
-        if (fieldName == "method")
-        {
-            return {rejectMethod};
-        }
-        if (fieldName == "strategy")
-        {
-            return {strategy};
-        }
-        if (fieldName == "override_address")
-        {
-            return {override_address};
-        }
-        if (fieldName == "override_port")
-        {
-            return {override_port};
-        }
-        if (fieldName == "tls_spoof")
-        {
-            return {tls_spoof};
-        }
-        if (fieldName == "tls_spoof_method")
-        {
-            return {tls_spoof_method};
-        }
-        if (fieldName == "tls_fragment_fallback_delay")
-        {
-            return {tls_fragment_fallback_delay};
-        }
-        if (fieldName == "outbound")
-        {
-            return {Int2String(outboundID)};
-        }
-        if (fieldName == "inbound") return inbound;
-        if (fieldName == "domain") return domain;
-        if (fieldName == "domain_suffix") return domain_suffix;
-        if (fieldName == "domain_keyword") return domain_keyword;
-        if (fieldName == "domain_regex") return domain_regex;
-        if (fieldName == "source_ip_cidr") return source_ip_cidr;
-        if (fieldName == "ip_cidr") return ip_cidr;
-        if (fieldName == "source_port") return source_port;
-        if (fieldName == "source_port_range") return source_port_range;
-        if (fieldName == "port") return port;
-        if (fieldName == "port_range") return port_range;
-        if (fieldName == "process_name") return process_name;
-        if (fieldName == "process_path") return process_path;
-        if (fieldName == "process_path_regex") return process_path_regex;
-        if (fieldName == "wifi_ssid") return wifi_ssid;
-        if (fieldName == "wifi_bssid") return wifi_bssid;
-        if (fieldName == "rule_set") return rule_set;
-        return {};
-    }
-
-    QString RouteRule::get_current_value_bool(const QString& fieldName) const {
-        if (fieldName == "source_ip_is_private") {
-            return source_ip_is_private? "true":"false";
-        }
-        if (fieldName == "ip_is_private") {
-            return ip_is_private? "true":"false";
-        }
-        if (fieldName == "invert") {
-            return invert? "true":"false";
-        }
-        if (fieldName == "no_drop")
-        {
-            return no_drop? "true":"false";
-        }
-        if (fieldName == "override_destination")
-        {
-            return sniffOverrideDest? "true":"false";
-        }
-        if (fieldName == "tls_fragment")
-        {
-            return tls_fragment? "true":"false";
-        }
-        if (fieldName == "tls_record_fragment")
-        {
-            return tls_record_fragment? "true":"false";
-        }
-        return nullptr;
-    }
-
-    static QStringList filterEmpty(const QStringList& base) {
-        QStringList res;
-        for (const auto& item: base) {
-            if (const auto trimmed = item.trimmed(); !trimmed.isEmpty()) {
-                res << trimmed;
-            }
-        }
-        return res;
-    }
-
-    void RouteRule::set_field_value(const QString& fieldName, const QStringList& value) {
-        // Imported rules can carry an empty array for a scalar field, so never index blindly.
-        const QString scalar = value.isEmpty() ? QString() : value[0].trimmed();
-        if (fieldName == "ip_version") {
-            ip_version = scalar;
-        }
-        if (fieldName == "network") {
-            network = scalar;
-        }
-        if (fieldName == "protocol") {
-            protocol = scalar;
-        }
-        if (fieldName == "inbound") {
-            inbound = filterEmpty(value);
-        }
-        if (fieldName == "domain") {
-            domain = filterEmpty(value);
-        }
-        if (fieldName == "domain_suffix") {
-            domain_suffix = filterEmpty(value);
-        }
-        if (fieldName == "domain_keyword") {
-            domain_keyword = filterEmpty(value);
-        }
-        if (fieldName == "domain_regex") {
-            domain_regex = filterEmpty(value);
-        }
-        if (fieldName == "source_ip_cidr") {
-            source_ip_cidr = filterEmpty(value);
-        }
-        if (fieldName == "source_ip_is_private") {
-            source_ip_is_private = scalar=="true";
-        }
-        if (fieldName == "ip_cidr") {
-            ip_cidr = filterEmpty(value);
-        }
-        if (fieldName == "ip_is_private") {
-            ip_is_private = scalar=="true";
-        }
-        if (fieldName == "source_port") {
-            source_port = filterEmpty(value);
-        }
-        if (fieldName == "source_port_range") {
-            source_port_range = filterEmpty(value);
-        }
-        if (fieldName == "port") {
-            port = filterEmpty(value);
-        }
-        if (fieldName == "port_range") {
-            port_range = filterEmpty(value);
-        }
-        if (fieldName == "process_name") {
-            process_name = filterEmpty(value);
-        }
-        if (fieldName == "process_path") {
-            process_path = filterEmpty(value);
-        }
-        if (fieldName == "process_path_regex") {
-            process_path_regex = filterEmpty(value);
-        }
-        if (fieldName == "wifi_ssid") {
-            wifi_ssid = filterEmpty(value);
-        }
-        if (fieldName == "wifi_bssid") {
-            wifi_bssid = filterEmpty(value);
-        }
-        if (fieldName == "rule_set") {
-            rule_set = filterEmpty(value);
-        }
-        if (fieldName == "invert") {
-            invert = scalar=="true";
-        }
-        if (fieldName == "action")
-        {
-            action = scalar;
-        }
-        if (fieldName == "method")
-        {
-            rejectMethod = scalar;
-        }
-        if (fieldName == "no_drop")
-        {
-            no_drop = scalar=="true";
-        }
-        if (fieldName == "override_address")
-        {
-            override_address = scalar;
-        }
-        if (fieldName == "override_port")
-        {
-            override_port = scalar;
-        }
-        if (fieldName == "tls_fragment")
-        {
-            tls_fragment = scalar=="true";
-        }
-        if (fieldName == "tls_fragment_fallback_delay")
-        {
-            tls_fragment_fallback_delay = scalar;
-        }
-        if (fieldName == "tls_record_fragment")
-        {
-            tls_record_fragment = scalar=="true";
-        }
-        if (fieldName == "tls_spoof")
-        {
-            tls_spoof = scalar;
-        }
-        if (fieldName == "tls_spoof_method")
-        {
-            tls_spoof_method = scalar;
-        }
-        if (fieldName == "override_destination")
-        {
-            sniffOverrideDest = scalar=="true";
-        }
-        if (fieldName == "strategy")
-        {
-            strategy = scalar;
-        }
-        if (fieldName == "outbound")
-        {
-            outboundID = scalar.toInt();
-        }
-    }
-
-    bool RouteRule::isEmpty() {
-        if (type != custom) {
-            if (type == endpointPreferredBy) return false;
-            if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock
-                || type == simpleAddressWarpBypass || type == simpleAddressViaProfile) {
-                return domain.empty() &&
-                    domain_suffix.empty() &&
-                    domain_keyword.empty() &&
-                    domain_regex.empty() &&
-                    rule_set.empty() &&
-                    ip_cidr.empty();
             } else {
-                return process_name.empty() && process_path.empty();
+                if (!outboundTag.isEmpty())
+                    obj["outbound"] = outboundTag;
+                else
+                    obj["outbound"] = outboundID;
             }
         }
-        auto ruleJson = get_rule_json();
-        if (action == "route" || action == "route-options" || action == "hijack-dns") return ruleJson.keys().length() <= 1;
-        if (action == "sniff" || action == "resolve" || action == "reject" || action == "bypass") return ruleJson.keys().length() < 1;
-        return false;
+    }
+    if (action == "sniff") {
+        // if (isValidStrArray(sniffers)) obj["sniffers"] = get_as_array(sniffers); TODO maybe allow customization?
+        if (sniffOverrideDest) obj["override_destination"] = sniffOverrideDest;
+    }
+    if (action == "resolve") {
+        if (!strategy.trimmed().isEmpty()) obj["strategy"] = strategy.trimmed();
     }
 
-    bool RouteRule::canEditAttr(const QString &attr) {
-        if (type == custom) return true;
-        if (type == endpointPreferredBy) return false;
-        if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock
-            || type == simpleAddressWarpBypass || type == simpleAddressViaProfile) {
-            return attr == "domain" || attr == "domain_suffix" || attr == "domain_keyword" || attr == "domain_regex" || attr == "rule_set" || attr == "ip_cidr";
-        } else {
-            return attr == "process_path" || attr == "process_name";
-        }
+    return obj;
+}
+
+QJsonObject RouteRule::to_share_json() {
+    // Same key space as the endpoints list, so a rule and its endpoint drop or survive together.
+    if (type == endpointPreferredBy) {
+        return QJsonObject{
+            {"name", name},
+            {"type", ruleTypeToToken(type)},
+            {"outbound", outboundID},
+        };
+    }
+    // forView=true renders outbound as a portable string and skips the adblock injection.
+    QJsonObject obj = get_rule_json(true);
+    if (obj.isEmpty()) return obj; // outbound profile missing; caller skips it
+    obj["name"] = name;
+    obj["type"] = ruleTypeToToken(type);
+    return obj;
+}
+
+// TODO use constant for field names
+QStringList RouteRule::tab_attributes() {
+    QStringList out;
+    for (const QString& a: get_attributes()) {
+        if (a != QStringLiteral("action")) out << a;
+    }
+    return out;
+}
+
+bool RouteRule::is_attribute_at_default(RouteRule& rule, const QString& attr) {
+    if (attr == QStringLiteral("action")) return true;
+    switch (RouteRule::get_input_type(attr)) {
+        case trufalse:
+            if (attr == QStringLiteral("source_ip_is_private")) return !rule.source_ip_is_private;
+            if (attr == QStringLiteral("ip_is_private")) return !rule.ip_is_private;
+            if (attr == QStringLiteral("invert")) return !rule.invert;
+            if (attr == QStringLiteral("no_drop")) return !rule.no_drop;
+            if (attr == QStringLiteral("override_destination")) return !rule.sniffOverrideDest;
+            if (attr == QStringLiteral("tls_fragment")) return !rule.tls_fragment;
+            if (attr == QStringLiteral("tls_record_fragment")) return !rule.tls_record_fragment;
+            return true;
+        case select:
+            if (attr == QStringLiteral("outbound")) return rule.outboundID == directID;
+            {
+                const QStringList s = rule.get_current_value_string(attr);
+                return s.isEmpty() || s.first().isEmpty();
+            }
+        case text:
+            if (attr == QStringLiteral("override_address")) return rule.override_address.isEmpty();
+            if (attr == QStringLiteral("override_port"))
+                return rule.override_port.isEmpty() || rule.override_port.trimmed().isEmpty() || rule.override_port.toInt() <= 0;
+            if (attr == QStringLiteral("tls_spoof")) return rule.tls_spoof.isEmpty();
+            return !isValidStrArray(rule.get_current_value_string(attr));
+    }
+    return true;
+}
+
+void RouteRule::clear_attribute_value(const QString& attr) {
+    if (attr == QStringLiteral("ip_version"))
+        ip_version.clear();
+    else if (attr == QStringLiteral("network"))
+        network.clear();
+    else if (attr == QStringLiteral("protocol"))
+        protocol.clear();
+    else if (attr == QStringLiteral("inbound"))
+        inbound.clear();
+    else if (attr == QStringLiteral("domain"))
+        domain.clear();
+    else if (attr == QStringLiteral("domain_suffix"))
+        domain_suffix.clear();
+    else if (attr == QStringLiteral("domain_keyword"))
+        domain_keyword.clear();
+    else if (attr == QStringLiteral("domain_regex"))
+        domain_regex.clear();
+    else if (attr == QStringLiteral("source_ip_cidr"))
+        source_ip_cidr.clear();
+    else if (attr == QStringLiteral("source_ip_is_private"))
+        source_ip_is_private = false;
+    else if (attr == QStringLiteral("ip_cidr"))
+        ip_cidr.clear();
+    else if (attr == QStringLiteral("ip_is_private"))
+        ip_is_private = false;
+    else if (attr == QStringLiteral("source_port"))
+        source_port.clear();
+    else if (attr == QStringLiteral("source_port_range"))
+        source_port_range.clear();
+    else if (attr == QStringLiteral("port"))
+        port.clear();
+    else if (attr == QStringLiteral("port_range"))
+        port_range.clear();
+    else if (attr == QStringLiteral("process_name"))
+        process_name.clear();
+    else if (attr == QStringLiteral("process_path"))
+        process_path.clear();
+    else if (attr == QStringLiteral("process_path_regex"))
+        process_path_regex.clear();
+    else if (attr == QStringLiteral("wifi_ssid"))
+        wifi_ssid.clear();
+    else if (attr == QStringLiteral("wifi_bssid"))
+        wifi_bssid.clear();
+    else if (attr == QStringLiteral("rule_set"))
+        rule_set.clear();
+    else if (attr == QStringLiteral("invert"))
+        invert = false;
+    else if (attr == QStringLiteral("outbound"))
+        outboundID = directID;
+    else if (attr == QStringLiteral("method"))
+        rejectMethod.clear();
+    else if (attr == QStringLiteral("no_drop"))
+        no_drop = false;
+    else if (attr == QStringLiteral("override_address"))
+        override_address.clear();
+    else if (attr == QStringLiteral("override_port"))
+        override_port.clear();
+    else if (attr == QStringLiteral("tls_fragment"))
+        tls_fragment = false;
+    else if (attr == QStringLiteral("tls_fragment_fallback_delay"))
+        tls_fragment_fallback_delay.clear();
+    else if (attr == QStringLiteral("tls_record_fragment"))
+        tls_record_fragment = false;
+    else if (attr == QStringLiteral("tls_spoof"))
+        tls_spoof.clear();
+    else if (attr == QStringLiteral("tls_spoof_method"))
+        tls_spoof_method.clear();
+    else if (attr == QStringLiteral("override_destination"))
+        sniffOverrideDest = false;
+    else if (attr == QStringLiteral("strategy"))
+        strategy.clear();
+}
+
+void RouteRule::ensure_ui_visible_attribute_tabs_seeded() {
+    if (uiAttributeTabsSeeded) return;
+    uiAttributeTabsSeeded = true;
+    for (const QString& a: tab_attributes()) {
+        if (!is_attribute_at_default(*this, a)) uiVisibleAttributes.insert(a);
     }
 }
+
+QStringList RouteRule::get_attributes() {
+    auto res = QStringList{
+        "ip_version",
+        "network",
+        "protocol",
+        "inbound",
+        "domain",
+        "domain_suffix",
+        "domain_keyword",
+        "domain_regex",
+        "source_ip_cidr",
+        "source_ip_is_private",
+        "ip_cidr",
+        "ip_is_private",
+        "source_port",
+        "source_port_range",
+        "port",
+        "port_range",
+        "process_name",
+        "process_path",
+        "process_path_regex",
+        "wifi_ssid",
+        "wifi_bssid",
+        "rule_set",
+        "invert",
+        "action",
+        "outbound",
+        "override_address",
+        "override_port",
+        "tls_fragment",
+        "tls_fragment_fallback_delay",
+        "tls_record_fragment",
+        "tls_spoof",
+        "tls_spoof_method",
+        "method",
+        "no_drop",
+        "override_destination",
+        "strategy",
+    };
+    if (getOS() == Darwin) res.removeAll("wifi_ssid"), res.removeAll("wifi_bssid");
+    return res;
+}
+
+inputType RouteRule::get_input_type(const QString& fieldName) {
+    if (fieldName == "invert" ||
+        fieldName == "source_ip_is_private" ||
+        fieldName == "ip_is_private" ||
+        fieldName == "no_drop" ||
+        fieldName == "tls_fragment" ||
+        fieldName == "tls_record_fragment" ||
+        fieldName == "override_destination") return trufalse;
+
+    if (fieldName == "ip_version" ||
+        fieldName == "network" ||
+        fieldName == "protocol" ||
+        fieldName == "action" ||
+        fieldName == "method" ||
+        fieldName == "strategy" ||
+        fieldName == "tls_spoof_method" ||
+        fieldName == "outbound") return select;
+
+    return text;
+}
+
+QStringList RouteRule::get_values_for_field(const QString& fieldName) {
+    if (fieldName == "ip_version") {
+        return {"", "4", "6"};
+    }
+    if (fieldName == "network") {
+        return {"", "tcp", "udp", "icmp"};
+    }
+    if (fieldName == "protocol") {
+        auto resp = SingboxOptions::SniffProtocols;
+        resp.prepend("");
+        return resp;
+    }
+    if (fieldName == "action") {
+        auto actions = SingboxOptions::ActionTypes;
+        if (getOS() == Linux) actions.insert(1, "bypass");
+        return actions;
+    }
+    if (fieldName == "method") {
+        auto resp = SingboxOptions::rejectMethods;
+        resp.prepend("");
+        return resp;
+    }
+    if (fieldName == "strategy") {
+        auto resp = DomainStrategy::DomainStrategy;
+        resp.prepend("");
+        return resp;
+    }
+    if (fieldName == "tls_spoof_method") {
+        return tlsSpoofMethods;
+    }
+    return {};
+}
+
+QStringList RouteRule::get_current_value_string(const QString& fieldName) {
+    if (fieldName == "ip_version") {
+        return {ip_version};
+    }
+    if (fieldName == "network") {
+        return {network};
+    }
+    if (fieldName == "protocol") {
+        return {protocol};
+    }
+    if (fieldName == "action") {
+        return {action};
+    }
+    if (fieldName == "method") {
+        return {rejectMethod};
+    }
+    if (fieldName == "strategy") {
+        return {strategy};
+    }
+    if (fieldName == "override_address") {
+        return {override_address};
+    }
+    if (fieldName == "override_port") {
+        return {override_port};
+    }
+    if (fieldName == "tls_spoof") {
+        return {tls_spoof};
+    }
+    if (fieldName == "tls_spoof_method") {
+        return {tls_spoof_method};
+    }
+    if (fieldName == "tls_fragment_fallback_delay") {
+        return {tls_fragment_fallback_delay};
+    }
+    if (fieldName == "outbound") {
+        return {Int2String(outboundID)};
+    }
+    if (fieldName == "inbound") return inbound;
+    if (fieldName == "domain") return domain;
+    if (fieldName == "domain_suffix") return domain_suffix;
+    if (fieldName == "domain_keyword") return domain_keyword;
+    if (fieldName == "domain_regex") return domain_regex;
+    if (fieldName == "source_ip_cidr") return source_ip_cidr;
+    if (fieldName == "ip_cidr") return ip_cidr;
+    if (fieldName == "source_port") return source_port;
+    if (fieldName == "source_port_range") return source_port_range;
+    if (fieldName == "port") return port;
+    if (fieldName == "port_range") return port_range;
+    if (fieldName == "process_name") return process_name;
+    if (fieldName == "process_path") return process_path;
+    if (fieldName == "process_path_regex") return process_path_regex;
+    if (fieldName == "wifi_ssid") return wifi_ssid;
+    if (fieldName == "wifi_bssid") return wifi_bssid;
+    if (fieldName == "rule_set") return rule_set;
+    return {};
+}
+
+QString RouteRule::get_current_value_bool(const QString& fieldName) const {
+    if (fieldName == "source_ip_is_private") {
+        return source_ip_is_private ? "true" : "false";
+    }
+    if (fieldName == "ip_is_private") {
+        return ip_is_private ? "true" : "false";
+    }
+    if (fieldName == "invert") {
+        return invert ? "true" : "false";
+    }
+    if (fieldName == "no_drop") {
+        return no_drop ? "true" : "false";
+    }
+    if (fieldName == "override_destination") {
+        return sniffOverrideDest ? "true" : "false";
+    }
+    if (fieldName == "tls_fragment") {
+        return tls_fragment ? "true" : "false";
+    }
+    if (fieldName == "tls_record_fragment") {
+        return tls_record_fragment ? "true" : "false";
+    }
+    return nullptr;
+}
+
+static QStringList filterEmpty(const QStringList& base) {
+    QStringList res;
+    for (const auto& item: base) {
+        if (const auto trimmed = item.trimmed(); !trimmed.isEmpty()) {
+            res << trimmed;
+        }
+    }
+    return res;
+}
+
+void RouteRule::set_field_value(const QString& fieldName, const QStringList& value) {
+    // Imported rules can carry an empty array for a scalar field, so never index blindly.
+    const QString scalar = value.isEmpty() ? QString() : value[0].trimmed();
+    if (fieldName == "ip_version") {
+        ip_version = scalar;
+    }
+    if (fieldName == "network") {
+        network = scalar;
+    }
+    if (fieldName == "protocol") {
+        protocol = scalar;
+    }
+    if (fieldName == "inbound") {
+        inbound = filterEmpty(value);
+    }
+    if (fieldName == "domain") {
+        domain = filterEmpty(value);
+    }
+    if (fieldName == "domain_suffix") {
+        domain_suffix = filterEmpty(value);
+    }
+    if (fieldName == "domain_keyword") {
+        domain_keyword = filterEmpty(value);
+    }
+    if (fieldName == "domain_regex") {
+        domain_regex = filterEmpty(value);
+    }
+    if (fieldName == "source_ip_cidr") {
+        source_ip_cidr = filterEmpty(value);
+    }
+    if (fieldName == "source_ip_is_private") {
+        source_ip_is_private = scalar == "true";
+    }
+    if (fieldName == "ip_cidr") {
+        ip_cidr = filterEmpty(value);
+    }
+    if (fieldName == "ip_is_private") {
+        ip_is_private = scalar == "true";
+    }
+    if (fieldName == "source_port") {
+        source_port = filterEmpty(value);
+    }
+    if (fieldName == "source_port_range") {
+        source_port_range = filterEmpty(value);
+    }
+    if (fieldName == "port") {
+        port = filterEmpty(value);
+    }
+    if (fieldName == "port_range") {
+        port_range = filterEmpty(value);
+    }
+    if (fieldName == "process_name") {
+        process_name = filterEmpty(value);
+    }
+    if (fieldName == "process_path") {
+        process_path = filterEmpty(value);
+    }
+    if (fieldName == "process_path_regex") {
+        process_path_regex = filterEmpty(value);
+    }
+    if (fieldName == "wifi_ssid") {
+        wifi_ssid = filterEmpty(value);
+    }
+    if (fieldName == "wifi_bssid") {
+        wifi_bssid = filterEmpty(value);
+    }
+    if (fieldName == "rule_set") {
+        rule_set = filterEmpty(value);
+    }
+    if (fieldName == "invert") {
+        invert = scalar == "true";
+    }
+    if (fieldName == "action") {
+        action = scalar;
+    }
+    if (fieldName == "method") {
+        rejectMethod = scalar;
+    }
+    if (fieldName == "no_drop") {
+        no_drop = scalar == "true";
+    }
+    if (fieldName == "override_address") {
+        override_address = scalar;
+    }
+    if (fieldName == "override_port") {
+        override_port = scalar;
+    }
+    if (fieldName == "tls_fragment") {
+        tls_fragment = scalar == "true";
+    }
+    if (fieldName == "tls_fragment_fallback_delay") {
+        tls_fragment_fallback_delay = scalar;
+    }
+    if (fieldName == "tls_record_fragment") {
+        tls_record_fragment = scalar == "true";
+    }
+    if (fieldName == "tls_spoof") {
+        tls_spoof = scalar;
+    }
+    if (fieldName == "tls_spoof_method") {
+        tls_spoof_method = scalar;
+    }
+    if (fieldName == "override_destination") {
+        sniffOverrideDest = scalar == "true";
+    }
+    if (fieldName == "strategy") {
+        strategy = scalar;
+    }
+    if (fieldName == "outbound") {
+        outboundID = scalar.toInt();
+    }
+}
+
+bool RouteRule::isEmpty() {
+    if (type != custom) {
+        if (type == endpointPreferredBy) return false;
+        if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock || type == simpleAddressWarpBypass || type == simpleAddressViaProfile) {
+            return domain.empty() &&
+                   domain_suffix.empty() &&
+                   domain_keyword.empty() &&
+                   domain_regex.empty() &&
+                   rule_set.empty() &&
+                   ip_cidr.empty();
+        } else {
+            return process_name.empty() && process_path.empty();
+        }
+    }
+    auto ruleJson = get_rule_json();
+    if (action == "route" || action == "route-options" || action == "hijack-dns") return ruleJson.keys().length() <= 1;
+    if (action == "sniff" || action == "resolve" || action == "reject" || action == "bypass") return ruleJson.keys().length() < 1;
+    return false;
+}
+
+bool RouteRule::canEditAttr(const QString& attr) {
+    if (type == custom) return true;
+    if (type == endpointPreferredBy) return false;
+    if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock || type == simpleAddressWarpBypass || type == simpleAddressViaProfile) {
+        return attr == "domain" || attr == "domain_suffix" || attr == "domain_keyword" || attr == "domain_regex" || attr == "rule_set" || attr == "ip_cidr";
+    } else {
+        return attr == "process_path" || attr == "process_name";
+    }
+}
+} // namespace Configs

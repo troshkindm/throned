@@ -8,8 +8,7 @@
 #include "include/global/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
 
-void WireguardAmneziaOptions::load(const Configs::wireguard *outbound)
-{
+void WireguardAmneziaOptions::load(const Configs::wireguard *outbound) {
     if (outbound == nullptr) return;
     jc = outbound->jc;
     jmin = outbound->jmin;
@@ -38,8 +37,7 @@ void WireguardAmneziaOptions::load(const Configs::wireguard *outbound)
     disableCookies = outbound->disable_cookies;
 }
 
-void WireguardAmneziaOptions::apply(Configs::wireguard *outbound) const
-{
+void WireguardAmneziaOptions::apply(Configs::wireguard *outbound) const {
     if (outbound == nullptr) return;
     outbound->jc = jc;
     outbound->jmin = jmin;
@@ -69,10 +67,7 @@ void WireguardAmneziaOptions::apply(Configs::wireguard *outbound) const
 }
 
 EditWireguardAmnezia::EditWireguardAmnezia(QWidget *parent, WireguardAmneziaOptions *options)
-    : QDialog(parent)
-    , ui(new Ui::EditWireguardAmnezia)
-    , options(options)
-{
+    : QDialog(parent), ui(new Ui::EditWireguardAmnezia), options(options) {
     ui->setupUi(this);
 
     ui->jc->setText(Int2String(options->jc));
@@ -112,16 +107,15 @@ EditWireguardAmnezia::EditWireguardAmnezia(QWidget *parent, WireguardAmneziaOpti
     const auto frame = 2 * ui->scroll->frameWidth();
     const auto wanted = ui->scroll->widget()->sizeHint() +
                         QSize(frame + ui->scroll->verticalScrollBar()->sizeHint().width() +
-                              margins.left() + margins.right(),
+                                  margins.left() + margins.right(),
                               frame + margins.top() + margins.bottom() +
-                              ui->buttonBox->sizeHint().height() + layout()->spacing());
+                                  ui->buttonBox->sizeHint().height() + layout()->spacing());
 
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
     resize(scr != nullptr ? wanted.boundedTo(scr->availableGeometry().size()) : wanted);
 }
 
-EditWireguardAmnezia::~EditWireguardAmnezia()
-{
+EditWireguardAmnezia::~EditWireguardAmnezia() {
     delete ui;
 }
 

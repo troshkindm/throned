@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditAutoSelector;
+class EditAutoSelector;
 }
 QT_END_NAMESPACE
 

@@ -40,7 +40,7 @@ QString LocalizedMarkdown(const QString &releaseBody, const QString &localeName)
     bool malformed = false;
 
     const QStringList lines = releaseBody.split(QLatin1Char('\n'), Qt::KeepEmptyParts);
-    for (const QString &line : lines) {
+    for (const QString &line: lines) {
         const QRegularExpressionMatch match = marker.match(line);
         if (!match.hasMatch()) {
             if (!activeLanguage.isEmpty()) activeLines.append(line);
@@ -85,7 +85,7 @@ QString LocalizedMarkdown(const QString &releaseBody, const QString &localeName)
     }
     if (!preferences.contains(QStringLiteral("en"))) preferences.append(QStringLiteral("en"));
 
-    for (const QString &preferred : preferences) {
+    for (const QString &preferred: preferences) {
         if (sections.contains(preferred)) return sections.value(preferred).join(QStringLiteral("\n\n"));
     }
     return sections.value(languageOrder.front()).join(QStringLiteral("\n\n"));

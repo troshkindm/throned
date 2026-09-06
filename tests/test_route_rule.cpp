@@ -7,8 +7,8 @@
 // Link seam: get_rule_json only consults the repo for profile-backed outbounds,
 // which none of these rules use.
 namespace Configs {
-    std::shared_ptr<Profile> ProfilesRepo::GetProfile(int) const { return nullptr; }
-}
+std::shared_ptr<Profile> ProfilesRepo::GetProfile(int) const { return nullptr; }
+} // namespace Configs
 
 using Configs::RouteRule;
 

@@ -18,20 +18,20 @@ namespace ThronedControl {
 
 struct Hooks {
     std::function<void(int id)> startProfile;
-    std::function<void()>       stopProfile;
+    std::function<void()> stopProfile;
     // Persist-and-apply: restart the running profile so a routing edit takes
     // effect, and refresh whatever the window shows about it.
-    std::function<void()>       applyRoutingChange;
-    std::function<int()>        runningProfileId;
-    std::function<void(bool)>   setTun;
-    std::function<void(bool)>   setSystemProxy;
-    std::function<void()>       updateSubscriptions;
+    std::function<void()> applyRoutingChange;
+    std::function<int()> runningProfileId;
+    std::function<void(bool)> setTun;
+    std::function<void(bool)> setSystemProxy;
+    std::function<void()> updateSubscriptions;
     // The last log lines the window is showing, newest last.
     std::function<QStringList(int)> recentLogs;
     // True when the process already holds the rights TUN needs. Turning TUN on
     // without them restarts the app behind a UAC prompt, which would leave a
     // control client waiting for an answer that never comes.
-    std::function<bool()>       isElevated;
+    std::function<bool()> isElevated;
 };
 
 inline Hooks hooks;

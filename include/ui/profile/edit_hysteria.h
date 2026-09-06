@@ -5,7 +5,7 @@
 #include "ui_edit_hysteria.h"
 
 namespace Ui {
-    class EditHysteria;
+class EditHysteria;
 }
 
 class EditHysteria : public QWidget, public ProfileEditor {
@@ -24,9 +24,9 @@ public:
     QComboBox *_obfuscation_type;
     QCheckBox *_realm_enabled;
 
-    void editHysteriaLayout(const QString& version, const QString& obfs_type);
+    void editHysteriaLayout(const QString &version, const QString &obfs_type);
+
 private:
     Ui::EditHysteria *ui;
     std::shared_ptr<Configs::Profile> ent;
 };
-

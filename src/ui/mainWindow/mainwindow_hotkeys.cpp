@@ -10,7 +10,7 @@
 #include <qhotkey.h>
 
 namespace {
-    QList<std::shared_ptr<QHotkey>> RegisteredHotkey;
+QList<std::shared_ptr<QHotkey>> RegisteredHotkey;
 }
 
 void MainWindow::RegisterHotkey(bool unregister) {
@@ -38,7 +38,7 @@ void MainWindow::RegisterHotkey(bool unregister) {
         auto hk = std::make_shared<QHotkey>(k, true);
         if (hk->isRegistered()) {
             RegisteredHotkey += hk;
-            connect(hk.get(), &QHotkey::activated, this, [=,this] { HotkeyEvent(key); });
+            connect(hk.get(), &QHotkey::activated, this, [=, this] { HotkeyEvent(key); });
         } else {
             hk->deleteLater();
         }
@@ -50,7 +50,7 @@ void MainWindow::collectMenuShortcuts(QMenu *menu, QSet<QKeySequence> &out) {
         if (auto *sub = action->menu()) {
             collectMenuShortcuts(sub, out);
         } else {
-            for (const auto &seq : action->shortcuts()) out.insert(seq);
+            for (const auto &seq: action->shortcuts()) out.insert(seq);
         }
     }
 }
@@ -60,10 +60,10 @@ void MainWindow::registerMenuShortcuts(QMenu *menu, QSet<QKeySequence> &claimed)
         if (auto *sub = action->menu()) {
             registerMenuShortcuts(sub, claimed);
         } else {
-            for (const auto &seq : action->shortcuts()) {
+            for (const auto &seq: action->shortcuts()) {
                 if (claimed.contains(seq)) continue;
                 claimed.insert(seq);
-                hiddenMenuShortcuts.append(new QShortcut(seq, this, [=,this](){
+                hiddenMenuShortcuts.append(new QShortcut(seq, this, [=, this]() {
                     action->trigger();
                 }));
             }
@@ -72,7 +72,7 @@ void MainWindow::registerMenuShortcuts(QMenu *menu, QSet<QKeySequence> &claimed)
 }
 
 void MainWindow::RegisterHiddenMenuShortcuts(bool unregister) {
-    for (const auto s : hiddenMenuShortcuts) s->deleteLater();
+    for (const auto s: hiddenMenuShortcuts) s->deleteLater();
     hiddenMenuShortcuts.clear();
 
     if (unregister) return;
@@ -89,8 +89,7 @@ void MainWindow::RegisterHiddenMenuShortcuts(bool unregister) {
     registerMenuShortcuts(ui->menu_server, claimed);
 }
 
-void MainWindow::setActionsData()
-{
+void MainWindow::setActionsData() {
     // Ids are the keys shortcuts are saved and restored under.
     ui->menu_add_from_input->setData(QString("m2"));
     ui->menu_clear_test_result->setData(QString("m3"));
@@ -122,23 +121,20 @@ void MainWindow::setActionsData()
     ui->actionUpdate_All_Subscriptions->setData(QString("m31"));
 }
 
-QList<QAction*> MainWindow::getActionsForShortcut()
-{
-    QList<QAction*> list;
+QList<QAction *> MainWindow::getActionsForShortcut() {
+    QList<QAction *> list;
     QList<QAction *> actions = findChildren<QAction *>();
 
-    for (QAction *action : actions) {
+    for (QAction *action: actions) {
         if (action->data().isNull() || action->data().toString().isEmpty()) continue;
         list.append(action);
     }
     return list;
 }
 
-void MainWindow::loadShortcuts()
-{
+void MainWindow::loadShortcuts() {
     auto mp = Configs::dataManager->settingsRepo->shortcuts;
-    for (QList<QAction *> actions = findChildren<QAction *>(); QAction *action : actions)
-    {
+    for (QList<QAction *> actions = findChildren<QAction *>(); QAction * action: actions) {
         if (action->data().isNull() || action->data().toString().isEmpty()) continue;
         if (mp.count(action->data().toString()) > 0) {
             action->setShortcut(mp[action->data().toString()]);
@@ -150,7 +146,7 @@ void MainWindow::loadShortcuts()
 
 void MainWindow::HotkeyEvent(const QString &key) {
     if (key.isEmpty()) return;
-    runOnUiThread([=,this] {
+    runOnUiThread([=, this] {
         if (key == Configs::dataManager->settingsRepo->hotkey_mainwindow) {
             tray->activated(QSystemTrayIcon::ActivationReason::Trigger);
         } else if (key == Configs::dataManager->settingsRepo->hotkey_group) {

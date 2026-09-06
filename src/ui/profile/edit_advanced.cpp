@@ -11,21 +11,19 @@
 #include "include/ui/profile/editor_table_utils.h"
 
 EditAdvanced::InterfaceFields EditAdvanced::GetInterfaceFields() const {
-    if (auto *openvpn = ent->OpenVPN(); openvpn != nullptr) {
+    if (auto* openvpn = ent->OpenVPN(); openvpn != nullptr) {
         return {&openvpn->system, &openvpn->interface_name, &openvpn->udp_timeout,
                 &openvpn->udp_mapping, &openvpn->udp_filtering, &openvpn->udp_nat_max};
     }
-    if (auto *openconnect = ent->OpenConnect(); openconnect != nullptr) {
+    if (auto* openconnect = ent->OpenConnect(); openconnect != nullptr) {
         return {&openconnect->system, &openconnect->interface_name, &openconnect->udp_timeout,
                 &openconnect->udp_mapping, &openconnect->udp_filtering, &openconnect->udp_nat_max};
     }
     return {};
 }
 
-EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent)
-    : QDialog(parent)
-    , ui(new Ui::EditAdvanced)
-{
+EditAdvanced::EditAdvanced(QWidget* parent, const std::shared_ptr<Configs::Profile>& _ent)
+    : QDialog(parent), ui(new Ui::EditAdvanced) {
     ui->setupUi(this);
     ent = _ent;
     auto dialFieldsObj = ent->outbound->dialFields;
@@ -35,9 +33,9 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
     ui->tcp_multipath->setChecked(dialFieldsObj->tcp_multi_path);
     ui->connect_timeout->setText(dialFieldsObj->connect_timeout);
 
-    for (const auto& ifc : QNetworkInterface::allInterfaces())
+    for (const auto& ifc: QNetworkInterface::allInterfaces())
         m_systemInterfaces << ifc.humanReadableName();
-    for (const auto& addr : QNetworkInterface::allAddresses()) {
+    for (const auto& addr: QNetworkInterface::allAddresses()) {
         if (addr.protocol() == QAbstractSocket::IPv4Protocol)
             m_systemIpv4Addresses << addr.toString();
         else if (addr.protocol() == QAbstractSocket::IPv6Protocol)
@@ -48,7 +46,7 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
                                 const QStringList& history, const QString& current) {
         combo->addItem("");
         combo->addItems(systemItems);
-        for (const auto& h : history) {
+        for (const auto& h: history) {
             if (!systemItems.contains(h))
                 combo->addItem(h);
         }
@@ -56,7 +54,7 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
     };
 
     auto* repo = Configs::dataManager->settingsRepo.get();
-    populateBindCombo(ui->bind_interface,    m_systemInterfaces,    repo->dial_bind_interface_history,    dialFieldsObj->bind_interface);
+    populateBindCombo(ui->bind_interface, m_systemInterfaces, repo->dial_bind_interface_history, dialFieldsObj->bind_interface);
     populateBindCombo(ui->inet4_bind_address, m_systemIpv4Addresses, repo->dial_inet4_bind_address_history, dialFieldsObj->inet4_bind_address);
     populateBindCombo(ui->inet6_bind_address, m_systemIpv6Addresses, repo->dial_inet6_bind_address_history, dialFieldsObj->inet6_bind_address);
 
@@ -132,12 +130,11 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
     ADD_ASTERISK(this)
 
     // adjustSize() clamps to 2/3 of the screen.
-    const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
+    const auto* scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
     if (scr != nullptr) resize(sizeHint().boundedTo(scr->availableGeometry().size()));
 }
 
-EditAdvanced::~EditAdvanced()
-{
+EditAdvanced::~EditAdvanced() {
     delete ui;
 }
 
@@ -160,7 +157,7 @@ void EditAdvanced::accept() {
     };
 
     auto* repo = Configs::dataManager->settingsRepo.get();
-    updateHistory(repo->dial_bind_interface_history,    m_systemInterfaces,    dialFieldsObj->bind_interface);
+    updateHistory(repo->dial_bind_interface_history, m_systemInterfaces, dialFieldsObj->bind_interface);
     updateHistory(repo->dial_inet4_bind_address_history, m_systemIpv4Addresses, dialFieldsObj->inet4_bind_address);
     updateHistory(repo->dial_inet6_bind_address_history, m_systemIpv6Addresses, dialFieldsObj->inet6_bind_address);
     repo->Save();
