@@ -2,6 +2,8 @@
 
 #include "include/ui/setting/ThemeManager.hpp"
 
+#include <iterator>
+
 #include <QMouseEvent>
 #include <QResizeEvent>
 #include <QPainter>
@@ -178,42 +180,30 @@ void GroupTabBar::paintEvent(QPaintEvent *event) {
         const bool moreLeft = tabRect(0).left() < 0;
         const bool moreRight = tabRect(count() - 1).right() > width();
         if (moreLeft || moreRight) {
-            constexpr int kFadeWidth = 130;
+            constexpr int kFadeWidth = 150;
             const QColor ground = themeManager()->Colors().window;
-            QColor clear = ground;
-            clear.setAlpha(0);
-            // Eased rather than linear: a straight ramp has a visible start line, which
-            // is the very edge the fade exists to hide.
-            const auto ease = [](QLinearGradient &gradient, bool towardsEdge, const QColor &ground, QColor clear) {
-                QColor faint = ground;
-                faint.setAlphaF(0.06f);
-                QColor soft = ground;
-                soft.setAlphaF(0.28f);
-                QColor mid = ground;
-                mid.setAlphaF(0.70f);
-                if (towardsEdge) {
-                    gradient.setColorAt(0.00, clear);
-                    gradient.setColorAt(0.45, faint);
-                    gradient.setColorAt(0.72, soft);
-                    gradient.setColorAt(0.90, mid);
-                    gradient.setColorAt(1.00, ground);
-                } else {
-                    gradient.setColorAt(0.00, ground);
-                    gradient.setColorAt(0.10, mid);
-                    gradient.setColorAt(0.28, soft);
-                    gradient.setColorAt(0.55, faint);
-                    gradient.setColorAt(1.00, clear);
+            const auto ease = [](QLinearGradient &gradient, bool towardsEdge, const QColor &ground) {
+                // Alpha rises steadily across the whole run. Back-loading it wastes the
+                // distance: the ramp is only as long as the part where something visibly
+                // changes, however wide the rectangle is.
+                static constexpr float kStops[] = {0.00f, 0.12f, 0.26f, 0.42f, 0.58f, 0.74f, 0.88f, 1.00f};
+                const int count = int(std::size(kStops));
+                for (int i = 0; i < count; ++i) {
+                    const auto position = qreal(i) / qreal(count - 1);
+                    QColor step = ground;
+                    step.setAlphaF(kStops[i]);
+                    gradient.setColorAt(towardsEdge ? position : 1.0 - position, step);
                 }
             };
             QPainter fade(this);
             if (moreLeft) {
                 QLinearGradient gradient(0, 0, kFadeWidth, 0);
-                ease(gradient, false, ground, clear);
+                ease(gradient, false, ground);
                 fade.fillRect(QRect(0, 0, kFadeWidth, height()), gradient);
             }
             if (moreRight) {
                 QLinearGradient gradient(width() - kFadeWidth, 0, width(), 0);
-                ease(gradient, true, ground, clear);
+                ease(gradient, true, ground);
                 fade.fillRect(QRect(width() - kFadeWidth, 0, kFadeWidth, height()), gradient);
             }
         }
