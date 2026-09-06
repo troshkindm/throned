@@ -64,6 +64,29 @@ Run it after configuring, and any time an edit appears not to take. If it fails:
 Unity builds make this worse, not better: a source reaches ninja only through
 the depfile, so a lost depfile loses the `.cpp` too, not just its headers.
 
+
+## Build once the way CI does
+
+The day-to-day presets precompile headers and compile in unity batches. Both
+force-include things a file forgot to include itself, so a missing
+`#include <QLabel>` compiles locally and fails in CI. Reproduce CI's compiler
+environment before pushing anything that adds or moves files:
+
+```sh
+cmake -S . -B out/build/nopch -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DTHRONED_PRECOMPILE_HEADERS=OFF -DTHRONED_UNITY_BUILD=OFF
+cmake --build out/build/nopch
+```
+
+A quick audit for the same class, per file:
+
+```sh
+grep -ohE 'findChild<Q[A-Za-z]+ ?\*>' <file> | sed 's/findChild<//; s/ \?\*>//' | sort -u
+```
+
+Anything listed that the file does not `#include` is a Linux build failure
+waiting to happen: `findChild<T*>` needs the complete type.
+
 ## Pitfalls
 
 - Build directories belong under `out/`, never at the repository root.

@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QContextMenuEvent>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPainter>
 #include <QPushButton>

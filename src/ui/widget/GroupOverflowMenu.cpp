@@ -1,10 +1,14 @@
 #include "include/ui/widget/GroupOverflowMenu.h"
 
+#include <QFont>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QPushButton>
+#include <QVBoxLayout>
 
+#include "include/database/GroupsRepo.h"
+#include "include/database/entities/Group.h"
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"

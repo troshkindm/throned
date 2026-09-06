@@ -72,6 +72,23 @@ ctest --test-dir out/build/linux --output-on-failure
 Generated trees go below `out/`. Never create a build directory at the
 repository root.
 
+
+### Build once the way CI does
+
+The presets used day to day precompile headers and compile in unity batches, and
+both force-include things a file forgot to include itself. CI does neither, so a
+missing `#include <QLabel>` compiles here and fails there. Before pushing a
+change that adds or moves files:
+
+```powershell
+cmake -S . -B out/build/nopch -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo `
+  -DTHRONED_PRECOMPILE_HEADERS=OFF -DTHRONED_UNITY_BUILD=OFF
+cmake --build out/build/nopch
+```
+
+It does not catch everything — GCC rejects more than MSVC — but it catches the
+whole class of headers that only the precompiled set was providing.
+
 ### Trust the linker, not the exit code
 
 On Windows with Ninja and MSVC, ninja learns header dependencies by stripping a

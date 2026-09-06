@@ -1,6 +1,7 @@
 #include "include/ui/preview/UiPreview.h"
 #include "include/ui/preview/MainWindowCapture.h"
 
+#include <QLabel>
 #include <QApplication>
 #include <QDateTime>
 #include <QCursor>
