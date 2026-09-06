@@ -69,6 +69,24 @@ Only after looking at `actual/` and `diff/`, and only in the same commit as the
 change that moved them. A baseline updated on its own is a lost regression.
 Never update baselines to clear a failure you have not explained.
 
+
+## Geometry reports
+
+Beside every compared capture the preview writes a `.json` report: each named
+widget's class, box, visibility, and whether its text no longer fits. The runner
+compares it as text when a baseline sits next to the image, so a failure names
+the widget rather than handing over a picture, and it does not depend on a single
+rasterised glyph.
+
+Read a failure by diffing the two files the message points at. A changed `w` or
+`x` is a layout move; a new `"cut": true` carries the offending text with it.
+
+Three things are deliberately not reported, each having been a false positive
+when tried: widgets Qt names itself, text on a widget never shown (it still sits
+at its default size), and text the code elided on purpose — a trailing ellipsis
+is a decision, not an accident. Measurement goes through `sizeHint()`, never
+`QWidget::font()`, because a stylesheet `font-size` never reaches the latter.
+
 ## What a screenshot cannot answer
 
 Whether a dialog fits a given size. The former `route-compact` and

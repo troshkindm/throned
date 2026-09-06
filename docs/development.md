@@ -187,10 +187,17 @@ cmake '-DTHRONED_EXECUTABLE=out/build/windows-dev/Throned.exe' `
   '-DSCENARIOS=settings' -P script/run_ui_scenarios.cmake
 ```
 
+
 ### What a screenshot cannot answer
 
-Whether a dialog fits a given window size is a layout question. The former
-`route-compact` and `route-1085x761` scenarios asked it with pixels and got
-output byte-identical to `route-simple`, because the route editor refuses to
-shrink below roughly 1120x700 and the request was silently clamped. Questions of
-that shape belong in a geometry assertion over the widget tree, not in an image.
+Beside every compared capture the preview also writes a geometry report: each
+named widget's class, box, visibility, and whether its text no longer fits.
+`script/run_ui_scenarios.cmake` compares those as text when a `.json` baseline
+sits next to the image, so a failure names the widget instead of handing over a
+picture. It is font-independent, which is why it can run where pixel comparison
+cannot be trusted.
+
+Three things are deliberately not reported, because each was a false positive
+when tried: widgets Qt names itself, text on a widget that has never been shown
+(it still sits at its default size), and text the code elided on purpose — an
+ellipsis at the end is a decision, not an accident.

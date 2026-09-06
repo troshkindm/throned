@@ -1,5 +1,7 @@
 #include "include/ui/preview/UiPreview.h"
 
+#include "include/ui/preview/GeometryReport.h"
+
 #include <memory>
 
 #include <QApplication>
@@ -87,6 +89,7 @@ int RunAdvancedRouteEditorPreview(QApplication &app) {
         outputAt >= 0 && outputAt + 1 < args.size()) {
         const QString output = args.at(outputAt + 1);
         QTimer::singleShot(900, dialog, [dialog, output, &app] {
+            SaveGeometryReport(dialog, output);
             app.exit(dialog->grab().save(output, "PNG") ? 0 : 2);
         });
     }
@@ -263,6 +266,7 @@ int RunRouteEditor(QApplication &app) {
         const QString output = args.at(outputAt + 1);
         QTimer::singleShot(700, &dialog, [&dialog, output, &app] {
             QWidget *target = QApplication::activeModalWidget();
+            SaveGeometryReport(target ? target : &dialog, output);
             const bool ok = (target ? target : &dialog)->grab().save(output, "PNG");
             if (target != nullptr) target->close();
             app.exit(ok ? 0 : 2);

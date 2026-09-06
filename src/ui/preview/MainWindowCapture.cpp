@@ -1,5 +1,7 @@
 #include "include/ui/preview/MainWindowCapture.h"
 
+#include "include/ui/preview/GeometryReport.h"
+
 #include <QApplication>
 #include <QContextMenuEvent>
 #include <QKeyEvent>
@@ -66,6 +68,7 @@ void CaptureUpdateStatusPreviews(MainWindow *window, const QString &prefix) {
 
 void CaptureConnectionsPreview(MainWindow *window, const QString &prefix) {
     window->grab().save(prefix + QStringLiteral("-window.png"), "PNG");
+    SaveGeometryReport(window, prefix + QStringLiteral("-window.png"));
     auto *table = window->findChild<QTableView *>(QStringLiteral("connections"));
     if (table == nullptr || table->model() == nullptr || table->model()->rowCount() == 0) {
         qApp->exit(2);

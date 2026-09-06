@@ -1,5 +1,6 @@
 #include "include/ui/preview/UiPreview.h"
 #include "include/ui/preview/MainWindowCapture.h"
+#include "include/ui/preview/GeometryReport.h"
 
 #include <QLabel>
 #include <QApplication>
@@ -312,6 +313,7 @@ void RunMainWindow(const QString &prefix) {
                 }
                 QTimer::singleShot(150, dialog, [dialog, prefix] {
                     dialog->grab().save(prefix + QStringLiteral("-settings.png"), "PNG");
+                    SaveGeometryReport(dialog, prefix + QStringLiteral("-settings.png"));
                     dialog->close();
                     qApp->exit(0);
                 });

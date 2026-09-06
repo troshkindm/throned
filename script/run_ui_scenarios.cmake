@@ -273,6 +273,31 @@ foreach (_scenario IN LISTS _selected)
         endif ()
     endforeach ()
 
+    # A geometry report beside a capture is compared as text: it answers what the
+    # image cannot (a label that no longer fits, a box that moved) and its failures
+    # are readable without opening a picture.
+    foreach (_image IN LISTS _expected)
+        string(REGEX REPLACE "\.png$" ".json" _report "${_image}")
+        set(_actual_report "${OUTPUT_DIR}/actual/${_report}")
+        set(_baseline_report "${BASELINE_DIR}/${_report}")
+        if (NOT EXISTS "${_actual_report}")
+            continue()
+        endif ()
+        if (UPDATE_BASELINES)
+            file(COPY_FILE "${_actual_report}" "${_baseline_report}" ONLY_IF_DIFFERENT)
+        elseif (COMPARE_BASELINES AND EXISTS "${_baseline_report}")
+            execute_process(
+                COMMAND "${CMAKE_COMMAND}" -E compare_files "${_baseline_report}" "${_actual_report}"
+                RESULT_VARIABLE _report_result
+                OUTPUT_QUIET ERROR_QUIET)
+            if (NOT "${_report_result}" STREQUAL "0")
+                set(_scenario_status failed)
+                set(_failed 1)
+                message(SEND_ERROR "Layout changed: ${_report}\n  expected: ${_baseline_report}\n  actual:   ${_actual_report}")
+            endif ()
+        endif ()
+    endforeach ()
+
     list(APPEND _manifest_entries "    { \"name\": \"${_scenario}\", \"status\": \"${_scenario_status}\" }")
 endforeach ()
 

@@ -1,0 +1,1667 @@
+[
+    {
+        "class": "QCheckBox",
+        "h": 30,
+        "name": "autoUpdateCheck",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QDialogButtonBox",
+        "h": 30,
+        "name": "buttonBox",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QComboBox",
+        "h": 38,
+        "name": "def_out",
+        "visible": true,
+        "w": 250,
+        "x": 277,
+        "y": 80
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "delete_route_item",
+        "visible": false,
+        "w": 112,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "endpointAddBtn",
+        "visible": false,
+        "w": 100,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QListWidget",
+        "h": 30,
+        "name": "endpointList",
+        "visible": false,
+        "w": 100,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QComboBox",
+        "h": 30,
+        "name": "endpointPicker",
+        "visible": false,
+        "w": 100,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "endpointRemoveBtn",
+        "visible": false,
+        "w": 100,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QWidget",
+        "h": 480,
+        "name": "endpointsTab",
+        "visible": false,
+        "w": 640,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QFrame",
+        "h": 30,
+        "name": "frame",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QGroupBox",
+        "h": 30,
+        "name": "generalBox",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QGroupBox",
+        "h": 207,
+        "name": "groupBox",
+        "visible": false,
+        "w": 622,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QGroupBox",
+        "h": 249,
+        "name": "groupBox_2",
+        "visible": false,
+        "w": 622,
+        "x": 22,
+        "y": 349
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "label",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 166
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "label_2",
+        "visible": false,
+        "w": 100,
+        "x": 336,
+        "y": 166
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "label_3",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 385
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "label_4",
+        "visible": false,
+        "w": 100,
+        "x": 336,
+        "y": 385
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "movedown_route_item",
+        "visible": false,
+        "w": 112,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "moveup_route_item",
+        "visible": false,
+        "w": 112,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "new_route_item",
+        "visible": false,
+        "w": 112,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QGroupBox",
+        "h": 30,
+        "name": "remoteBox",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "remoteFetchBtn",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "remotePreviewBtn",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QLineEdit",
+        "h": 30,
+        "name": "remoteUrlEdit",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "remoteUrlLabel",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeActionPill",
+        "visible": true,
+        "w": 58,
+        "x": 521,
+        "y": 253
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeActionPill",
+        "visible": true,
+        "w": 58,
+        "x": 555,
+        "y": 377
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeActionPill",
+        "visible": true,
+        "w": 58,
+        "x": 552,
+        "y": 469
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeActionPill",
+        "visible": true,
+        "w": 58,
+        "x": 1022,
+        "y": 560
+    },
+    {
+        "class": "QWidget",
+        "h": 30,
+        "name": "routeAdvancedDetail",
+        "visible": false,
+        "w": 100,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QLabel",
+        "h": 24,
+        "name": "routeAdvancedHero",
+        "visible": true,
+        "w": 498,
+        "x": 295,
+        "y": 137
+    },
+    {
+        "class": "QWidget",
+        "h": 539,
+        "name": "routeAdvancedHost",
+        "visible": true,
+        "w": 1094,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QToolButton",
+        "h": 33,
+        "name": "routeAdvancedMoreButton",
+        "visible": true,
+        "w": 33,
+        "x": 1050,
+        "y": 282
+    },
+    {
+        "class": "QToolButton",
+        "h": 33,
+        "name": "routeAdvancedMoreButton",
+        "visible": true,
+        "w": 33,
+        "x": 1050,
+        "y": 390
+    },
+    {
+        "class": "QToolButton",
+        "h": 33,
+        "name": "routeAdvancedMoreButton",
+        "visible": true,
+        "w": 33,
+        "x": 1050,
+        "y": 482
+    },
+    {
+        "class": "QFrame",
+        "h": 44,
+        "name": "routeAdvancedNotice",
+        "visible": true,
+        "w": 832,
+        "x": 263,
+        "y": 188
+    },
+    {
+        "class": "QScrollArea",
+        "h": 539,
+        "name": "routeAdvancedScroll",
+        "visible": true,
+        "w": 856,
+        "x": 251,
+        "y": 127
+    },
+    {
+        "class": "QFrame",
+        "h": 539,
+        "name": "routeAdvancedSidebar",
+        "visible": true,
+        "w": 228,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QStackedWidget",
+        "h": 539,
+        "name": "routeAdvancedStack",
+        "visible": true,
+        "w": 1094,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QFrame",
+        "h": 60,
+        "name": "routeAdvancedStats",
+        "visible": true,
+        "w": 206,
+        "x": 24,
+        "y": 595
+    },
+    {
+        "class": "QWidget",
+        "h": 539,
+        "name": "routeAdvancedSummary",
+        "visible": true,
+        "w": 856,
+        "x": 251,
+        "y": 127
+    },
+    {
+        "class": "QWidget",
+        "h": 539,
+        "name": "routeAdvancedSummaryHost",
+        "visible": true,
+        "w": 1094,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QWidget",
+        "h": 670,
+        "name": "routeBody",
+        "visible": true,
+        "w": 1118,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QPushButton",
+        "h": 32,
+        "name": "routeBulkEditButton",
+        "visible": false,
+        "w": 90,
+        "x": 884,
+        "y": 142
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardAddButton",
+        "visible": false,
+        "w": 64,
+        "x": 986,
+        "y": 318
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardAddButton",
+        "visible": false,
+        "w": 64,
+        "x": 986,
+        "y": 418
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardAddButton",
+        "visible": false,
+        "w": 64,
+        "x": 986,
+        "y": 518
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardAddButton",
+        "visible": false,
+        "w": 64,
+        "x": 986,
+        "y": 614
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardAddButton",
+        "visible": false,
+        "w": 64,
+        "x": 986,
+        "y": 679
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardJsonButton",
+        "visible": true,
+        "w": 69,
+        "x": 971,
+        "y": 283
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardJsonButton",
+        "visible": true,
+        "w": 69,
+        "x": 971,
+        "y": 391
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeCardJsonButton",
+        "visible": true,
+        "w": 69,
+        "x": 971,
+        "y": 483
+    },
+    {
+        "class": "QScrollArea",
+        "h": 469,
+        "name": "routeCardsScroll",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 188
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeConditionPill",
+        "visible": true,
+        "w": 190,
+        "x": 393,
+        "y": 286
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeConditionPill",
+        "visible": true,
+        "w": 189,
+        "x": 589,
+        "y": 286
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeConditionPill",
+        "visible": true,
+        "w": 190,
+        "x": 393,
+        "y": 318
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeConditionPill",
+        "visible": true,
+        "w": 190,
+        "x": 393,
+        "y": 410
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeConditionPill",
+        "visible": true,
+        "w": 171,
+        "x": 393,
+        "y": 502
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "routeCountPill",
+        "visible": false,
+        "w": 31,
+        "x": 372,
+        "y": 314
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "routeCountPill",
+        "visible": false,
+        "w": 31,
+        "x": 354,
+        "y": 414
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "routeCountPill",
+        "visible": false,
+        "w": 31,
+        "x": 352,
+        "y": 514
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeCountPill",
+        "visible": false,
+        "w": 31,
+        "x": 421,
+        "y": 614
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeCountPill",
+        "visible": false,
+        "w": 31,
+        "x": 417,
+        "y": 679
+    },
+    {
+        "class": "QLabel",
+        "h": 91,
+        "name": "routeDragHandle",
+        "visible": true,
+        "w": 16,
+        "x": 277,
+        "y": 253
+    },
+    {
+        "class": "QLabel",
+        "h": 59,
+        "name": "routeDragHandle",
+        "visible": true,
+        "w": 16,
+        "x": 277,
+        "y": 377
+    },
+    {
+        "class": "QLabel",
+        "h": 59,
+        "name": "routeDragHandle",
+        "visible": true,
+        "w": 16,
+        "x": 277,
+        "y": 469
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeEmpty",
+        "visible": false,
+        "w": 108,
+        "x": 307,
+        "y": 362
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeEmpty",
+        "visible": false,
+        "w": 108,
+        "x": 307,
+        "y": 462
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeEmpty",
+        "visible": false,
+        "w": 108,
+        "x": 307,
+        "y": 562
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeEmpty",
+        "visible": false,
+        "w": 100,
+        "x": 260,
+        "y": 601
+    },
+    {
+        "class": "QFrame",
+        "h": 48,
+        "name": "routeFallbackCard",
+        "visible": true,
+        "w": 832,
+        "x": 263,
+        "y": 549
+    },
+    {
+        "class": "QFrame",
+        "h": 61,
+        "name": "routeFieldBox",
+        "visible": true,
+        "w": 250,
+        "x": 13,
+        "y": 57
+    },
+    {
+        "class": "QFrame",
+        "h": 61,
+        "name": "routeFieldBox",
+        "visible": true,
+        "w": 250,
+        "x": 277,
+        "y": 57
+    },
+    {
+        "class": "QFrame",
+        "h": 61,
+        "name": "routeFieldBox",
+        "visible": true,
+        "w": 318,
+        "x": 541,
+        "y": 57
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeFieldLabel",
+        "visible": true,
+        "w": 250,
+        "x": 13,
+        "y": 57
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeFieldLabel",
+        "visible": true,
+        "w": 250,
+        "x": 277,
+        "y": 57
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeFieldLabel",
+        "visible": true,
+        "w": 318,
+        "x": 541,
+        "y": 57
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeHeaderIcon",
+        "visible": false,
+        "w": 26,
+        "x": 260,
+        "y": 145
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeHeading",
+        "visible": false,
+        "w": 582,
+        "x": 294,
+        "y": 136
+    },
+    {
+        "class": "QToolButton",
+        "h": 25,
+        "name": "routeIconButton",
+        "visible": false,
+        "w": 25,
+        "x": 1058,
+        "y": 205
+    },
+    {
+        "class": "QToolButton",
+        "h": 25,
+        "name": "routeIconButton",
+        "visible": false,
+        "w": 25,
+        "x": 1058,
+        "y": 320
+    },
+    {
+        "class": "QToolButton",
+        "h": 25,
+        "name": "routeIconButton",
+        "visible": false,
+        "w": 25,
+        "x": 1058,
+        "y": 420
+    },
+    {
+        "class": "QToolButton",
+        "h": 25,
+        "name": "routeIconButton",
+        "visible": false,
+        "w": 25,
+        "x": 1058,
+        "y": 520
+    },
+    {
+        "class": "QToolButton",
+        "h": 25,
+        "name": "routeIconButton",
+        "visible": false,
+        "w": 25,
+        "x": 1058,
+        "y": 616
+    },
+    {
+        "class": "QToolButton",
+        "h": 25,
+        "name": "routeIconButton",
+        "visible": false,
+        "w": 25,
+        "x": 1058,
+        "y": 681
+    },
+    {
+        "class": "QPushButton",
+        "h": 24,
+        "name": "routeLinkButton",
+        "visible": true,
+        "w": 132,
+        "x": 950,
+        "y": 198
+    },
+    {
+        "class": "QTabWidget",
+        "h": 539,
+        "name": "routeModeStack",
+        "visible": true,
+        "w": 1094,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QTabBar",
+        "h": 38,
+        "name": "routeModeTabs",
+        "visible": true,
+        "w": 318,
+        "x": 541,
+        "y": 80
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 100,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 582,
+        "x": 294,
+        "y": 163
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeMuted",
+        "visible": true,
+        "w": 498,
+        "x": 295,
+        "y": 163
+    },
+    {
+        "class": "QLabel",
+        "h": 24,
+        "name": "routeMuted",
+        "visible": true,
+        "w": 645,
+        "x": 299,
+        "y": 198
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 745,
+        "x": 305,
+        "y": 218
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 728,
+        "x": 355,
+        "y": 262
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 673,
+        "x": 305,
+        "y": 335
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 673,
+        "x": 305,
+        "y": 435
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 673,
+        "x": 305,
+        "y": 535
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 100,
+        "x": 260,
+        "y": 601
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 87,
+        "x": 46,
+        "y": 618
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeMuted",
+        "visible": true,
+        "w": 87,
+        "x": 37,
+        "y": 628
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeMuted",
+        "visible": false,
+        "w": 100,
+        "x": 260,
+        "y": 666
+    },
+    {
+        "class": "QLabel",
+        "h": 34,
+        "name": "routeMuted",
+        "visible": true,
+        "w": 209,
+        "x": 13,
+        "y": 675
+    },
+    {
+        "class": "QFrame",
+        "h": 115,
+        "name": "routeOrderedRule",
+        "visible": true,
+        "w": 832,
+        "x": 263,
+        "y": 241
+    },
+    {
+        "class": "QFrame",
+        "h": 83,
+        "name": "routeOrderedRule",
+        "visible": true,
+        "w": 832,
+        "x": 263,
+        "y": 365
+    },
+    {
+        "class": "QFrame",
+        "h": 83,
+        "name": "routeOrderedRule",
+        "visible": true,
+        "w": 832,
+        "x": 263,
+        "y": 457
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeOrderedTitle",
+        "visible": true,
+        "w": 121,
+        "x": 393,
+        "y": 253
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeOrderedTitle",
+        "visible": true,
+        "w": 155,
+        "x": 393,
+        "y": 377
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeOrderedTitle",
+        "visible": true,
+        "w": 152,
+        "x": 393,
+        "y": 469
+    },
+    {
+        "class": "QLabel",
+        "h": 26,
+        "name": "routeOrderedTitle",
+        "visible": true,
+        "w": 103,
+        "x": 302,
+        "y": 560
+    },
+    {
+        "class": "QLabel",
+        "h": 28,
+        "name": "routePriorityPill",
+        "visible": true,
+        "w": 32,
+        "x": 303,
+        "y": 284
+    },
+    {
+        "class": "QLabel",
+        "h": 28,
+        "name": "routePriorityPill",
+        "visible": true,
+        "w": 32,
+        "x": 303,
+        "y": 392
+    },
+    {
+        "class": "QLabel",
+        "h": 28,
+        "name": "routePriorityPill",
+        "visible": true,
+        "w": 32,
+        "x": 303,
+        "y": 484
+    },
+    {
+        "class": "QFrame",
+        "h": 104,
+        "name": "routeRuleCard",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 188
+    },
+    {
+        "class": "QFrame",
+        "h": 91,
+        "name": "routeRuleCard",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 301
+    },
+    {
+        "class": "QFrame",
+        "h": 91,
+        "name": "routeRuleCard",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 401
+    },
+    {
+        "class": "QFrame",
+        "h": 91,
+        "name": "routeRuleCard",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 501
+    },
+    {
+        "class": "QFrame",
+        "h": 56,
+        "name": "routeRuleCard",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 601
+    },
+    {
+        "class": "QFrame",
+        "h": 56,
+        "name": "routeRuleCard",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 666
+    },
+    {
+        "class": "QPushButton",
+        "h": 34,
+        "name": "routeSaveButton",
+        "visible": true,
+        "w": 162,
+        "x": 945,
+        "y": 675
+    },
+    {
+        "class": "QPushButton",
+        "h": 42,
+        "name": "routeSecondaryButton",
+        "visible": true,
+        "w": 142,
+        "x": 965,
+        "y": 76
+    },
+    {
+        "class": "QPushButton",
+        "h": 30,
+        "name": "routeSecondaryButton",
+        "visible": false,
+        "w": 112,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QPushButton",
+        "h": 34,
+        "name": "routeSecondaryButton",
+        "visible": true,
+        "w": 142,
+        "x": 802,
+        "y": 141
+    },
+    {
+        "class": "QPushButton",
+        "h": 34,
+        "name": "routeSecondaryButton",
+        "visible": true,
+        "w": 142,
+        "x": 953,
+        "y": 141
+    },
+    {
+        "class": "QPushButton",
+        "h": 32,
+        "name": "routeSecondaryButton",
+        "visible": false,
+        "w": 116,
+        "x": 982,
+        "y": 142
+    },
+    {
+        "class": "QPushButton",
+        "h": 34,
+        "name": "routeSecondaryButton",
+        "visible": true,
+        "w": 142,
+        "x": 794,
+        "y": 675
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 745,
+        "x": 305,
+        "y": 201
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 728,
+        "x": 355,
+        "y": 245
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 66,
+        "x": 305,
+        "y": 314
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 48,
+        "x": 305,
+        "y": 414
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 46,
+        "x": 305,
+        "y": 514
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 115,
+        "x": 305,
+        "y": 614
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "routeSectionTitle",
+        "visible": false,
+        "w": 111,
+        "x": 305,
+        "y": 679
+    },
+    {
+        "class": "QScrollArea",
+        "h": 352,
+        "name": "routeSideScroll",
+        "visible": false,
+        "w": 206,
+        "x": 33,
+        "y": 179
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeSideTitle",
+        "visible": true,
+        "w": 206,
+        "x": 24,
+        "y": 140
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeSideTitle",
+        "visible": false,
+        "w": 206,
+        "x": 33,
+        "y": 149
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeSideTitle",
+        "visible": false,
+        "w": 180,
+        "x": 46,
+        "y": 596
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeSideTitle",
+        "visible": true,
+        "w": 180,
+        "x": 37,
+        "y": 606
+    },
+    {
+        "class": "QFrame",
+        "h": 521,
+        "name": "routeSidebar",
+        "visible": false,
+        "w": 228,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "RouteProfileSimpleEditor",
+        "h": 521,
+        "name": "routeSimpleEditor",
+        "visible": false,
+        "w": 1076,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QFrame",
+        "h": 61,
+        "name": "routeStats",
+        "visible": false,
+        "w": 206,
+        "x": 33,
+        "y": 585
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routeStatsValue",
+        "visible": false,
+        "w": 7,
+        "x": 219,
+        "y": 618
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "routeStatsValue",
+        "visible": true,
+        "w": 7,
+        "x": 210,
+        "y": 628
+    },
+    {
+        "class": "QWidget",
+        "h": 521,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 838,
+        "x": 260,
+        "y": 136
+    },
+    {
+        "class": "QWidget",
+        "h": 42,
+        "name": "routeTransparent",
+        "visible": true,
+        "w": 832,
+        "x": 263,
+        "y": 137
+    },
+    {
+        "class": "QWidget",
+        "h": 534,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 827,
+        "x": 260,
+        "y": 188
+    },
+    {
+        "class": "QWidget",
+        "h": 36,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 808,
+        "x": 275,
+        "y": 243
+    },
+    {
+        "class": "QWidget",
+        "h": 58,
+        "name": "routeTransparent",
+        "visible": true,
+        "w": 568,
+        "x": 393,
+        "y": 286
+    },
+    {
+        "class": "QWidget",
+        "h": 19,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 808,
+        "x": 275,
+        "y": 360
+    },
+    {
+        "class": "QWidget",
+        "h": 26,
+        "name": "routeTransparent",
+        "visible": true,
+        "w": 568,
+        "x": 393,
+        "y": 410
+    },
+    {
+        "class": "QWidget",
+        "h": 19,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 808,
+        "x": 275,
+        "y": 460
+    },
+    {
+        "class": "QWidget",
+        "h": 26,
+        "name": "routeTransparent",
+        "visible": true,
+        "w": 568,
+        "x": 393,
+        "y": 502
+    },
+    {
+        "class": "QWidget",
+        "h": 19,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 808,
+        "x": 275,
+        "y": 560
+    },
+    {
+        "class": "QWidget",
+        "h": 30,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 100,
+        "x": 260,
+        "y": 601
+    },
+    {
+        "class": "QWidget",
+        "h": 30,
+        "name": "routeTransparent",
+        "visible": false,
+        "w": 100,
+        "x": 260,
+        "y": 666
+    },
+    {
+        "class": "QListWidget",
+        "h": 172,
+        "name": "route_items",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QLineEdit",
+        "h": 38,
+        "name": "route_name",
+        "visible": true,
+        "w": 250,
+        "x": 13,
+        "y": 80
+    },
+    {
+        "class": "QListWidget",
+        "h": 100,
+        "name": "route_rule_attr_plus_list",
+        "visible": false,
+        "w": 84,
+        "x": 30,
+        "y": 379
+    },
+    {
+        "class": "QTabBar",
+        "h": 30,
+        "name": "ruleAttrTabBar",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 349
+    },
+    {
+        "class": "QComboBox",
+        "h": 30,
+        "name": "rule_action_combo",
+        "visible": false,
+        "w": 220,
+        "x": 22,
+        "y": 349
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "rule_action_l",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 349
+    },
+    {
+        "class": "QFrame",
+        "h": 30,
+        "name": "rule_attr_box",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QTabWidget",
+        "h": 100,
+        "name": "rule_attr_tabs",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 349
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "rule_managed_note",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 349
+    },
+    {
+        "class": "QLineEdit",
+        "h": 30,
+        "name": "rule_name",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "rule_name_l",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QTextBrowser",
+        "h": 120,
+        "name": "rule_preview",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QLabel",
+        "h": 30,
+        "name": "rule_preview_l",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    },
+    {
+        "class": "QTextEdit",
+        "h": 30,
+        "name": "simple_block",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 385
+    },
+    {
+        "class": "QGroupBox",
+        "h": 213,
+        "name": "simple_block_box",
+        "visible": false,
+        "w": 308,
+        "x": 22,
+        "y": 385
+    },
+    {
+        "class": "QTextEdit",
+        "h": 30,
+        "name": "simple_direct",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 166
+    },
+    {
+        "class": "QGroupBox",
+        "h": 213,
+        "name": "simple_direct_box",
+        "visible": false,
+        "w": 308,
+        "x": 22,
+        "y": 166
+    },
+    {
+        "class": "QTextEdit",
+        "h": 30,
+        "name": "simple_proxy",
+        "visible": false,
+        "w": 100,
+        "x": 336,
+        "y": 166
+    },
+    {
+        "class": "QGroupBox",
+        "h": 213,
+        "name": "simple_proxy_box",
+        "visible": false,
+        "w": 308,
+        "x": 336,
+        "y": 166
+    },
+    {
+        "class": "QTextEdit",
+        "h": 30,
+        "name": "simple_warpbypass",
+        "visible": false,
+        "w": 100,
+        "x": 336,
+        "y": 385
+    },
+    {
+        "class": "QGroupBox",
+        "h": 213,
+        "name": "simple_warpbypass_box",
+        "visible": false,
+        "w": 308,
+        "x": 336,
+        "y": 385
+    },
+    {
+        "class": "QWidget",
+        "h": 480,
+        "name": "tab",
+        "visible": false,
+        "w": 640,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QWidget",
+        "h": 539,
+        "name": "tab_2",
+        "visible": false,
+        "w": 1094,
+        "x": 13,
+        "y": 127
+    },
+    {
+        "class": "QFrame",
+        "h": 48,
+        "name": "titleBar",
+        "visible": true,
+        "w": 1118,
+        "x": 1,
+        "y": 1
+    },
+    {
+        "class": "QLabel",
+        "h": 47,
+        "name": "titleBrand",
+        "visible": true,
+        "w": 72,
+        "x": 57,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 48,
+        "name": "titleClose",
+        "visible": true,
+        "w": 46,
+        "x": 1073,
+        "y": 1
+    },
+    {
+        "class": "QLabel",
+        "h": 47,
+        "name": "titleContext",
+        "visible": true,
+        "w": 82,
+        "x": 150,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 48,
+        "name": "titleMaximize",
+        "visible": true,
+        "w": 46,
+        "x": 1017,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 48,
+        "name": "titleMinimize",
+        "visible": true,
+        "w": 46,
+        "x": 961,
+        "y": 1
+    },
+    {
+        "class": "QFrame",
+        "h": 27,
+        "name": "vSeparator",
+        "visible": true,
+        "w": 1,
+        "x": 139,
+        "y": 11
+    },
+    {
+        "class": "QWidget",
+        "h": 30,
+        "name": "widget_2",
+        "visible": false,
+        "w": 100,
+        "x": 22,
+        "y": 136
+    }
+]
