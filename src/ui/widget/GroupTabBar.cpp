@@ -116,7 +116,7 @@ void GroupTabBar::wheelEvent(QWheelEvent *event) {
     }
     const int steps = qMax(1, qAbs(magnitude) / kWheelStep);
     const auto scrollers = findChildren<QToolButton *>();
-    for (auto *scroller : scrollers) {
+    for (auto *scroller: scrollers) {
         if (scroller->arrowType() != direction || scroller->isHidden()) continue;
         for (int i = 0; i < steps; ++i) scroller->click();
         event->accept();
