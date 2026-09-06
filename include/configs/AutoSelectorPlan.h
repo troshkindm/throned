@@ -35,6 +35,8 @@ struct AutoSelectorPlan {
     int membersInGroup = 0;
     int eligible = 0;
     int rankedByTest = 0;
+    // Failed-last-test members kept anyway, because excluding them would have emptied the pool.
+    int keptUnavailable = 0;
     QList<QPair<AutoSelectorSkip, int>> skipped;
     bool truncated = false;
     int poolCapUsed = 0;

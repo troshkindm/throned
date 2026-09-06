@@ -69,6 +69,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->random_listen_port->setChecked(Configs::dataManager->settingsRepo->random_inbound_port);
     D_LOAD_INT(test_concurrent)
     D_LOAD_STRING(test_latency_url)
+    D_LOAD_STRING(direct_test_url)
     D_LOAD_BOOL(disable_tray)
     ui->reset_proxy_on_disable_sp->setChecked(Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp);
     ui->url_timeout->setText(Int2String(Configs::dataManager->settingsRepo->url_test_timeout_ms));
@@ -433,6 +434,9 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     auto *testingSection = makeSection(tr("Testing"), tr("Defaults used by latency, UDP and speed tests."));
     auto *testingLayout = qobject_cast<QVBoxLayout *>(testingSection->layout());
     testingLayout->addWidget(makeFieldRow(tr("Latency test URL"), {}, ui->test_latency_url));
+    testingLayout->addWidget(makeFieldRow(tr("Direct test URL"),
+                                          tr("Fetched without any proxy, so the auto selector can tell a dead connection from dead servers; empty uses the operating system's network state"),
+                                          ui->direct_test_url));
     testingLayout->addWidget(makeFieldRow(tr("URL test timeout"), tr("Milliseconds before a latency test fails"), ui->url_timeout));
     testingLayout->addWidget(makeFieldRow(tr("UDP test target"),
                                           tr("host:port the UDP test queries; it has to answer DNS over UDP"),
@@ -1042,6 +1046,7 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->random_inbound_port = ui->random_listen_port->isChecked();
     D_SAVE_INT(test_concurrent)
     D_SAVE_STRING(test_latency_url)
+    Configs::dataManager->settingsRepo->direct_test_url = ui->direct_test_url->text().trimmed();
     D_SAVE_BOOL(disable_tray)
     Configs::dataManager->settingsRepo->proxy_scheme = ui->proxy_scheme->currentText().toLower();
     Configs::dataManager->settingsRepo->speed_test_mode = ui->speedtest_mode->currentIndex();

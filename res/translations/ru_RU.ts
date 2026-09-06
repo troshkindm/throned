@@ -1982,6 +1982,18 @@ This backup may have been created with a newer version of the application.</sour
         <translation>Параметры тестов задержки, UDP и проверки скорости.</translation>
     </message>
     <message>
+        <source>optional — use the OS network state</source>
+        <translation>необязательно — использовать сетевое состояние ОС</translation>
+    </message>
+    <message>
+        <source>Direct test URL</source>
+        <translation>URL прямой проверки</translation>
+    </message>
+    <message>
+        <source>Fetched without any proxy, so the auto selector can tell a dead connection from dead servers; empty uses the operating system&apos;s network state</source>
+        <translation>Запрашивается без прокси, чтобы автоселектор отличал мёртвое соединение от мёртвых серверов; пусто — использовать сетевое состояние операционной системы</translation>
+    </message>
+    <message>
         <source>UDP test target</source>
         <translation>Цель UDP-теста</translation>
     </message>

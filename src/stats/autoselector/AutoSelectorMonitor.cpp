@@ -40,7 +40,8 @@ QString AutoSelectorView::summary() const {
             .arg(membersTotal);
     }
     if (membersAlive == 0) {
-        return QObject::tr("Auto selector — no working profile out of %1").arg(membersTotal);
+        return QObject::tr("Auto selector — no working profile out of %1, still checking")
+            .arg(membersTotal);
     }
     QString base = QObject::tr("Auto selector on %1 (%2 of %3 working)")
                        .arg(selectedName.isEmpty() ? selectedTag : selectedName)

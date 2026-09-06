@@ -65,6 +65,8 @@ public:
     QString mainWindowGeometry;
     QString log_level = "info";
     QString test_latency_url = "http://cp.cloudflare.com/";
+    // Fetched WITHOUT any proxy, so it must be reachable directly; empty falls back to the OS.
+    QString direct_test_url = "";
     int url_test_timeout_ms = 3000;
     // host:port the UDP probe sends its DNS queries to; must answer over UDP.
     QString udp_test_target = "1.1.1.1:53";

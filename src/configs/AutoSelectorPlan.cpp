@@ -140,12 +140,13 @@ QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
                            ? dataManager->profilesRepo->GetProfile(group->front_proxy_id)
                            : nullptr;
     QMap<AutoSelectorSkip, int> skips;
+    QList<int> unavailable;
     for (int id: group->Profiles()) {
         if (id == ent->id) continue;
         auto member = dataManager->profilesRepo->GetProfile(id);
         if (plan != nullptr) plan->membersInGroup++;
         const auto skip = eligibilityOf(member, selector, filters, now);
-        if (skip != AutoSelectorSkip::None) {
+        if (skip != AutoSelectorSkip::None && skip != AutoSelectorSkip::Unavailable) {
             skips[skip]++;
             continue;
         }
@@ -158,8 +159,20 @@ QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
             skips[AutoSelectorSkip::CoreTransitions]++;
             continue;
         }
+        if (skip == AutoSelectorSkip::Unavailable) {
+            unavailable << id;
+            continue;
+        }
         members << id;
         if (plan != nullptr && effectiveLatency(member, selector, now) > 0) plan->rankedByTest++;
+    }
+    // Every member's last test failing is an outage, not a dead subscription: excluding
+    // them all would leave nothing that could discover the servers came back.
+    if (members.isEmpty() && !unavailable.isEmpty()) {
+        members = unavailable;
+        if (plan != nullptr) plan->keptUnavailable = static_cast<int>(unavailable.size());
+    } else if (!unavailable.isEmpty()) {
+        skips[AutoSelectorSkip::Unavailable] += static_cast<int>(unavailable.size());
     }
     if (plan != nullptr) {
         for (auto it = skips.constBegin(); it != skips.constEnd(); ++it) {
