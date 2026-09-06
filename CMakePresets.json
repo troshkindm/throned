@@ -7,7 +7,7 @@
       "displayName": "Windows / Ninja / MSVC",
       "description": "Pins the compiler language for configure and build alike, so the /showIncludes prefix ninja recorded still matches what cl.exe prints and header dependencies keep working.",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/buildnu",
+      "binaryDir": "${sourceDir}/out/build/windows-ninja",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "THRONED_PRECOMPILE_HEADERS": "OFF",
@@ -32,6 +32,14 @@
       "name": "throned",
       "configurePreset": "windows-ninja",
       "targets": [ "Throned" ],
+      "environment": { "VSLANG": "1033" }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-ninja",
+      "configurePreset": "windows-ninja",
+      "output": { "outputOnFailure": true },
       "environment": { "VSLANG": "1033" }
     }
   ]

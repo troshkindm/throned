@@ -10,7 +10,7 @@
 #include <QStringConverter>
 #include <QUrl>
 
-#include "3rdparty/QrDecoder.h"
+#include "include/ui/utils/QrDecoder.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
 #include "include/database/GroupsRepo.h"

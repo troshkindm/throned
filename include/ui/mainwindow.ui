@@ -54,10 +54,6 @@ QToolButton::menu-indicator {
         <property name="text">
          <string>Program</string>
         </property>
-        <property name="icon">
-         <iconset resource="../../res/Throned.qrc">
-          <normaloff>:/icon/b-system-run.png</normaloff>:/icon/b-system-run.png</iconset>
-        </property>
         <property name="iconSize">
          <size>
           <width>24</width>
@@ -102,10 +98,6 @@ QToolButton::menu-indicator {
         </property>
         <property name="text">
          <string>Settings</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../../res/Throned.qrc">
-          <normaloff>:/icon/b-preferences.png</normaloff>:/icon/b-preferences.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -152,10 +144,6 @@ QToolButton::menu-indicator {
         <property name="text">
          <string>Groups</string>
         </property>
-        <property name="icon">
-         <iconset resource="../../res/Throned.qrc">
-          <normaloff>:/icon/b-testing-button.png</normaloff>:/icon/b-testing-button.png</iconset>
-        </property>
         <property name="iconSize">
          <size>
           <width>24</width>
@@ -201,10 +189,6 @@ QToolButton::menu-indicator {
         <property name="text">
          <string>Routing</string>
         </property>
-        <property name="icon">
-         <iconset resource="../../res/Throned.qrc">
-          <normaloff>:/icon/b-network-routing.png</normaloff>:/icon/b-network-routing.png</iconset>
-        </property>
         <property name="iconSize">
          <size>
           <width>24</width>
@@ -249,10 +233,6 @@ QToolButton::menu-indicator {
         </property>
         <property name="text">
          <string>Tools</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../../res/Throned.qrc">
-          <normaloff>:/icon/b-tools-button.png</normaloff>:/icon/b-tools-button.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -1347,8 +1327,6 @@ QToolButton::menu-indicator {
    <header>include/ui/widget/StartStopButton.hpp</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../../res/Throned.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

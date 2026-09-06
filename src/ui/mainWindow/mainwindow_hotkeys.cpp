@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include <3rdparty/QHotkey/qhotkey.h>
+#include <qhotkey.h>
 
 namespace {
     QList<std::shared_ptr<QHotkey>> RegisteredHotkey;

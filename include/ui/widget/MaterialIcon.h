@@ -26,6 +26,7 @@ enum class Glyph {
     Delete,
     Desktop,
     Direct,
+    Edit,
     File,
     Filter,
     Folder,
@@ -35,6 +36,7 @@ enum class Glyph {
     Process,
     Public,
     Pulse,
+    QrCode,
     Reload,
     Routes,
     Search,
@@ -42,10 +44,13 @@ enum class Glyph {
     Star,
     StarOutline,
     Shield,
+    SwapHorizontal,
     SwapVertical,
     Tools,
     Tune,
     Users,
+    Visibility,
+    VisibilityOff,
 };
 
 QPixmap pixmap(Glyph glyph, const QColor &color, int pixels = 20);

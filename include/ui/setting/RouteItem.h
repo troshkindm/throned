@@ -6,7 +6,7 @@
 #include <QEvent>
 #include <QShortcut>
 
-#include "3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.hpp"
+#include <v2/ui/QvAutoCompleteTextEdit.hpp>
 #include "ui_RouteItem.h"
 #include "include/database/entities/RouteProfile.h"
 

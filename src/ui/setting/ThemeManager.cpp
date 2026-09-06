@@ -89,8 +89,6 @@ public:
 
 } // namespace
 
-extern QString ReadFileText(const QString &path);
-
 struct ThemeColors {
     QColor window, windowText;
     QColor base, alternateBase;
@@ -146,77 +144,6 @@ static QPalette buildThemePalette(const ThemeColors &c) {
     return p;
 }
 
-// Lazy: a QPalette must not be constructed before QApplication exists. The keys also define "custom theme".
-static const QMap<QString, QPalette> &customThemePalettes() {
-    static const QMap<QString, QPalette> palettes = [] {
-        QMap<QString, QPalette> m;
-
-        m["flatgray"] = buildThemePalette({
-            .window = "#FFFFFF", .windowText = "#57595B",
-            .base = "#FFFFFF", .alternateBase = "#F6F6F6",
-            .text = "#57595B",
-            .button = "#F2F2F2", .buttonText = "#57595B",
-            .brightText = "#FFFFFF",
-            .highlight = "#D6D6D6", .highlightedText = "#2D2F31",
-            .link = "#2A6CB0",
-            .tooltipBase = "#FFFFFF", .tooltipText = "#57595B",
-            .placeholder = "#9AA0A6", .disabledText = "#B0B0B0",
-        });
-
-        m["lightblue"] = buildThemePalette({
-            .window = "#EAF7FF", .windowText = "#386487",
-            .base = "#FFFFFF", .alternateBase = "#DAEFFF",
-            .text = "#386487",
-            .button = "#DEF0FE", .buttonText = "#386487",
-            .brightText = "#FFFFFF",
-            .highlight = "#C0DCF2", .highlightedText = "#1B3B57",
-            .link = "#1D6FB8",
-            .tooltipBase = "#EAF7FF", .tooltipText = "#386487",
-            .placeholder = "#7F9DB5", .disabledText = "#A6BCCE",
-        });
-
-        m["softpink"] = buildThemePalette({
-            .window = "#FFF0FB", .windowText = "#883983",
-            .base = "#FFFFFF", .alternateBase = "#FBDDF5",
-            .text = "#883983",
-            .button = "#FCE1F6", .buttonText = "#883983",
-            .brightText = "#FFFFFF",
-            .highlight = "#F1C1E7", .highlightedText = "#5A2456",
-            .link = "#B92BA6",
-            .tooltipBase = "#FFF0FB", .tooltipText = "#883983",
-            .placeholder = "#C08BBA", .disabledText = "#CBA6C6",
-        });
-
-        m["blacksoft"] = buildThemePalette({
-            .window = "#444444", .windowText = "#DCDCDC",
-            .base = "#444444", .alternateBase = "#525252",
-            .text = "#DCDCDC",
-            .button = "#484848", .buttonText = "#DCDCDC",
-            .brightText = "#FFFFFF",
-            .highlight = "#646464", .highlightedText = "#FFFFFF",
-            .link = "#5AB0FF",
-            .tooltipBase = "#484848", .tooltipText = "#DCDCDC",
-            .placeholder = "#9A9A9A", .disabledText = "#808080",
-        });
-
-        // Mirrors the bundled darkstyle.qss.
-        m["qdarkstyle"] = buildThemePalette({
-            .window = "#19232D", .windowText = "#DFE1E2",
-            .base = "#19232D", .alternateBase = "#37414F",
-            .text = "#DFE1E2",
-            .button = "#455364", .buttonText = "#DFE1E2",
-            .brightText = "#FFFFFF",
-            .highlight = "#346792", .highlightedText = "#DFE1E2",
-            .link = "#6FC0FF",
-            .tooltipBase = "#346792", .tooltipText = "#DFE1E2",
-            .placeholder = "#9DA9B5", .disabledText = "#788D9C",
-        });
-
-        return m;
-    }();
-    return palettes;
-}
-
 void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     if (this->system_style_name.isEmpty()) {
         this->system_style_name = qApp->style()->name();
@@ -242,10 +169,7 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     }
 
     const auto lowerTheme = theme.toLower();
-    const auto &palettes = customThemePalettes();
-    const bool leavingCustom = palettes.contains(current_theme.toLower());
     const bool leavingThroned = IsThronedTheme(current_theme);
-    const bool enteringCustom = palettes.contains(lowerTheme);
 
     if (IsThronedTheme(theme)) {
         // The redesigned UI is built from semantic colors. Fusion gives every
@@ -265,25 +189,15 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
             .placeholder = colors.textSubtle, .disabledText = colors.textSubtle,
         }));
         qApp->setStyleSheet({});
-    } else if (enteringCustom) {
-        // Custom themes own their whole look: install the complete palette first
-        // so no color role leaks from Qt or a previously applied theme, then
-        // layer the stylesheet on top.
-        qApp->setPalette(palettes.value(lowerTheme));
-        if (lowerTheme == "qdarkstyle") {
-            qApp->setStyleSheet(ReadFileText(":/qdarkstyle/dark/darkstyle.qss"));
-        } else {
-            qApp->setStyleSheet(ReadFileText(":/qss/" + lowerTheme + ".css"));
-        }
     } else if (lowerTheme == "system") {
         // Back to the OS style + palette we snapshotted on first apply.
-        if (leavingCustom || leavingThroned) qApp->setPalette(system_palette);
+        if (leavingThroned) qApp->setPalette(system_palette);
         qApp->setStyleSheet("");
         qApp->setStyle(system_style_name);
     } else {
         // A Qt QStyleFactory style (Fusion, windows11, ...). Let the Qt style own
         // the palette; just drop any custom palette we installed before.
-        if (leavingCustom || leavingThroned) qApp->setPalette(system_palette);
+        if (leavingThroned) qApp->setPalette(system_palette);
         qApp->setStyleSheet("");
         qApp->setStyle(theme);
     }

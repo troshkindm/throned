@@ -1,7 +1,7 @@
 #include "include/database/Database.h"
 #include "include/global/Logger.hpp"
-#include <3rdparty/SQLiteCpp/include/Backup.h>
-#include <3rdparty/SQLiteCpp/include/sqlite3.h>
+#include <Backup.h>
+#include <sqlite3.h>
 #include <QDateTime>
 #include <QObject>
 #include <algorithm>

@@ -1,20 +1,10 @@
 #include "include/ui/setting/OtpItem.h"
+#include "include/ui/widget/MaterialIcon.h"
 
 #include <QCursor>
-#include <QPainter>
 
 namespace {
     constexpr int READONLY_CODE_WIDTH = 110;
-
-    QIcon RecolorOtpItemIcon(const QString &path, const QColor &color) {
-        QPixmap pixmap(path);
-        if (pixmap.isNull()) return QIcon(path);
-        QPainter painter(&pixmap);
-        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        painter.fillRect(pixmap.rect(), color);
-        painter.end();
-        return QIcon(pixmap);
-    }
 }
 
 OtpItem::OtpItem(QWidget *parent, std::shared_ptr<Configs::OtpProfile> profile_, QListWidgetItem *item_,
@@ -64,9 +54,9 @@ void OtpItem::setActionsVisible(const bool visible) const {
 
 void OtpItem::applyIconColors() const {
     const auto color = palette().color(QPalette::ButtonText);
-    ui->edit->setIcon(RecolorOtpItemIcon(":/icon/material/pencil-outline.png", color));
-    ui->share->setIcon(RecolorOtpItemIcon(":/icon/material/qrcode.png", color));
-    ui->remove->setIcon(RecolorOtpItemIcon(":/icon/material/delete.png", color));
+    ui->edit->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Edit, color));
+    ui->share->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::QrCode, color));
+    ui->remove->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Delete, color));
 }
 
 void OtpItem::changeEvent(QEvent *event) {

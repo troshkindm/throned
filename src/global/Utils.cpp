@@ -1,8 +1,6 @@
 #include "include/global/Utils.hpp"
 #include "include/global/ReleaseNotes.hpp"
 
-#include "3rdparty/QThreadCreateThread.hpp"
-
 #include <random>
 
 #include <QApplication>
@@ -26,6 +24,7 @@
 #include <QScreen>
 #include <QLabel>
 #include <QTextBrowser>
+#include <QThread>
 #include <QAbstractButton>
 #include <QPushButton>
 #include <QDialogButtonBox>

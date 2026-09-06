@@ -7,7 +7,7 @@
 #include <QRegularExpression>
 #include <QSettings>
 
-#include "3rdparty/WinCommander.hpp"
+#include <WinCommander.hpp>
 
 QString taskNameFor(const QString &exePath, const QString &brand) {
     const QString cleanPath = QDir::cleanPath(exePath).toLower();

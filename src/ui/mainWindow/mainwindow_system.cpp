@@ -24,7 +24,7 @@
 #include <QUrlQuery>
 #include <QVBoxLayout>
 
-#include "3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp"
+#include <v2/proxy/QvProxyConfigurator.hpp>
 #include "include/api/RPC.h"
 #include "include/database/RoutesRepo.h"
 #include "include/configs/generate.h"
@@ -45,7 +45,7 @@
 #include "include/ui/setting/dialog_vpn_settings.h"
 
 #ifdef Q_OS_WIN
-#include "3rdparty/WinCommander.hpp"
+#include <WinCommander.hpp>
 #include "include/sys/windows/WinVersion.h"
 #endif
 #ifdef Q_OS_LINUX

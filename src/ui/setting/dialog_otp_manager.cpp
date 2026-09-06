@@ -19,8 +19,8 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-#include "3rdparty/QrDecoder.h"
-#include "3rdparty/qrcodegen.hpp"
+#include "include/ui/utils/QrDecoder.h"
+#include <qrcodegen.hpp>
 #include "include/database/DatabaseManager.h"
 #include "include/database/OtpProfilesRepo.h"
 #include "include/global/Utils.hpp"

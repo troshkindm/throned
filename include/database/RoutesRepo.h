@@ -2,7 +2,7 @@
 
 #include "Database.h"
 #include "include/database/entities/RouteProfile.h"
-#include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
+#include <SQLiteCpp.h>
 #include <memory>
 #include <mutex>
 #include <map>

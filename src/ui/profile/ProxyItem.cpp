@@ -1,4 +1,5 @@
 #include "include/ui/profile/ProxyItem.h"
+#include "include/ui/widget/MaterialIcon.h"
 
 #include <QMessageBox>
 
@@ -6,6 +7,9 @@ ProxyItem::ProxyItem(QWidget *parent, const std::shared_ptr<Configs::Profile> &e
     : QWidget(parent), ui(new Ui::ProxyItem) {
     ui->setupUi(this);
     this->setLayoutDirection(Qt::LeftToRight);
+    const auto iconColor = palette().color(QPalette::ButtonText);
+    ui->change->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::SwapHorizontal, iconColor));
+    ui->remove->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Delete, iconColor));
 
     this->item = item;
     this->ent = ent;

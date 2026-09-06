@@ -10,7 +10,7 @@
 #include <QTextBlock>
 #include <QTextCursor>
 
-#include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
+#include <v2/ui/LogHighlighter.hpp>
 
 namespace {
     constexpr qsizetype MAX_PENDING_LOG_CHARS = 2 * 1024 * 1024;

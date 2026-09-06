@@ -24,15 +24,15 @@ static QString desktopFilePath() {
 }
 
 // "throned" is in no icon theme for the /opt and AppImage layouts, so unpack a
-// copy and reference it by absolute path. The resource path is the fork's own:
-// upstream's :/Throne/Throne.png does not exist here, and a failed copy would
-// silently leave the entry pointing at an icon name nothing resolves.
+// copy and reference it by absolute path. The alias lives under the /Throned
+// prefix in res/Throned.qrc; a failed copy would silently leave the entry
+// pointing at an icon name nothing resolves.
 static QString iconTarget() {
     const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     const QString path = dir + "/throned.png";
     QDir().mkpath(dir);
     QFile::remove(path);
-    return QFile::copy(":/Throned.png", path) ? path : QStringLiteral("throned");
+    return QFile::copy(":/Throned/Throned.png", path) ? path : QStringLiteral("throned");
 }
 
 QString UrlScheme_DesiredState() {

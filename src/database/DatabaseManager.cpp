@@ -7,7 +7,7 @@
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
 
-#include <3rdparty/SQLiteCpp/include/sqlite3.h>
+#include <sqlite3.h>
 
 #include <QDateTime>
 #include <QDir>

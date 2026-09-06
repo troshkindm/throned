@@ -57,10 +57,6 @@
          <property name="checkable">
           <bool>true</bool>
          </property>
-         <property name="icon">
-          <iconset resource="../../../res/Throne.qrc">
-           <normaloff>:/icon/material/eye-outline.png</normaloff>:/icon/material/eye-outline.png</iconset>
-         </property>
          <property name="autoRaise">
           <bool>true</bool>
          </property>
@@ -210,9 +206,7 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../../../res/Throne.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>

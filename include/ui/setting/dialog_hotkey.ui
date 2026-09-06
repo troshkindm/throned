@@ -136,7 +136,7 @@
   <customwidget>
    <class>QtExtKeySequenceEdit</class>
    <extends>QKeySequenceEdit</extends>
-   <header>3rdparty/QtExtKeySequenceEdit.h</header>
+   <header>include/ui/widget/QtExtKeySequenceEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

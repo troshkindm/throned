@@ -13,7 +13,7 @@
 #include <QDBusInterface>
 #endif
 
-#include "3rdparty/QrDecoder.h"
+#include "include/ui/utils/QrDecoder.h"
 #include "include/ui/mainwindow.h"
 
 #ifdef Q_OS_LINUX

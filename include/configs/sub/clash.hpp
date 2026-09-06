@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 #include <optional>
-#include "3rdparty/fkYAML/node.hpp"
+#include <fkYAML/node.hpp>
 
 namespace clash {
 

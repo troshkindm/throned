@@ -20,7 +20,7 @@ body:
   - type: dropdown
     attributes:
       label: Installation type
-      description: Please provide the Throne installation type
+      description: Please provide the Throned installation type
       options:
         - zip
         - exe
@@ -31,7 +31,7 @@ body:
   - type: input
     attributes:
       label: Version
-      description: Throne version.
+      description: Throned version.
     validations:
       required: true
   - type: textarea

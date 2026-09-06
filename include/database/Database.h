@@ -1,6 +1,6 @@
 #pragma once
 
-#include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
+#include <SQLiteCpp.h>
 #include <atomic>
 #include <string>
 #include <iostream>

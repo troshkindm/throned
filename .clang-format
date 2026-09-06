@@ -1,0 +1,10 @@
+BasedOnStyle: Google
+ColumnLimit: 0
+IndentWidth: 4
+SortIncludes: Never
+SpacesBeforeTrailingComments: 1
+NamespaceIndentation: None
+AccessModifierOffset: -4
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: false
+SpaceBeforeRangeBasedForLoopColon: false

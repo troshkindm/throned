@@ -1,23 +1,26 @@
-# Throned UI redesign preview
+# UI design record
 
-This branch is the reviewable foundation for the first post-1.1 UI release. The preview is built with Qt Widgets, the same toolkit as Throned, and intentionally runs without a database, core process, TUN interface, updater, or system-proxy changes.
+Why the interface looks the way it does. This is a record of decisions, not a
+plan: the redesign it describes has shipped, and the screenshots below are
+rendered from the production widgets, not from a mockup. How to render them is
+in [development.md](development.md); what the scenarios cover is in
+[../tests/ui/README.md](../tests/ui/README.md).
 
-## Screens
+## Main window
 
-### Main window
+![Main window](ui-preview/main-en.png)
 
-![Main window preview](ui-preview/main-en.png)
-
-The main window has three explicit bottom-bar states: the connected profile, a
+The bottom bar has three explicit states: the connected profile, a
 multi-selection action bar, and progress for a running batch operation. URL
-test, speed test, and outbound-IP resolution operate on the preserved table
+test, speed test and outbound-IP resolution act on the preserved table
 selection instead of replacing the connection status with an ambiguous toast.
 
 ![Selected profiles action bar](ui-preview/main-selected-en.png)
 
-![Running URL test](ui-preview/main-url-test-en.png)
+Logs wrap at the window edge with a hanging timestamp and level gutter. IPs and
+ports use the warning accent; only executable names use the process accent.
 
-### Themes
+## Themes
 
 Every theme is built from the same semantic tokens in
 `include/ui/setting/ThronedPalette.hpp`. The background ramp stays close to
@@ -34,86 +37,48 @@ control, hover, hairline — so panels separate without heavy borders.
 | --- | --- | --- |
 | ![Ocean](ui-preview/theme-ocean.png) | ![Violet](ui-preview/theme-violet.png) | ![Ember](ui-preview/theme-ember.png) |
 
-The preview renders any of them with `--theme midnight|graphite|ocean|violet|ember`.
+Any of them renders with `-theme midnight|graphite|ocean|violet|ember`, on a
+normal launch as well as in a preview; the flag overrides the stored choice for
+that run only.
 
-### Settings foundation
+## Settings
 
-![Settings preview](ui-preview/settings-en.png)
+![Settings](ui-preview/settings-en.png)
 
-### Routing — Simple
+## Routing
 
-![Simple routing preview](ui-preview/routes-ru.png)
+Simple and Advanced edit one shared versioned route document. Switching modes
+never deletes, regroups or silently reorders rules.
 
-### Routing — Advanced
+![Simple routing](ui-preview/routes-ru.png)
 
-![Advanced routing preview](ui-preview/routes-advanced-en.png)
+Simple groups common matchers into application, domain and rule-set, process,
+network and raw-rule cards. The action sidebar is a filter and a summary, not a
+replacement for rule priority.
 
-The per-rule detail page keeps the original lossless editor behind the ordered
-list:
+![Advanced routing](ui-preview/routes-advanced-en.png)
 
-![Rule detail preview](ui-preview/routes-detail-en.png)
+Advanced exposes the real ordered rule list, where the first matching rule wins.
+Unknown imported fields stay as opaque JSON in their original position and carry
+a visible `Preserved JSON` marker. The per-rule detail page keeps the original
+lossless editor behind the ordered list:
 
-## Interaction model
+![Rule detail](ui-preview/routes-detail-en.png)
 
-- Routes opens directly from the main command bar.
-- Simple groups common matchers into application, domain/rule-set, process, network, and raw-rule cards.
-- The action sidebar is a filter and summary, not a replacement for rule priority.
-- Advanced exposes the real ordered rule list. The first matching rule wins.
-- Unknown imported fields remain as opaque JSON in their original position and receive a visible `Preserved JSON` marker.
-- Simple and Advanced will edit one shared versioned route document. Switching modes must never delete, regroup, or silently reorder rules.
-- Selecting several profile rows reveals contextual batch actions. Starting a
-  URL test changes that same region into progress and cancellation controls.
-- Logs wrap at the window edge with a hanging timestamp/level gutter. IPs and
-  ports use the warning accent; only executable names use the process accent.
+## Why this is not one global stylesheet
 
-## Component coverage audit
+The redesign was checked against the existing Qt forms, not only against the
+main window. Most of it is shared foundation, but every area needed at least one
+component that could not come from a palette:
 
-The preview components were checked against the existing Qt forms rather than
-only the main-window mockup:
-
-| Existing area | Reused foundation | Required specialized component |
+| Area | Reused foundation | Component it still needed |
 | --- | --- | --- |
-| Basic, TUN, DNS, and hotkey settings | Title bar, settings sidebar, form sections, fields, toggles, help text | Key-sequence recorder and validation summary |
-| Group and subscription management | Sidebar/list rows, pills, contextual action bar | Subscription update progress and per-group error state |
-| Profile editors (VLESS, Hysteria, WireGuard, SSH, etc.) | Form sections, segmented modes, chips, advanced/raw JSON surface | Protocol-specific nested form and secret-field treatment |
-| Routing | Action sidebar, rule cards, condition chips, ordered advanced list | Lossless rule document and app/process picker |
-| Runtime and traffic statistics | Tabs, data table, status cards, time-range field | Chart card, legends, empty/loading/error states |
+| Basic, TUN, DNS and hotkey settings | Title bar, sidebar, form sections, fields, toggles, help text | Key-sequence recorder, validation summary |
+| Groups and subscriptions | List rows, pills, contextual action bar | Update progress, per-group error state |
+| Profile editors | Form sections, segmented modes, chips, raw JSON surface | Protocol-specific nested forms, secret-field treatment |
+| Routing | Action sidebar, rule cards, condition chips, ordered list | Lossless rule document, application and process picker |
+| Runtime and traffic statistics | Tabs, data table, status cards, time-range field | Chart card, legends, empty, loading and error states |
 
-This means the palette and compact controls can be shared application-wide,
-but the redesign still needs a small set of domain components. It should not
-be implemented as one global stylesheet pasted over every legacy `.ui` file.
-
-## Production migration
-
-1. Extract semantic design tokens and reusable Qt Widgets components from the preview.
-2. Introduce a versioned route-document model and lossless legacy migration before replacing the current editor.
-3. Add a route compiler and round-trip tests for order, nested conditions, numeric values, and unknown JSON.
-4. Replace the routing editor, then migrate the main shell and remaining settings dialogs incrementally.
-5. Add an application picker backed by recently observed processes, running processes, installed apps, and manual executable selection on Windows and Linux.
-
-The standalone preview remains useful throughout the migration: CI builds a runnable Windows executable and renders EN/RU screenshots without bringing up networking side effects.
-
-## Rendering the shipped screens
-
-The screenshots above of routing and the main window come from the application
-itself, not from the mockup, so a layout regression shows up in them. Both modes
-exit after writing their PNGs.
-
-```sh
-# routing editor, real widgets, throwaway in-memory profile
-throned --route-editor-preview [--advanced] [--detail] [--paste] \
-        [-lang ru] [-theme graphite] --output routes.png
-
-# main window on an isolated configuration, with sample connections
-throned -lang en -theme midnight -ui-preview-docs -ui-preview <prefix>
-```
-
-`-ui-preview` writes the collapsed main window plus focused captures for the
-activity-panel animation, search, logs, connections, graph, menus, start/stop
-states and updater progress. `-ui-preview-docs` hides the local development
-build stamp. The preview always runs against an automatically created temporary
-database containing only reserved example domains and RFC 5737 documentation
-addresses; persisted profiles and subscriptions are never opened or copied.
-
-`-lang` and `-theme` also work on a normal launch and override the stored
-choices for that run only.
+That is the reason the palette and the compact controls are shared
+application-wide while the domain components stay local, rather than pasting one
+stylesheet over every legacy `.ui` file.

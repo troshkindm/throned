@@ -50,6 +50,8 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z";
     case Glyph::Direct:
         return "M2.01 21 23 12 2.01 3 2 10l15 2-15 2 .01 7z";
+    case Glyph::Edit:
+        return "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z";
     case Glyph::File:
         return "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L20.5 9H15z";
     case Glyph::Filter:
@@ -66,6 +68,8 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M20 4H4a2 2 0 0 0-2 2v12c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6a2 2 0 0 0-2-2zm0 14H4V8h16v10zm-2-1h-6v-2h6v2zM7.5 17l-1.41-1.41L8.67 13l-2.59-2.59L7.5 9l4 4-4 4z";
     case Glyph::Public:
         return "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM4 12c0-.61.08-1.21.21-1.78L9 15v1a2 2 0 0 0 2 2v1.93A8 8 0 0 1 4 12zm13.89 5.4A2 2 0 0 0 16 16h-1v-3a1 1 0 0 0-1-1H8v-2h2a1 1 0 0 0 1-1V7h2a2 2 0 0 0 2-2v-.41A8 8 0 0 1 17.89 17.4z";
+    case Glyph::QrCode:
+        return "M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm0-4h2v2h-2v-2zm2 2h2v2h-2v-2zm0 4h2v2h-2v-2z";
     // A traced ECG line: five quads for the strokes, four discs for the joints, all
     // wound the same way so the overlaps fill instead of punching holes.
     case Glyph::Pulse:
@@ -94,6 +98,8 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03zM12 15.4l-3.76 2.27c.34-1.45.63-2.71 1-4.29l-3.33-2.88 4.4-.38L12 6.1l1.71 4.04 4.38.36-3.33 2.89 1 4.28z";
     case Glyph::Shield:
         return "M12 2 4 5v6.09C4 16.14 7.41 20.85 12 22c4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 17.92c-3.45-1.13-6-4.82-6-8.83v-4.7l6-2.25 6 2.25v4.7c0 4-2.55 7.7-6 8.83z";
+    case Glyph::SwapHorizontal:
+        return "M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z";
     case Glyph::SwapVertical:
         return "M17 16.41V7.59L15.59 9 14.17 7.59 18 3.76l3.83 3.83L20.41 9 19 7.59v8.82L20.41 15l1.42 1.41L18 20.24l-3.83-3.83L15.59 15 17 16.41zM7 7.59v8.82L8.41 15l1.42 1.41L6 20.24l-3.83-3.83L3.59 15 5 16.41V7.59L3.59 9 2.17 7.59 6 3.76l3.83 3.83L8.41 9 7 7.59z";
     case Glyph::Tools:
@@ -102,6 +108,10 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
         return "M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z";
     case Glyph::Users:
         return "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z";
+    case Glyph::Visibility:
+        return "M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zM12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z";
+    case Glyph::VisibilityOff:
+        return "M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.82l2.92 2.92A11.8 11.8 0 0 0 23 12c-1.73-4.39-6-7.5-11-7.5-1.4 0-2.73.31-3.92.85l2.16 2.16C10.8 7.19 11.39 7 12 7zM2.27 3 1 4.27l2.28 2.28A11.7 11.7 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.36 4.34-.99L19.73 22 21 20.73 2.27 3zM12 17a5 5 0 0 1-5-5c0-.78.18-1.5.49-2.16l1.57 1.57A3 3 0 0 0 12.59 14.94l1.57 1.57c-.66.31-1.38.49-2.16.49z";
     }
     return "";
 }
@@ -130,6 +140,7 @@ const char *glyphName(MaterialIcon::Glyph glyph) {
     case Glyph::Delete: return "delete";
     case Glyph::Desktop: return "desktop";
     case Glyph::Direct: return "direct";
+    case Glyph::Edit: return "edit";
     case Glyph::File: return "file";
     case Glyph::Filter: return "filter";
     case Glyph::Folder: return "folder";
@@ -138,6 +149,7 @@ const char *glyphName(MaterialIcon::Glyph glyph) {
     case Glyph::More: return "more";
     case Glyph::Process: return "process";
     case Glyph::Public: return "public";
+    case Glyph::QrCode: return "qr-code";
     case Glyph::Pulse: return "pulse";
     case Glyph::Reload: return "reload";
     case Glyph::Routes: return "routes";
@@ -146,10 +158,13 @@ const char *glyphName(MaterialIcon::Glyph glyph) {
     case Glyph::Star: return "star";
     case Glyph::StarOutline: return "star-outline";
     case Glyph::Shield: return "shield";
+    case Glyph::SwapHorizontal: return "swap-horizontal";
     case Glyph::SwapVertical: return "swap-vertical";
     case Glyph::Tools: return "tools";
     case Glyph::Tune: return "tune";
     case Glyph::Users: return "users";
+    case Glyph::Visibility: return "visibility";
+    case Glyph::VisibilityOff: return "visibility-off";
     }
     return "";
 }

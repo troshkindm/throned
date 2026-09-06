@@ -1,27 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="icon/b-internet-web-browser.png">icon/internet-web-browser.png</file>
-        <file alias="icon/b-system-run.png">icon/system-run.png</file>
-        <file alias="icon/b-preferences.png">icon/preferences.png</file>
-        <file alias="icon/b-network-server.png">icon/network-server.png</file>
-        <file alias="icon/b-dialog-question.png">icon/dialog-question.png</file>
-        <file alias="icon/b-system-software-update.png">icon/system-software-update.png</file>
-        <file alias="icon/b-network-routing.png">icon/network-routing.png</file>
-        <file alias="icon/b-tools-button.png">icon/tools-button.png</file>
-        <file alias="icon/b-testing-button.png">icon/testing-button.png</file>
-        <file>icon/filter.png</file>
         <file>icon/material/check.svg</file>
-        <file>icon/material/lock-open-outline.png</file>
-        <file>icon/material/lock-outline.png</file>
-        <file>icon/material/cancel.png</file>
-        <file>icon/material/history.png</file>
-        <file>icon/material/swap-vertical.png</file>
-        <file>icon/material/delete.png</file>
-        <file>icon/material/pencil-outline.png</file>
-        <file>icon/material/qrcode.png</file>
-        <file>icon/material/eye-outline.png</file>
-        <file>icon/material/eye-off-outline.png</file>
-        <file>icon/material/swap-horizontal.png</file>
     </qresource>
     <qresource prefix="/Throned">
         <file alias="Throned.png">public/Throned.png</file>

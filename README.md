@@ -187,18 +187,22 @@ claim the system-wide handler on its own; register it from Basic Settings.
 
 The authoritative recipes are in [.github/workflows](.github/workflows) — they
 build `ThronedCore`, the Qt application and the packages in clean runners.
+The [development guide](docs/development.md) maps the repository and documents
+the local C++ formatting and static-analysis setup. Contributors using coding
+agents should also read [AGENTS.md](AGENTS.md) for the repository workflow and
+verification rules.
 
-The UI preview harness builds against Qt alone, with no database, core process
-or networking:
+The real application has a cross-platform UI scenario runner. From CLion, build
+the `ui-smoke` target. From a terminal, use:
 
 ```sh
-cmake -S tools/ui-demo -B build-ui
-cmake --build build-ui
+cmake --build --preset windows-clion-dev --target ui-smoke
 ```
 
-The application also renders its real screens headlessly
-(`--route-editor-preview`, `-ui-preview`), which is how the screenshots above
-are made. See [docs/ui-redesign.md](docs/ui-redesign.md).
+It drives isolated synthetic states in the shipped widgets, checks every
+expected capture and compares Windows renders with reviewed baselines. See the
+[development guide](docs/development.md#visual-ui-scenarios) for individual
+scenarios, Linux/Xvfb and baseline updates.
 
 </details>
 

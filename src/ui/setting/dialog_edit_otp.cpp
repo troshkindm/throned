@@ -1,21 +1,9 @@
 #include "include/ui/setting/dialog_edit_otp.h"
+#include "include/ui/widget/MaterialIcon.h"
 
 #include <QMessageBox>
-#include <QPainter>
 
 #include "include/global/Utils.hpp"
-
-namespace {
-    QIcon RecolorIcon(const QString &path, const QColor &color) {
-        QPixmap pixmap(path);
-        if (pixmap.isNull()) return QIcon(path);
-        QPainter painter(&pixmap);
-        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        painter.fillRect(pixmap.rect(), color);
-        painter.end();
-        return QIcon(pixmap);
-    }
-}
 
 DialogEditOtp::DialogEditOtp(QWidget *parent, std::shared_ptr<Configs::OtpProfile> profile_)
     : QDialog(parent), ui(new Ui::DialogEditOtp), profile(std::move(profile_)) {
@@ -60,9 +48,9 @@ DialogEditOtp::~DialogEditOtp() {
 
 void DialogEditOtp::applyIconColors() const {
     const auto color = palette().color(QPalette::ButtonText);
-    ui->show_secret->setIcon(RecolorIcon(ui->show_secret->isChecked() ? ":/icon/material/eye-off-outline.png"
-                                                                     : ":/icon/material/eye-outline.png",
-                                         color));
+    ui->show_secret->setIcon(MaterialIcon::icon(
+        ui->show_secret->isChecked() ? MaterialIcon::Glyph::VisibilityOff : MaterialIcon::Glyph::Visibility,
+        color));
 }
 
 void DialogEditOtp::changeEvent(QEvent *event) {

@@ -72,6 +72,7 @@ Thumbs.db
 # Custom
 /Throne
 CMakeLists.txt.user*
+CMakeUserPresets.json
 /cmake-build-*
 # Covers /build, build-row, build-ui, buildnu, buildw3 and their stray logs.
 /build*
@@ -87,7 +88,9 @@ CMakeLists.txt.user*
 out
 /libs
 srslist.h
-.claude
+# Skills and shared instructions are committed; only per-machine settings are not.
+.claude/settings.local.json
+.claude/*.local.json
 /.ui-preview-artifact/
 
 # Local runtime data created when running a build from the source tree
