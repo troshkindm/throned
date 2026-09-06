@@ -31,7 +31,6 @@
 #include <QJsonObject>
 #include <QSysInfo>
 #include <QDir>
-#include <QStandardPaths>
 #include <QUuid>
 #include <QCheckBox>
 #include <QScreen>

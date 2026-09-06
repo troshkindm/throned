@@ -50,12 +50,13 @@ QString chevronAssetPath(const QColor &color, const QString &skinId) {
     static QMap<QString, QString> generated;
     const QString key = color.name(QColor::HexRgb).mid(1) + (skinId.isEmpty() ? QString() : QLatin1Char('-') + skinId);
     if (const auto it = generated.constFind(key); it != generated.constEnd()) return *it;
-    // Follows Configs::GetBasePath() so a portable copy keeps its cache beside
-    // the exe instead of leaking into %LOCALAPPDATA%\Throned\cache. Preview
-    // modes apply a theme before initDB(), so fall back to the exe dir then.
-    const QString base = Configs::dataManager != nullptr
-        ? Configs::GetBasePath()
-        : (qApp ? qApp->applicationDirPath() : QString());
+    // Follows Configs::GetBasePath() so a portable copy keeps its cache beside the exe
+    // instead of leaking into %LOCALAPPDATA%\Throned\cache on every machine it runs on.
+    // GetBasePath() reads settingsRepo, and preview modes apply a theme before initDB(),
+    // so both have to be there before it is safe to ask.
+    const bool configured = Configs::dataManager != nullptr && Configs::dataManager->settingsRepo != nullptr;
+    const QString base = configured ? Configs::GetBasePath()
+                                    : (qApp != nullptr ? qApp->applicationDirPath() : QString());
     const QString dir = base + QStringLiteral("/cache");
     if (base.isEmpty() || !QDir().mkpath(dir)) return {};
     const QString path = dir + QStringLiteral("/chevron-down-") + key + QStringLiteral(".png");
