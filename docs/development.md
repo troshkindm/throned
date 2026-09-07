@@ -235,6 +235,29 @@ For combo popups, Qt's menu mode paints an extra native panel beneath the list.
 The Mica skin uses `combobox-popup: 0` and explicit selected-item styling; check
 keyboard selection as well as the closed field before changing those rules.
 
+### Footer notices
+
+For adding a message, start with the
+[ui-notices skill](../.agents/skills/ui-notices/SKILL.md), which covers placement,
+eligibility, dismissal lifetime and focused verification.
+
+`UpdateStatusWidget` shares the footer slot between updates and queued notices.
+`postNotice()` replaces an existing stable ID; error and warning notices sort
+ahead of tips, then by priority. Downloading, preparing, ready and failed updates
+own the slot until dismissed; queued notices then resume. Producers handle action
+and dismissal signals and decide which dismissals to persist.
+
+`WindowNotices.cpp` offers Mica once when its skin is available and not already
+selected. Enabling, dismissing, or manually selecting Mica records the versioned
+notice ID in `SettingsRepo::dismissed_notices`. Adding a future tip needs its own
+ID, eligibility rule, translated text and action. No release-number comparison or
+network call is needed: the feature first appears when users install its release.
+
+For interactive inspection add `-ui-preview-notices` to a backdrop preview launched
+with `-theme "Throned Midnight"`. Add `-ui-preview-update-ready` to put a synthetic
+ready update above the queued tip; click Later to reveal it. Restart and retry
+actions do nothing in preview mode. Ordinary snapshots suppress real tip eligibility.
+
 ### What a screenshot cannot answer
 
 Beside every compared capture the preview also writes a geometry report: each

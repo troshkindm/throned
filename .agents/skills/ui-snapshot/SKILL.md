@@ -59,6 +59,9 @@ isolated live preview and inspection sequence in
 Check the affected control's open, focused and selected states as well as its
 closed appearance; popup windows do not inherit the main window's DWM surface.
 
+For changes to tips, subscription messages or the shared updater footer, also
+read [ui-notices](../ui-notices/SKILL.md). Its eligibility and dismissal checks
+complement the visual scenarios.
 
 ## Reading a failure
 

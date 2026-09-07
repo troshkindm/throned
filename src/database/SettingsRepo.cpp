@@ -209,6 +209,7 @@ void SettingsRepo::initMaps() {
     };
 
     stringListMap = {
+        {"dismissed_notices", &dismissed_notices},
         {"dns_server_rules", &dns_server_rules},
         {"dns_predefined_rules", &dns_predefined_rules},
         {"extra_core_paths", &extraCorePaths},

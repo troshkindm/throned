@@ -4127,4 +4127,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>WindowNotices</name>
+    <message><source>Try Mica</source><translation>میکا را امتحان کنید</translation></message>
+    <message><source>A soft Windows 11 backdrop for Throned.</source><translation>پس‌زمینه‌ای ملایم به سبک ویندوز ۱۱ برای Throned.</translation></message>
+    <message><source>Enable</source><translation>فعال‌سازی</translation></message>
+    <message><source>Don&apos;t show again</source><translation>دیگر نمایش نده</translation></message>
+</context>
 </TS>

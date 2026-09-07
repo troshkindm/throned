@@ -8573,4 +8573,11 @@ goes to the default above.</source>
         <translation>Найти группу</translation>
     </message>
 </context>
+<context>
+    <name>WindowNotices</name>
+    <message><source>Try Mica</source><translation>Попробуйте Mica</translation></message>
+    <message><source>A soft Windows 11 backdrop for Throned.</source><translation>Мягкий фон в стиле Windows 11 для Throned.</translation></message>
+    <message><source>Enable</source><translation>Включить</translation></message>
+    <message><source>Don&apos;t show again</source><translation>Больше не показывать</translation></message>
+</context>
 </TS>

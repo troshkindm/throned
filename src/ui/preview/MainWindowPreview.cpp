@@ -39,6 +39,7 @@
 #include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
+#include "include/ui/widget/UpdateStatusWidget.h"
 
 namespace UiPreview {
 void RunMainWindow(const QString &prefix) {
@@ -49,6 +50,10 @@ void RunMainWindow(const QString &prefix) {
     }
     QSize previewSize(1180, 780);
     const QStringList arguments = QApplication::arguments();
+    if (arguments.contains(QStringLiteral("-ui-preview-update-ready"))) {
+        if (auto *status = window->findChild<UpdateStatusWidget *>(QStringLiteral("updateStatus")))
+            status->showReady(QStringLiteral("Throned-1.4.3-windows64.zip"));
+    }
     // Documentation screenshots should not age merely because the local
     // preview binary carries a development build stamp.
     if (arguments.contains(QStringLiteral("-ui-preview-docs")))

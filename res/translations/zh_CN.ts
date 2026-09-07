@@ -7166,4 +7166,11 @@ Deleted %3 Profiles:
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>WindowNotices</name>
+    <message><source>Try Mica</source><translation>试试 Mica</translation></message>
+    <message><source>A soft Windows 11 backdrop for Throned.</source><translation>为 Throned 启用柔和的 Windows 11 背景。</translation></message>
+    <message><source>Enable</source><translation>启用</translation></message>
+    <message><source>Don&apos;t show again</source><translation>不再显示</translation></message>
+</context>
 </TS>

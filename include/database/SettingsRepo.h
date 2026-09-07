@@ -114,6 +114,7 @@ public:
     int quic_initial_packet_size = 0;
     bool quic_disable_path_mtu_discovery = false;
     QString theme = "Throned Midnight";
+    QStringList dismissed_notices;
     int language = 0;
     QString font = "";
     int font_size = 0;

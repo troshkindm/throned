@@ -36,6 +36,7 @@
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedTitleBar.h"
 #include "include/ui/widget/UpdateStatusWidget.h"
+#include "include/ui/widget/WindowNotices.h"
 #include <QPainter>
 #include "include/ui/widget/ThronedToggle.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
@@ -886,11 +887,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     selectionLayout->addWidget(clearSelection);
     selectionCard->hide();
     updateStatusWidget = new UpdateStatusWidget(redesignedCentral);
-    connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this] {
+    InstallWindowNotices(updateStatusWidget, *Configs::dataManager->settingsRepo);
+    connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this, uiPreviewMode] {
+        if (uiPreviewMode) return;
         exit_reason = ExitReason::RunUpdater;
         on_menu_exit_triggered();
     });
-    connect(updateStatusWidget, &UpdateStatusWidget::retryRequested, this, [this] {
+    connect(updateStatusWidget, &UpdateStatusWidget::retryRequested, this, [this, uiPreviewMode] {
+        if (uiPreviewMode) return;
         if (pendingUpdateDownloadUrl.isEmpty() || pendingUpdateAssetName.isEmpty()) {
             updateStatusWidget->showError(tr("The update link is no longer available. Check for updates again."));
             return;

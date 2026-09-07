@@ -152,6 +152,10 @@ proxy core, no system proxy change, no TUN.
   add a PNG per button, colour, state or density.
 - `.ui` files stay. Existing screens keep their designer file; only genuinely
   new screens are built in code.
+- App-wide tips and dismissible warnings share the updater footer; preserve
+  update priority and the user's dismissal. For message placement and extension
+  rules, read `.agents/skills/ui-notices/SKILL.md`. Native material changes also
+  need the live Windows inspection described in the `ui-snapshot` skill.
 - Translations: edit `res/translations/*.ts` by hand — the `lupdate` target
   rewrites all four files and buries the change. A new user-visible string goes
   into `ru_RU`, `zh_CN` and `fa_IR`; where you cannot translate it, add the entry

@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSizePolicy>
+#include <QStyle>
 #include <QVBoxLayout>
 
 #include "include/global/Utils.hpp"
@@ -33,11 +34,13 @@ UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
 
     title_ = new QLabel(this);
     title_->setObjectName(QStringLiteral("updateStatusTitle"));
+    title_->setTextFormat(Qt::PlainText);
     title_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     row->addWidget(title_);
 
     detail_ = new QLabel(this);
     detail_->setObjectName(QStringLiteral("updateStatusDetail"));
+    detail_->setTextFormat(Qt::PlainText);
     detail_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     row->addWidget(detail_, 1);
 
@@ -65,6 +68,10 @@ UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
             emit restartRequested();
         else if (state_ == State::Error)
             emit retryRequested();
+        else if (state_ == State::Notice) {
+            const QString id = activeNoticeId_;
+            emit noticeActionRequested(id);
+        }
     });
     connect(secondary_, &QPushButton::clicked, this, &UpdateStatusWidget::dismiss);
     connect(themeManager(), &ThemeManager::themeChanged, this, [this] { refreshIcon(); });
@@ -90,8 +97,12 @@ void UpdateStatusWidget::setState(State state) {
     style()->unpolish(this);
     style()->polish(this);
 
-    const bool actionable = state == State::Ready || state == State::Error;
-    primary_->setVisible(actionable);
+    if (state != State::Notice) {
+        activeNoticeId_.clear();
+        title_->setToolTip({});
+    }
+    const bool actionable = state == State::Ready || state == State::Error || state == State::Notice;
+    primary_->setVisible(actionable && (state != State::Notice || !notices_.value(activeNoticeId_).action.isEmpty()));
     secondary_->setVisible(actionable);
     progress_->setVisible(state == State::Downloading || state == State::Preparing);
     setVisible(state != State::Hidden);
@@ -111,6 +122,12 @@ void UpdateStatusWidget::refreshIcon() {
     if (state_ == State::Error) {
         glyph = MaterialIcon::Glyph::Block;
         color = colors.danger;
+    }
+    if (state_ == State::Notice) {
+        const auto severity = notices_.value(activeNoticeId_).severity;
+        glyph = severity == Severity::Tip ? MaterialIcon::Glyph::Bell : MaterialIcon::Glyph::Shield;
+        color = severity == Severity::Tip ? colors.accent : severity == Severity::Warning ? colors.warning
+                                                                                          : colors.danger;
     }
     icon_->setPixmap(MaterialIcon::pixmap(glyph, color, 19));
 }
@@ -161,7 +178,42 @@ void UpdateStatusWidget::showError(const QString &message) {
 }
 
 void UpdateStatusWidget::dismiss() {
-    state_ = State::Hidden;
-    setProperty("updateState", static_cast<int>(State::Hidden));
-    hide();
+    const QString dismissed = activeNoticeId_;
+    if (!dismissed.isEmpty()) notices_.remove(dismissed);
+    setState(State::Hidden);
+    if (!dismissed.isEmpty()) emit noticeDismissed(dismissed);
+    showNextNotice();
+}
+
+void UpdateStatusWidget::postNotice(const Notice &notice) {
+    if (notice.id.isEmpty()) return;
+    notices_.insert(notice.id, notice);
+    showNextNotice();
+}
+
+void UpdateStatusWidget::removeNotice(const QString &id) {
+    notices_.remove(id);
+    showNextNotice();
+}
+
+void UpdateStatusWidget::showNextNotice() {
+    // Update progress and its actions always own the slot until explicitly dismissed.
+    if (state_ != State::Hidden && state_ != State::Notice) return;
+    if (notices_.isEmpty()) {
+        setState(State::Hidden);
+        return;
+    }
+    auto next = notices_.cbegin();
+    for (auto it = notices_.cbegin(); it != notices_.cend(); ++it) {
+        if (it->severity > next->severity ||
+            (it->severity == next->severity && it->priority > next->priority)) next = it;
+    }
+    activeNoticeId_ = next.key();
+    title_->setText(next->title);
+    title_->setToolTip(next->title);
+    detail_->setText(next->detail);
+    detail_->setToolTip(next->detail);
+    primary_->setText(next->action);
+    secondary_->setText(next->dismissText.isEmpty() ? tr("Dismiss") : next->dismissText);
+    setState(State::Notice);
 }

@@ -28,6 +28,30 @@ function(throned_add_qt_test TARGET_NAME)
     endif ()
 endfunction()
 
+throned_add_qt_test(throned_window_notices_tests
+        OFFSCREEN
+        TIMEOUT 30
+        SOURCES
+            test_window_notices.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/WindowNotices.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/UpdateStatusWidget.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/widget/UpdateStatusWidget.h
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/MaterialIcon.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/setting/ThemeManager.hpp
+        LIBRARIES Qt6::Widgets Qt6::Network Qt6::Svg
+            Throned::FkYAML Throned::Protocol Throned::SQLiteCpp
+)
+if (WIN32)
+    target_sources(throned_window_notices_tests PRIVATE ${PROJECT_SOURCE_DIR}/src/sys/windows/WinVersion.cpp)
+    target_link_libraries(throned_window_notices_tests PRIVATE ntdll)
+    add_test(NAME throned_mica_theme_change
+        COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/mica-theme-cycle
+            -ui-preview-theme-cycle -theme "Mica (Windows 11)")
+    set_tests_properties(throned_mica_theme_change PROPERTIES TIMEOUT 15 SKIP_RETURN_CODE 77)
+endif ()
+
 throned_add_qt_test(throned_diagnostics_tests
         OFFSCREEN
         TIMEOUT 30

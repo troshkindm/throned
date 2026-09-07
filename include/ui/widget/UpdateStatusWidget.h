@@ -1,14 +1,13 @@
 #pragma once
 
 #include <QFrame>
+#include <QMap>
 
 class QLabel;
 class QProgressBar;
 class QPushButton;
 
-// Compact, non-modal update feedback that lives immediately above the main
-// status bar. The updater owns no palette of its own: the main window's
-// semantic stylesheet and ThemeManager-tinted icon are the whole appearance.
+// Shared footer slot: update progress takes precedence over queued tips and warnings.
 class UpdateStatusWidget final : public QFrame {
     Q_OBJECT
 
@@ -19,6 +18,7 @@ public:
         Preparing,
         Ready,
         Error,
+        Notice,
     };
     Q_ENUM(State)
 
@@ -32,16 +32,39 @@ public:
     void showError(const QString &message);
     void dismiss();
 
+    enum class Severity {
+        Tip,
+        Warning,
+        Error,
+    };
+    struct Notice {
+        QString id;
+        QString title;
+        QString detail;
+        QString action;
+        QString dismissText;
+        Severity severity = Severity::Tip;
+        int priority = 0;
+    };
+    void postNotice(const Notice &notice);
+    void removeNotice(const QString &id);
+    [[nodiscard]] QString activeNoticeId() const { return activeNoticeId_; }
+
 signals:
     void restartRequested();
     void retryRequested();
+    void noticeActionRequested(const QString &id);
+    void noticeDismissed(const QString &id);
 
 private:
     void setState(State state);
     void refreshIcon();
     static QString displayName(const QString &assetName);
+    void showNextNotice();
 
     State state_ = State::Hidden;
+    QMap<QString, Notice> notices_;
+    QString activeNoticeId_;
     QLabel *icon_ = nullptr;
     QLabel *title_ = nullptr;
     QLabel *detail_ = nullptr;
