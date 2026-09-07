@@ -50,7 +50,7 @@ if (WIN32)
         COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/mica-theme-cycle
             -ui-preview-theme-cycle -theme "Mica (Windows 11)")
     # WIN32_EXECUTABLE has no console, so Qt sends a failed assertion to the debugger unless forced.
-    set_tests_properties(throned_mica_theme_change PROPERTIES TIMEOUT 15 SKIP_RETURN_CODE 77
+    set_tests_properties(throned_mica_theme_change PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
         ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
 endif ()
 

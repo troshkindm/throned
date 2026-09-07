@@ -2,6 +2,9 @@
 #include "include/ui/preview/MainWindowCapture.h"
 #include "include/ui/preview/GeometryReport.h"
 
+#include <cstdio>
+#include <memory>
+
 #include <QLabel>
 #include <QApplication>
 #include <QDateTime>
@@ -16,7 +19,6 @@
 #include <QScreen>
 #include <QSpinBox>
 #include <QStyleHints>
-#include <QDebug>
 #include <QTableView>
 #include <QTabWidget>
 #include <QTextBrowser>
@@ -251,31 +253,59 @@ void RunMainWindow(const QString &prefix) {
             QTimer::singleShot(0, qApp, [] { qApp->exit(77); });
             return;
         }
-        const QList<Qt::ColorScheme> schemes{Qt::ColorScheme::Dark, Qt::ColorScheme::Light, Qt::ColorScheme::Dark};
-        for (int i = 0; i < schemes.size(); ++i) {
-            const auto scheme = schemes.at(i);
-            QTimer::singleShot(i * 500, window, [scheme] { qApp->styleHints()->setColorScheme(scheme); });
-            QTimer::singleShot(i * 500 + 400, window, [window, scheme, i] {
-                const bool dark = scheme == Qt::ColorScheme::Dark;
-                const auto colors = themeManager()->Colors();
-                const bool valid = colors.dark == dark &&
-                                   (qApp->palette().color(QPalette::WindowText).lightness() > 128) == dark &&
-                                   (qApp->palette().color(QPalette::Window).lightness() < 128) == dark &&
-                                   !window->styleSheet().contains(QStringLiteral("%MATERIAL_"));
-                if (!valid) {
-                    const auto *skin = themeManager()->Skin();
-                    qCritical() << "Mica palette did not follow color scheme" << scheme
-                                << "skin:" << (skin != nullptr ? skin->id : QStringLiteral("none"))
-                                << "dark:" << colors.dark
-                                << "windowText:" << qApp->palette().color(QPalette::WindowText).name()
-                                << "window:" << qApp->palette().color(QPalette::Window).name()
-                                << "unresolved:" << window->styleSheet().contains(QStringLiteral("%MATERIAL_"));
-                    qApp->exit(2);
-                } else if (i == 2) {
+        const auto schemes = std::make_shared<QList<Qt::ColorScheme>>(
+            QList<Qt::ColorScheme>{Qt::ColorScheme::Dark, Qt::ColorScheme::Light, Qt::ColorScheme::Dark});
+        const auto followed = [window](Qt::ColorScheme scheme) {
+            const bool dark = scheme == Qt::ColorScheme::Dark;
+            const auto colors = themeManager()->Colors();
+            return colors.dark == dark &&
+                   (qApp->palette().color(QPalette::WindowText).lightness() > 128) == dark &&
+                   (qApp->palette().color(QPalette::Window).lightness() < 128) == dark &&
+                   !window->styleSheet().contains(QStringLiteral("%MATERIAL_"));
+        };
+        // The reload is queued and repolishes every widget, so wait for it: a fixed delay raced CI.
+        struct Cycle {
+            int index = 0;
+            int waited = 0;
+            bool applied = false;
+        };
+        const auto cycle = std::make_shared<Cycle>();
+        auto *poll = new QTimer(window);
+        poll->setInterval(50);
+        QObject::connect(poll, &QTimer::timeout, window, [window, poll, cycle, schemes, followed] {
+            const auto scheme = schemes->at(cycle->index);
+            if (!cycle->applied) {
+                qApp->styleHints()->setColorScheme(scheme);
+                cycle->applied = true;
+                cycle->waited = 0;
+                return;
+            }
+            if (followed(scheme)) {
+                if (++cycle->index == schemes->size()) {
+                    poll->stop();
                     qApp->exit(0);
+                    return;
                 }
-            });
-        }
+                cycle->applied = false;
+                return;
+            }
+            cycle->waited += poll->interval();
+            if (cycle->waited < 3000) return;
+            poll->stop();
+            const auto *skin = themeManager()->Skin();
+            // WIN32_EXECUTABLE has no console, so Qt's handler would file this with the debugger.
+            fprintf(stderr,
+                    "Mica palette did not follow color scheme %s: skin=%s dark=%d windowText=%s window=%s unresolved=%d\n",
+                    scheme == Qt::ColorScheme::Dark ? "Dark" : "Light",
+                    qPrintable(skin != nullptr ? skin->id : QStringLiteral("none")),
+                    themeManager()->Colors().dark,
+                    qPrintable(qApp->palette().color(QPalette::WindowText).name()),
+                    qPrintable(qApp->palette().color(QPalette::Window).name()),
+                    window->styleSheet().contains(QStringLiteral("%MATERIAL_")));
+            fflush(stderr);
+            qApp->exit(2);
+        });
+        poll->start();
         return;
     }
 
