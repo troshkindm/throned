@@ -837,14 +837,16 @@ int main(int argc, char *argv[]) {
         if (!useAppdata) candidates << LocalServerNameFor(appdataWd);
         return RunControlClient(candidates, arguments.mid(cliAt + 1));
     }
-
     if (useAppdata) {
         if (!appdataDir.isEmpty()) {
+            // An explicitly named profile directory is the profile. Importing
+            // someone else's into it would be a surprise, and it is what made
+            // -appdata useless for running an isolated copy.
             wd.setPath(appdataDir);
         } else {
             wd.setPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+            MigrateLegacyConfigIfNeeded(wd);
         }
-        MigrateLegacyConfigIfNeeded(wd);
     } else {
         const QDir userWd(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
         MigrateLegacyConfigIfNeeded(wd);
