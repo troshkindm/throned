@@ -30,7 +30,9 @@ sources_at() { # ref, locale — empty ref means the working tree
     fi | grep -o '<source>[^<]*</source>' | sort -u
 }
 
-if ! git rev-parse --verify --quiet "$BASE" >/dev/null; then
+# ^{commit} forces a lookup: a bare 40-hex base verifies fine while its object is
+# gone, and git show then yields nothing, which reads as "every string is new".
+if ! git rev-parse --verify --quiet "$BASE^{commit}" >/dev/null; then
     echo "warning: base ref '$BASE' not found; checking the backlog only"
     BASE=""
 fi
