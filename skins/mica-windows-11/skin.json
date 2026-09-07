@@ -1,0 +1,123 @@
+{
+  "name": "Mica (Windows 11)",
+  "backdrop": "mica",
+  "windowsBuild": 22000,
+  "dark": true,
+  "colors": {
+    "window": "#202020",
+    "surface": "#2B2B2B",
+    "surfaceRaised": "#333333",
+    "surfaceHover": "#3B3B3B",
+    "border": "#383838",
+    "borderStrong": "#505050",
+    "text": "#FFFFFF",
+    "textMuted": "#C5C5C5",
+    "textSubtle": "#8C8C8C",
+    "accent": "#4CC2FF",
+    "accentHover": "#77D0FF",
+    "accentSoft": "#1B2C38",
+    "selection": "#16344A",
+    "selectionBorder": "#2E6B93",
+    "success": "#6CCB5F",
+    "warning": "#FCE100",
+    "danger": "#FF99A4",
+    "dangerSoft": "#3A2126",
+    "controlInactive": "#2B2B2B",
+    "scrollBar": "#3B3B3B",
+    "scrollBarHover": "#505050"
+  },
+  "followSystem": true,
+  "lightColors": {
+    "window": "#F3F3F3",
+    "surface": "#FFFFFF",
+    "surfaceRaised": "#F9F9F9",
+    "surfaceHover": "#E9E9E9",
+    "border": "#D5D5D5",
+    "borderStrong": "#B8B8B8",
+    "text": "#1A1A1A",
+    "textMuted": "#525252",
+    "textSubtle": "#6B6B6B",
+    "accent": "#0067C0",
+    "accentHover": "#005AAB",
+    "accentSoft": "#E5EFF8",
+    "selection": "#DCEBFA",
+    "selectionBorder": "#80B5E2",
+    "success": "#0F7B0F",
+    "warning": "#9D5D00",
+    "danger": "#C42B1C",
+    "dangerSoft": "#FDE7E9",
+    "controlInactive": "#E5E5E5",
+    "scrollBar": "#B5B5B5",
+    "scrollBarHover": "#8A8A8A"
+  },
+  "styleVariables": {
+    "MATERIAL_CARD": {
+      "dark": "rgba(255, 255, 255, 13)",
+      "light": "rgba(255, 255, 255, 170)"
+    },
+    "MATERIAL_SECONDARY": {
+      "dark": "rgba(255, 255, 255, 8)",
+      "light": "rgba(255, 255, 255, 90)"
+    },
+    "MATERIAL_CONTROL": {
+      "dark": "rgba(255, 255, 255, 15)",
+      "light": "rgba(255, 255, 255, 180)"
+    },
+    "MATERIAL_BORDER": {
+      "dark": "rgba(255, 255, 255, 18)",
+      "light": "rgba(0, 0, 0, 22)"
+    },
+    "MATERIAL_DIVIDER": {
+      "dark": "rgba(255, 255, 255, 12)",
+      "light": "rgba(0, 0, 0, 15)"
+    },
+    "MATERIAL_HOVER": {
+      "dark": "rgba(255, 255, 255, 24)",
+      "light": "rgba(0, 0, 0, 12)"
+    },
+    "MATERIAL_HOVER_BORDER": {
+      "dark": "rgba(255, 255, 255, 25)",
+      "light": "rgba(0, 0, 0, 28)"
+    },
+    "MATERIAL_SEARCH_FOCUS": {
+      "dark": "rgba(0, 0, 0, 24)",
+      "light": "rgba(255, 255, 255, 230)"
+    },
+    "MATERIAL_FIELD": {
+      "dark": "rgba(255, 255, 255, 10)",
+      "light": "rgba(255, 255, 255, 170)"
+    },
+    "MATERIAL_FIELD_EDGE": {
+      "dark": "rgba(255, 255, 255, 70)",
+      "light": "rgba(0, 0, 0, 110)"
+    },
+    "MATERIAL_FIELD_HOVER": {
+      "dark": "rgba(255, 255, 255, 20)",
+      "light": "rgba(255, 255, 255, 220)"
+    },
+    "MATERIAL_FIELD_FOCUS": {
+      "dark": "rgba(0, 0, 0, 32)",
+      "light": "rgba(255, 255, 255, 245)"
+    },
+    "MATERIAL_CLOSE_HOVER": {
+      "dark": "rgba(255, 255, 255, 26)",
+      "light": "rgba(0, 0, 0, 18)"
+    },
+    "MATERIAL_DISABLED": {
+      "dark": "rgba(255, 255, 255, 5)",
+      "light": "rgba(255, 255, 255, 70)"
+    },
+    "MATERIAL_POPUP": {
+      "dark": "#282B38",
+      "light": "#F9F9F9"
+    },
+    "MATERIAL_POPUP_SELECTION": {
+      "dark": "#364252",
+      "light": "#DCEBFA"
+    },
+    "MATERIAL_ACCENT_TEXT": {
+      "dark": "#1A1A1A",
+      "light": "#FFFFFF"
+    }
+  }
+}

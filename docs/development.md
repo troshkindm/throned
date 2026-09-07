@@ -9,7 +9,7 @@
 | `core/server/`       | Go module that builds the proxy core process.                                        |
 | `updater/`           | Go module for the updater and legacy launcher.                                       |
 | `res/`               | Runtime assets: tray/app artwork, translations, emoji fonts, schema, and the embedded dashboard. |
-| `skins/`             | Optional user-facing skin packages kept outside the compiled Qt resources.           |
+| `skins/`             | Skin packages; shipped skins are embedded via `res/Throned.qrc`, with loose packages also supported. |
 | `tests/`             | C++/Qt unit and integration test entry points.                                       |
 | `tools/`             | Small focused developer utilities; production UI scenarios live under `src/ui/preview/`. |
 | `3rdparty/`          | Vendored C and C++ dependencies. Do not reformat or lint these as project code.      |
@@ -187,6 +187,53 @@ cmake '-DTHRONED_EXECUTABLE=out/build/windows-dev/Throned.exe' `
   '-DSCENARIOS=settings' -P script/run_ui_scenarios.cmake
 ```
 
+
+### Native Windows materials
+
+For native Windows 11 Mica inspection, leave the isolated production preview open:
+
+```powershell
+out/build/windows-dev/Throned.exe -ui-preview out/mica -ui-preview-backdrop -theme "Mica (Windows 11)" -many
+```
+
+This uses the same temporary database and synthetic data as the screenshot modes,
+but enables the desktop compositor and skips automatic captures and exit. Inspect
+the active window, resize/maximize it, and switch to another theme and back in
+Settings. Ordinary captures disable native materials so wallpaper and activation
+cannot affect baselines. Mica uses the desktop wallpaper, and Windows substitutes
+a solid material when the window is inactive or transparency effects are disabled.
+The skin exposes the window shell and dialog bodies. Cards use WinUI's dark
+`CardBackgroundFillColorDefault` (white at 13/255) and `Secondary` (8/255) layers
+over Mica; controls use translucent fills with a stronger hover and focus edge,
+while the fallback palette uses neutral solid greys. The index gutter and footer
+expose the material, and subscription notices use a brighter film and accent edge.
+The card values come from Microsoft's `Common_themeresources_any.xaml` in
+`microsoft-ui-xaml`. Popup menus use a matching solid surface because they are
+separate native windows without the main window's backdrop.
+
+Inspect the table gutter, footer, announcement, input focus, toggle states,
+open menus and combo selection after the opening animation settles. Also check
+activation, maximize/restore, and switching to a solid theme and back. Capture
+the target window itself; an inactive or occluded capture is not proof of the
+active material. Do not change the user's system transparency settings for a test.
+
+Mica follows the system color scheme. Its manifest supplies `lightColors` and
+dark/light `styleVariables` for the shared stylesheet. Qt's `colorSchemeChanged`
+reloads these after the platform palette update, then refreshes native windows
+and controls together. `throned_mica_theme_change` exercises dark/light/dark
+through Qt's process-local override against the isolated preview; it never
+changes Windows personalization settings.
+
+Material styles are gated by the window's `custom-style` property, set only when
+the native backdrop succeeds. Keep opaque fallback colors and route native
+changes through `ThronedChrome`. Setting `WA_TranslucentBackground` at runtime
+interferes with the native composition; expose the material through transparent
+Qt surfaces instead. After a property or theme change, descendant stylesheet
+caches need to be refreshed, not just the title bar repainted.
+
+For combo popups, Qt's menu mode paints an extra native panel beneath the list.
+The Mica skin uses `combobox-popup: 0` and explicit selected-item styling; check
+keyboard selection as well as the closed field before changing those rules.
 
 ### What a screenshot cannot answer
 

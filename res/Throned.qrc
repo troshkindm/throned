@@ -16,6 +16,8 @@
         <file alias="sing-box.json">schema/sing-box.json</file>
     </qresource>
     <qresource prefix="/skins">
+        <file alias="mica-windows-11/skin.json">../skins/mica-windows-11/skin.json</file>
+        <file alias="mica-windows-11/skin.qss">../skins/mica-windows-11/skin.qss</file>
         <file alias="retro-2009-pink/skin.json">../skins/retro-2009-pink/skin.json</file>
         <file alias="retro-2009-pink/skin.qss">../skins/retro-2009-pink/skin.qss</file>
         <file alias="retro-2009-teal/skin.json">../skins/retro-2009-teal/skin.json</file>

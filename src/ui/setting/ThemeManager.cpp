@@ -16,10 +16,16 @@
 #include <QStyleFactory>
 #include <QStyleOption>
 #include <QWidget>
+#include <QStyleHints>
+#include <QTimer>
 
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
+#include "include/ui/widget/ThronedWindowChrome.h"
+#ifdef Q_OS_WIN
+#include "include/sys/windows/WinVersion.h"
+#endif
 
 #include <QGlobalStatic>
 
@@ -104,6 +110,16 @@ public:
     }
 };
 
+// Hide native-material skins on platforms that cannot supply their backdrop.
+bool skinRunsHere(const ThronedSkin &skin) {
+    if (skin.windowsBuild == 0) return true;
+#ifdef Q_OS_WIN
+    return WinVersion::IsBuildNumGreaterOrEqual(skin.windowsBuild);
+#else
+    return false;
+#endif
+}
+
 } // namespace
 
 struct ThemeColors {
@@ -166,6 +182,15 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         this->system_style_name = qApp->style()->name();
         this->system_palette = qApp->palette();
         this->base_font_family = qApp->font().family();
+        connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [this] {
+            // Qt applies its platform palette after this signal; refresh our palette on the next turn.
+            QTimer::singleShot(0, this, [this] {
+                const auto *skin = Skin();
+                const bool followsSystem = skin != nullptr && skin->followSystem;
+                LoadSkins();
+                if (followsSystem) ApplyTheme(current_theme, true);
+            });
+        });
     }
 
     // A skin may ask for its own face; leaving one behind would follow the user
@@ -235,6 +260,8 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     current_theme = theme;
 
     RefreshRegisteredStyles();
+    const ThronedSkin *skin = Skin();
+    ThronedChrome::setBackdrop(skin != nullptr ? skin->backdrop : QString());
     emit themeChanged(theme);
 }
 
@@ -269,14 +296,24 @@ void ThemeManager::LoadSkins() {
         skin.id = entry.fileName();
         skin.name = json.value(QStringLiteral("name")).toString(skin.id);
         skin.fontFamily = json.value(QStringLiteral("font")).toString();
+        skin.backdrop = json.value(QStringLiteral("backdrop")).toString();
+        skin.windowsBuild = static_cast<unsigned int>(json.value(QStringLiteral("windowsBuild")).toInt(0));
+        if (!skinRunsHere(skin)) continue;
 
         // Every unset token keeps the default theme's value, so a skin can
         // restyle three things and stay coherent everywhere else.
         skin.colors = thronedThemes().value(QStringLiteral("throned midnight"));
-        skin.colors.dark = json.value(QStringLiteral("dark")).toBool(true);
+        skin.followSystem = json.value(QStringLiteral("followSystem")).toBool(false);
+        const bool lightVariant = skin.followSystem &&
+                                  qApp->styleHints()->colorScheme() == Qt::ColorScheme::Light;
+        skin.colors.dark = lightVariant ? false : json.value(QStringLiteral("dark")).toBool(true);
         skin.colors.gloss = json.value(QStringLiteral("gloss")).toDouble(0.0);
         skin.colors.chartBars = json.value(QStringLiteral("chartBars")).toBool(false);
-        const QJsonObject colors = json.value(QStringLiteral("colors")).toObject();
+        QJsonObject colors = json.value(QStringLiteral("colors")).toObject();
+        if (lightVariant) {
+            const auto lightColors = json.value(QStringLiteral("lightColors")).toObject();
+            for (auto it = lightColors.begin(); it != lightColors.end(); ++it) colors.insert(it.key(), it.value());
+        }
         for (auto it = colors.constBegin(); it != colors.constEnd(); ++it) {
             const auto field = ThronedPalette::ColorFields().constFind(it.key());
             if (field == ThronedPalette::ColorFields().constEnd()) {
@@ -291,6 +328,12 @@ void ThemeManager::LoadSkins() {
         if (QFile sheet(entry.absoluteFilePath() + QStringLiteral("/skin.qss"));
             sheet.open(QIODevice::ReadOnly)) {
             skin.styleOverlay = QString::fromUtf8(sheet.readAll());
+            const auto variables = json.value(QStringLiteral("styleVariables")).toObject();
+            for (auto it = variables.begin(); it != variables.end(); ++it) {
+                const auto variants = it.value().toObject();
+                const auto value = variants.value(lightVariant ? QStringLiteral("light") : QStringLiteral("dark")).toString();
+                skin.styleOverlay.replace(QLatin1Char('%') + it.key() + QLatin1Char('%'), value);
+            }
         }
         if (QDir icons(entry.absoluteFilePath() + QStringLiteral("/icons")); icons.exists()) {
             skin.iconDir = icons.absolutePath();

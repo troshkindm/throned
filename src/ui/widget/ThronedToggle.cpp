@@ -23,9 +23,14 @@ void ThronedToggle::paintEvent(QPaintEvent *) {
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
     const auto colors = themeManager()->Colors();
-    painter.setBrush(isChecked() ? colors.success : colors.controlInactive);
-    painter.drawRoundedRect(rect(), height() / 2.0, height() / 2.0);
-    painter.setBrush(QColor(QStringLiteral("#FFFFFF")));
+    const QColor trackInk = colors.dark ? QColor(Qt::white) : QColor(Qt::black);
+    const bool materialTrack = !isChecked() && window()->property("custom-style").toBool();
+    painter.setBrush(isChecked() ? colors.success : materialTrack ? QColor(trackInk.red(), trackInk.green(), trackInk.blue(), 15)
+                                                                  : colors.controlInactive);
+    if (materialTrack) painter.setPen(QPen(QColor(trackInk.red(), trackInk.green(), trackInk.blue(), 90), 1));
+    painter.drawRoundedRect(materialTrack ? QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5) : QRectF(rect()), height() / 2.0, height() / 2.0);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(!isChecked() && materialTrack && !colors.dark ? QColor(QStringLiteral("#5D5D5D")) : QColor(Qt::white));
     const qreal diameter = height() - 4;
     const qreal x = isChecked() ? width() - diameter - 2 : 2;
     painter.drawEllipse(QRectF(x, 2, diameter, diameter));

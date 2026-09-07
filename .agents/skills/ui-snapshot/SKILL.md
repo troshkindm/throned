@@ -50,6 +50,16 @@ one workstation. Windows CI renders the catalogue with `-DCOMPARE_BASELINES=OFF`
 and uploads it as an artifact without ever failing the build, because its Qt
 build and its fonts are not the ones those baselines came from.
 
+## Native Windows materials
+
+Ordinary captures deliberately disable native backdrops. A passing snapshot
+cannot prove Mica works. For backdrop or material-specific style changes, use the
+isolated live preview and inspection sequence in
+[Native Windows materials](../../../docs/development.md#native-windows-materials).
+Check the affected control's open, focused and selected states as well as its
+closed appearance; popup windows do not inherit the main window's DWM surface.
+
+
 ## Reading a failure
 
 Output lands under the run's directory: `actual/`, `diff/`, `logs/` and

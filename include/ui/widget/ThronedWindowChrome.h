@@ -17,4 +17,7 @@ namespace ThronedChrome {
 // bar for the caller to place. This is the whole ritual: no window flags to set
 // and no resizer to remember.
 ThronedTitleBar *install(QWidget *window, const QString &context = {});
+
+// Set a native material (e.g. "mica") or clear it; deterministic captures disable composition.
+void setBackdrop(const QString &attribute);
 } // namespace ThronedChrome

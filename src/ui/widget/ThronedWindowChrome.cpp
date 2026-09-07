@@ -1,11 +1,80 @@
 #include "include/ui/widget/ThronedWindowChrome.h"
 
 #include "include/ui/widget/ThronedTitleBar.h"
+#include "include/ui/setting/ThemeManager.hpp"
 
+#include <QCoreApplication>
+#include <QPointer>
 #include <QString>
+#include <QStringList>
+#include <QStyle>
 #include <QWidget>
 
 #include <QWKWidgets/widgetwindowagent.h>
+
+namespace {
+// Every window that got the treatment, so a theme change can reach all of them.
+QList<QPointer<QWK::WidgetWindowAgent>> &agents() {
+    static QList<QPointer<QWK::WidgetWindowAgent>> list;
+    return list;
+}
+
+// Themes load before window agents exist, so remember the material for newly opened windows.
+QString &wantedBackdrop() {
+    static QString value;
+    return value;
+}
+
+// Wallpaper-dependent materials are only allowed in the explicitly interactive preview.
+bool previewRun() {
+    static const bool preview = [] {
+        const auto arguments = QCoreApplication::arguments();
+        if (arguments.contains(QStringLiteral("-ui-preview")) &&
+            arguments.contains(QStringLiteral("-ui-preview-backdrop"))) return false;
+        // Whole flags only: an -appdata path that happens to end in "-preview" is not a preview run.
+        static const QStringList otherPreviews{QStringLiteral("--route-editor-preview"),
+                                               QStringLiteral("--update-prompt-preview")};
+        for (const QString &argument: arguments)
+            if (argument.startsWith(QStringLiteral("-ui-preview")) || otherPreviews.contains(argument)) return true;
+        return false;
+    }();
+    return preview;
+}
+
+void purgeClosedWindows() {
+    agents().removeIf([](const QPointer<QWK::WidgetWindowAgent> &agent) { return agent.isNull(); });
+}
+
+const QStringList &knownBackdrops() {
+    static const QStringList names{QStringLiteral("mica"), QStringLiteral("mica-alt"),
+                                   QStringLiteral("acrylic-material"), QStringLiteral("dwm-blur")};
+    return names;
+}
+
+void applyTo(QWK::WidgetWindowAgent *agent) {
+    if (agent == nullptr) return;
+    auto *window = qobject_cast<QWidget *>(agent->parent());
+    const QString wanted = wantedBackdrop();
+    // DWM shares state between materials, so disable the previous effects before applying the new one.
+    if (!wanted.isEmpty() || (window != nullptr && window->property("custom-style").toBool()))
+        for (const QString &name: knownBackdrops())
+            if (name != wanted) agent->setWindowAttribute(name, false);
+    agent->setWindowAttribute(QStringLiteral("dark-mode"), themeManager()->Colors().dark);
+    const bool applied = !wanted.isEmpty() && agent->setWindowAttribute(wanted, true);
+    if (window == nullptr) return;
+
+    window->setProperty("custom-style", applied);
+    // Descendant selectors also depend on this property and must lose their cached opaque brushes.
+    const auto widgets = window->findChildren<QWidget *>();
+    window->setStyleSheet(window->styleSheet());
+    for (QWidget *widget: widgets) {
+        widget->style()->unpolish(widget);
+        widget->style()->polish(widget);
+        widget->update();
+    }
+    window->update();
+}
+} // namespace
 
 namespace ThronedChrome {
 ThronedTitleBar *install(QWidget *window, const QString &context) {
@@ -23,6 +92,15 @@ ThronedTitleBar *install(QWidget *window, const QString &context) {
     agent->setSystemButton(QWK::WindowAgentBase::Minimize, titleBar->minimizeButton());
     agent->setSystemButton(QWK::WindowAgentBase::Maximize, titleBar->maximizeButton());
     agent->setSystemButton(QWK::WindowAgentBase::Close, titleBar->closeButton());
+    purgeClosedWindows();
+    agents().append(agent);
+    applyTo(agent);
     return titleBar;
+}
+
+void setBackdrop(const QString &attribute) {
+    wantedBackdrop() = previewRun() ? QString() : attribute;
+    purgeClosedWindows();
+    for (const auto &agent: agents()) applyTo(agent);
 }
 } // namespace ThronedChrome

@@ -15,6 +15,8 @@
 #include <QScrollBar>
 #include <QScreen>
 #include <QSpinBox>
+#include <QStyleHints>
+#include <QDebug>
 #include <QTableView>
 #include <QTabWidget>
 #include <QTextBrowser>
@@ -238,6 +240,36 @@ void RunMainWindow(const QString &prefix) {
     direct->downlink_rate = 4410;
     window->refresh_status(Stats::DisplaySpeed(proxy) + QChar(0x001F) + Stats::DisplaySpeed(direct));
     window->refresh_status();
+
+    if (arguments.contains(QStringLiteral("-ui-preview-theme-cycle"))) {
+        if (themeManager()->Skin() == nullptr || themeManager()->Skin()->id != QStringLiteral("mica-windows-11")) {
+            QTimer::singleShot(0, qApp, [] { qApp->exit(77); });
+            return;
+        }
+        const QList<Qt::ColorScheme> schemes{Qt::ColorScheme::Dark, Qt::ColorScheme::Light, Qt::ColorScheme::Dark};
+        for (int i = 0; i < schemes.size(); ++i) {
+            const auto scheme = schemes.at(i);
+            QTimer::singleShot(i * 500, window, [scheme] { qApp->styleHints()->setColorScheme(scheme); });
+            QTimer::singleShot(i * 500 + 400, window, [window, scheme, i] {
+                const bool dark = scheme == Qt::ColorScheme::Dark;
+                const auto colors = themeManager()->Colors();
+                const bool valid = colors.dark == dark &&
+                                   (qApp->palette().color(QPalette::WindowText).lightness() > 128) == dark &&
+                                   (qApp->palette().color(QPalette::Window).lightness() < 128) == dark &&
+                                   !window->styleSheet().contains(QStringLiteral("%MATERIAL_"));
+                if (!valid) {
+                    qCritical() << "Mica palette did not follow color scheme" << scheme;
+                    qApp->exit(2);
+                } else if (i == 2) {
+                    qApp->exit(0);
+                }
+            });
+        }
+        return;
+    }
+
+    // Native materials need a live compositor; leave the isolated preview open for manual inspection.
+    if (arguments.contains(QStringLiteral("-ui-preview-backdrop"))) return;
 
     // refresh_proxy_list() completes its model reset on the UI queue. Wait
     // for that reset before treating rowCount as the search baseline.

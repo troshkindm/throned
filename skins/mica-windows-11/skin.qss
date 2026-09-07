@@ -1,0 +1,260 @@
+/* The native material is exposed only on windows whose backdrop was enabled. */
+QDialog#basicSettingsDialog[custom-style="true"] QPushButton#settingsNav:checked { color: #F1F3F5; }
+QWidget[custom-style="true"],
+QWidget[custom-style="true"] QWidget#previewRoot,
+QWidget[custom-style="true"] QWidget#body,
+QWidget[custom-style="true"] QFrame#titleBar,
+QWidget[custom-style="true"] QFrame#commandBar,
+QWidget[custom-style="true"] QTabWidget#groupsCard,
+QWidget[custom-style="true"] QTabWidget#groupsCard::pane { background: transparent; }
+
+/* Dialog bodies must expose the same material as their title bars. */
+QDialog#routeProfileEditor[custom-style="true"],
+QDialog#siteReachabilityDialog[custom-style="true"],
+QDialog#routeProfileEditor[custom-style="true"] QWidget#routeBody,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsBody,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage,
+QDialog#basicSettingsDialog[custom-style="true"] QScrollArea#settingsScroll > QWidget > QWidget {
+    background: transparent;
+}
+
+/* WinUI CardBackgroundFillColorDefault: white at 13/255 over the native material. */
+QWidget[custom-style="true"] QWidget[thronedCard="true"],
+QWidget[custom-style="true"] QWidget#statsPanelHost,
+QDialog#basicSettingsDialog[custom-style="true"] QFrame#settingsSection,
+QDialog#routeProfileEditor[custom-style="true"] QGroupBox#generalBox,
+QWidget[custom-style="true"] QFrame#routeProfileHeader {
+    background: %MATERIAL_CARD%;
+    border-color: rgba(0, 0, 0, 26);
+}
+
+/* WinUI CardBackgroundFillColorSecondary is the quieter white layer at 8/255. */
+QWidget[custom-style="true"] QFrame#logsStrip,
+QDialog#basicSettingsDialog[custom-style="true"] QFrame#settingsSidebar {
+    background: %MATERIAL_SECONDARY%;
+    border-color: rgba(0, 0, 0, 26);
+}
+
+/* The index gutter and footer belong to the material, not a separate solid panel. */
+QWidget[custom-style="true"] QFrame#statusCard,
+QWidget[custom-style="true"] QFrame#selectionCard,
+QWidget[custom-style="true"] QTextBrowser#selectionStatus {
+    background: transparent;
+    border-color: %MATERIAL_DIVIDER%;
+}
+QWidget[custom-style="true"] ProfilesTableVerticalHeader {
+    qproperty-sectionBackground: transparent;
+    qproperty-sectionBorder: %MATERIAL_DIVIDER%;
+}
+QWidget[custom-style="true"] QHeaderView::section:vertical,
+QWidget[custom-style="true"] QHeaderView::section:vertical:checked,
+QWidget[custom-style="true"] QHeaderView::section:vertical:pressed,
+QWidget[custom-style="true"] QTableCornerButton::section {
+    background: transparent;
+    border-color: %MATERIAL_DIVIDER%;
+}
+
+/* Small controls use a light film so the wallpaper tint remains continuous. */
+QWidget[custom-style="true"] QFrame#serverSearchFrame,
+QWidget[custom-style="true"] QToolButton#groupAddButton:!pressed,
+QWidget[custom-style="true"] QToolButton#groupOverflowButton:!pressed,
+QWidget[custom-style="true"] QToolButton#diagnosticsButton:!pressed,
+QWidget[custom-style="true"] QToolButton#favoritesTabButton:!checked:!pressed,
+QWidget[custom-style="true"] QPushButton#logToolButton,
+QWidget[custom-style="true"] QToolButton#panelIconButton:!checked,
+QWidget[custom-style="true"] QToolButton#selectionClear,
+QWidget[custom-style="true"] QToolButton#statusCellButton,
+QWidget[custom-style="true"] QTabWidget#groupsCard QTabBar::tab:!selected {
+    background: %MATERIAL_CONTROL%;
+    border-color: %MATERIAL_BORDER%;
+}
+QWidget[custom-style="true"] QToolButton#groupAddButton:hover:!pressed,
+QWidget[custom-style="true"] QToolButton#groupOverflowButton:hover:!pressed,
+QWidget[custom-style="true"] QToolButton#diagnosticsButton:hover:!pressed,
+QWidget[custom-style="true"] QToolButton#favoritesTabButton:hover:!checked:!pressed,
+QWidget[custom-style="true"] QPushButton#logToolButton:hover,
+QWidget[custom-style="true"] QToolButton#panelIconButton:hover:!checked,
+QWidget[custom-style="true"] QToolButton#selectionClear:hover,
+QWidget[custom-style="true"] QToolButton#statusCellButton:hover,
+QWidget[custom-style="true"] QTabWidget#groupsCard QTabBar::tab:hover:!selected {
+    background: %MATERIAL_HOVER%;
+    border-color: %MATERIAL_HOVER_BORDER%;
+}
+QWidget[custom-style="true"] QLineEdit#serverSearch:focus {
+    background: %MATERIAL_SEARCH_FOCUS%;
+    border-bottom: 2px solid #237AE9;
+}
+
+/* Input fields share the card tint; the bottom edge carries the focus accent. */
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QLineEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QSpinBox,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QDoubleSpinBox,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QTextEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QPlainTextEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QLineEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QSpinBox,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QDoubleSpinBox {
+    color: #F1F3F5;
+    background: %MATERIAL_FIELD%;
+    border: 1px solid %MATERIAL_DIVIDER%;
+    border-bottom: 1px solid %MATERIAL_FIELD_EDGE%;
+    border-radius: 5px;
+    padding: 5px 8px;
+    selection-background-color: #237AE9;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox,
+QDialog#basicSettingsDialog[custom-style="true"] QPushButton#settingsSecondaryButton {
+    background: %MATERIAL_CONTROL%;
+    border-color: %MATERIAL_BORDER%;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QLineEdit:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QAbstractSpinBox:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QPushButton#settingsSecondaryButton:hover {
+    background: %MATERIAL_FIELD_HOVER%;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QLineEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QSpinBox:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QDoubleSpinBox:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QTextEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QPlainTextEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QLineEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QSpinBox:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QDoubleSpinBox:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox:on,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox:focus {
+    background: %MATERIAL_FIELD_FOCUS%;
+    border-bottom: 2px solid #237AE9;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QComboBox QLineEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QAbstractSpinBox QLineEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox QLineEdit,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QAbstractSpinBox QLineEdit {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QFrame#settingsHeading,
+QDialog#basicSettingsDialog[custom-style="true"] QFrame#settingsField {
+    border-color: %MATERIAL_DIVIDER%;
+}
+
+/* Informational notice: contrast and an accent edge without implying warning or error severity. */
+QWidget[custom-style="true"] QFrame#subAnnounceStrip {
+    background: %MATERIAL_HOVER%;
+    border: 1px solid %MATERIAL_BORDER%;
+    border-left: 3px solid #237AE9;
+    border-radius: 6px;
+}
+QWidget[custom-style="true"] QLabel#subAnnounceText {
+    color: #F1F3F5;
+    font-size: %BASE_FONT_PX%px;
+    font-weight: 500;
+}
+QWidget[custom-style="true"] QToolButton#subAnnounceClose:hover {
+    background: %MATERIAL_CLOSE_HOVER%;
+}
+
+/* Compound controls paint their own frame, including while the inner editor has focus. */
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QComboBox QLineEdit:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QComboBox QLineEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QAbstractSpinBox QLineEdit:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QAbstractSpinBox QLineEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox QLineEdit:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox QLineEdit:focus,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QAbstractSpinBox QLineEdit:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QAbstractSpinBox QLineEdit:focus {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+/* Popup surfaces need their own ground because they are separate native windows. */
+QWidget[custom-style="true"] QMenu,
+QWidget[custom-style="true"] QMenu#logToolsMenu,
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox QAbstractItemView {
+    background: %MATERIAL_POPUP%;
+    color: #F1F3F5;
+    border: 1px solid %MATERIAL_HOVER%;
+    border-radius: 7px;
+    padding: 5px;
+    selection-background-color: %MATERIAL_POPUP_SELECTION%;
+    selection-color: #F1F3F5;
+    outline: none;
+}
+QWidget[custom-style="true"] QMenu::item {
+    background: transparent;
+    padding: 7px 28px 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+QWidget[custom-style="true"] QMenu::item:selected,
+QWidget[custom-style="true"] QMenu#logToolsMenu::item:selected {
+    background: %MATERIAL_FIELD_HOVER%;
+    border-color: %MATERIAL_DIVIDER%;
+}
+QWidget[custom-style="true"] QMenu::item:disabled { color: #747C86; }
+QWidget[custom-style="true"] QMenu::separator,
+QWidget[custom-style="true"] QMenu#logToolsMenu::separator {
+    height: 1px;
+    background: %MATERIAL_BORDER%;
+    margin: 5px 8px;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox QAbstractItemView::item {
+    min-height: 28px;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+/* Qt's menu-mode combo paints a native panel underneath the styled list. */
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox QAbstractItemView::item:selected,
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox QAbstractItemView::item:hover {
+    background: %MATERIAL_POPUP_SELECTION%;
+    color: #F1F3F5;
+}
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox { combobox-popup: 0; }
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox > QFrame {
+    background: %MATERIAL_POPUP%;
+    border: none;
+}
+QWidget[custom-style="true"] QFrame#commandBar QToolButton:hover,
+QWidget[custom-style="true"] QFrame#titleBar QToolButton#titleMinimize:hover,
+QWidget[custom-style="true"] QFrame#titleBar QToolButton#titleMaximize:hover,
+QWidget[custom-style="true"] QFrame#logsStrip QToolButton#stripTab:hover,
+QDialog#basicSettingsDialog[custom-style="true"] QPushButton#settingsNav:hover:!checked {
+    background: %MATERIAL_HOVER%;
+}
+QWidget[custom-style="true"] QFrame#updateStatus {
+    background: %MATERIAL_CARD%;
+    border-color: %MATERIAL_CONTROL%;
+}
+QWidget[custom-style="true"] QFrame#updateStatus QLabel#updateStatusDetail { color: #A4ABB4; }
+QWidget[custom-style="true"] QFrame#updateStatus QPushButton#updateSecondaryButton {
+    background: %MATERIAL_CONTROL%;
+    border-color: %MATERIAL_BORDER%;
+}
+QWidget[custom-style="true"] QFrame#updateStatus QPushButton#updateSecondaryButton:hover {
+    background: %MATERIAL_HOVER_BORDER%;
+}
+QWidget[custom-style="true"] QProgressBar#updateProgress { background: %MATERIAL_BORDER%; }
+
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QLineEdit:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QSpinBox:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage QDoubleSpinBox:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QLineEdit:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QSpinBox:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QDoubleSpinBox:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QComboBox:disabled,
+QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage QComboBox:disabled {
+    color: #747C86;
+    background: %MATERIAL_DISABLED%;
+    border-color: %MATERIAL_DIVIDER%;
+}
+
+QDialog#basicSettingsDialog[custom-style="true"] QPushButton#settingsPrimaryButton,
+QWidget[custom-style="true"] QFrame#updateStatus QPushButton#updatePrimaryButton {
+    color: %MATERIAL_ACCENT_TEXT%;
+}

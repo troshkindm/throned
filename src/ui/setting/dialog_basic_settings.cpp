@@ -803,7 +803,12 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         auto *button = new QPushButton(name, sidebar);
         button->setObjectName(QStringLiteral("settingsNav"));
         button->setCheckable(true);
-        button->setIcon(MaterialIcon::icon(pageIcons.value(index, MaterialIcon::Glyph::Settings), QColor(QStringLiteral("#AEB7C2")), 17));
+        const auto glyph = pageIcons.value(index, MaterialIcon::Glyph::Settings);
+        const auto refreshIcon = [button, glyph] {
+            button->setIcon(MaterialIcon::icon(glyph, themeManager()->Colors().textMuted, 17));
+        };
+        refreshIcon();
+        connect(themeManager(), &ThemeManager::themeChanged, button, refreshIcon);
         button->setIconSize(QSize(17, 17));
         button->setCursor(Qt::PointingHandCursor);
         navGroup->addButton(button, index);
