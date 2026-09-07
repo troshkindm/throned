@@ -61,9 +61,22 @@ would fix configure and not the build, which is the same mismatch pointing the
 other way. It has to be in the environment of both, which is what
 `CMakePresets.json` does.
 
-If a build ever behaves as though a header edit did not take, touch
-`include/ui/mainwindow.h` and check that the rebuild does far more than a
-handful of edges.
+Verify recorded dependencies after configuring, or when a header edit appears
+not to take:
+
+```sh
+cmake -DBUILD_DIR=out/build/windows-dev -P script/check_ninja_deps.cmake
+```
+
+When wrapping a command from PowerShell, set `$env:VSLANG = '1033'` before
+launching the build shell. In `cmd`, use `set "VSLANG=1033"`; an unquoted
+`set VSLANG=1033 && ...` includes a trailing space in the value.
+
+If the IDE and an agent need independent configure/build runs, use separate
+trees under `out/build/` with the same local toolchain settings. A lock or Ninja
+recompaction failure is a reason to investigate competing writers, not to delete
+another process's cache. Keep preview outputs separate too, and identify the
+built executable in the report so a stale binary cannot stand in for the result.
 
 ## UI icons and resources
 

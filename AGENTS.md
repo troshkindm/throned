@@ -24,6 +24,13 @@ ten-second grep would answer.
 | `script/`                       | Build, packaging, lint, format and snapshot helpers.                                                          |
 | `.github/workflows/`            | The authoritative clean builds.                                                                               |
 
+## Agent instructions
+
+Keep task procedures in `.agents/skills/`. Claude discovers matching pointer
+files in `.claude/skills/`; keep their names and descriptions synchronized.
+`CLAUDE.md` imports this file. After instruction edits, run
+`./script/check_agents.sh`; keep detailed explanations in `docs/development.md`.
+
 ## Remotes and upstream
 
 `origin` is `troshkindm/throned`. `upstream` is `throneproj/Throne`, the project

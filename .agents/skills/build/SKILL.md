@@ -17,8 +17,19 @@ ctest --preset windows-clion-dev
 ```
 
 The configure and build presets both pin `VSLANG=1033`; read the next section
-before working around that. From a bare shell the MSVC environment has to be
-loaded first (`vcvars64.bat`), or `cl.exe` is not on `PATH`.
+before working around that. Those presets are the IDE's, so a bare shell has to
+load the MSVC environment itself or `cl.exe` is not on `PATH`. The toolchain is
+not necessarily under `Program Files` and `vswhere.exe` may not be installed:
+read `CMAKE_CXX_COMPILER` out of an existing tree's `CMakeCache.txt` and walk up
+to the install root, which holds both `vcvars64.bat` and `clang-format.exe`.
+
+```sh
+cmd /c '"<root>\VC\Auxiliary\Build\vcvars64.bat" >nul && set "VSLANG=1033" && cmake --build out/build/<tree> --target Throned'
+CLANG_FORMAT='<root>/VC/Tools/Llvm/x64/bin/clang-format.exe' ./script/format_cpp.sh --check
+```
+
+`format_cpp.sh` refuses to guess that path. Check `--version` against the pin in
+`.github/workflows/throned-windows.yml` before trusting a rewrite.
 
 Useful targets: `Throned` (the application), `throned_snapshot_compare` (the
 image comparator), `ui-smoke` and `ui-all` (screenshots), `ui-update-baselines`.
@@ -90,9 +101,23 @@ waiting to happen: `findChild<T*>` needs the complete type.
 ## Pitfalls
 
 - Build directories belong under `out/`, never at the repository root.
+- If the IDE or another task is configuring the same tree, use a separate tree
+  under `out/build/` with the same local toolchain settings. Do not race another
+  Ninja invocation or delete its cache to clear a lock. Verify dependencies in
+  the new tree and report the exact executable used for previews.
+- A focused test target does not inherit the application's platform sources or
+  libraries. When it links production code, include that code's OS dependencies
+  conditionally as well; see `throned_window_notices_tests` for the Windows case.
 - `CMakeLists.txt` globs `src/` and `include/` with `CONFIGURE_DEPENDS`; adding
   a file needs no CMake edit, but `src/sys/{windows,linux,macos}` is excluded
   from the glob and listed explicitly in `cmake/<platform>/<platform>.cmake`. A
   new platform source that is not added there is silently not compiled.
+- Sources are checked out CRLF here while the repository stores LF. An editor
+  that writes bare LF into one leaves mixed endings: `git diff` shows nothing and
+  the committed content is clean, but `format_cpp.sh --check` reports the file
+  unformatted. Compare with `cat -A` before reformatting, or the fix is a
+  whitespace rewrite of the whole file.
 - The exit code of a wrapped build command can be the wrapper's, not the
   compiler's. Read the last lines of the output, and check that the linker ran.
+  A check script piped into `head` or `tail` reports the pipe's exit code, so a
+  failing gate reads as a passing one.
