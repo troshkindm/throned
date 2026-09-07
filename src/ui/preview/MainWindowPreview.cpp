@@ -263,7 +263,13 @@ void RunMainWindow(const QString &prefix) {
                                    (qApp->palette().color(QPalette::Window).lightness() < 128) == dark &&
                                    !window->styleSheet().contains(QStringLiteral("%MATERIAL_"));
                 if (!valid) {
-                    qCritical() << "Mica palette did not follow color scheme" << scheme;
+                    const auto *skin = themeManager()->Skin();
+                    qCritical() << "Mica palette did not follow color scheme" << scheme
+                                << "skin:" << (skin != nullptr ? skin->id : QStringLiteral("none"))
+                                << "dark:" << colors.dark
+                                << "windowText:" << qApp->palette().color(QPalette::WindowText).name()
+                                << "window:" << qApp->palette().color(QPalette::Window).name()
+                                << "unresolved:" << window->styleSheet().contains(QStringLiteral("%MATERIAL_"));
                     qApp->exit(2);
                 } else if (i == 2) {
                     qApp->exit(0);
