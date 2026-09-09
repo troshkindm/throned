@@ -2,6 +2,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <QPainter>
+#include <QVariant>
 
 ThronedToggle::ThronedToggle(bool checked, QWidget *parent) : QAbstractButton(parent) {
     setCheckable(true);
