@@ -420,6 +420,7 @@ private:
     QIcon connectionCloseIcon;
     int toolTipID;
     ThroughputChart *speedChartWidget;
+    class RuntimeStatsWidget *runtimeStatsWidget = nullptr;
     // Latency over time, beside the throughput chart: a path can carry bytes fine
     // and still have a UDP round trip that wanders, which is what breaks QUIC.
     MiniChartWidget *pingChartWidget = nullptr;

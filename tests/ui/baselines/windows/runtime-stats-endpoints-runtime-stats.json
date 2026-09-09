@@ -1,0 +1,1507 @@
+[
+    {
+        "class": "QWidget",
+        "h": 0,
+        "name": "Logs",
+        "visible": false,
+        "w": 1158,
+        "x": 11,
+        "y": 512
+    },
+    {
+        "class": "RuntimeStatsWidget",
+        "h": 201,
+        "name": "RuntimeStatsWidget",
+        "visible": true,
+        "w": 1156,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QWidget",
+        "h": 480,
+        "name": "activityGraphs",
+        "visible": false,
+        "w": 638,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QWidget",
+        "h": 620,
+        "name": "body",
+        "visible": true,
+        "w": 1178,
+        "x": 1,
+        "y": 103
+    },
+    {
+        "class": "QCheckBox",
+        "h": 30,
+        "name": "checkBox_SystemProxy",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QCheckBox",
+        "h": 30,
+        "name": "checkBox_VPN",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QFrame",
+        "h": 54,
+        "name": "commandBar",
+        "visible": true,
+        "w": 1178,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QTableView",
+        "h": 480,
+        "name": "connections",
+        "visible": false,
+        "w": 638,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QWidget",
+        "h": 480,
+        "name": "connections_tab",
+        "visible": false,
+        "w": 640,
+        "x": 11,
+        "y": 512
+    },
+    {
+        "class": "QLabel",
+        "h": 39,
+        "name": "controlLabel",
+        "visible": true,
+        "w": 66,
+        "x": 871,
+        "y": 56
+    },
+    {
+        "class": "QLabel",
+        "h": 39,
+        "name": "controlLabel",
+        "visible": true,
+        "w": 82,
+        "x": 991,
+        "y": 56
+    },
+    {
+        "class": "QWidget",
+        "h": 52,
+        "name": "cpuChart",
+        "visible": true,
+        "w": 353,
+        "x": 31,
+        "y": 590
+    },
+    {
+        "class": "QFrame",
+        "h": 133,
+        "name": "cpuChartCard",
+        "visible": true,
+        "w": 375,
+        "x": 20,
+        "y": 518
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "cpuChartTitle",
+        "visible": true,
+        "w": 353,
+        "x": 31,
+        "y": 525
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "diagnosticsButton",
+        "visible": true,
+        "w": 33,
+        "x": 819,
+        "y": 113
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "directFooter",
+        "visible": true,
+        "w": 375,
+        "x": 785,
+        "y": 658
+    },
+    {
+        "class": "QWidget",
+        "h": 240,
+        "name": "down_tab",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 473
+    },
+    {
+        "class": "QPushButton",
+        "h": 32,
+        "name": "emptyStateAction",
+        "visible": false,
+        "w": 157,
+        "x": 526,
+        "y": 393
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "emptyStateSub",
+        "visible": false,
+        "w": 390,
+        "x": 410,
+        "y": 360
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "emptyStateTitle",
+        "visible": false,
+        "w": 1078,
+        "x": 66,
+        "y": 334
+    },
+    {
+        "class": "QTableWidget",
+        "h": 76,
+        "name": "endpointsTable",
+        "visible": false,
+        "w": 100,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QToolButton",
+        "h": 52,
+        "name": "favoritesTabButton",
+        "visible": true,
+        "w": 43,
+        "x": 11,
+        "y": 113
+    },
+    {
+        "class": "QScrollArea",
+        "h": 480,
+        "name": "graphScroll",
+        "visible": false,
+        "w": 638,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QWidget",
+        "h": 480,
+        "name": "graph_tab",
+        "visible": false,
+        "w": 640,
+        "x": 11,
+        "y": 512
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "groupAddButton",
+        "visible": true,
+        "w": 33,
+        "x": 859,
+        "y": 113
+    },
+    {
+        "class": "QWidget",
+        "h": 30,
+        "name": "groupEndpoints",
+        "visible": false,
+        "w": 100,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "groupOverflowButton",
+        "visible": false,
+        "w": 33,
+        "x": 819,
+        "y": 113
+    },
+    {
+        "class": "QFrame",
+        "h": 133,
+        "name": "groupRunning",
+        "visible": true,
+        "w": 375,
+        "x": 785,
+        "y": 518
+    },
+    {
+        "class": "GroupTabWidget",
+        "h": 352,
+        "name": "groupsCard",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 113
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelCoreName",
+        "visible": true,
+        "w": 309,
+        "x": 31,
+        "y": 567
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelCountry",
+        "visible": true,
+        "w": 80,
+        "x": 796,
+        "y": 623
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelDbSize",
+        "visible": true,
+        "w": 76,
+        "x": 221,
+        "y": 682
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelOutIp",
+        "visible": true,
+        "w": 80,
+        "x": 796,
+        "y": 600
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelPing",
+        "visible": true,
+        "w": 80,
+        "x": 796,
+        "y": 577
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelRamCoreName",
+        "visible": true,
+        "w": 290,
+        "x": 414,
+        "y": 567
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelRamThroneName",
+        "visible": true,
+        "w": 290,
+        "x": 414,
+        "y": 548
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelRouteUpdate",
+        "visible": true,
+        "w": 70,
+        "x": 795,
+        "y": 682
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelSpeedDirect",
+        "visible": true,
+        "w": 70,
+        "x": 795,
+        "y": 658
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelSpeedProxy",
+        "visible": true,
+        "w": 63,
+        "x": 413,
+        "y": 658
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelSubUpdate",
+        "visible": true,
+        "w": 63,
+        "x": 413,
+        "y": 682
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelThroneName",
+        "visible": true,
+        "w": 309,
+        "x": 31,
+        "y": 548
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "labelUptime",
+        "visible": true,
+        "w": 91,
+        "x": 30,
+        "y": 682
+    },
+    {
+        "class": "QWidget",
+        "h": 33,
+        "name": "logTools",
+        "visible": true,
+        "w": 36,
+        "x": 1133,
+        "y": 479
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "logToolsMenu",
+        "visible": false,
+        "w": 100,
+        "x": 1133,
+        "y": 479
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "logToolsMenu",
+        "visible": false,
+        "w": 100,
+        "x": 1133,
+        "y": 479
+    },
+    {
+        "class": "QTabWidget",
+        "h": 240,
+        "name": "logsCard",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 473
+    },
+    {
+        "class": "QFrame",
+        "h": 39,
+        "name": "logsStrip",
+        "visible": false,
+        "w": 1158,
+        "x": 11,
+        "y": 674
+    },
+    {
+        "class": "QTextBrowser",
+        "h": 0,
+        "name": "masterLogBrowser",
+        "visible": false,
+        "w": 1156,
+        "x": 12,
+        "y": 512
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menuHidden_menu",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menuRouting_Menu",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menuTesting",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menuTools",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_add_item",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_preferences",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_program",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_server",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_share_item",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_spmode",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "menu_test_item",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QMenuBar",
+        "h": 0,
+        "name": "menubar",
+        "visible": false,
+        "w": 1180,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "panelIconButton",
+        "visible": true,
+        "w": 28,
+        "x": 1133,
+        "y": 479
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "panelIconButton",
+        "visible": false,
+        "w": 28,
+        "x": 1133,
+        "y": 479
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "panelIconButton",
+        "visible": false,
+        "w": 28,
+        "x": 1147,
+        "y": 480
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "panelIconButton",
+        "visible": false,
+        "w": 28,
+        "x": 1191,
+        "y": 480
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "panelIconButton",
+        "visible": false,
+        "w": 28,
+        "x": 1133,
+        "y": 679
+    },
+    {
+        "class": "QWidget",
+        "h": 390,
+        "name": "pingChart",
+        "visible": false,
+        "w": 285,
+        "x": 346,
+        "y": 577
+    },
+    {
+        "class": "QWidget",
+        "h": 780,
+        "name": "previewRoot",
+        "visible": true,
+        "w": 1180,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QWidget",
+        "h": 223,
+        "name": "profilesEmptyState",
+        "visible": false,
+        "w": 1126,
+        "x": 42,
+        "y": 241
+    },
+    {
+        "class": "ProfilesTableView",
+        "h": 262,
+        "name": "profilesTableView",
+        "visible": true,
+        "w": 1156,
+        "x": 12,
+        "y": 202
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "proxyFooter",
+        "visible": true,
+        "w": 374,
+        "x": 403,
+        "y": 658
+    },
+    {
+        "class": "QWidget",
+        "h": 52,
+        "name": "ramChart",
+        "visible": true,
+        "w": 352,
+        "x": 414,
+        "y": 590
+    },
+    {
+        "class": "QFrame",
+        "h": 133,
+        "name": "ramChartCard",
+        "visible": true,
+        "w": 374,
+        "x": 403,
+        "y": 518
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "ramChartTitle",
+        "visible": true,
+        "w": 352,
+        "x": 414,
+        "y": 525
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "routingStatus",
+        "visible": true,
+        "w": 176,
+        "x": 979,
+        "y": 752
+    },
+    {
+        "class": "QFrame",
+        "h": 43,
+        "name": "routingStatusButton",
+        "visible": true,
+        "w": 196,
+        "x": 970,
+        "y": 730
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "runningTitle",
+        "visible": true,
+        "w": 288,
+        "x": 796,
+        "y": 525
+    },
+    {
+        "class": "QToolButton",
+        "h": 20,
+        "name": "runtimeEndpoints",
+        "visible": true,
+        "w": 61,
+        "x": 1088,
+        "y": 525
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "runtimeFooter",
+        "visible": true,
+        "w": 1140,
+        "x": 20,
+        "y": 658
+    },
+    {
+        "class": "QWidget",
+        "h": 201,
+        "name": "runtime_tab",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 512
+    },
+    {
+        "class": "QPushButton",
+        "h": 33,
+        "name": "selectionAction",
+        "visible": false,
+        "w": 0,
+        "x": 36,
+        "y": 18
+    },
+    {
+        "class": "QPushButton",
+        "h": 33,
+        "name": "selectionAction",
+        "visible": false,
+        "w": 1,
+        "x": 46,
+        "y": 18
+    },
+    {
+        "class": "QPushButton",
+        "h": 33,
+        "name": "selectionAction",
+        "visible": false,
+        "w": 0,
+        "x": 57,
+        "y": 18
+    },
+    {
+        "class": "QPushButton",
+        "h": 33,
+        "name": "selectionAction",
+        "visible": false,
+        "w": 0,
+        "x": 67,
+        "y": 18
+    },
+    {
+        "class": "QPushButton",
+        "h": 33,
+        "name": "selectionAction",
+        "visible": false,
+        "w": 0,
+        "x": 77,
+        "y": 18
+    },
+    {
+        "class": "QFrame",
+        "h": 68,
+        "name": "selectionCard",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QToolButton",
+        "h": 26,
+        "name": "selectionClear",
+        "visible": false,
+        "w": 26,
+        "x": 87,
+        "y": 21
+    },
+    {
+        "class": "QTextBrowser",
+        "h": 0,
+        "name": "selectionStatus",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QLabel",
+        "h": 51,
+        "name": "selectionText",
+        "visible": false,
+        "w": 0,
+        "x": 26,
+        "y": 9
+    },
+    {
+        "class": "QLineEdit",
+        "h": 33,
+        "name": "serverSearch",
+        "visible": true,
+        "w": 268,
+        "x": 900,
+        "y": 114
+    },
+    {
+        "class": "QFrame",
+        "h": 39,
+        "name": "serverSearchFrame",
+        "visible": true,
+        "w": 270,
+        "x": 899,
+        "y": 113
+    },
+    {
+        "class": "QFrame",
+        "h": 462,
+        "name": "speedHistoryCard",
+        "visible": false,
+        "w": 307,
+        "x": 20,
+        "y": 518
+    },
+    {
+        "class": "QSplitter",
+        "h": 600,
+        "name": "splitter",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 113
+    },
+    {
+        "class": "QMenu",
+        "h": 30,
+        "name": "startPickMenu",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QWidget",
+        "h": 240,
+        "name": "statsPanelHost",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 473
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusCaption",
+        "visible": true,
+        "w": 245,
+        "x": 16,
+        "y": 730
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusCaption",
+        "visible": true,
+        "w": 196,
+        "x": 279,
+        "y": 730
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusCaption",
+        "visible": true,
+        "w": 196,
+        "x": 493,
+        "y": 730
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusCaption",
+        "visible": true,
+        "w": 196,
+        "x": 707,
+        "y": 730
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "statusCaption",
+        "visible": true,
+        "w": 176,
+        "x": 979,
+        "y": 734
+    },
+    {
+        "class": "QFrame",
+        "h": 56,
+        "name": "statusCard",
+        "visible": true,
+        "w": 1178,
+        "x": 1,
+        "y": 723
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "statusCell",
+        "visible": true,
+        "w": 245,
+        "x": 16,
+        "y": 730
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "statusCell",
+        "visible": true,
+        "w": 196,
+        "x": 279,
+        "y": 730
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "statusCell",
+        "visible": true,
+        "w": 196,
+        "x": 493,
+        "y": 730
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "statusCell",
+        "visible": true,
+        "w": 196,
+        "x": 707,
+        "y": 730
+    },
+    {
+        "class": "QToolButton",
+        "h": 22,
+        "name": "statusCellButton",
+        "visible": false,
+        "w": 22,
+        "x": 16,
+        "y": 730
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusValue",
+        "visible": true,
+        "w": 245,
+        "x": 16,
+        "y": 752
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusValue",
+        "visible": true,
+        "w": 196,
+        "x": 279,
+        "y": 752
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusValue",
+        "visible": true,
+        "w": 196,
+        "x": 493,
+        "y": 752
+    },
+    {
+        "class": "QLabel",
+        "h": 21,
+        "name": "statusValue",
+        "visible": true,
+        "w": 196,
+        "x": 707,
+        "y": 752
+    },
+    {
+        "class": "QLabel",
+        "h": 29,
+        "name": "stripHint",
+        "visible": false,
+        "w": 169,
+        "x": 955,
+        "y": 679
+    },
+    {
+        "class": "QToolButton",
+        "h": 29,
+        "name": "stripTab",
+        "visible": false,
+        "w": 63,
+        "x": 21,
+        "y": 679
+    },
+    {
+        "class": "QToolButton",
+        "h": 29,
+        "name": "stripTab",
+        "visible": false,
+        "w": 142,
+        "x": 86,
+        "y": 679
+    },
+    {
+        "class": "QToolButton",
+        "h": 29,
+        "name": "stripTab",
+        "visible": false,
+        "w": 159,
+        "x": 230,
+        "y": 679
+    },
+    {
+        "class": "QToolButton",
+        "h": 29,
+        "name": "stripTab",
+        "visible": false,
+        "w": 185,
+        "x": 391,
+        "y": 679
+    },
+    {
+        "class": "QToolButton",
+        "h": 18,
+        "name": "subAnnounceClose",
+        "visible": true,
+        "w": 18,
+        "x": 1136,
+        "y": 172
+    },
+    {
+        "class": "QLabel",
+        "h": 16,
+        "name": "subAnnounceIcon",
+        "visible": true,
+        "w": 16,
+        "x": 30,
+        "y": 173
+    },
+    {
+        "class": "QFrame",
+        "h": 30,
+        "name": "subAnnounceStrip",
+        "visible": true,
+        "w": 1142,
+        "x": 19,
+        "y": 166
+    },
+    {
+        "class": "QLabel",
+        "h": 18,
+        "name": "subAnnounceText",
+        "visible": true,
+        "w": 1074,
+        "x": 54,
+        "y": 172
+    },
+    {
+        "class": "QWidget",
+        "h": 43,
+        "name": "systemFooter",
+        "visible": true,
+        "w": 375,
+        "x": 20,
+        "y": 658
+    },
+    {
+        "class": "QCheckBox",
+        "h": 30,
+        "name": "system_dns",
+        "visible": false,
+        "w": 100,
+        "x": 1,
+        "y": 49
+    },
+    {
+        "class": "QLabel",
+        "h": 17,
+        "name": "tabCountBadge",
+        "visible": true,
+        "w": 35,
+        "x": 190,
+        "y": 484
+    },
+    {
+        "class": "QWidget",
+        "h": 39,
+        "name": "tableTools",
+        "visible": true,
+        "w": 350,
+        "x": 819,
+        "y": 113
+    },
+    {
+        "class": "ThroughputChart",
+        "h": 440,
+        "name": "throughputChart",
+        "visible": false,
+        "w": 285,
+        "x": 31,
+        "y": 527
+    },
+    {
+        "class": "QFrame",
+        "h": 48,
+        "name": "titleBar",
+        "visible": true,
+        "w": 1178,
+        "x": 1,
+        "y": 1
+    },
+    {
+        "class": "QLabel",
+        "h": 48,
+        "name": "titleBrand",
+        "visible": true,
+        "w": 72,
+        "x": 57,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 48,
+        "name": "titleClose",
+        "visible": true,
+        "w": 46,
+        "x": 1133,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 48,
+        "name": "titleMaximize",
+        "visible": true,
+        "w": 46,
+        "x": 1077,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 48,
+        "name": "titleMinimize",
+        "visible": true,
+        "w": 46,
+        "x": 1021,
+        "y": 1
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "toolButton_preferences",
+        "visible": true,
+        "w": 120,
+        "x": 151,
+        "y": 56
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "toolButton_program",
+        "visible": true,
+        "w": 125,
+        "x": 15,
+        "y": 56
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "toolButton_routing",
+        "visible": true,
+        "w": 122,
+        "x": 393,
+        "y": 56
+    },
+    {
+        "class": "StartStopButton",
+        "h": 40,
+        "name": "toolButton_startstop",
+        "visible": true,
+        "w": 40,
+        "x": 1129,
+        "y": 56
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "toolButton_testing",
+        "visible": true,
+        "w": 100,
+        "x": 282,
+        "y": 56
+    },
+    {
+        "class": "QToolButton",
+        "h": 38,
+        "name": "toolButton_tools",
+        "visible": true,
+        "w": 105,
+        "x": 526,
+        "y": 56
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "udpCopyButton",
+        "visible": false,
+        "w": 28,
+        "x": 569,
+        "y": 527
+    },
+    {
+        "class": "QFrame",
+        "h": 462,
+        "name": "udpHistoryCard",
+        "visible": false,
+        "w": 307,
+        "x": 335,
+        "y": 518
+    },
+    {
+        "class": "QAbstractButton",
+        "h": 20,
+        "name": "udpMonitorSwitch",
+        "visible": false,
+        "w": 38,
+        "x": 464,
+        "y": 531
+    },
+    {
+        "class": "QToolButton",
+        "h": 28,
+        "name": "udpTargetsButton",
+        "visible": false,
+        "w": 28,
+        "x": 603,
+        "y": 527
+    },
+    {
+        "class": "QPushButton",
+        "h": 28,
+        "name": "updatePrimaryButton",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QProgressBar",
+        "h": 3,
+        "name": "updateProgress",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QPushButton",
+        "h": 28,
+        "name": "updateSecondaryButton",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "UpdateStatusWidget",
+        "h": 50,
+        "name": "updateStatus",
+        "visible": false,
+        "w": 100,
+        "x": 0,
+        "y": 0
+    },
+    {
+        "class": "QLabel",
+        "h": 38,
+        "name": "updateStatusDetail",
+        "visible": false,
+        "w": 30,
+        "x": 60,
+        "y": 7
+    },
+    {
+        "class": "QLabel",
+        "h": 20,
+        "name": "updateStatusIcon",
+        "visible": false,
+        "w": 20,
+        "x": 14,
+        "y": 16
+    },
+    {
+        "class": "QLabel",
+        "h": 38,
+        "name": "updateStatusTitle",
+        "visible": false,
+        "w": 8,
+        "x": 43,
+        "y": 7
+    },
+    {
+        "class": "QLabel",
+        "cut": true,
+        "h": 24,
+        "name": "vCfgName",
+        "text": "Demo North · OpenConnect gateway · Helsinki backup connection",
+        "visible": true,
+        "w": 353,
+        "x": 796,
+        "y": 549
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vConns",
+        "visible": true,
+        "w": 355,
+        "x": 30,
+        "y": 658
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vCoreCpu",
+        "visible": true,
+        "w": 32,
+        "x": 352,
+        "y": 567
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vCoreRam",
+        "visible": true,
+        "w": 50,
+        "x": 716,
+        "y": 567
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vCountry",
+        "visible": true,
+        "w": 261,
+        "x": 888,
+        "y": 623
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vDbSize",
+        "visible": true,
+        "w": 76,
+        "x": 309,
+        "y": 682
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vOutIp",
+        "visible": true,
+        "w": 261,
+        "x": 888,
+        "y": 600
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vPing",
+        "visible": true,
+        "w": 261,
+        "x": 888,
+        "y": 577
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vRouteUpdate",
+        "visible": true,
+        "w": 273,
+        "x": 877,
+        "y": 682
+    },
+    {
+        "class": "QFrame",
+        "h": 33,
+        "name": "vSeparator",
+        "visible": true,
+        "w": 1,
+        "x": 145,
+        "y": 59
+    },
+    {
+        "class": "QFrame",
+        "h": 33,
+        "name": "vSeparator",
+        "visible": true,
+        "w": 1,
+        "x": 276,
+        "y": 59
+    },
+    {
+        "class": "QFrame",
+        "h": 33,
+        "name": "vSeparator",
+        "visible": true,
+        "w": 1,
+        "x": 387,
+        "y": 59
+    },
+    {
+        "class": "QFrame",
+        "h": 33,
+        "name": "vSeparator",
+        "visible": true,
+        "w": 1,
+        "x": 520,
+        "y": 59
+    },
+    {
+        "class": "QFrame",
+        "h": 33,
+        "name": "vSeparator",
+        "visible": true,
+        "w": 1,
+        "x": 985,
+        "y": 59
+    },
+    {
+        "class": "QFrame",
+        "h": 24,
+        "name": "vSeparator",
+        "visible": false,
+        "w": 1,
+        "x": 819,
+        "y": 113
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vSpeedDirect",
+        "visible": true,
+        "w": 273,
+        "x": 877,
+        "y": 658
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vSpeedProxy",
+        "visible": true,
+        "w": 279,
+        "x": 488,
+        "y": 658
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vSubUpdate",
+        "visible": true,
+        "w": 279,
+        "x": 488,
+        "y": 682
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vThroneCpu",
+        "visible": true,
+        "w": 32,
+        "x": 352,
+        "y": 548
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vThroneRam",
+        "visible": true,
+        "w": 50,
+        "x": 716,
+        "y": 548
+    },
+    {
+        "class": "QLabel",
+        "h": 19,
+        "name": "vUptime",
+        "visible": true,
+        "w": 76,
+        "x": 133,
+        "y": 682
+    },
+    {
+        "class": "QWidget",
+        "h": 306,
+        "name": "widget1",
+        "visible": true,
+        "w": 1158,
+        "x": 11,
+        "y": 159
+    }
+]

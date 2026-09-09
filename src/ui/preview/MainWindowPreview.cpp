@@ -37,6 +37,7 @@
 #include "include/ui/mainwindow_interface.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/dialog_basic_settings.h"
+#include "include/ui/stats/RuntimeStatsWidget.h"
 #include "include/ui/stats/diagnostics_window.h"
 #include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/widget/GroupTabBar.h"
@@ -52,6 +53,8 @@ void RunMainWindow(const QString &prefix) {
     }
     QSize previewSize(1180, 780);
     const QStringList arguments = QApplication::arguments();
+    if (arguments.contains(QStringLiteral("-ui-preview-panel-short")))
+        Configs::dataManager->settingsRepo->stats_panel_height = 150;
     if (arguments.contains(QStringLiteral("-ui-preview-update-ready"))) {
         if (auto *status = window->findChild<UpdateStatusWidget *>(QStringLiteral("updateStatus")))
             status->showReady(QStringLiteral("Throned-1.4.3-windows64.zip"));
@@ -315,6 +318,82 @@ void RunMainWindow(const QString &prefix) {
     // refresh_proxy_list() completes its model reset on the UI queue. Wait
     // for that reset before treating rowCount as the search baseline.
     QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
+        if (arguments.contains(QStringLiteral("-ui-preview-graph"))) {
+            auto *page = window->findChild<QWidget *>(QStringLiteral("graph_tab"));
+            for (auto *tabs: window->findChildren<QTabWidget *>()) {
+                if (tabs->indexOf(page) < 0) continue;
+                window->setStatsPanelOpen(true, false);
+                CaptureGraphPreview(window, tabs, prefix);
+                return;
+            }
+            qApp->exit(2);
+            return;
+        }
+        if (arguments.contains(QStringLiteral("-ui-preview-runtime-stats"))) {
+            if (arguments.contains(QStringLiteral("-ui-preview-runtime-light"))) {
+                themeManager()->system_palette = QPalette(QColor(QStringLiteral("#efefef")));
+                qApp->setPalette(themeManager()->system_palette);
+                themeManager()->ApplyTheme(QStringLiteral("System"), true);
+            }
+            auto *runtime = window->findChild<RuntimeStatsWidget *>(QStringLiteral("RuntimeStatsWidget"));
+            auto *runtimePage = window->findChild<QWidget *>(QStringLiteral("runtime_tab"));
+            QTabWidget *statsTabs = nullptr;
+            for (auto *tabs: window->findChildren<QTabWidget *>()) {
+                if (tabs->indexOf(runtimePage) >= 0) {
+                    statsTabs = tabs;
+                    break;
+                }
+            }
+            if (runtime == nullptr || statsTabs == nullptr) {
+                qWarning() << "The runtime stats preview is missing its tab or widget";
+                qApp->exit(2);
+                return;
+            }
+            window->setStatsPanelOpen(true, false);
+            statsTabs->setCurrentWidget(runtimePage);
+            runtime->applyPreviewState();
+            QTimer::singleShot(350, window, [window, prefix, runtime, arguments] {
+                QScrollArea *area = nullptr;
+                for (auto *candidate: window->findChildren<QScrollArea *>())
+                    if (candidate->widget() == runtime) area = candidate;
+                const bool shortPanel = arguments.contains(QStringLiteral("-ui-preview-panel-short"));
+                if (area == nullptr || area->horizontalScrollBar()->maximum() != 0 ||
+                    (area->verticalScrollBar()->maximum() > 0) != shortPanel) {
+                    qWarning() << "Runtime overview does not fit the activity panel";
+                    qApp->exit(2);
+                    return;
+                }
+                window->grab().save(prefix + QStringLiteral("-runtime-stats.png"), "PNG");
+                SaveGeometryReport(window, prefix + QStringLiteral("-runtime-stats.png"));
+                if (shortPanel) {
+                    area->verticalScrollBar()->setValue(area->verticalScrollBar()->maximum());
+                    window->grab().save(prefix + QStringLiteral("-runtime-bottom.png"), "PNG");
+                    qApp->exit(0);
+                    return;
+                }
+                if (arguments.contains(QStringLiteral("-ui-preview-runtime-endpoints"))) {
+                    auto *toggle = runtime->findChild<QToolButton *>(QStringLiteral("runtimeEndpoints"));
+                    auto *endpoints = runtime->findChild<QWidget *>(QStringLiteral("groupEndpoints"));
+                    if (toggle == nullptr || !toggle->isVisible() || endpoints == nullptr || endpoints->isVisible()) {
+                        qApp->exit(2);
+                        return;
+                    }
+                    toggle->click();
+                    QTimer::singleShot(150, window, [window, prefix, area, endpoints] {
+                        if (!endpoints->isVisible()) {
+                            qApp->exit(2);
+                            return;
+                        }
+                        area->ensureWidgetVisible(endpoints);
+                        window->grab().save(prefix + QStringLiteral("-runtime-endpoints.png"), "PNG");
+                        qApp->exit(0);
+                    });
+                    return;
+                }
+                qApp->exit(0);
+            });
+            return;
+        }
         if (arguments.contains(QStringLiteral("-ui-preview-quick-add"))) {
             CaptureQuickAdd(window, prefix, emptyPreview);
             return;

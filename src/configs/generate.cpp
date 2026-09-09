@@ -169,7 +169,11 @@ struct RoutingDeps {
         std::shared_ptr<Profile> chainWrapper;
     };
     QList<RouteOutboundGroup> routeOutboundGroups;
-    QList<QList<int>> auxEndpointGroups;
+    struct AuxEndpointGroup {
+        QList<int> hopIDs;
+        QList<int> innerHopIndexes;
+    };
+    QList<AuxEndpointGroup> auxEndpointGroups;
 };
 
 struct BuildPrerequisites {
@@ -450,6 +454,15 @@ QString genTunName() {
 
 // ------------------------------------------------------ profile queries
 
+// Build-scoped, so a concurrent test build on a worker thread cannot pollute the started profile's set.
+thread_local QSet<int> *buildProfileSink = nullptr;
+
+std::shared_ptr<Profile> getProfile(int id) {
+    auto ent = dataManager->profilesRepo->GetProfile(id);
+    if (buildProfileSink != nullptr && ent != nullptr) buildProfileSink->insert(id);
+    return ent;
+}
+
 bool isCustomFullConfig(const std::shared_ptr<Profile> &profile) {
     return profile->type == "custom" && profile->Custom() != nullptr &&
            profile->Custom()->type == Custom::CustomFullConfig;
@@ -469,7 +482,7 @@ bool proxyPathUsesXray(const std::shared_ptr<Profile> &ent) {
     if (ent->type == "chain") {
         if (auto chain = ent->Chain(); chain != nullptr) {
             for (int pid: chain->list) {
-                auto hop = dataManager->profilesRepo->GetProfile(pid);
+                auto hop = getProfile(pid);
                 if (hop != nullptr && usesXrayCore(hop)) return true;
             }
         }
@@ -478,7 +491,7 @@ bool proxyPathUsesXray(const std::shared_ptr<Profile> &ent) {
     if (ent->type == "autoselector") {
         const auto plan = PlanAutoSelector(ent);
         for (int pid: plan.build) {
-            auto member = dataManager->profilesRepo->GetProfile(pid);
+            auto member = getProfile(pid);
             if (member != nullptr && usesXrayCore(member)) return true;
         }
         return false;
@@ -518,7 +531,7 @@ std::shared_ptr<Profile> resolveExtraCoreProfile(const std::shared_ptr<Profile> 
     if (ent->type != "chain") return nullptr;
     auto chain = ent->Chain();
     if (chain == nullptr || chain->list.isEmpty()) return nullptr;
-    auto firstEnt = dataManager->profilesRepo->GetProfile(chain->list[0]);
+    auto firstEnt = getProfile(chain->list[0]);
     if (firstEnt != nullptr && firstEnt->outbound != nullptr && firstEnt->outbound->IsExtraCore())
         return firstEnt;
     return nullptr;
@@ -561,7 +574,7 @@ void calculatePrerequisites(BuildContext &ctx) {
     if (proxyPathUsesXray(ctx.ent)) ctx.proxyUsesXray = true;
     for (const auto &item: *neededOutbounds) {
         if (item < 0) continue;
-        auto neededEnt = dataManager->profilesRepo->GetProfile(item);
+        auto neededEnt = getProfile(item);
         if (neededEnt == nullptr) {
             ctx.error = "The routing profile is referencing outbounds that no longer exist, consider revising your settings";
             return;
@@ -577,7 +590,7 @@ void calculatePrerequisites(BuildContext &ctx) {
                 return;
             }
             for (int hopID: chain->list) {
-                auto hopEnt = dataManager->profilesRepo->GetProfile(hopID);
+                auto hopEnt = getProfile(hopID);
                 if (hopEnt == nullptr) {
                     ctx.error = "Chain outbound in routing profile contains a missing profile";
                     return;
@@ -612,7 +625,7 @@ void calculatePrerequisites(BuildContext &ctx) {
         }
         int auxSuffix = 0;
         for (int endpointID: routeChain->endpointProfileIDs) {
-            auto endpointEnt = dataManager->profilesRepo->GetProfile(endpointID);
+            auto endpointEnt = getProfile(endpointID);
             if (endpointEnt == nullptr || endpointEnt->outbound == nullptr) {
                 ctx.error = QObject::tr("The routing profile lists an endpoint profile (id %1) that no longer exists").arg(endpointID);
                 return;
@@ -624,7 +637,7 @@ void calculatePrerequisites(BuildContext &ctx) {
                 ctx.error = QObject::tr("%1 is listed as a routing profile endpoint but is empty or corrupted").arg(endpointName);
                 return;
             }
-            auto exitEnt = dataManager->profilesRepo->GetProfile(hopIDs.first());
+            auto exitEnt = getProfile(hopIDs.first());
             if (exitEnt == nullptr || exitEnt->outbound == nullptr) {
                 ctx.error = QObject::tr("%1 is listed as a routing profile endpoint but a hop of it no longer exists").arg(endpointName);
                 return;
@@ -634,7 +647,7 @@ void calculatePrerequisites(BuildContext &ctx) {
                 return;
             }
             for (int hopID: hopIDs) {
-                auto hopEnt = dataManager->profilesRepo->GetProfile(hopID);
+                auto hopEnt = getProfile(hopID);
                 if (hopEnt == nullptr || hopEnt->outbound == nullptr) {
                     ctx.error = QObject::tr("%1 is listed as a routing profile endpoint but a hop of it no longer exists").arg(endpointName);
                     return;
@@ -659,7 +672,17 @@ void calculatePrerequisites(BuildContext &ctx) {
             }
             usedProfileIDs << endpointID;
             for (int hopID: hopIDs) usedProfileIDs << hopID;
-            preReqs.routing.auxEndpointGroups << hopIDs;
+            RoutingDeps::AuxEndpointGroup auxGroup{hopIDs, {}};
+            if (routeChain->innerHopEndpointIDs.contains(endpointID)) {
+                // preferred_by needs an outbound that advertises routes; naming any other hop fails core start.
+                for (qsizetype i = 1; i < hopIDs.size(); i++) {
+                    const auto hopEnt = getProfile(hopIDs[i]);
+                    if (hopEnt == nullptr || (hopEnt->type != "openvpn" && hopEnt->type != "openconnect")) continue;
+                    auxGroup.innerHopIndexes << static_cast<int>(i);
+                    preReqs.routing.outboundMap[hopIDs[i]] = hopTag(tags::auxEndpointPrefix, auxSuffix + static_cast<int>(i));
+                }
+            }
+            preReqs.routing.auxEndpointGroups << auxGroup;
             preReqs.routing.outboundMap[endpointID] = hopTag(tags::auxEndpointPrefix, auxSuffix);
             auxSuffix += static_cast<int>(hopIDs.size());
         }
@@ -701,7 +724,7 @@ void calculatePrerequisites(BuildContext &ctx) {
         if (auto frontEntID = group->front_proxy_id; frontEntID >= 0) groupEnts << frontEntID;
         if (auto landingEntID = group->landing_proxy_id; landingEntID >= 0) groupEnts << landingEntID;
         for (const auto &id: groupEnts) {
-            if (auto pe = dataManager->profilesRepo->GetProfile(id); pe != nullptr && usesXrayCore(pe)) ctx.proxyUsesXray = true;
+            if (auto pe = getProfile(id); pe != nullptr && usesXrayCore(pe)) ctx.proxyUsesXray = true;
         }
     }
 
@@ -1319,7 +1342,7 @@ void entIDListtoEntList(BuildContext &ctx, const QList<int> &entIDs, QList<std::
             ents.append(getWarpProfile());
             continue;
         }
-        auto ent = dataManager->profilesRepo->GetProfile(id);
+        auto ent = getProfile(id);
         if (ent == nullptr) {
             error = "Null proxy in chain, you may want to check your configs";
             return;
@@ -1361,7 +1384,7 @@ void entIDListtoEntList(BuildContext &ctx, const QList<int> &entIDs, QList<std::
 }
 
 QList<int> unwrapChain(int entID) {
-    auto ent = dataManager->profilesRepo->GetProfile(entID);
+    auto ent = getProfile(entID);
     if (ent == nullptr) {
         return {};
     }
@@ -1381,6 +1404,7 @@ struct hopChainOptions {
     bool markIngress = false;
     bool warpWrap = false;
     bool auxiliary = false;
+    QSet<QString> addressableTags;
 };
 
 void buildSingboxChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> &ents, const hopChainOptions &opts) {
@@ -1394,7 +1418,7 @@ void buildSingboxChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> 
         if (opts.markIngress && idx == 0) ctx.singIngressTags << tag;
         const auto &ent = ents[idx];
         // Only the head hop (and warp's wrapped outbound) gets a tag rules can name.
-        const bool addressableHop = idx == 0 || (opts.warpWrap && idx == 1);
+        const bool addressableHop = idx == 0 || (opts.warpWrap && idx == 1) || opts.addressableTags.contains(tag);
         if (addressableHop && (ent->type == "openvpn" || ent->type == "openconnect")) {
             ctx.result->vpnEndpointProfiles.insert(tag, ent->id);
             const auto *ovpn = ent->OpenVPN();
@@ -1454,9 +1478,14 @@ void buildXrayChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> &en
             return;
         }
         object["tag"] = tag;
-        if (!nextTag.isEmpty() && (opts.link || bridgeConfig.needed)) object["proxySettings"] = QJsonObject{
-                                                                          {"tag", nextTag},
-                                                                          {"transportLayer", true}};
+        // Xray removed outbound-level proxySettings; sockopt.dialerProxy is its 1:1 replacement.
+        if (!nextTag.isEmpty() && (opts.link || bridgeConfig.needed)) {
+            auto streamObj = object["streamSettings"].toObject();
+            auto sockoptObj = streamObj["sockopt"].toObject();
+            sockoptObj["dialerProxy"] = nextTag;
+            streamObj["sockopt"] = sockoptObj;
+            object["streamSettings"] = streamObj;
+        }
         ctx.xrayOutbounds.append(object);
     }
     if (bridgeConfig.needed) {
@@ -1487,6 +1516,7 @@ struct ChainBuildRequest {
     bool soleXrayInbound = false;
     bool warpWrap = false;
     bool auxiliary = false;
+    QSet<QString> addressableTags;
 };
 
 QString buildOutboundChain(BuildContext &ctx, const ChainBuildRequest &req) {
@@ -1589,6 +1619,7 @@ QString buildOutboundChain(BuildContext &ctx, const ChainBuildRequest &req) {
         .markIngress = false,
         .warpWrap = req.warpWrap,
         .auxiliary = req.auxiliary,
+        .addressableTags = req.addressableTags,
     };
     const int tailingStartSuffix = req.startSuffix + static_cast<int>(initialSingEnts.size());
     if (!initialSingEnts.isEmpty()) {
@@ -1636,7 +1667,7 @@ memberBridges bridgesFor(const QList<int> &hopIDs) {
     memberBridges needed;
     bool inXray = false;
     for (int id: hopIDs) {
-        auto hop = dataManager->profilesRepo->GetProfile(id);
+        auto hop = getProfile(id);
         if (hop == nullptr || hop->outbound == nullptr) continue;
         if (hop->outbound->IsXrayFullConfig()) needed.xrayFullConfig = true;
         const bool xray = hop->outbound->IsXray();
@@ -1656,7 +1687,7 @@ QSet<int> invalidProfileIDs(const QList<int> &ids) {
     pool.setMaxThreadCount(10);
     for (int id: ids) {
         pool.start([&, id] {
-            const auto ent = dataManager->profilesRepo->GetProfile(id);
+            const auto ent = getProfile(id);
             if (ent == nullptr || IsValid(ent)) return;
             QMutexLocker lock(&mu);
             invalid.insert(id);
@@ -1700,7 +1731,7 @@ QString buildAutoSelectorGroup(BuildContext &ctx, const std::shared_ptr<Group> &
     const auto invalid = invalidProfileIDs(plan.build);
     for (int id: plan.build) {
         if (invalid.contains(id)) continue;
-        auto member = dataManager->profilesRepo->GetProfile(id);
+        auto member = getProfile(id);
         if (member == nullptr) continue;
         QList<int> hopIDs;
         if (group->landing_proxy_id >= 0) hopIDs.append(group->landing_proxy_id);
@@ -1888,18 +1919,23 @@ void buildOutboundsSection(BuildContext &ctx) {
     // preferred_by resolves an endpoint out of the endpoint manager, so nothing detours into these.
     if (!ctx.forTest) {
         int auxSuffix = 0;
-        for (const auto &hopIDs: ctx.prerequisites.routing.auxEndpointGroups) {
+        for (const auto &group: ctx.prerequisites.routing.auxEndpointGroups) {
+            QList<QString> innerTags;
+            for (const int idx: group.innerHopIndexes)
+                innerTags << hopTag(tags::auxEndpointPrefix, auxSuffix + idx);
             const auto tag = buildOutboundChain(ctx, {
-                                                         .hopIDs = hopIDs,
+                                                         .hopIDs = group.hopIDs,
                                                          .prefix = tags::auxEndpointPrefix,
                                                          .includeProxy = false,
-                                                         .link = hopIDs.size() > 1,
+                                                         .link = group.hopIDs.size() > 1,
                                                          .startSuffix = auxSuffix,
                                                          .auxiliary = true,
+                                                         .addressableTags = QSet<QString>(innerTags.cbegin(), innerTags.cend()),
                                                      });
             if (!ctx.error.isEmpty()) return;
             ctx.vpnAuxTags << tag;
-            auxSuffix += static_cast<int>(hopIDs.size());
+            ctx.vpnAuxTags << innerTags;
+            auxSuffix += static_cast<int>(group.hopIDs.size());
         }
     }
 
@@ -2312,7 +2348,7 @@ testCandidateKind classifyTestCandidate(const std::shared_ptr<Profile> &profile)
     if (profile->type == "chain") {
         if (auto chain = profile->Chain(); chain != nullptr) {
             for (int hopID: chain->list) {
-                auto hopEnt = dataManager->profilesRepo->GetProfile(hopID);
+                auto hopEnt = getProfile(hopID);
                 if (hopEnt != nullptr && hopEnt->outbound != nullptr &&
                     (hopEnt->outbound->IsExtraCore() || hopEnt->outbound->IsXrayFullConfig()))
                     return {testCandidate::Skip, "Skipping chain with terminal (extra-core or Xray full config) hop (cannot test)"};
@@ -2376,6 +2412,7 @@ std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Prof
                                                       ConfigBuildPurpose purpose) {
     if (ent->type == "custom") {
         auto res = std::make_shared<BuildConfigResult>();
+        res->involvedProfiles = {ent->id};
         auto custom = ent->Custom();
         if (custom == nullptr) {
             res->error = "Corrupted data, needed custom ent, got nullptr";
@@ -2424,6 +2461,9 @@ std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Prof
 
     BuildContext ctx;
     ctx.ent = ent;
+    ctx.result->involvedProfiles = {ent->id};
+    buildProfileSink = &ctx.result->involvedProfiles;
+    const auto clearProfileSink = qScopeGuard([] { buildProfileSink = nullptr; });
 
     auto failed = [&ctx] {
         if (ctx.error.isEmpty()) return false;
@@ -2516,9 +2556,22 @@ bool CanBeAuxEndpoint(const std::shared_ptr<Profile> &ent) {
     // unwrapChain reverses the stored list, so hop 0 is the exit.
     const auto hopIDs = unwrapChain(ent->id);
     if (hopIDs.isEmpty()) return false;
-    const auto exitEnt = dataManager->profilesRepo->GetProfile(hopIDs.first());
+    const auto exitEnt = getProfile(hopIDs.first());
     if (exitEnt == nullptr) return false;
     return exitEnt->type == "openvpn" || exitEnt->type == "openconnect";
+}
+
+QList<int> AuxEndpointInnerHops(int endpointProfileID) {
+    const auto ent = getProfile(endpointProfileID);
+    if (ent == nullptr || ent->type != "chain" || !CanBeAuxEndpoint(ent)) return {};
+    QList<int> inner;
+    const auto hopIDs = unwrapChain(endpointProfileID);
+    for (qsizetype i = 1; i < hopIDs.size(); i++) {
+        const auto hopEnt = getProfile(hopIDs[i]);
+        if (hopEnt == nullptr || hopEnt->outbound == nullptr) continue;
+        if (hopEnt->type == "openvpn" || hopEnt->type == "openconnect") inner << hopIDs[i];
+    }
+    return inner;
 }
 
 bool IsValid(const std::shared_ptr<Profile> &ent) {
@@ -2537,7 +2590,7 @@ bool IsValid(const std::shared_ptr<Profile> &ent) {
             return false;
         }
         for (int eId: chain->list) {
-            auto e = dataManager->profilesRepo->GetProfile(eId);
+            auto e = getProfile(eId);
             if (e == nullptr) {
                 MW_show_log("Null ent in validator");
                 return false;

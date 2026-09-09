@@ -79,6 +79,27 @@ add_ui_scenario(quick-add-empty GROUPS all
     EXPECTED quick-add-empty-empty-group.png quick-add-empty-quick-add.png
         quick-add-empty-quick-add-detected.png quick-add-empty-quick-add-manual-profile.png
         quick-add-empty-quick-add-manual-group.png)
+add_ui_scenario(runtime-stats GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-runtime-stats
+    EXPECTED runtime-stats-runtime-stats.png)
+add_ui_scenario(runtime-stats-short GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite"
+        -ui-preview-runtime-stats -ui-preview-panel-short
+    EXPECTED runtime-stats-short-runtime-stats.png runtime-stats-short-runtime-bottom.png)
+add_ui_scenario(graph-panel GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-graph
+    EXPECTED graph-panel-graph.png graph-panel-graph-controls.png graph-panel-graph-targets.png)
+add_ui_scenario(graph-panel-short GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-graph -ui-preview-panel-short
+    EXPECTED graph-panel-short-graph.png graph-panel-short-graph-bottom.png)
+add_ui_scenario(runtime-stats-compact GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite"
+        -ui-preview-runtime-stats -ui-preview-size 960x780 -lang en
+    EXPECTED runtime-stats-compact-runtime-stats.png)
+add_ui_scenario(runtime-stats-endpoints GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite"
+        -ui-preview-runtime-stats -ui-preview-runtime-endpoints -ui-preview-runtime-light
+    EXPECTED runtime-stats-endpoints-runtime-stats.png runtime-stats-endpoints-runtime-endpoints.png)
 add_ui_scenario(selection GROUPS smoke all
     ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-selection
     EXPECTED selection-selected.png selection-cleared.png)

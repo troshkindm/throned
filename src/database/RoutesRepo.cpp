@@ -25,6 +25,7 @@ void RoutesRepo::createTables() const {
                 remote_last_update INTEGER NOT NULL DEFAULT 0,
                 apply_profile_rules INTEGER NOT NULL DEFAULT 1,
                 endpoint_profile_ids TEXT NOT NULL DEFAULT '[]',
+                inner_hop_endpoint_ids TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -49,6 +50,8 @@ void RoutesRepo::createTables() const {
         db.exec("ALTER TABLE route_profiles ADD COLUMN apply_profile_rules INTEGER NOT NULL DEFAULT 1");
     if (!routeProfilesColumnExists("endpoint_profile_ids"))
         db.exec("ALTER TABLE route_profiles ADD COLUMN endpoint_profile_ids TEXT NOT NULL DEFAULT '[]'");
+    if (!routeProfilesColumnExists("inner_hop_endpoint_ids"))
+        db.exec("ALTER TABLE route_profiles ADD COLUMN inner_hop_endpoint_ids TEXT NOT NULL DEFAULT '[]'");
 
     db.exec(R"(
             CREATE TABLE IF NOT EXISTS route_rules (
@@ -241,6 +244,10 @@ QJsonObject RoutesRepo::routeProfileToJson(const RouteProfile* routeProfile) con
     for (const int endpointID: routeProfile->endpointProfileIDs) endpointsArray.append(endpointID);
     json["endpointProfileIDs"] = endpointsArray;
 
+    QJsonArray innerHopsArray;
+    for (const int endpointID: routeProfile->innerHopEndpointIDs) innerHopsArray.append(endpointID);
+    json["innerHopEndpointIDs"] = innerHopsArray;
+
     QJsonArray rulesArray;
     for (const auto& rule: routeProfile->Rules) {
         rulesArray.append(routeRuleToJson(rule.get()));
@@ -268,6 +275,9 @@ std::shared_ptr<RouteProfile> RoutesRepo::routeProfileFromJson(const QJsonObject
     routeProfile->remoteLastUpdate = static_cast<qint64>(json["remoteLastUpdate"].toDouble());
     for (const auto& endpointValue: json["endpointProfileIDs"].toArray()) {
         if (endpointValue.isDouble()) routeProfile->endpointProfileIDs.append(endpointValue.toInt());
+    }
+    for (const auto& endpointValue: json["innerHopEndpointIDs"].toArray()) {
+        if (endpointValue.isDouble()) routeProfile->innerHopEndpointIDs.append(endpointValue.toInt());
     }
 
     if (json.contains("rules") && json["rules"].isArray()) {
@@ -302,10 +312,15 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
     for (const int endpointID: routeProfile->endpointProfileIDs) endpointsArray.append(endpointID);
     const QString endpointsJson = QString::fromUtf8(QJsonDocument(endpointsArray).toJson(QJsonDocument::Compact));
 
+    QJsonArray innerHopsArray;
+    for (const int endpointID: routeProfile->innerHopEndpointIDs) innerHopsArray.append(endpointID);
+    const QString innerHopsJson = QString::fromUtf8(QJsonDocument(innerHopsArray).toJson(QJsonDocument::Compact));
+
     db.execThrow(R"(
             INSERT INTO route_profiles (id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
-                is_remote, remote_url, auto_update, remote_last_update, apply_profile_rules, endpoint_profile_ids)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_remote, remote_url, auto_update, remote_last_update, apply_profile_rules,
+                endpoint_profile_ids, inner_hop_endpoint_ids)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name, default_outbound_id = excluded.default_outbound_id,
                 is_raw = excluded.is_raw, raw_route = excluded.raw_route,
@@ -314,6 +329,7 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
                 auto_update = excluded.auto_update, remote_last_update = excluded.remote_last_update,
                 apply_profile_rules = excluded.apply_profile_rules,
                 endpoint_profile_ids = excluded.endpoint_profile_ids,
+                inner_hop_endpoint_ids = excluded.inner_hop_endpoint_ids,
                 updated_at = strftime('%s', 'now')
         )",
                  id,
@@ -327,7 +343,8 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
                  routeProfile->autoUpdate ? 1 : 0,
                  static_cast<long long>(routeProfile->remoteLastUpdate),
                  routeProfile->applyProfileRules ? 1 : 0,
-                 endpointsJson.toStdString());
+                 endpointsJson.toStdString(),
+                 innerHopsJson.toStdString());
 
     db.execThrow("DELETE FROM route_rules WHERE route_profile_id = ?", id);
 
@@ -492,6 +509,8 @@ std::shared_ptr<RouteProfile> RoutesRepo::routeProfileFromProfileRow(SQLite::Sta
     json["applyProfileRules"] = stmt.getColumn(10).getInt() != 0;
     const auto endpointsDoc = QJsonDocument::fromJson(QString::fromStdString(stmt.getColumn(11).getText()).toUtf8());
     json["endpointProfileIDs"] = endpointsDoc.isArray() ? endpointsDoc.array() : QJsonArray();
+    const auto innerHopsDoc = QJsonDocument::fromJson(QString::fromStdString(stmt.getColumn(12).getText()).toUtf8());
+    json["innerHopEndpointIDs"] = innerHopsDoc.isArray() ? innerHopsDoc.array() : QJsonArray();
     json["rules"] = QJsonArray();
     return routeProfileFromJson(json);
 }
@@ -529,7 +548,8 @@ void RoutesRepo::loadRulesForProfileIdsChunk(const QList<int>& profileIds, std::
 std::shared_ptr<RouteProfile> RoutesRepo::loadFromDatabase(int id) const {
     auto profileQuery = db.query(R"(
             SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
-                   is_remote, remote_url, auto_update, remote_last_update, apply_profile_rules, endpoint_profile_ids
+                   is_remote, remote_url, auto_update, remote_last_update, apply_profile_rules,
+                   endpoint_profile_ids, inner_hop_endpoint_ids
             FROM route_profiles WHERE id = ?
         )",
                                  id);
@@ -643,7 +663,7 @@ QList<std::shared_ptr<RouteProfile>> RoutesRepo::GetAllRouteProfiles() const {
     QList<int> idsInOrder;
     QSet<int> cachedProfiles;
 
-    auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, apply_profile_rules, endpoint_profile_ids FROM route_profiles ORDER BY id");
+    auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, apply_profile_rules, endpoint_profile_ids, inner_hop_endpoint_ids FROM route_profiles ORDER BY id");
     if (!profileQuery) return routeProfiles;
 
     QMutexLocker locker(&mutex);

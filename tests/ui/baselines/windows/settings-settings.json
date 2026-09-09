@@ -3640,8 +3640,8 @@
         "h": 37,
         "name": "settingsSecondaryButton",
         "visible": false,
-        "w": 86,
-        "x": 529,
+        "w": 101,
+        "x": 519,
         "y": 410
     },
     {
@@ -3649,8 +3649,8 @@
         "h": 37,
         "name": "settingsSecondaryButton",
         "visible": false,
-        "w": 86,
-        "x": 621,
+        "w": 81,
+        "x": 626,
         "y": 410
     },
     {
@@ -4423,7 +4423,7 @@
         "h": 37,
         "name": "url_scheme_status",
         "visible": false,
-        "w": 86,
+        "w": 76,
         "x": 437,
         "y": 410
     },
@@ -4500,13 +4500,13 @@
         "y": 222
     },
     {
-        "class": "QLineEdit",
-        "h": 27,
+        "class": "QComboBox",
+        "h": 29,
         "name": "xray_geoip_url",
         "visible": false,
         "w": 172,
         "x": 326,
-        "y": 981
+        "y": 980
     },
     {
         "class": "QWidget",
@@ -4518,13 +4518,13 @@
         "y": 394
     },
     {
-        "class": "QLineEdit",
-        "h": 27,
+        "class": "QComboBox",
+        "h": 29,
         "name": "xray_geosite_url",
         "visible": false,
         "w": 172,
         "x": 326,
-        "y": 1057
+        "y": 1056
     },
     {
         "class": "QWidget",

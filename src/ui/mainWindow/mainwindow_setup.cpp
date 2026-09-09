@@ -29,9 +29,9 @@
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/stats/dialog_traffic_stats.h"
-#include "include/ui/stats/dialog_runtime_stats.h"
 #include "include/ui/widget/GroupOverflowMenu.h"
 #include "include/ui/widget/GroupTabBar.h"
+#include "include/ui/stats/RuntimeStatsWidget.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedTitleBar.h"
@@ -80,6 +80,7 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QPointer>
 #include <QRandomGenerator>
@@ -1572,7 +1573,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     ui->menubar->setVisible(false);
     connect(ui->actionRuntime_Stats, &QAction::triggered, this, [=, this]() {
-        USE_DIALOG(DialogRuntimeStats)
+        ui->stats_widget->setCurrentWidget(ui->runtime_tab);
+        setStatsPanelOpen(true);
     });
     ui->actionTraffic_Stats->setVisible(!Configs::dataManager->settingsRepo->disable_traffic_aggregation);
     connect(ui->actionTraffic_Stats, &QAction::triggered, this, [=, this]() {
@@ -1640,15 +1642,38 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         applyConnectionSort(sortType);
     });
 
-    speedChartWidget = new ThroughputChart(this);
+    auto *graphContent = new QWidget(ui->graph_tab);
+    graphContent->setObjectName(QStringLiteral("activityGraphs"));
+    auto *graphLayout = new QHBoxLayout(graphContent);
+    graphLayout->setContentsMargins(8, 6, 8, 12);
+    graphLayout->setSpacing(8);
+    auto *graphScroll = new QScrollArea(ui->graph_tab);
+    graphScroll->setObjectName(QStringLiteral("graphScroll"));
+    graphScroll->setFrameShape(QFrame::NoFrame);
+    graphScroll->setWidgetResizable(true);
+    graphScroll->setWidget(graphContent);
+    graphScroll->setAutoFillBackground(false);
+    graphScroll->viewport()->setAutoFillBackground(false);
+    graphContent->setAutoFillBackground(false);
+    graphScroll->setStyleSheet(QStringLiteral("QScrollArea { background: transparent; border: none; }"));
+    ui->graph_tab->layout()->setContentsMargins(1, 0, 1, 0);
+    ui->graph_tab->layout()->addWidget(graphScroll);
+
+    speedChartWidget = new ThroughputChart(graphContent);
     speedChartWidget->setObjectName(QStringLiteral("throughputChart"));
-    ui->graph_tab->layout()->addWidget(speedChartWidget);
+    auto *speedCard = new QFrame(graphContent);
+    speedCard->setObjectName(QStringLiteral("speedHistoryCard"));
+    auto *speedLayout = new QVBoxLayout(speedCard);
+    speedLayout->setContentsMargins(10, 8, 10, 12);
+    speedLayout->addWidget(speedChartWidget);
+    graphLayout->addWidget(speedCard, 1);
 
     // Second column: UDP round trip over time. Off by default because each sample
     // costs a probe through the running core.
-    auto *pingColumn = new QWidget(this);
+    auto *pingColumn = new QFrame(graphContent);
+    pingColumn->setObjectName(QStringLiteral("udpHistoryCard"));
     auto *pingColumnLayout = new QVBoxLayout(pingColumn);
-    pingColumnLayout->setContentsMargins(4, 4, 4, 4);
+    pingColumnLayout->setContentsMargins(10, 8, 10, 12);
     pingColumnLayout->setSpacing(4);
     auto *pingHeader = new QWidget(pingColumn);
     auto *pingHeaderLayout = new QHBoxLayout(pingHeader);
@@ -1656,22 +1681,35 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     pingHeaderLayout->setSpacing(6);
     pingMonitorToggle = new QCheckBox(tr("Monitor UDP"), pingHeader);
     pingMonitorToggle->setToolTip(tr("Continuously probes the selected DNS-over-UDP targets through the running profile."));
-    pingHeaderLayout->addWidget(pingMonitorToggle);
+    pingMonitorToggle->hide();
+    auto *pingToggle = new ThronedToggle(false, pingHeader);
+    pingToggle->setObjectName(QStringLiteral("udpMonitorSwitch"));
+    pingToggle->setAccessibleName(tr("Monitor UDP"));
+    pingToggle->setToolTip(pingMonitorToggle->toolTip());
+    pingToggle->bindTo(pingMonitorToggle);
+    auto *pingTitle = new QLabel(tr("Monitor UDP"), pingHeader);
+    pingTitle->setBuddy(pingToggle);
+    pingHeaderLayout->addWidget(pingTitle);
+    pingHeaderLayout->addWidget(pingToggle);
     pingHeaderLayout->addStretch(1);
-    auto *pingCopyButton = new QPushButton(tr("Copy Diagnostics"), pingHeader);
-    pingCopyButton->setObjectName(QStringLiteral("routeSecondaryButton"));
+    auto *pingCopyButton = new QToolButton(pingHeader);
+    pingCopyButton->setObjectName(QStringLiteral("udpCopyButton"));
+    pingCopyButton->setAccessibleName(tr("Copy Diagnostics"));
+    pingCopyButton->setAutoRaise(true);
     pingCopyButton->setCursor(Qt::PointingHandCursor);
-    pingCopyButton->setMaximumHeight(24);
+    pingCopyButton->setFixedSize(28, 28);
     pingCopyButton->setToolTip(tr("Copies the ping history and the rest of the diagnostics, with secrets masked."));
-    connect(pingCopyButton, &QPushButton::clicked, this, [this] { copyDiagnostics(); });
+    connect(pingCopyButton, &QToolButton::clicked, this, [this] { copyDiagnostics(); });
     pingHeaderLayout->addWidget(pingCopyButton);
     pingTargetsButton = new QToolButton(pingHeader);
     pingTargetsButton->setObjectName(QStringLiteral("udpTargetsButton"));
     pingTargetsButton->setAutoRaise(true);
-    pingTargetsButton->setIcon(style()->standardIcon(QStyle::SP_FileDialogListView));
+    pingTargetsButton->setToolTip(tr("UDP targets"));
+    pingTargetsButton->setAccessibleName(tr("UDP targets"));
+    pingTargetsButton->setCursor(Qt::PointingHandCursor);
     pingTargetsButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
     pingTargetsButton->setPopupMode(QToolButton::InstantPopup);
-    pingTargetsButton->setFixedSize(26, 24);
+    pingTargetsButton->setFixedSize(28, 28);
     auto *pingTargetsMenu = new QMenu(pingTargetsButton);
     pingTargetsButton->setMenu(pingTargetsMenu);
     connect(pingTargetsMenu, &QMenu::aboutToShow, this, [this] { rebuildPingTargetsMenu(); });
@@ -1695,19 +1733,14 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         "a triangle is a latency spike above the current scale."));
     pingColumnLayout->addWidget(pingChartWidget, 1);
     setPingMonitorTargets(pingMonitorTargets(), false);
-    if (auto *graphLayout = qobject_cast<QHBoxLayout *>(ui->graph_tab->layout())) {
-        graphLayout->addWidget(pingColumn);
-        graphLayout->setStretch(0, 1);
-        graphLayout->setStretch(1, 1);
-    } else {
-        ui->graph_tab->layout()->addWidget(pingColumn);
-    }
+    graphLayout->addWidget(pingColumn, 1);
 
     pingMonitorTimer = new QTimer(this);
     pingMonitorTimer->setInterval(2000);
     connect(pingMonitorTimer, &QTimer::timeout, this, [this] { pollPingMonitor(); });
     connect(pingMonitorToggle, &QCheckBox::toggled, this, [this](const bool enabled) {
         Configs::dataManager->settingsRepo->monitor_ping = enabled;
+        if (Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview"))) return;
         if (enabled) {
             pingMonitorTimer->start();
             pollPingMonitor();
@@ -1720,6 +1753,35 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         }
     });
     pingMonitorToggle->setChecked(Configs::dataManager->settingsRepo->monitor_ping);
+
+    runtimeStatsWidget = new RuntimeStatsWidget(this);
+    auto *runtimeScroll = new QScrollArea(this);
+    runtimeScroll->setFrameShape(QFrame::NoFrame);
+    runtimeScroll->setWidgetResizable(true);
+    runtimeScroll->setWidget(runtimeStatsWidget);
+    runtimeScroll->setAutoFillBackground(false);
+    runtimeScroll->viewport()->setAutoFillBackground(false);
+    runtimeStatsWidget->setAutoFillBackground(false);
+    runtimeScroll->setStyleSheet(QStringLiteral("QScrollArea { background: transparent; border: none; }"));
+    const auto applyHistoryCards = [this, speedCard, pingColumn, pingCopyButton, pingToggle] {
+        const auto colors = themeManager()->Colors();
+        const auto sheet = QStringLiteral(
+                               "QFrame#speedHistoryCard, QFrame#udpHistoryCard {"
+                               " background: %1; border: 1px solid %2; border-radius: 7px; }"
+                               "QToolButton#udpCopyButton, QToolButton#udpTargetsButton {"
+                               " background: transparent; border: 1px solid %2; border-radius: 5px; padding: 4px; }"
+                               "QToolButton#udpCopyButton:hover, QToolButton#udpTargetsButton:hover { background: %3; }"
+                               "QToolButton#udpTargetsButton::menu-indicator { image: none; width: 0; }")
+                               .arg(colors.window.name(), colors.border.name(), colors.surfaceHover.name());
+        speedCard->setStyleSheet(sheet);
+        pingColumn->setStyleSheet(sheet);
+        pingCopyButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Copy, colors.textMuted, 18));
+        pingTargetsButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune, colors.textMuted, 18));
+        pingToggle->update();
+    };
+    connect(themeManager(), &ThemeManager::themeChanged, this, applyHistoryCards);
+    applyHistoryCards();
+    ui->runtime_tab->layout()->addWidget(runtimeScroll);
 
     // table UI: model-backed view with on-demand row data
     profilesTableModel = new ProfilesTableModel(this);

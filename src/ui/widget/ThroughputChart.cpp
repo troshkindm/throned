@@ -14,6 +14,7 @@ constexpr int kPadLeft = 10;
 constexpr int kPadRight = 66; // room for the scale labels
 constexpr int kPadTop = 10;
 constexpr int kLegendHeight = 26;
+constexpr int kBottomPadding = 6;
 constexpr int kBarSlot = 6; // bar plus gap, in the retro style
 
 QString seriesLabel(int series) {
@@ -113,7 +114,7 @@ void ThroughputChart::paintEvent(QPaintEvent *) {
     const auto colors = themeManager()->Colors();
     const QRectF plot(qreal(kPadLeft), qreal(kPadTop),
                       qMax(10.0, qreal(width() - kPadLeft - kPadRight)),
-                      qMax(10.0, qreal(height() - kPadTop - kLegendHeight)));
+                      qMax(10.0, qreal(height() - kPadTop - kLegendHeight - kBottomPadding)));
 
     // A rounded scale keeps the grid labels stable instead of twitching every tick.
     const qint64 top = peak();
@@ -216,7 +217,7 @@ void ThroughputChart::paintEvent(QPaintEvent *) {
         const QString text = seriesLabel(series) + QStringLiteral("  ") + ReadableSize(latest.value[series]) + QStringLiteral("/s");
         const qreal entryWidth = 11 + legendMetrics.horizontalAdvance(text) + 14;
         if (x + entryWidth > width() - 4) break;
-        const qreal y = height() - kLegendHeight / 2.0;
+        const qreal y = height() - kBottomPadding - kLegendHeight / 2.0;
         painter.setPen(Qt::NoPen);
         painter.setBrush(ink);
         painter.drawEllipse(QRectF(x, y - 3, 6, 6));

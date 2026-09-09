@@ -3,12 +3,15 @@
 #include "include/ui/preview/GeometryReport.h"
 
 #include <QApplication>
+#include <QAbstractButton>
 #include <QContextMenuEvent>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPainter>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QTabWidget>
 #include <QTableView>
 #include <QTextBrowser>
@@ -140,6 +143,46 @@ void CaptureGraphPreview(MainWindow *window, QTabWidget *statsTabs, const QStrin
         statsTabs->setCurrentWidget(graphPage);
     QTimer::singleShot(350, window, [window, statsTabs, prefix] {
         window->grab().save(prefix + QStringLiteral("-graph.png"), "PNG");
+        if (QApplication::arguments().contains(QStringLiteral("-ui-preview-graph"))) {
+            auto *area = window->findChild<QScrollArea *>(QStringLiteral("graphScroll"));
+            const bool shortPanel = QApplication::arguments().contains(QStringLiteral("-ui-preview-panel-short"));
+            if (area == nullptr || area->horizontalScrollBar()->maximum() != 0 ||
+                (area->verticalScrollBar()->maximum() > 0) != shortPanel) {
+                qWarning() << "Traffic graph scrolling does not follow panel height";
+                qApp->exit(2);
+                return;
+            }
+            if (shortPanel) {
+                area->verticalScrollBar()->setValue(area->verticalScrollBar()->maximum());
+                window->grab().save(prefix + QStringLiteral("-graph-bottom.png"), "PNG");
+                qApp->exit(0);
+                return;
+            }
+            auto *toggle = window->findChild<QAbstractButton *>(QStringLiteral("udpMonitorSwitch"));
+            auto *targets = window->findChild<QToolButton *>(QStringLiteral("udpTargetsButton"));
+            if (toggle == nullptr || targets == nullptr || !toggle->isVisible() || !targets->isVisible()) {
+                qApp->exit(2);
+                return;
+            }
+            toggle->click();
+            if (!toggle->isChecked()) {
+                qApp->exit(2);
+                return;
+            }
+            window->grab().save(prefix + QStringLiteral("-graph-controls.png"), "PNG");
+            QTimer::singleShot(150, window, [window, prefix] {
+                auto *popup = QApplication::activePopupWidget();
+                if (popup == nullptr) {
+                    qApp->exit(2);
+                    return;
+                }
+                popup->grab().save(prefix + QStringLiteral("-graph-targets.png"), "PNG");
+                popup->close();
+                qApp->exit(0);
+            });
+            targets->showMenu();
+            return;
+        }
         if (auto *connectionsPage = statsTabs->findChild<QWidget *>(QStringLiteral("connections_tab")))
             statsTabs->setCurrentWidget(connectionsPage);
         QTimer::singleShot(300, window, [window, prefix] {

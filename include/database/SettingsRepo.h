@@ -344,6 +344,9 @@ public:
     // Fetched on demand into GetBasePath(), which the core exposes to Xray via XRAY_LOCATION_ASSET.
     QString xray_geoip_url = "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat";
     QString xray_geosite_url = "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geosite.dat";
+    // Last 5 hand-typed URLs per field, offered alongside the built-in providers.
+    QStringList xray_geoip_url_history = {};
+    QStringList xray_geosite_url_history = {};
 
     QStringList extraCorePaths = {};
 

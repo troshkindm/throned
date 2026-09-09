@@ -1,6 +1,7 @@
 #pragma once
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QSet>
 
 #include "include/database/entities/Profile.h"
 
@@ -49,6 +50,8 @@ public:
     // Present only for an actual connection build. The caller commits it
     // after the core accepts the finished config.
     std::shared_ptr<OtpCodeSession> otpCodes;
+    // Every profile the config was built from, chain hops and route members included.
+    QSet<int> involvedProfiles;
 };
 
 class BuildTestConfigResult {
@@ -133,6 +136,9 @@ bool IsValid(const std::shared_ptr<Profile> &ent);
 
 // Eligible: an openvpn/openconnect profile, or a chain whose exit hop is one, never the reverse.
 bool CanBeAuxEndpoint(const std::shared_ptr<Profile> &ent);
+
+// Hops behind the exit of a chain endpoint that are endpoints themselves, exit-first.
+QList<int> AuxEndpointInnerHops(int endpointProfileID);
 
 std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile>> &profiles);
 } // namespace Configs

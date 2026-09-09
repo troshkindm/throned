@@ -1079,7 +1079,7 @@
     </message>
 </context>
 <context>
-    <name>JsonCodeEdit</name>
+    <name>QObject</name>
     <message numerus="yes">
         <source>%n problem(s)</source>
         <translation>
