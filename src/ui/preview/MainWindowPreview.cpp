@@ -306,6 +306,7 @@ void RunMainWindow(const QString &prefix) {
 #endif
 
     if (arguments.contains(QStringLiteral("-ui-preview-theme-cycle"))) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
         if (themeManager()->Skin() == nullptr || themeManager()->Skin()->id != QStringLiteral("mica-windows-11")) {
             QTimer::singleShot(0, qApp, [] { qApp->exit(77); });
             return;
@@ -364,6 +365,11 @@ void RunMainWindow(const QString &prefix) {
         });
         poll->start();
         return;
+#else
+        // QStyleHints::setColorScheme arrived in Qt 6.8; the system-Qt Linux builds are older.
+        QTimer::singleShot(0, qApp, [] { qApp->exit(77); });
+        return;
+#endif
     }
 
     // Native materials need a live compositor; leave the isolated preview open for manual inspection.

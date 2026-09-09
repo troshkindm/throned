@@ -182,6 +182,7 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         this->system_style_name = qApp->style()->name();
         this->system_palette = qApp->palette();
         this->base_font_family = qApp->font().family();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
         connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [this] {
             // Qt applies its platform palette after this signal; refresh our palette on the next turn.
             QTimer::singleShot(0, this, [this] {
@@ -191,6 +192,7 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
                 if (followsSystem) ApplyTheme(current_theme, true);
             });
         });
+#endif
     }
 
     // A skin may ask for its own face; leaving one behind would follow the user
@@ -304,8 +306,13 @@ void ThemeManager::LoadSkins() {
         // restyle three things and stay coherent everywhere else.
         skin.colors = thronedThemes().value(QStringLiteral("throned midnight"));
         skin.followSystem = json.value(QStringLiteral("followSystem")).toBool(false);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
         const bool lightVariant = skin.followSystem &&
                                   qApp->styleHints()->colorScheme() == Qt::ColorScheme::Light;
+#else
+        // Qt learned the system color scheme in 6.5; older system-Qt builds keep the skin's own variant.
+        const bool lightVariant = false;
+#endif
         skin.colors.dark = lightVariant ? false : json.value(QStringLiteral("dark")).toBool(true);
         skin.colors.gloss = json.value(QStringLiteral("gloss")).toDouble(0.0);
         skin.colors.chartBars = json.value(QStringLiteral("chartBars")).toBool(false);
