@@ -52,6 +52,11 @@ if (WIN32)
     # WIN32_EXECUTABLE has no console, so Qt sends a failed assertion to the debugger unless forced.
     set_tests_properties(throned_mica_theme_change PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
         ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
+    add_test(NAME throned_mica_activation
+        COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/mica-activation
+            -ui-preview-backdrop -ui-preview-mica-activation -theme "Mica (Windows 11)")
+    set_tests_properties(throned_mica_activation PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
+        ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
 endif ()
 
 throned_add_qt_test(throned_diagnostics_tests

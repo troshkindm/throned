@@ -12,6 +12,13 @@
 
 #include <QWKWidgets/widgetwindowagent.h>
 
+#ifdef Q_OS_WIN
+#include <QAbstractNativeEventFilter>
+#include <windows.h>
+// Keep the Win32 printer macro out of the rest of this unity batch.
+#undef SetPort
+#endif
+
 namespace {
 // Every window that got the treatment, so a theme change can reach all of them.
 QList<QPointer<QWK::WidgetWindowAgent>> &agents() {
@@ -51,6 +58,32 @@ const QStringList &knownBackdrops() {
     return names;
 }
 
+#ifdef Q_OS_WIN
+class MicaActivationFilter final : public QAbstractNativeEventFilter {
+    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override {
+        if (eventType != "windows_generic_MSG") return false;
+        const auto *msg = static_cast<MSG *>(message);
+        if (msg->message != WM_NCACTIVATE || msg->wParam || IsIconic(msg->hwnd)) return false;
+        for (const auto &agent: agents()) {
+            if (!agent) continue;
+            const auto *window = qobject_cast<QWidget *>(agent->parent());
+            if (window == nullptr || !window->property("active-mica").toBool() ||
+                reinterpret_cast<HWND>(window->effectiveWinId()) != msg->hwnd) continue;
+            // Only retain the painted activation state; TRUE still lets Windows transfer input focus.
+            DefWindowProcW(msg->hwnd, WM_NCACTIVATE, TRUE, -1);
+            *result = TRUE;
+            return true;
+        }
+        return false;
+    }
+};
+
+void installMicaActivationFilter() {
+    static MicaActivationFilter filter;
+    QCoreApplication::instance()->installNativeEventFilter(&filter);
+}
+#endif
+
 void applyTo(QWK::WidgetWindowAgent *agent) {
     if (agent == nullptr) return;
     auto *window = qobject_cast<QWidget *>(agent->parent());
@@ -64,6 +97,16 @@ void applyTo(QWK::WidgetWindowAgent *agent) {
     if (window == nullptr) return;
 
     window->setProperty("custom-style", applied);
+#ifdef Q_OS_WIN
+    const bool wasActiveMica = window->property("active-mica").toBool();
+    const bool activeMica = applied && (wanted == QStringLiteral("mica") || wanted == QStringLiteral("mica-alt"));
+    window->setProperty("active-mica", activeMica);
+    if (activeMica || wasActiveMica) {
+        const auto hwnd = reinterpret_cast<HWND>(window->effectiveWinId());
+        if (hwnd != nullptr && !IsIconic(hwnd))
+            DefWindowProcW(hwnd, WM_NCACTIVATE, activeMica || GetForegroundWindow() == hwnd, -1);
+    }
+#endif
     // Descendant selectors also depend on this property and must lose their cached opaque brushes.
     const auto widgets = window->findChildren<QWidget *>();
     window->setStyleSheet(window->styleSheet());
@@ -94,6 +137,9 @@ ThronedTitleBar *install(QWidget *window, const QString &context) {
     agent->setSystemButton(QWK::WindowAgentBase::Close, titleBar->closeButton());
     purgeClosedWindows();
     agents().append(agent);
+#ifdef Q_OS_WIN
+    installMicaActivationFilter();
+#endif
     applyTo(agent);
     return titleBar;
 }

@@ -6,6 +6,7 @@
 #include <memory>
 
 #include <QLabel>
+#include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QDateTime>
 #include <QCursor>
@@ -43,6 +44,13 @@
 #include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
+#include "include/ui/widget/ThronedWindowChrome.h"
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+// Keep the Win32 printer macro out of the rest of this unity batch.
+#undef SetPort
+#endif
 
 namespace UiPreview {
 void RunMainWindow(const QString &prefix) {
@@ -250,6 +258,52 @@ void RunMainWindow(const QString &prefix) {
     direct->downlink_rate = 4410;
     window->refresh_status(Stats::DisplaySpeed(proxy) + QChar(0x001F) + Stats::DisplaySpeed(direct));
     window->refresh_status();
+
+#ifdef Q_OS_WIN
+    if (arguments.contains(QStringLiteral("-ui-preview-mica-activation"))) {
+        QTimer::singleShot(350, window, [window] {
+            if (themeManager()->Skin() == nullptr || themeManager()->Skin()->id != QStringLiteral("mica-windows-11")) {
+                qApp->exit(77);
+                return;
+            }
+            QWidget dialog(window, Qt::Dialog);
+            ThronedChrome::install(&dialog);
+            dialog.show();
+            const auto foreground = GetForegroundWindow();
+            const auto focus = GetFocus();
+            const auto dispatch = [](QWidget *target, UINT message, WPARAM active, bool expected) {
+                MSG msg{};
+                msg.hwnd = reinterpret_cast<HWND>(target->winId());
+                msg.message = message;
+                msg.wParam = active;
+                qintptr result = 0;
+                const bool handled = QAbstractEventDispatcher::instance()->filterNativeEvent(
+                    QByteArrayLiteral("windows_generic_MSG"), &msg, &result);
+                return handled == expected && (!expected || result == TRUE);
+            };
+            bool passed = dispatch(window, WM_NCACTIVATE, FALSE, true) &&
+                          dispatch(&dialog, WM_NCACTIVATE, FALSE, true) &&
+                          dispatch(window, WM_NCACTIVATE, TRUE, false) &&
+                          dispatch(window, WM_ACTIVATE, WA_INACTIVE, false) &&
+                          GetForegroundWindow() == foreground && GetFocus() == focus;
+            themeManager()->ApplyTheme(QStringLiteral("Throned Midnight"), true);
+            passed = passed && !window->property("active-mica").toBool() &&
+                     !dialog.property("active-mica").toBool() &&
+                     dispatch(window, WM_NCACTIVATE, FALSE, false);
+            themeManager()->ApplyTheme(QStringLiteral("Mica (Windows 11)"), true);
+            passed = passed && window->property("active-mica").toBool() &&
+                     dialog.property("active-mica").toBool() &&
+                     dispatch(window, WM_NCACTIVATE, FALSE, true) &&
+                     dispatch(&dialog, WM_NCACTIVATE, FALSE, true);
+            if (!passed) {
+                fprintf(stderr, "Mica activation policy failed for focus, dialog or theme switching\n");
+                fflush(stderr);
+            }
+            qApp->exit(passed ? 0 : 2);
+        });
+        return;
+    }
+#endif
 
     if (arguments.contains(QStringLiteral("-ui-preview-theme-cycle"))) {
         if (themeManager()->Skin() == nullptr || themeManager()->Skin()->id != QStringLiteral("mica-windows-11")) {

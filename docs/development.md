@@ -213,8 +213,14 @@ This uses the same temporary database and synthetic data as the screenshot modes
 but enables the desktop compositor and skips automatic captures and exit. Inspect
 the active window, resize/maximize it, and switch to another theme and back in
 Settings. Ordinary captures disable native materials so wallpaper and activation
-cannot affect baselines. Mica uses the desktop wallpaper, and Windows substitutes
-a solid material when the window is inactive or transparency effects are disabled.
+cannot affect baselines. Mica uses the desktop wallpaper. Throned retains its
+active appearance on focus loss by handling `WM_NCACTIVATE` in the shared chrome,
+without intercepting input activation or taking focus. Minimized windows use the
+default handling, and switching to a solid theme removes the override. Windows
+can still substitute a solid material when transparency effects are disabled.
+`throned_mica_activation` checks native event handling, unchanged input focus,
+new dialog registration and switching to a solid theme and back; live inspection
+is still required to verify the compositor's appearance.
 The skin exposes the window shell and dialog bodies. Cards use WinUI's dark
 `CardBackgroundFillColorDefault` (white at 13/255) and `Secondary` (8/255) layers
 over Mica; controls use translucent fills with a stronger hover and focus edge,
