@@ -24,6 +24,7 @@ public:
     ~ActionButton() override;
 
     void setCount(int count);
+    int count() const { return count_; }
 
     void setScrollsWhenTooLong(bool enabled);
 

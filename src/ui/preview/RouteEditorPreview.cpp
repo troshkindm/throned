@@ -28,6 +28,7 @@
 #include "include/ui/setting/RouteItem.h"
 #include "include/ui/setting/RouteProfileSimpleEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/ActionButton.h"
 
 namespace UiPreview {
 namespace {
@@ -219,6 +220,8 @@ int RunRouteEditor(QApplication &app) {
         QStringLiteral("geoip-example-chat"),
     });
     editor->setLocalProxyTrafficEnabled(true);
+    editor->setViaCatalog({});
+    editor->setViaBuckets({});
     tabs->addTab(editor, QCoreApplication::translate("RouteItem", "Simple"));
     auto *advanced = new QLabel(QObject::tr("The existing lossless advanced editor remains available here."));
     advanced->setAlignment(Qt::AlignCenter);
@@ -264,7 +267,20 @@ int RunRouteEditor(QApplication &app) {
     if (const int outputAt = args.indexOf(QStringLiteral("--output"));
         outputAt >= 0 && outputAt + 1 < args.size()) {
         const QString output = args.at(outputAt + 1);
-        QTimer::singleShot(700, &dialog, [&dialog, output, &app] {
+        QTimer::singleShot(700, &dialog, [&dialog, editor, output, &app] {
+            int expected = 0;
+            for (int action: {0, 1, 2, 3}) expected += editor->rules(action).split('\n', Qt::SkipEmptyParts).size();
+            int count = 0;
+            int checked = 0;
+            for (auto *button: editor->findChildren<ActionButton *>()) {
+                count += button->count();
+                checked += button->isChecked();
+            }
+            if (expected == 0 || count != expected || checked != 1) {
+                qWarning() << "Routing sidebar lost its initial counts or selection" << expected << count << checked;
+                app.exit(2);
+                return;
+            }
             QWidget *target = QApplication::activeModalWidget();
             SaveGeometryReport(target ? target : &dialog, output);
             const bool ok = (target ? target : &dialog)->grab().save(output, "PNG");

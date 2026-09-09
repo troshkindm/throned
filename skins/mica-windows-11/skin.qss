@@ -11,12 +11,52 @@ QWidget[custom-style="true"] QTabWidget#groupsCard::pane { background: transpare
 /* Dialog bodies must expose the same material as their title bars. */
 QDialog#routeProfileEditor[custom-style="true"],
 QDialog#siteReachabilityDialog[custom-style="true"],
+QDialog#diagnosticsWindow[custom-style="true"],
+QDialog#diagnosticsWindow[custom-style="true"] QWidget#diagnosticPage,
+QDialog#diagnosticsWindow[custom-style="true"] QStackedWidget#diagnosticPages,
+QDialog#diagnosticsWindow[custom-style="true"] QScrollArea > QWidget,
 QDialog#routeProfileEditor[custom-style="true"] QWidget#routeBody,
 QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsBody,
 QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsPage,
 QDialog#basicSettingsDialog[custom-style="true"] QWidget#settingsLegacyPage,
 QDialog#basicSettingsDialog[custom-style="true"] QScrollArea#settingsScroll > QWidget > QWidget {
     background: transparent;
+}
+
+/* Diagnostics shares the shell material, with one translucent layer per card. */
+QDialog#diagnosticsWindow[custom-style="true"] QFrame#diagnosticRailPanel {
+    background: %MATERIAL_SECONDARY%;
+    border-color: %MATERIAL_DIVIDER%;
+}
+QDialog#diagnosticsWindow[custom-style="true"] QFrame#diagnosticCard,
+QDialog#diagnosticsWindow[custom-style="true"] QFrame#diagnosticVerdict,
+QDialog#diagnosticsWindow[custom-style="true"] QFrame#diagnosticConnectionDetail,
+QDialog#diagnosticsWindow[custom-style="true"] QFrame#diagnosticPath,
+QDialog#diagnosticsWindow[custom-style="true"] QTreeWidget,
+QDialog#diagnosticsWindow[custom-style="true"] QPlainTextEdit {
+    background: %MATERIAL_CARD%;
+    border-color: %MATERIAL_BORDER%;
+}
+QDialog#diagnosticsWindow[custom-style="true"] QPushButton:!checked:!hover:!pressed,
+QDialog#diagnosticsWindow[custom-style="true"] QFrame#diagnosticSegmented,
+QDialog#diagnosticsWindow[custom-style="true"] QLineEdit,
+QDialog#diagnosticsWindow[custom-style="true"] QComboBox {
+    background: %MATERIAL_CONTROL%;
+    border-color: %MATERIAL_BORDER%;
+}
+QDialog#diagnosticsWindow[custom-style="true"] QPushButton#diagnosticRail:!checked,
+QDialog#diagnosticsWindow[custom-style="true"] QPushButton#diagnosticRange:!checked,
+QDialog#diagnosticsWindow[custom-style="true"] QPushButton#diagnosticUsageTab:!checked {
+    background: transparent;
+}
+QDialog#diagnosticsWindow[custom-style="true"] QPushButton#diagnosticRail:checked {
+    background: %MATERIAL_HOVER%;
+    border-color: %MATERIAL_BORDER%;
+    border-left: 3px solid #237AE9;
+}
+QDialog#diagnosticsWindow[custom-style="true"] QPushButton:hover:!checked {
+    background: %MATERIAL_HOVER%;
+    border-color: %MATERIAL_HOVER_BORDER%;
 }
 
 /* WinUI CardBackgroundFillColorDefault: white at 13/255 over the native material. */

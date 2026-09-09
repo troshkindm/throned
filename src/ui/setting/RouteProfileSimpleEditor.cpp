@@ -963,6 +963,7 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
     }
 
     sideLayout_->addStretch();
+    updateActionButtons();
 }
 
 void RouteProfileSimpleEditor::addViaBucket() {

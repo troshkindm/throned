@@ -729,6 +729,8 @@ QScrollArea *scrollingPage(const char *name, QWidget *page) {
     scroll->setFrameShape(QFrame::NoFrame);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scroll->setWidget(page);
+    scroll->viewport()->setAutoFillBackground(false);
+    page->setAutoFillBackground(false);
     return scroll;
 }
 } // namespace

@@ -313,7 +313,8 @@ void RunMainWindow(const QString &prefix) {
     }
 
     // Native materials need a live compositor; leave the isolated preview open for manual inspection.
-    if (arguments.contains(QStringLiteral("-ui-preview-backdrop"))) return;
+    if (arguments.contains(QStringLiteral("-ui-preview-backdrop")) &&
+        !arguments.contains(QStringLiteral("-ui-preview-diagnostics"))) return;
 
     // refresh_proxy_list() completes its model reset on the UI queue. Wait
     // for that reset before treating rowCount as the search baseline.
@@ -521,6 +522,7 @@ void RunMainWindow(const QString &prefix) {
             health.dns_system = {"104.18.32.47"};
             dialog->applyHealth(health);
             dialog->show();
+            if (arguments.contains(QStringLiteral("-ui-preview-backdrop"))) return;
             QTimer::singleShot(200, window, [dialog, prefix, previewAddress, previewConnections] {
                 dialog->grab().save(prefix + QStringLiteral("-diagnostics-overview.png"), "PNG");
                 previewAddress->setText(QStringLiteral("https://example.org"));
