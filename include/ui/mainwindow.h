@@ -69,6 +69,7 @@ class TrayOtpCodes;
 class TestRunner;
 class DialogVpnAuth;
 class UpdateStatusWidget;
+class PendingRestartNotice;
 struct VpnAuthChallenge;
 
 struct VpnEndpointState {
@@ -221,6 +222,10 @@ public:
     void UpdateConnectionList(const QList<Stats::ConnectionMetadata> &connections);
 
     void UpdateDataView(bool force = false);
+
+    void noteRestartNeeded(const QString &reason);
+
+    void clearRestartNeeded();
 
     // Pushes the auto-selector snapshot into the data view, toggles the Tools
     // entry, and refreshes the dialog if it is open.
@@ -430,6 +435,7 @@ private:
     QTimer *pingMonitorTimer = nullptr;
     std::atomic<bool> pingProbeInFlight_{false};
     UpdateStatusWidget *updateStatusWidget = nullptr;
+    PendingRestartNotice *pendingRestartNotice = nullptr;
     QString pendingUpdateAssetName;
     QString pendingUpdateDownloadUrl;
     std::atomic<bool> updateCheckInProgress_{false};
@@ -771,6 +777,8 @@ private:
     void openLogSettings();
 
     void setupConnectionSortMenu();
+
+    QString routeRuleAppendBlocker() const;
 
     void setupConnectionFilter();
 

@@ -2258,8 +2258,8 @@ void buildExperimentalSection(BuildContext &ctx) {
 
     experimentalObj["cache_file"] = QJsonObject{
         {"enabled", true},
-        {"store_fakeip", true},
-        {"store_dns", true}};
+        {"store_fakeip", settings.dns_persist_cache},
+        {"store_dns", settings.dns_persist_cache}};
 
     ctx.result->coreConfig["experimental"] = experimentalObj;
 }

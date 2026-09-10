@@ -99,7 +99,9 @@ struct RuleCandidate {
 QList<RuleCandidate> candidatesFor(const QString &dest, const QString &domain,
                                    const QString &process, const QString &processPath) {
     QList<RuleCandidate> candidates;
-    const QString host = domain.isEmpty() ? QString() : domain;
+    const QString address = Stats::EndpointHost(dest.trimmed());
+    QString host = domain.trimmed();
+    if (host.isEmpty() && QHostAddress(address).isNull()) host = address;
     if (!host.isEmpty()) {
         candidates.append({MainWindow::tr("This domain — %1").arg(host),
                            QStringLiteral("domain:") + host});
@@ -113,9 +115,6 @@ QList<RuleCandidate> candidatesFor(const QString &dest, const QString &domain,
         candidates.append({MainWindow::tr("This executable — %1").arg(QFileInfo(processPath).fileName()),
                            QStringLiteral("processPath:") + processPath});
     // dest is host:port, and a port makes a poor routing rule on its own.
-    const QString address = dest.contains(QLatin1Char(']'))
-                                ? dest.section(QLatin1Char(']'), 0, 0).mid(1)
-                                : dest.section(QLatin1Char(':'), 0, 0);
     if (!address.isEmpty() && !QHostAddress(address).isNull())
         candidates.append({MainWindow::tr("This address — %1").arg(address),
                            QStringLiteral("ip:") + address});
@@ -146,11 +145,25 @@ QString MainWindow::existingRuleAction(const QString &entry) const {
     return {};
 }
 
+QString MainWindow::routeRuleAppendBlocker() const {
+    const auto &dm = Configs::dataManager;
+    const auto currentRoute = dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id);
+    if (!currentRoute) return tr("No active routing profile found.");
+    if (currentRoute->preventModifications) return tr("The current routing profile is locked against modifications.");
+    if (currentRoute->isRaw) return tr("The current routing profile is raw JSON.");
+    if (currentRoute->isRemote && currentRoute->autoUpdate) return tr("The current routing profile auto-updates from a URL.");
+    return {};
+}
+
 void MainWindow::addRuleFromConnection(const QString &entry, int action) {
     addRulesFromConnection({entry}, action);
 }
 
 void MainWindow::addRulesFromConnection(const QStringList &entries, int action) {
+    if (const auto blocker = routeRuleAppendBlocker(); !blocker.isEmpty()) {
+        MessageBoxWarning(tr("Rule not added"), blocker);
+        return;
+    }
     auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
         Configs::dataManager->settingsRepo->current_route_id);
     if (!profile) {
@@ -163,23 +176,26 @@ void MainWindow::addRulesFromConnection(const QStringList &entries, int action) 
                               .arg(profile->name));
         return;
     }
+    profile = std::make_shared<Configs::RouteProfile>(*profile);
     const auto simple = static_cast<Configs::simpleAction>(action);
     QStringList current = profile->GetSimpleRules(simple).split('\n', Qt::SkipEmptyParts);
     bool changed = false;
     for (const auto &entry: entries) {
         if (entry.isEmpty() || current.contains(entry)) continue;
+        if (!profile->AppendSimpleRule(entry, simple)) {
+            MessageBoxWarning(tr("Rule not added"), tr("Failed to add routing rule: %1").arg(entry));
+            return;
+        }
         current << entry;
         changed = true;
     }
     if (!changed) return;
-    if (const QString error = profile->UpdateSimpleRules(current.join('\n'), simple); !error.isEmpty()) {
-        MessageBoxWarning(tr("Rule not added"), error);
+    if (!Configs::dataManager->routesRepo->Save(profile)) {
+        MessageBoxWarning(tr("Rule not added"), tr("Failed to save routing rule: %1").arg(entries.join('\n')));
         return;
     }
-    Configs::dataManager->routesRepo->Save(profile);
     refreshRoutingStatus();
-    if (Configs::dataManager->settingsRepo->started_id >= 0)
-        profile_start(Configs::dataManager->settingsRepo->started_id);
+    noteRestartNeeded(tr("Routing"));
 }
 
 void MainWindow::showConnectionMenu(const QPoint &pos) {
@@ -193,6 +209,7 @@ void MainWindow::showConnectionMenu(const QPoint &pos) {
     const QString outbound = conn->outbound;
 
     QMenu menu(this);
+    menu.setToolTipsVisible(true);
     const QString diagnosticProcess = processPath.isEmpty() ? conn->process : processPath;
     if (!diagnosticProcess.isEmpty()) {
         auto *diagnose = menu.addAction(MaterialIcon::icon(MaterialIcon::Glyph::Search,
@@ -211,12 +228,18 @@ void MainWindow::showConnectionMenu(const QPoint &pos) {
         auto *none = menu.addAction(tr("Nothing to build a rule from"));
         none->setEnabled(false);
     }
+    const QString blocker = routeRuleAppendBlocker();
     for (const auto &candidate: candidates) {
         const QString already = existingRuleAction(candidate.entry);
         auto *submenu = menu.addMenu(already.isEmpty()
                                          ? candidate.label
                                          : tr("%1  ·  already %2").arg(candidate.label, already.toLower()));
         submenu->setToolTip(candidate.entry);
+        if (!blocker.isEmpty()) {
+            submenu->setEnabled(false);
+            submenu->menuAction()->setToolTip(blocker);
+            continue;
+        }
         for (const auto &target: ruleTargets()) {
             auto *action = submenu->addAction(target.label);
             const QString entry = candidate.entry;

@@ -1,6 +1,7 @@
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/WindowNotices.h"
+#include "include/ui/widget/PendingRestartNotice.h"
 #include "include/database/SettingsRepo.h"
 #include "include/global/Logger.hpp"
 
@@ -34,6 +35,45 @@ QString ReadableSize(const qint64 &size) { return QLocale().formattedDataSize(si
 class TestWindowNotices : public QObject {
     Q_OBJECT
 private slots:
+    void pendingRestartWaitsForUpdateAndCoalescesReasons() {
+        UpdateStatusWidget status;
+        int restarts = 0;
+        PendingRestartNotice pending(&status, [&] { ++restarts; });
+        status.postNotice({"tip", "Tip"});
+        pending.noteChange("Routing");
+        pending.noteChange("Routing");
+        pending.noteChange("Profile");
+        QCOMPARE(status.activeNoticeId(), QString("proxy-restart-pending"));
+        QCOMPARE(status.findChild<QLabel *>("updateStatusDetail")->text(), QString("Routing, Profile"));
+
+        status.showReady("Throned-1.4.3-windows64.zip");
+        pending.noteChange("Settings");
+        QSignalSpy updateRestart(&status, &UpdateStatusWidget::restartRequested);
+        status.findChild<QPushButton *>("updatePrimaryButton")->click();
+        QCOMPARE(updateRestart.size(), 1);
+        QCOMPARE(restarts, 0);
+        status.dismiss();
+        QCOMPARE(status.activeNoticeId(), QString("proxy-restart-pending"));
+        status.findChild<QPushButton *>("updatePrimaryButton")->click();
+        QCOMPARE(restarts, 1);
+        QCOMPARE(status.activeNoticeId(), QString("tip"));
+    }
+
+    void pendingRestartDismissalAndStopRetireOnlyCurrentChanges() {
+        UpdateStatusWidget status;
+        PendingRestartNotice pending(&status, [] {});
+        pending.noteChange("Routing");
+        status.dismiss();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+        pending.noteChange("Profile");
+        QCOMPARE(status.findChild<QLabel *>("updateStatusDetail")->text(), QString("Profile"));
+        status.showDownloading("Throned.zip", 1, 2);
+        pending.clear();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Downloading);
+        status.dismiss();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+    }
+
     void tipPersistsDismissalAndEnableAcrossSettingsReload() {
         QTemporaryDir dir;
         QVERIFY(dir.isValid());

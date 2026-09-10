@@ -37,6 +37,7 @@
 #include "include/ui/widget/ThronedTitleBar.h"
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/ui/widget/WindowNotices.h"
+#include "include/ui/widget/PendingRestartNotice.h"
 #include <QPainter>
 #include "include/ui/widget/ThronedToggle.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
@@ -889,6 +890,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     selectionCard->hide();
     updateStatusWidget = new UpdateStatusWidget(redesignedCentral);
     InstallWindowNotices(updateStatusWidget, *Configs::dataManager->settingsRepo);
+    pendingRestartNotice = new PendingRestartNotice(updateStatusWidget, [this, uiPreviewMode] {
+        if (uiPreviewMode) return;
+        const int startedID = Configs::dataManager->settingsRepo->started_id;
+        if (startedID >= 0) profile_start(startedID);
+    });
     connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this, uiPreviewMode] {
         if (uiPreviewMode) return;
         exit_reason = ExitReason::RunUpdater;

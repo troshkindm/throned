@@ -266,6 +266,13 @@ ahead of tips, then by priority. Downloading, preparing, ready and failed update
 own the slot until dismissed; queued notices then resume. Producers handle action
 and dismissal signals and decide which dismissals to persist.
 
+`PendingRestartNotice` uses the same slot for saved routing, profile and proxy
+settings that need a connection restart. Repeated changes merge into one notice;
+Ignore clears the current reasons, and a later edit can offer it again. Stopping
+or restarting the connection retires the notice. Its Restart action restarts the
+connection, while an update occupying the slot keeps its own application restart
+action. Dismissal is not stored in settings.
+
 `WindowNotices.cpp` offers Mica once when its skin is available and not already
 selected. Enabling, dismissing, or manually selecting Mica records the versioned
 notice ID in `SettingsRepo::dismissed_notices`. Adding a future tip needs its own

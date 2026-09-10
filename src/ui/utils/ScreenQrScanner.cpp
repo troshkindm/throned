@@ -67,7 +67,6 @@ QPixmap GrabScreen(QScreen *screen, bool &ok) {
         QEventLoop loop;
         const auto gotSignal = [&p, &loop](uint status, const QVariantMap &map) {
             if (status == 0) {
-                // Parse this as URI to handle unicode properly
                 QUrl uri = map.value("uri").toString();
                 QString uriString = uri.toLocalFile();
                 p = QPixmap(uriString);
@@ -114,7 +113,6 @@ QStringList ScanScreens(QWidget *hideDuringScan, bool &captured) {
     wait.exec();
 
     QList<QPixmap> shots;
-    // One portal call: asking per screen would prompt once per monitor.
     const auto screens = IsWayland() ? QList<QScreen *>{QGuiApplication::primaryScreen()}
                                      : QGuiApplication::screens();
     for (QScreen *screen: screens) {

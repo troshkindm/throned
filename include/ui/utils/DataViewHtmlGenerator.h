@@ -7,6 +7,16 @@
 #include <core/server/gen/libcore.pb.h>
 #endif
 
+enum class DataViewPriority { Critical,
+                              High,
+                              Medium,
+                              Low };
+enum class DataViewItem { Download,
+                          SpeedTest,
+                          LatencyTest,
+                          AutoSelector,
+                          VpnEndpoint };
+
 class DataViewHtmlGenerator {
 public:
     struct DownloadPanelState {
@@ -71,6 +81,8 @@ public:
 
 private:
     static QString getProgressBar(long long current, long long total);
+
+    QString itemHtml(DataViewItem item);
 
     // The core can hand back a result from an earlier run, so the counter is bounded where it is read rather than trusted.
     int cappedProgress(int total) const { return qBound(0, testProgress.load(), total); }

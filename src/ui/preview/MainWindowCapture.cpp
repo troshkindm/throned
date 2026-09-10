@@ -22,6 +22,7 @@
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
+#include "include/ui/widget/PendingRestartNotice.h"
 
 namespace UiPreview {
 // Qt Test is not linked here, and one synthetic key press does not justify it.
@@ -62,7 +63,15 @@ void CaptureUpdateStatusPreviews(MainWindow *window, const QString &prefix) {
                 QTimer::singleShot(180, window, [window, status, prefix] {
                     window->grab().save(prefix + QStringLiteral("-update-error.png"), "PNG");
                     status->dismiss();
-                    qApp->exit(0);
+                    auto *pending = new PendingRestartNotice(status, [] {});
+                    pending->noteChange(MainWindow::tr("Routing"));
+                    pending->noteChange(MainWindow::tr("Profile"));
+                    QTimer::singleShot(180, window, [window, prefix] {
+                        const QString path = prefix + QStringLiteral("-restart-needed.png");
+                        window->grab().save(path, "PNG");
+                        SaveGeometryReport(window, path);
+                        qApp->exit(0);
+                    });
                 });
             });
         });

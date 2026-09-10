@@ -20,11 +20,11 @@ inline constexpr auto LocalProxyRuleName = "throned-local-proxy-traffic";
 // where the client's own local inbounds go rather than matching user traffic.
 bool IsLocalProxyTrafficRule(const std::shared_ptr<RouteRule>& rule);
 
-enum simpleAction { bypass,
-                    block,
-                    proxy,
-                    warpBypass,
-                    viaProfile };
+enum simpleAction : int { bypass,
+                          block,
+                          proxy,
+                          warpBypass,
+                          viaProfile };
 inline QString simpleActionToString(simpleAction action) {
     if (action == bypass) return {"direct"};
     if (action == block) return {"block"};
@@ -149,6 +149,8 @@ public:
     QString GetSimpleRules(simpleAction action, int outbound = anyOutbound);
 
     QString UpdateSimpleRules(const QString& content, simpleAction action, int outbound = anyOutbound);
+
+    bool AppendSimpleRule(const QString& rawRule, simpleAction action, int outbound = anyOutbound);
 
     static QList<ruleType> simple_rule_types(simpleAction action);
 

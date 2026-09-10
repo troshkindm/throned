@@ -69,7 +69,8 @@ func (s *server) Health(ctx context.Context, in *gen.HealthRequest) (*gen.Health
 		probes.Add(2)
 		go func() {
 			defer probes.Done()
-			client := test_utils.OutboundHTTPClient(ctx, def, healthTimeout)
+			client, closeClient := test_utils.OutboundHTTPClient(ctx, def, healthTimeout)
+			defer closeClient()
 			info, clock, externalErr = test_utils.ExternalAddress(ctx, client)
 		}()
 		go func() {

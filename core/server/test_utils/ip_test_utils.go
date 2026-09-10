@@ -35,7 +35,8 @@ func BatchIPTest(ctx context.Context, i *boxbox.Box, outboundTags []string, maxC
 
 	results := runBatch(ctx, i, outboundTags, maxConcurrency, batchProbe[IPTestResult]{
 		run: func(ctx context.Context, tag string, outbound adapter.Outbound) *IPTestResult {
-			client := outboundHTTPClient(ctx, outbound, timeout)
+			client, closeClient := outboundHTTPClient(ctx, outbound, timeout)
+			defer closeClient()
 			info, err := ipTest(ctx, client)
 			return &IPTestResult{Result: info, Tag: tag, Error: err}
 		},
@@ -83,7 +84,7 @@ func (r ClockReading) SkewMs() (int64, bool) {
 
 // OutboundHTTPClient exposes the batch tests' dialer so a single one-off probe does
 // not have to stand up its own transport.
-func OutboundHTTPClient(ctx context.Context, outbound adapter.Outbound, timeout time.Duration) *http.Client {
+func OutboundHTTPClient(ctx context.Context, outbound adapter.Outbound, timeout time.Duration) (*http.Client, func()) {
 	return outboundHTTPClient(ctx, outbound, timeout)
 }
 

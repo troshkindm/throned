@@ -23,6 +23,8 @@ enum ConnectionSort {
     BySource
 };
 
+QString EndpointHost(const QString& endpoint);
+
 class ConnectionMetadata {
 public:
     QString id;

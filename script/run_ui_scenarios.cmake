@@ -69,7 +69,8 @@ add_ui_scenario(main-shell GROUPS all
         main-shell-logs-menu.png main-shell-logs-menu-in-place.png main-shell-graph.png
         main-shell-window.png main-shell-menu.png main-shell-menu-in-place.png
         main-shell-stop-button.png main-shell-update-downloading.png
-        main-shell-update-preparing.png main-shell-update-ready.png main-shell-update-error.png)
+        main-shell-update-preparing.png main-shell-update-ready.png main-shell-update-error.png
+        main-shell-restart-needed.png)
 add_ui_scenario(quick-add GROUPS smoke all
     ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-quick-add
     EXPECTED quick-add-quick-add.png quick-add-quick-add-detected.png

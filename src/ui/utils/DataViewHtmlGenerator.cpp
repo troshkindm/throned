@@ -4,6 +4,31 @@
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 
+#include <array>
+
+namespace {
+struct ItemPriority {
+    DataViewItem item;
+    DataViewPriority priority;
+};
+
+// Within one level, panels render in this order.
+constexpr std::array kItemPriorities = {
+    ItemPriority{DataViewItem::SpeedTest, DataViewPriority::Critical},
+    ItemPriority{DataViewItem::LatencyTest, DataViewPriority::Critical},
+    ItemPriority{DataViewItem::VpnEndpoint, DataViewPriority::Medium},
+    ItemPriority{DataViewItem::AutoSelector, DataViewPriority::Medium},
+    ItemPriority{DataViewItem::Download, DataViewPriority::Medium},
+};
+
+constexpr std::array kPriorityOrder = {
+    DataViewPriority::Critical,
+    DataViewPriority::High,
+    DataViewPriority::Medium,
+    DataViewPriority::Low,
+};
+} // namespace
+
 void DataViewHtmlGenerator::setDownloadReport(const DownloadProgressReport &report, bool show) {
     QMutexLocker lk(&mu_);
     download_.visible = show;
@@ -64,24 +89,30 @@ void DataViewHtmlGenerator::addTestProgress(int count) {
 
 QString DataViewHtmlGenerator::buildHtml() {
     QMutexLocker lk(&mu_);
-    QString html;
-    if (download_.visible) {
-        html += downloadSectionHtml();
+    for (const auto priority: kPriorityOrder) {
+        QString html;
+        for (const auto &entry: kItemPriorities) {
+            if (entry.priority == priority) html += itemHtml(entry.item);
+        }
+        if (!html.isEmpty()) return html;
     }
-    if (speedtest_.visible) {
-        html += speedtestSectionHtml();
+    return {};
+}
+
+QString DataViewHtmlGenerator::itemHtml(DataViewItem item) {
+    switch (item) {
+        case DataViewItem::Download:
+            return download_.visible ? downloadSectionHtml() : QString();
+        case DataViewItem::SpeedTest:
+            return speedtest_.visible ? speedtestSectionHtml() : QString();
+        case DataViewItem::LatencyTest:
+            return latencyTest_.visible ? latencyTestSectionHtml() : QString();
+        case DataViewItem::AutoSelector:
+            return autoSelector_.visible ? autoSelectorSectionHtml() : QString();
+        case DataViewItem::VpnEndpoint:
+            return vpnEndpoint_.visible ? vpnEndpointSectionHtml() : QString();
     }
-    if (latencyTest_.visible) {
-        html += latencyTestSectionHtml();
-    }
-    // Last and conditional: ambient status yields the view whenever a job wants to report progress.
-    if (html.isEmpty() && vpnEndpoint_.visible) {
-        html += vpnEndpointSectionHtml();
-    }
-    if (html.isEmpty() && autoSelector_.visible) {
-        html += autoSelectorSectionHtml();
-    }
-    return html;
+    return {};
 }
 
 QString DataViewHtmlGenerator::vpnEndpointSectionHtml() {

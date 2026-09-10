@@ -3228,6 +3228,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Exported with warnings</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Save Cache To File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core's cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogRuntimeStats</name>
@@ -6074,6 +6082,34 @@ Release note:
     </message>
     <message>
         <source>IPC error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No active routing profile found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The current routing profile is locked against modifications.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The current routing profile is raw JSON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The current routing profile auto-updates from a URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to add routing rule: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to save routing rule: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -9497,6 +9533,25 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Invalid secret</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PendingRestartNotice</name>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings changed, restart to apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

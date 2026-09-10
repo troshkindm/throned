@@ -924,6 +924,28 @@ void RouteProfile::FilterEmptyRules() {
     Rules = newRules;
 }
 
+bool RouteProfile::AppendSimpleRule(const QString& rawRule, simpleAction action, int outbound) {
+    const QString raw = rawRule.trimmed();
+    if (raw.isEmpty()) return false;
+    const auto type = get_rule_type(raw, action);
+    if (type == custom) return false;
+
+    auto rule = get_simple_rule_by_type(type, outbound);
+    const bool isNewRule = rule == nullptr;
+    if (isNewRule) {
+        for (const auto& item: get_simple_rules()) {
+            if (item->type == type) {
+                rule = item;
+                if (outbound != anyOutbound) rule->outboundID = outbound;
+                break;
+            }
+        }
+    }
+    if (!rule || !add_simple_rule(raw, rule, type)) return false;
+    if (isNewRule) Rules.append(rule);
+    return true;
+}
+
 bool RouteProfile::add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type) {
     if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock || type == simpleAddressWarpBypass || type == simpleAddressViaProfile)
         return add_simple_address_rule(content, rule);

@@ -3817,6 +3817,14 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <source>Predefined Answers</source>
         <translation>Предопределенные ответы</translation>
     </message>
+    <message>
+        <source>Save Cache To File</source>
+        <translation>Сохранять кэш в файл</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core's cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Сохранять DNS-ответы и сопоставления FakeIP в файл кэша ядра, чтобы они не терялись при перезапуске. По умолчанию выключено: каждое сохранение требует записи на диск.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
 </context>
 <context>
     <name>DialogDpiBypass</name>
@@ -7160,6 +7168,34 @@ Name: %1</source>
     <message>
         <source>IPC error</source>
         <translation>IPC ошибка</translation>
+    </message>
+    <message>
+        <source>No active routing profile found.</source>
+        <translation>Активный профиль маршрутизации не найден.</translation>
+    </message>
+    <message>
+        <source>The current routing profile is locked against modifications.</source>
+        <translation>Текущий профиль маршрутизации защищён от изменений.</translation>
+    </message>
+    <message>
+        <source>The current routing profile is raw JSON.</source>
+        <translation>Текущий профиль маршрутизации задан в формате JSON.</translation>
+    </message>
+    <message>
+        <source>The current routing profile auto-updates from a URL.</source>
+        <translation>Текущий профиль маршрутизации автоматически обновляется по URL.</translation>
+    </message>
+    <message>
+        <source>Failed to add routing rule: %1</source>
+        <translation>Не удалось добавить правило маршрутизации: %1</translation>
+    </message>
+    <message>
+        <source>Failed to save routing rule: %1</source>
+        <translation>Не удалось сохранить правило маршрутизации: %1</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
     </message>
 </context>
 <context>
@@ -11699,6 +11735,25 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Copied</source>
         <translation>Скопировано</translation>
+    </message>
+</context>
+<context>
+    <name>PendingRestartNotice</name>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Settings changed, restart to apply</source>
+        <translation>Настройки изменены — перезапустите подключение</translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation>Перезапустить</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Игнорировать</translation>
     </message>
 </context>
 </TS>

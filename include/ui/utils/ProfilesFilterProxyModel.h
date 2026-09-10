@@ -10,14 +10,13 @@ class ProfilesFilterProxyModel : public QSortFilterProxyModel {
 public:
     explicit ProfilesFilterProxyModel(QObject *parent = nullptr);
 
-    // An empty string disables that test; `address` also takes "port=N", "port=MIN:MAX", "port=MIN:", "port=:MAX".
+    // `address` also takes "port=N", "port=MIN:MAX", "port=MIN:", "port=:MAX".
     void setFilters(const QString &type, const QString &address, const QString &name, const QString &country);
     void setSearch(const QString &search);
     bool hasActiveFilter() const;
 
     ProfilesTableModel *profilesModel() const;
 
-    // -1 when the row has no counterpart (filtered out, or out of range).
     int toSourceRow(int proxyRow) const;
     int toProxyRow(int sourceRow) const;
 

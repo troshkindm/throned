@@ -43,7 +43,8 @@ func BatchSiteTest(ctx context.Context, i *boxbox.Box, outboundTags []string, ta
 
 	results := runBatch(ctx, i, outboundTags, maxConcurrency, batchProbe[SiteTestResult]{
 		run: func(ctx context.Context, tag string, outbound adapter.Outbound) *SiteTestResult {
-			client := outboundHTTPClient(ctx, outbound, timeout)
+			client, closeClient := outboundHTTPClient(ctx, outbound, timeout)
+			defer closeClient()
 			probes := make([]SiteProbe, len(targets))
 
 			// One client, every target at once: a node with eight sites to check would
