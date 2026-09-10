@@ -2802,11 +2802,12 @@ std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_p
         res->xrayDnsStrategy = getXrayOutboundDomainStrategy();
     }
     QJsonObject routeObj{
-        {"auto_detect_interface", true},
         {"default_domain_resolver", QJsonObject{
                                         {"server", tags::dnsDirect},
                                         {"strategy", getDirectDomainStrategy()},
                                     }}};
+    // Only for our own Tun: binding probes to the default interface skips an external WireGuard's policy routing.
+    if (dataManager->settingsRepo->spmode_vpn) routeObj["auto_detect_interface"] = true;
     if (!routeRules.isEmpty()) routeObj["rules"] = routeRules;
     ctx.result->coreConfig["route"] = routeObj;
     ctx.result->coreConfig["inbounds"] = inboundArr;
