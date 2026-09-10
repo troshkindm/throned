@@ -27,8 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  # Everything that needs neither a compiler nor a Qt install. Nothing depends
-  # on it, so it reports in under a minute while the builds are still running.
+  # Fast checks and updater tests report independently of the application builds.
   checks:
     runs-on: ubuntu-22.04
     steps:
@@ -48,6 +47,16 @@ jobs:
         run: pip install "clang-format==19.1.5"
       - name: Check formatting
         run: ./script/format_cpp.sh --check
+      - uses: actions/setup-go@v6.5.0
+        with:
+          go-version: "1.27.0"
+          cache: false
+      - name: Test updater
+        working-directory: updater
+        run: |
+          go test ./...
+          go test -c -o ../out/build/updater.test .
+          sudo ../out/build/updater.test -test.run=^TestUpdateReplacesProtectedExecutables$ -test.v
 
   core-windows:
     runs-on: ubuntu-22.04
@@ -196,6 +205,9 @@ jobs:
       - name: Test ThronedCore
         shell: bash
         run: cd core/server && go test $(go list ./... | grep -v /internal/boxdns/winipcfg)
+      - name: Test updater
+        working-directory: updater
+        run: go test ./...
       - uses: actions/cache@v6.1.0
         id: windows-deps
         with:

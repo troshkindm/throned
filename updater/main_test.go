@@ -89,6 +89,12 @@ func TestExtractAndCopyTree(t *testing.T) {
 	}
 	requireMonotonicProgress(t, extractSamples)
 	destination := filepath.Join(dir, "install")
+	if err := os.Mkdir(destination, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(destination, "Throned.exe"), []byte("old binary"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	var copySamples [][2]uint64
 	if err := copyTreeWithProgress(filepath.Join(stage, rootName), destination, func(completed, total uint64) {
 		copySamples = append(copySamples, [2]uint64{completed, total})
@@ -102,6 +108,38 @@ func TestExtractAndCopyTree(t *testing.T) {
 	}
 	if string(data) != "new binary" {
 		t.Fatalf("copied contents = %q", data)
+	}
+}
+
+func TestCopyTreePreservesDestinationOnInstallFailure(t *testing.T) {
+	dir := t.TempDir()
+	source := filepath.Join(dir, "source")
+	destination := filepath.Join(dir, "install")
+	if err := os.Mkdir(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(source, "conflict"), []byte("new binary"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(destination, "conflict"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	marker := filepath.Join(destination, "conflict", "existing")
+	if err := os.WriteFile(marker, []byte("keep me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := copyTree(source, destination); err == nil {
+		t.Fatal("expected replacing a directory with a file to fail")
+	}
+	if data, err := os.ReadFile(marker); err != nil || string(data) != "keep me" {
+		t.Fatalf("existing destination changed: %q, %v", data, err)
+	}
+	entries, err := os.ReadDir(destination)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 1 || entries[0].Name() != "conflict" {
+		t.Fatalf("failed installation left temporary files: %v", entries)
 	}
 }
 
@@ -135,7 +173,12 @@ func TestWaitForParent(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer command.Process.Kill()
+	done := make(chan error, 1)
+	go func() { done <- command.Wait() }()
 	if err := waitForParent(command.Process.Pid, 3*time.Second); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
 		t.Fatal(err)
 	}
 }

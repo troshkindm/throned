@@ -382,11 +382,13 @@ func copyTreeWithProgress(source, destination string, report func(completed, tot
 		if err != nil {
 			return err
 		}
-		output, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
+		// Replacing the inode also works for root-owned cores and running Unix executables.
+		output, err := os.CreateTemp(filepath.Dir(target), ".throned-update-*")
 		if err != nil {
 			input.Close()
 			return err
 		}
+		defer os.Remove(output.Name())
 		writer := &progressWriter{writer: output, completed: &completed, total: total, report: report}
 		_, copyErr := io.Copy(writer, input)
 		closeErr := output.Close()
@@ -394,7 +396,13 @@ func copyTreeWithProgress(source, destination string, report func(completed, tot
 		if copyErr != nil {
 			return copyErr
 		}
-		return closeErr
+		if closeErr != nil {
+			return closeErr
+		}
+		if err := os.Chmod(output.Name(), info.Mode().Perm()); err != nil {
+			return err
+		}
+		return os.Rename(output.Name(), target)
 	})
 	if err == nil && report != nil && total == 0 {
 		report(1, 1)

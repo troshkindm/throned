@@ -78,6 +78,33 @@ recompaction failure is a reason to investigate competing writers, not to delete
 another process's cache. Keep preview outputs separate too, and identify the
 built executable in the report so a stale binary cannot stand in for the result.
 
+## Updater file replacement
+
+The updater extracts the package into `.throned-update` inside the installation
+directory, then copies each file to a temporary sibling of its destination and
+renames it into place after the copy succeeds. On Unix this replaces the inode
+atomically: it requires write permission on the containing directory, even when
+the old core belongs to root or the updater executable is still running. Do not
+truncate installed binaries in place or remove them before the new file is ready.
+The update as a whole is not transactional; earlier files may already be installed
+if a later file fails.
+
+New files belong to the updater user and receive the package's ordinary permission
+bits. The old core's root ownership and setuid bit are not carried over. After an
+update, enabling TUN uses the application's existing privilege request again.
+This supports portable installations in user-writable directories; system-owned
+installation directories still require their normal installation permissions.
+An installation that still runs the old updater needs one manual update to pick up
+this fix if its core is already protected.
+
+CI runs `go test ./...` in `updater/` on Windows and Linux. On Linux,
+`TestUpdateReplacesProtectedExecutables` runs the update from the installed updater
+binary against a read-only core. Running the same test as root creates a root-owned
+setuid core and launches the updater as uid 65534; CI also runs this case. All files
+are temporary fixtures; the test never starts a proxy core or TUN. Build the test with
+`go test -c -o ../out/build/updater.test .` and run
+`sudo ../out/build/updater.test -test.run=^TestUpdateReplacesProtectedExecutables$ -test.v`.
+
 ## UI icons and resources
 
 Monochrome interface actions belong in `MaterialIcon::Glyph` in
