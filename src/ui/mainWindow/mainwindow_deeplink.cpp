@@ -21,6 +21,7 @@
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/HijackDeprecationNotice.h"
 
 namespace {
 
