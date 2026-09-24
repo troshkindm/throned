@@ -709,8 +709,7 @@ void MainWindow::clearUnavailableProfiles(bool confirm, QList<int> profileIDs) {
 
     auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDs);
     for (const auto &profile: profiles) {
-        // A Connect-OK profile failed only the egress probe; its tunnel is up.
-        if (profile->latency < 0 && profile->latency != Configs::kLatencyConnectOnly) {
+        if (profile->IsUnavailable()) {
             del_ids += profile->id;
             if (++remove_display_count == removeListPreviewLimit) {
                 remove_display += "...";

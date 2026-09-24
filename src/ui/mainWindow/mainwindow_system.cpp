@@ -620,7 +620,7 @@ void MainWindow::CheckUpdate(bool silent) {
     };
 
     auto resp = NetworkRequestHelper::HttpGet(
-        "https://api.github.com/repos/troshkindm/throned/releases", false, requestUsedProfile);
+        "https://api.github.com/repos/troshkindm/throned/releases", requestUsedProfile);
     if (!resp.error.isEmpty()) {
         rememberDirectFailure();
         if (!silent) runOnUiThread([=, this] {

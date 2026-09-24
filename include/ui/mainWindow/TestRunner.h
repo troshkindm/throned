@@ -32,6 +32,9 @@ public:
     // `onFinished` fires on every exit path, so a caller may block on it.
     void runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {});
 
+    // Waits out a running session instead of refusing it; returns at once and is safe from any thread.
+    void queueUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished);
+
     void runIpTests(const QList<int>& profileIDs);
 
     // TCP latency says nothing about UDP: carriers throttle it separately, which
@@ -94,7 +97,7 @@ private:
     };
 
     void runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
-                         const std::function<void()>& onFinished);
+                         const std::function<void()>& onFinished, bool waitForSession = false);
 
     void runUrlProbe(const Target& target);
 

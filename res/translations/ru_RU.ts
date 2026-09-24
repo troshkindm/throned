@@ -2750,6 +2750,117 @@ This backup may have been created with a newer version of the application.</sour
         <source> h</source>
         <translation> ч</translation>
     </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation>Дополнительные настройки подписки</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>Запрос</translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation>Если пусто, используется User Agent из настроек подписок.</translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation>User Agent</translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation>Отправлять с запросами этой подписки заголовки HWID, ОС, версии ОС и модели устройства. «По умолчанию» следует настройкам подписок.</translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation>Отправлять HWID</translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation>Вкл.</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Выкл.</translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation>HWID</translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation>ОС</translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation>Версия ОС</translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation>Модель устройства</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновление</translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation>Профили, последняя проверка которых прошла успешно, сохраняются, даже если подписка их больше не содержит.</translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation>Сохранять рабочие профили</translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation>После каждого обновления:</translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation>Удалять дубликаты</translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation>Удалять небезопасные профили</translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation>Профили, которые отклоняет ядро. Пропускается, пока ядро недоступно.</translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation>Удалять недействительные профили</translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation>Проверяет профили группы после завершения обновления — после уже идущей проверки, если она есть.</translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation>Запускать URL-тест</translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation>Удалять недоступные профили</translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation>Сортировать по задержке</translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation>По умолчанию (%1)</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditProfile</name>
@@ -4155,6 +4266,10 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation>По одному домену в строке. Они перебираются по порядку, используется первый, принявший регистрацию. Оставьте пустым, чтобы использовать %1.</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation>Перехват устарел и будет удалён в следующем выпуске. Режим TUN решает ту же задачу.</translation>
     </message>
 </context>
 <context>
@@ -6315,6 +6430,33 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>Remove %1?</source>
         <translation>Удалить %1?</translation>
+    </message>
+</context>
+<context>
+    <name>HijackDeprecationNotice</name>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>Перехват (Настройки &gt; Настройки маршрутизации &gt; Перехват) устарел и будет удалён в следующем выпуске.</translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>От него зависит параметр «Системный DNS», он будет удалён вместе с ним.</translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Режим TUN решает ту же задачу.</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation>Перехват устарел</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>Настройки маршрутизации</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>Больше не показывать</translation>
     </message>
 </context>
 <context>
@@ -9283,6 +9425,60 @@ Deleted %5 Profiles:
     <message>
         <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation>Создание идентификатора WARP регистрирует новое устройство в Cloudflare.&lt;br&gt;&lt;br&gt;Принимаете ли вы &lt;a href=&quot;%1&quot;&gt;условия обслуживания Cloudflare WARP&lt;/a&gt;?</translation>
+    </message>
+    <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation>Удалены дубликаты профилей (%1):</translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation>Удалены небезопасные профили (%1):</translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation>Удаление недействительных профилей пропущено: ядро недоступно.</translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation>Удалены недействительные профили (%1):</translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation>Запущенный профиль сохранён.</translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation>Удалены недоступные профили (%1):</translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation>Сортировка %1 пропущена: уже идёт другая сортировка.</translation>
+    </message>
+    <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation>Рабочие, поэтому сохранены, а не удалены:
+%1</translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation>После URL-теста %1:</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation>Пересылка IPv4 ломает режим TUN</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation>Для сетевого адаптера «%1» включена пересылка IPv4 — обычно потому, что его раздаёт мобильный хот-спот или общий доступ к подключению к Интернету.
+
+Тогда Windows игнорирует привязку к адаптеру, которая не пускает собственные соединения Throned в TUN, поэтому они зацикливаются в нём и обрываются.
+
+Чтобы это исправить, раздавайте хот-спот с адаптера throned-tun вместо «%1» (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или выключайте хот-спот, пока используется режим TUN.</translation>
     </message>
 </context>
 <context>

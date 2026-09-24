@@ -16,7 +16,7 @@ QString UpdateProfile(const std::shared_ptr<Configs::RouteProfile>& profile, QSt
     if (url.isEmpty()) return QObject::tr("remote URL is empty");
 
     const bool proxyAvailable = Configs::dataManager->settingsRepo->started_id >= 0;
-    auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link(url), false, proxyAvailable);
+    auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link(url), proxyAvailable);
     if (!resp.error.isEmpty()) return resp.error;
 
     QString fatal, warn;

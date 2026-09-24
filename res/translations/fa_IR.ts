@@ -2050,6 +2050,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditAutoSelector</name>
@@ -3931,6 +3935,55 @@ Release note:
         <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -4025,6 +4078,10 @@ Release note:
     <message>
         <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
         <translation>اشتراک بازه به‌روزرسانی خود را می‌فرستد؛ با برداشتن تیک، عدد بالا استفاده می‌شود.</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7170,6 +7227,140 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HijackDeprecationNotice</name>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

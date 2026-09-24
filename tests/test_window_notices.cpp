@@ -2,6 +2,8 @@
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/WindowNotices.h"
 #include "include/ui/widget/PendingRestartNotice.h"
+#include "include/ui/widget/HijackDeprecationNotice.h"
+#include "include/database/MarkersRepo.h"
 #include "include/database/SettingsRepo.h"
 #include "include/global/Logger.hpp"
 
@@ -106,6 +108,44 @@ private slots:
         Configs::SettingsRepo enabled(db);
         QCOMPARE(enabled.theme, QString("Mica (Windows 11)"));
         QVERIFY(enabled.dismissed_notices.contains("windows11-mica-v1"));
+    }
+
+    void hijackNoticeFollowsSettingsAndRemembersDismissal() {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        Configs::Database db((dir.path() + "/settings.db").toStdString());
+        Configs::SettingsRepo settings(db);
+        Configs::MarkersRepo markers(db);
+        int opened = 0;
+        UpdateStatusWidget status;
+        HijackDeprecationNotice notice(&status, settings, markers, [&] { ++opened; });
+        QCoreApplication::processEvents();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+
+        settings.enable_dns_server = true;
+        notice.refresh();
+        QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
+        status.findChild<QPushButton *>("updatePrimaryButton")->click();
+        QCOMPARE(opened, 1);
+        QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
+
+        settings.enable_dns_server = false;
+        notice.refresh();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+        QVERIFY(!markers.IsMarked(Configs::Markers::HijackDeprecated));
+
+        settings.enable_redirect = true;
+        notice.refresh();
+        status.showReady("Throned-1.4.5-windows64.zip");
+        status.dismiss();
+        QVERIFY(!markers.IsMarked(Configs::Markers::HijackDeprecated));
+        QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
+        status.dismiss();
+        QVERIFY(markers.IsMarked(Configs::Markers::HijackDeprecated));
+
+        HijackDeprecationNotice reloaded(&status, settings, markers, [] {});
+        QCoreApplication::processEvents();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
     }
 
     void unavailableSkinDoesNotOfferTip() {

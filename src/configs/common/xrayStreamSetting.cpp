@@ -814,6 +814,12 @@ bool xrayStreamSetting::ParseFromJson(const QJsonObject& object) {
     if (object.isEmpty()) return false;
 
     if (object.contains("finalmask") && object["finalmask"].isObject()) finalmask = object["finalmask"].toObject();
+    if (object["sockopt"].isObject()) {
+        sockopt = object["sockopt"].toObject();
+        // dialerProxy names an outbound of the source config, and domainStrategy would outrank ThroneWiring's resolver.
+        sockopt.remove("dialerProxy");
+        sockopt.remove("domainStrategy");
+    }
 
     if (object.contains("method"))
         network = object.value("method").toString();
@@ -895,6 +901,7 @@ QJsonObject xrayStreamSetting::ExportToJson() {
     object["network"] = network;
     object["security"] = security;
     if (!finalmask.isEmpty()) object["finalmask"] = finalmask;
+    if (!sockopt.isEmpty()) object["sockopt"] = sockopt;
     if (network == "raw" && !rawSettings.isEmpty()) object["rawSettings"] = rawSettings;
     if (security == "tls")
         object["tlsSettings"] = TLS->ExportToJson();
@@ -942,7 +949,7 @@ QString getXrayOutboundDomainStrategy() {
 }
 
 BuildResult xrayStreamSetting::Build() {
-    // Interface binding and domain resolution are wired on at instance creation (ThroneWiring), not here.
+    // Default-NIC binding and domain resolution are wired on at instance creation (ThroneWiring), not here.
     return {ExportToJson(), ""};
 }
 } // namespace Configs

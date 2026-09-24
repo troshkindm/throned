@@ -537,6 +537,7 @@ QDialog#routeProfileEditor QLabel#routeSettingsSectionTitle {
     color: #F1F3F5; font-size: 15px; font-weight: 700;
 }
 QDialog#routeProfileEditor QLabel#routeSettingsMuted { color: #AEB7C2; }
+QDialog#routeProfileEditor QLabel#hijack_deprecated { color: #C42B35; }
 QDialog#routeProfileEditor QFrame#routeProfilesCard,
 QDialog#routeProfileEditor QFrame#routeProfilesHint {
     background: #171B21; border: 1px solid #2F3136; border-radius: 7px;
@@ -692,6 +693,7 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     }
     rule_editor = new AutoCompleteTextEdit("", ruleItems, this);
     ui->hijack_box->layout()->replaceWidget(ui->dnshijack_rules, rule_editor);
+    ui->dnshijack_rules_l->setBuddy(rule_editor);
     rule_editor->setPlainText(Configs::dataManager->settingsRepo->dns_server_rules.join("\n"));
     ui->dnshijack_rules->hide();
 #ifndef Q_OS_LINUX

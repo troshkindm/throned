@@ -71,6 +71,7 @@ class TestRunner;
 class DialogVpnAuth;
 class UpdateStatusWidget;
 class PendingRestartNotice;
+class HijackDeprecationNotice;
 struct VpnAuthChallenge;
 
 struct VpnEndpointState {
@@ -441,6 +442,7 @@ private:
     std::atomic<bool> pingProbeInFlight_{false};
     UpdateStatusWidget *updateStatusWidget = nullptr;
     PendingRestartNotice *pendingRestartNotice = nullptr;
+    HijackDeprecationNotice *hijackDeprecationNotice = nullptr;
     QString pendingUpdateAssetName;
     QString pendingUpdateDownloadUrl;
     std::atomic<bool> updateCheckInProgress_{false};

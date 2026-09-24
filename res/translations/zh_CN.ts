@@ -2382,6 +2382,117 @@ Select which parts to restore:</source>
         <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
         <translation>订阅会发送自己的刷新周期；取消勾选则使用上面的数值。</translation>
     </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级设置</translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation>高级订阅设置</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>请求</translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation>留空则使用订阅设置中的用户代理。</translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation>用户代理</translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation>在此订阅的请求中发送 HWID、操作系统、系统版本和设备型号请求头。“保持默认”遵循订阅设置。</translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation>发送 HWID</translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation>保持默认</translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation>开</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>关</translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation>HWID</translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation>操作系统</translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation>系统版本</translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation>设备型号</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation>上次测试成功的配置在订阅不再包含它们时仍会保留。</translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation>保留可用的配置</translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation>每次更新后：</translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation>移除重复的配置</translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation>移除不安全的配置</translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation>核心拒绝的配置。核心无法访问时跳过。</translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation>移除无效的配置</translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation>更新完成后测试该组的配置，若已有测试在运行则在其之后进行。</translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation>运行 URL 测试</translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation>移除不可用的配置</translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation>按延迟排序</translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation>保持默认（%1）</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditProfile</name>
@@ -3814,6 +3925,10 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
 %3</source>
         <translation>更新了 %1, 失败了 %2:
 %3</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation>劫持功能已弃用，将在下一个版本中移除。Tun 模式可满足相同的用途。</translation>
     </message>
 </context>
 <context>
@@ -5837,6 +5952,33 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>Remove %1?</source>
         <translation>删除 %1 吗?</translation>
+    </message>
+</context>
+<context>
+    <name>HijackDeprecationNotice</name>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>劫持（首选项 &gt; 路由设置 &gt; 劫持）已弃用，将在下一个版本中移除。</translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>系统 DNS 选项依赖于它，也将随之移除。</translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Tun 模式可满足相同的用途。</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation>劫持功能已弃用</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>路由设置</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>不再显示</translation>
     </message>
 </context>
 <context>
@@ -8435,6 +8577,60 @@ How to update?</source>
     <message>
         <source>Format</source>
         <translation>格式化</translation>
+    </message>
+    <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation>已移除 %1 个重复的配置：</translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation>已移除 %1 个不安全的配置：</translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation>已跳过移除无效配置：无法访问核心。</translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation>已移除 %1 个无效的配置：</translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation>正在运行的配置已保留。</translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation>已移除 %1 个不可用的配置：</translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation>已跳过对 %1 的排序：另一个排序正在进行中。</translation>
+    </message>
+    <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation>可用，因此保留而不是删除:
+%1</translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation>%1 的 URL 测试之后：</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation>IPv4 转发会破坏 Tun 模式</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation>网络适配器“%1”开启了 IPv4 转发，通常是因为移动热点或 Internet 连接共享正在共享它。
+
+此时 Windows 会忽略让 Throned 自身连接不进入 Tun 的适配器绑定，导致这些连接回环进入 Tun 并失败。
+
+要解决此问题，请改为从 throned-tun 适配器共享热点，而不是“%1”（设置 &gt; 移动热点 &gt; 从以下位置共享我的 Internet 连接），或在使用 Tun 模式时关闭热点。</translation>
     </message>
 </context>
 <context>

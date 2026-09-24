@@ -46,7 +46,9 @@ throned_add_qt_test(throned_window_notices_tests
             test_window_notices.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/WindowNotices.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/PendingRestartNotice.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/HijackDeprecationNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/MarkersRepo.cpp
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/UpdateStatusWidget.cpp
             ${PROJECT_SOURCE_DIR}/include/ui/widget/UpdateStatusWidget.h

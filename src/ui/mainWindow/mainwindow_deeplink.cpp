@@ -323,6 +323,7 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             if (changed(MwArg::Route)) {
                 settings->Save();
                 suggestRestartProxy = true;
+                if (hijackDeprecationNotice != nullptr) hijackDeprecationNotice->refresh();
             }
             if (changed(MwArg::NeedRestart)) {
                 suggestRestartProxy = false;

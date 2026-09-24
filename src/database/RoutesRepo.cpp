@@ -96,6 +96,7 @@ void RoutesRepo::createTables() const {
                 tls_record_fragment INTEGER NOT NULL DEFAULT 0,
                 tls_spoof TEXT,
                 tls_spoof_method TEXT,
+                package_name_json TEXT,
                 PRIMARY KEY (route_profile_id, rule_order),
                 FOREIGN KEY(route_profile_id) REFERENCES route_profiles(id) ON DELETE CASCADE
             )
@@ -114,6 +115,8 @@ void RoutesRepo::createTables() const {
         db.exec("ALTER TABLE route_rules ADD COLUMN tls_spoof TEXT");
     if (!routeRulesColumnExists("tls_spoof_method"))
         db.exec("ALTER TABLE route_rules ADD COLUMN tls_spoof_method TEXT");
+    if (!routeRulesColumnExists("package_name_json"))
+        db.exec("ALTER TABLE route_rules ADD COLUMN package_name_json TEXT");
 }
 
 bool RoutesRepo::routeRulesColumnExists(const char* columnName) const {
@@ -158,6 +161,7 @@ QJsonObject RoutesRepo::routeRuleToJson(const RouteRule* rule) const {
     json["process_name"] = QListStr2QJsonArray(rule->process_name);
     json["process_path"] = QListStr2QJsonArray(rule->process_path);
     json["process_path_regex"] = QListStr2QJsonArray(rule->process_path_regex);
+    json["package_name"] = QListStr2QJsonArray(rule->package_name);
     json["wifi_ssid"] = QListStr2QJsonArray(rule->wifi_ssid);
     json["wifi_bssid"] = QListStr2QJsonArray(rule->wifi_bssid);
     json["rule_set"] = QListStr2QJsonArray(rule->rule_set);
@@ -201,6 +205,7 @@ std::shared_ptr<RouteRule> RoutesRepo::routeRuleFromJson(const QJsonObject& json
     rule->process_name = QJsonArray2QListString(json["process_name"].toArray());
     rule->process_path = QJsonArray2QListString(json["process_path"].toArray());
     rule->process_path_regex = QJsonArray2QListString(json["process_path_regex"].toArray());
+    rule->package_name = QJsonArray2QListString(json["package_name"].toArray());
     rule->wifi_ssid = QJsonArray2QListString(json["wifi_ssid"].toArray());
     rule->wifi_bssid = QJsonArray2QListString(json["wifi_bssid"].toArray());
     rule->rule_set = QJsonArray2QListString(json["rule_set"].toArray());
@@ -368,6 +373,7 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
         QJsonArray sniffersArray = QListStr2QJsonArray(rule->sniffers);
         QJsonArray wifiSsidArray = QListStr2QJsonArray(rule->wifi_ssid);
         QJsonArray wifiBssidArray = QListStr2QJsonArray(rule->wifi_bssid);
+        QJsonArray packageNameArray = QListStr2QJsonArray(rule->package_name);
 
         QString inboundJson = QString::fromUtf8(QJsonDocument(inboundArray).toJson(QJsonDocument::Compact));
         QString domainJson = QString::fromUtf8(QJsonDocument(domainArray).toJson(QJsonDocument::Compact));
@@ -387,6 +393,7 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
         QString sniffersJson = QString::fromUtf8(QJsonDocument(sniffersArray).toJson(QJsonDocument::Compact));
         QString wifiSsidJson = QString::fromUtf8(QJsonDocument(wifiSsidArray).toJson(QJsonDocument::Compact));
         QString wifiBssidJson = QString::fromUtf8(QJsonDocument(wifiBssidArray).toJson(QJsonDocument::Compact));
+        QString packageNameJson = QString::fromUtf8(QJsonDocument(packageNameArray).toJson(QJsonDocument::Compact));
 
         db.execThrow(R"(
                 INSERT INTO route_rules
@@ -398,8 +405,9 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
                  invert, outbound_id, action, reject_method, no_drop,
                  override_address, override_port, sniffers_json, sniff_override_dest, strategy,
                  wifi_ssid_json, wifi_bssid_json,
-                 tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, tls_spoof, tls_spoof_method)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, tls_spoof, tls_spoof_method,
+                 package_name_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             )",
                      id,
                      ruleOrder++,
@@ -441,7 +449,8 @@ void RoutesRepo::saveToDatabaseInTx(const RouteProfile* routeProfile, int id) co
                      rule->tls_fragment_fallback_delay.toStdString(),
                      rule->tls_record_fragment ? 1 : 0,
                      rule->tls_spoof.toStdString(),
-                     rule->tls_spoof_method.toStdString());
+                     rule->tls_spoof_method.toStdString(),
+                     packageNameJson.toStdString());
     }
 }
 
@@ -491,6 +500,7 @@ QJsonObject RoutesRepo::ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) co
     ruleJson["tls_record_fragment"] = stmt.getColumn(baseCol + 36).getInt() != 0;
     ruleJson["tls_spoof"] = QString::fromStdString(stmt.getColumn(baseCol + 37).getText());
     ruleJson["tls_spoof_method"] = QString::fromStdString(stmt.getColumn(baseCol + 38).getText());
+    ruleJson["package_name"] = parseJsonArray(stmt.getColumn(baseCol + 39).getText());
     return ruleJson;
 }
 
@@ -531,7 +541,8 @@ void RoutesRepo::loadRulesForProfileIdsChunk(const QList<int>& profileIds, std::
         "invert, outbound_id, action, reject_method, no_drop, "
         "override_address, override_port, sniffers_json, sniff_override_dest, strategy, "
         "wifi_ssid_json, wifi_bssid_json, "
-        "tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, tls_spoof, tls_spoof_method "
+        "tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, tls_spoof, tls_spoof_method, "
+        "package_name_json "
         "FROM route_rules WHERE route_profile_id IN (" +
         idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
     auto rulesQuery = db.query(sql);
@@ -568,7 +579,8 @@ std::shared_ptr<RouteProfile> RoutesRepo::loadFromDatabase(int id) const {
                    invert, outbound_id, action, reject_method, no_drop,
                    override_address, override_port, sniffers_json, sniff_override_dest, strategy,
                    wifi_ssid_json, wifi_bssid_json,
-                   tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, tls_spoof, tls_spoof_method
+                   tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, tls_spoof, tls_spoof_method,
+                   package_name_json
             FROM route_rules WHERE route_profile_id = ? ORDER BY rule_order
         )",
                                id);

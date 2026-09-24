@@ -37,6 +37,8 @@
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/ui/widget/WindowNotices.h"
 #include "include/ui/widget/PendingRestartNotice.h"
+#include "include/ui/widget/HijackDeprecationNotice.h"
+#include "include/database/MarkersRepo.h"
 #include <QPainter>
 #include "include/ui/widget/ThronedToggle.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
@@ -894,6 +896,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         const int startedID = Configs::dataManager->settingsRepo->started_id;
         if (startedID >= 0) profile_start(startedID);
     });
+    hijackDeprecationNotice = new HijackDeprecationNotice(
+        updateStatusWidget, *Configs::dataManager->settingsRepo, *Configs::dataManager->markersRepo,
+        [this, uiPreviewMode] {
+            if (!uiPreviewMode) on_menu_routing_settings_triggered();
+        });
     connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this, uiPreviewMode] {
         if (uiPreviewMode) return;
         exit_reason = ExitReason::RunUpdater;
@@ -1337,6 +1344,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     parallelCoreCallPool->setMaxThreadCount(10);
     testRunner = std::make_unique<TestRunner>(this);
+    Subscription::updater()->SetUrlTester([this](const QList<int> &profileIDs, const Subscription::GroupUpdater::Finish &done) {
+        testRunner->queueUrlTests(profileIDs, done);
+    });
     // The .ui carries Return; numpad Enter is the same gesture.
     ui->menu_start->setShortcuts({QKeySequence(Qt::Key_Return), QKeySequence(Qt::Key_Enter)});
     connect(ui->menu_start, &QAction::triggered, this, [=, this]() { profile_start(); });
@@ -2693,5 +2703,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 }
 
 MainWindow::~MainWindow() {
+    Subscription::updater()->SetUrlTester(nullptr);
     delete ui;
 }
