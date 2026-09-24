@@ -152,6 +152,12 @@ int ProfileRowDelegate::metricColumnWidth(int column, const QFont &font) {
     }
 }
 
+int ProfileRowDelegate::serverColumnFloor(const QFont &font) {
+    const QFontMetrics meta(metaFont(font));
+    return meta.horizontalAdvance(QStringLiteral("255.255.255.255:65535")) + kExitGap +
+           meta.horizontalAdvance(QStringLiteral("255.255.255.255")) + kPadX * 2;
+}
+
 void ProfileRowDelegate::setFlash(int row, qreal strength) {
     m_flashRow = row;
     m_flashStrength = qBound(0.0, strength, 1.0);

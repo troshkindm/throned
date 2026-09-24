@@ -473,6 +473,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // closed by a single hairline, instead of a card floating over another card.
     auto *commandBar = new QFrame(redesignedCentral);
     commandBar->setObjectName(QStringLiteral("commandBar"));
+    commandBarFrame = commandBar;
     commandBar->setFixedHeight(54);
     auto *commandLayout = new QHBoxLayout(commandBar);
     commandLayout->setContentsMargins(14, 7, 10, 7);
@@ -537,9 +538,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     retintDiagnostics();
     connect(themeManager(), &ThemeManager::themeChanged, this, retintDiagnostics);
 
-    auto addToggle = [commandBar, commandLayout](const QString &text, QCheckBox *toggle) {
+    auto addToggle = [this, commandBar, commandLayout](const QString &text, const QString &narrowText, QCheckBox *toggle) {
         auto *label = new QLabel(text, commandBar);
         label->setObjectName(QStringLiteral("controlLabel"));
+        commandToggleLabels.append({label, text, narrowText});
         commandLayout->addWidget(label);
         toggle->setParent(commandBar);
         toggle->hide();
@@ -547,12 +549,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         visualToggle->bindTo(toggle);
         commandLayout->addWidget(visualToggle);
     };
-    addToggle(tr("TUN mode"), ui->checkBox_VPN);
+    addToggle(tr("TUN mode"), tr("TUN"), ui->checkBox_VPN);
     auto *modeSeparator = new QFrame(commandBar);
     modeSeparator->setObjectName(QStringLiteral("vSeparator"));
     modeSeparator->setFixedSize(1, 33);
     commandLayout->addWidget(modeSeparator);
-    addToggle(tr("System proxy"), ui->checkBox_SystemProxy);
+    addToggle(tr("System proxy"), tr("Proxy"), ui->checkBox_SystemProxy);
     ui->checkBox_VPN->setParent(commandBar);
     ui->system_dns->setParent(commandBar);
     ui->system_dns->hide();
@@ -713,6 +715,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     stripLayout->addStretch(1);
     auto *stripHint = new QLabel(tr("Click a tab to open"), statsStrip);
     stripHint->setObjectName(QStringLiteral("stripHint"));
+    statsStripHint = stripHint;
     stripLayout->addWidget(stripHint);
     stripLayout->addSpacing(7);
     statsStripToggle = new QToolButton(statsStrip);
@@ -791,6 +794,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         cellLayout->addLayout(text, 1);
         if (value == ui->label_running && statusConnectionTest != nullptr)
             cellLayout->addWidget(statusConnectionTest, 0, Qt::AlignVCenter);
+        if (value != ui->label_running) statusDetailCells.append(cell);
         statusLayout->addWidget(cell, stretch);
     }
     if (statusConnectionCaption != nullptr) {
@@ -864,12 +868,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         {tr("Resolve IP"), ui->actionResolve_Selected_Out_IP},
         {tr("Sites"), siteTestAction},
     };
+    auto *selectionMenu = new QMenu(selectionCard);
     for (const auto &[text, action]: selectionActions) {
         auto *button = new QPushButton(text, selectionCard);
         button->setObjectName(QStringLiteral("selectionAction"));
         connect(button, &QPushButton::clicked, action, &QAction::trigger);
         selectionLayout->addWidget(button);
+        selectionActionButtons.append(button);
+        connect(selectionMenu->addAction(text), &QAction::triggered, action, &QAction::trigger);
     }
+    // Five buttons do not fit a narrow window; the same actions fold into one menu there.
+    selectionActionsMenuButton = new QPushButton(tr("Test"), selectionCard);
+    selectionActionsMenuButton->setObjectName(QStringLiteral("selectionAction"));
+    selectionActionsMenuButton->setMenu(selectionMenu);
+    selectionActionsMenuButton->hide();
+    selectionLayout->addWidget(selectionActionsMenuButton);
     selectionCard->setFixedHeight(68);
     // The card is what tells you a selection exists, so it is also where you end one.
     // Clicking empty space still works, but a full table leaves no empty space to click.
@@ -944,7 +957,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(themeManager(), &ThemeManager::themeChanged, this, retintIcons);
     refreshRoutingStatus();
 
-    setMinimumSize(960, 680);
+    setMinimumSize(560, 360);
     FitWindowToScreen(this);
     ui->centralwidget = redesignedCentral;
     setCentralWidget(redesignedCentral);
@@ -1513,6 +1526,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     serverSearch->setPlaceholderText(tr("Search servers..."));
     serverSearch->setClearButtonEnabled(true);
     serverSearch->setFixedSize(268, 33);
+    serverSearchField = serverSearch;
     // The per-column filter row is gone: this field already searches every one of
     // them, so Find belongs here rather than on a second control beside it.
     auto *findShortcut = new QShortcut(QKeySequence::Find, this);

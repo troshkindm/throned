@@ -15,6 +15,9 @@ public:
     // uses, because ResizeToContents does not agree with them.
     static int metricColumnWidth(int column, const QFont &font);
 
+    // Narrowest server column that still shows the address and the exit; metric columns give way below it.
+    static int serverColumnFloor(const QFont &font);
+
     // A short tint over one row, so a jump from the status bar lands somewhere
     // the eye can follow. strength 0 clears it.
     void setFlash(int row, qreal strength);

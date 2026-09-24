@@ -80,7 +80,7 @@ void RunMainWindow(const QString &prefix) {
             bool heightOk = false;
             const int width = parts.at(0).toInt(&widthOk);
             const int height = parts.at(1).toInt(&heightOk);
-            if (widthOk && heightOk && width >= 900 && height >= 620)
+            if (widthOk && heightOk && width >= 480 && height >= 400)
                 previewSize = QSize(width, height);
         }
     }

@@ -627,6 +627,32 @@ private:
     // grows past this, so a smaller font returns to the designed floor.
     QSize designMinimumSize;
 
+    // Below the width the labelled header needs, the window folds into its narrow
+    // layout instead of refusing to shrink (issue #5). See mainwindow_narrow.cpp.
+    struct NarrowLabel {
+        class QLabel *label;
+        QString full;
+        QString narrow;
+    };
+    QList<NarrowLabel> commandToggleLabels;
+    QList<QWidget *> statusDetailCells;
+    QList<class QPushButton *> selectionActionButtons;
+    class QPushButton *selectionActionsMenuButton = nullptr;
+    class QFrame *commandBarFrame = nullptr;
+    class QLabel *statsStripHint = nullptr;
+    class QLineEdit *serverSearchField = nullptr;
+    bool narrowLayout = false;
+    int fullLayoutWidth = 0;
+    int narrowHiddenMetrics = 0;
+    // The open stats panel needs its own share of the height, so each state has its floor.
+    QSize windowMinimumClosed;
+    QSize windowMinimumOpen;
+    void applyWindowMinimum();
+    void setNarrowLayout(bool narrow);
+    void updateNarrowLayout();
+    // How many metric columns, counted from the right, the table width cannot hold.
+    [[nodiscard]] int metricColumnsOverflowing() const;
+
     // Debounced refresh_proxy_list trigger for font/theme/resize events.
     QTimer *m_proxyListRefreshDebounce = nullptr;
     void scheduleProxyListRefresh();

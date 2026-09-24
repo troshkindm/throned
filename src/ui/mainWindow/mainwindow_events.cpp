@@ -111,6 +111,7 @@ void MainWindow::syncConnectionViewState() {
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
     QMainWindow::resizeEvent(event);
+    updateNarrowLayout();
     scheduleProxyListRefresh();
 }
 
