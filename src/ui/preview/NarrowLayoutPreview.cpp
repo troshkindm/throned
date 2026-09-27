@@ -256,7 +256,7 @@ void VerifySimpleMode(MainWindow *window, const QString &prefix) {
                              if (!require(third != nullptr, "the expanded catalog must be grouped by category")) return;
                              area->verticalScrollBar()->setValue(third->y() + 90);
                              QWidget *pinned = nullptr;
-                             for (auto *child: area->findChildren<QWidget *>(Qt::FindDirectChildrenOnly))
+                             for (auto *child: area->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly))
                                  if (child->isVisible() && child->findChild<QLabel *>(QStringLiteral("simpleRouteGroup")) != nullptr) pinned = child;
                              bool titled = false;
                              for (auto *label: pinned ? pinned->findChildren<QLabel *>(QStringLiteral("simpleRouteGroup")) : QList<QLabel *>())
