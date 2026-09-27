@@ -132,6 +132,8 @@ void VerifySimpleMode(MainWindow *window, const QString &prefix) {
         qApp->exit(2);
         return;
     }
+    // The fixture size may exceed a small CI screen, and restoreGeometry fits it back in; compare against that.
+    window->restoreGeometry(window->saveGeometry());
     const QSize fullSize = window->size();
     action->setChecked(true);
     const auto key = [](QWidget *target, Qt::Key value) {
