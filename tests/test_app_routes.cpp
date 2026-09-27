@@ -72,9 +72,9 @@ private slots:
                 QVERIFY2(known, qPrintable(entry.id + ": " + name));
             }
         }
-        const auto linux = ParseCatalog(json, QStringLiteral("linux"));
-        const auto telegram = std::find_if(linux.begin(), linux.end(), [](const CatalogEntry &e) { return e.id == "telegram"; });
-        QVERIFY(telegram != linux.end());
+        const auto onLinux = ParseCatalog(json, QStringLiteral("linux"));
+        const auto telegram = std::find_if(onLinux.begin(), onLinux.end(), [](const CatalogEntry &e) { return e.id == "telegram"; });
+        QVERIFY(telegram != onLinux.end());
         QVERIFY(telegram->processes.contains(QStringLiteral("telegram-desktop")));
     }
 
