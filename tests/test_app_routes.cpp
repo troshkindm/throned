@@ -54,7 +54,7 @@ private slots:
             QVERIFY2(!ids.contains(entry.id), qPrintable(entry.id));
             ids.insert(entry.id);
             QVERIFY2(categories.contains(entry.category), qPrintable(entry.id));
-            QVERIFY(QColor::isValidColorName(entry.color));
+            QVERIFY(QColor(entry.color).isValid());
             QVERIFY2(!entry.processes.isEmpty() || !entry.ruleSets.isEmpty() || !entry.domains.isEmpty(), qPrintable(entry.id));
             for (const QString &cidr: entry.cidrs) QVERIFY2(QHostAddress::parseSubnet(cidr).second > 0, qPrintable(cidr));
             for (const QString &process: entry.processes) {
