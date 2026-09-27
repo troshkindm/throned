@@ -2,6 +2,9 @@
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/WindowNotices.h"
 #include "include/ui/widget/PendingRestartNotice.h"
+#include "include/ui/widget/HijackDeprecationNotice.h"
+#include "include/ui/widget/SimpleModeNotice.h"
+#include "include/database/MarkersRepo.h"
 #include "include/database/SettingsRepo.h"
 #include "include/global/Logger.hpp"
 
@@ -35,6 +38,71 @@ QString ReadableSize(const qint64 &size) { return QLocale().formattedDataSize(si
 class TestWindowNotices : public QObject {
     Q_OBJECT
 private slots:
+    void simpleModeDefaultsOnlyForNewSettings() {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        Configs::Database db((dir.path() + "/settings.db").toStdString());
+        Configs::SettingsRepo fresh(db);
+        QVERIFY(fresh.simple_mode);
+        fresh.simple_mode = false;
+        fresh.Save();
+        Configs::SettingsRepo chosenFull(db);
+        QVERIFY(!chosenFull.simple_mode);
+        db.exec("DELETE FROM settings WHERE key = 'simple_mode'");
+        Configs::SettingsRepo upgraded(db);
+        QVERIFY(!upgraded.simple_mode);
+        upgraded.simple_mode = true;
+        upgraded.Save();
+        Configs::SettingsRepo chosenSimple(db);
+        QVERIFY(chosenSimple.simple_mode);
+    }
+
+    void simpleModeNoticeRetiresOnceAnswered() {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        Configs::Database db((dir.path() + "/settings.db").toStdString());
+        Configs::SettingsRepo settings(db);
+        settings.simple_mode = false;
+        int opened = 0;
+        UpdateStatusWidget status;
+        SimpleModeNotice notice(&status, settings, [&] {
+            ++opened;
+            settings.simple_mode = true;
+        });
+        notice.refresh();
+        QCOMPARE(status.activeNoticeId(), QString("simple-mode-v1"));
+        status.findChild<QPushButton *>("updatePrimaryButton")->click();
+        QCOMPARE(opened, 1);
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+        settings.simple_mode = false;
+        notice.refresh();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+        QVERIFY(Configs::SettingsRepo(db).dismissed_notices.contains("simple-mode-v1"));
+
+        QTemporaryDir otherDir;
+        Configs::Database other((otherDir.path() + "/settings.db").toStdString());
+        Configs::SettingsRepo tried(other);
+        tried.simple_mode = false;
+        UpdateStatusWidget otherStatus;
+        SimpleModeNotice otherNotice(&otherStatus, tried, [] {});
+        otherNotice.refresh();
+        QCOMPARE(otherStatus.activeNoticeId(), QString("simple-mode-v1"));
+        otherStatus.dismiss();
+        QVERIFY(Configs::SettingsRepo(other).dismissed_notices.contains("simple-mode-v1"));
+
+        QTemporaryDir lastDir;
+        Configs::Database last((lastDir.path() + "/settings.db").toStdString());
+        Configs::SettingsRepo elsewhere(last);
+        elsewhere.simple_mode = false;
+        UpdateStatusWidget lastStatus;
+        SimpleModeNotice lastNotice(&lastStatus, elsewhere, [] {});
+        lastNotice.refresh();
+        elsewhere.simple_mode = true;
+        lastNotice.refresh();
+        QCOMPARE(lastStatus.state(), UpdateStatusWidget::State::Hidden);
+        QVERIFY(elsewhere.dismissed_notices.contains("simple-mode-v1"));
+    }
+
     void pendingRestartWaitsForUpdateAndCoalescesReasons() {
         UpdateStatusWidget status;
         int restarts = 0;
@@ -106,6 +174,44 @@ private slots:
         Configs::SettingsRepo enabled(db);
         QCOMPARE(enabled.theme, QString("Mica (Windows 11)"));
         QVERIFY(enabled.dismissed_notices.contains("windows11-mica-v1"));
+    }
+
+    void hijackNoticeFollowsSettingsAndRemembersDismissal() {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        Configs::Database db((dir.path() + "/settings.db").toStdString());
+        Configs::SettingsRepo settings(db);
+        Configs::MarkersRepo markers(db);
+        int opened = 0;
+        UpdateStatusWidget status;
+        HijackDeprecationNotice notice(&status, settings, markers, [&] { ++opened; });
+        QCoreApplication::processEvents();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+
+        settings.enable_dns_server = true;
+        notice.refresh();
+        QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
+        status.findChild<QPushButton *>("updatePrimaryButton")->click();
+        QCOMPARE(opened, 1);
+        QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
+
+        settings.enable_dns_server = false;
+        notice.refresh();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
+        QVERIFY(!markers.IsMarked(Configs::Markers::HijackDeprecated));
+
+        settings.enable_redirect = true;
+        notice.refresh();
+        status.showReady("Throned-1.4.5-windows64.zip");
+        status.dismiss();
+        QVERIFY(!markers.IsMarked(Configs::Markers::HijackDeprecated));
+        QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
+        status.dismiss();
+        QVERIFY(markers.IsMarked(Configs::Markers::HijackDeprecated));
+
+        HijackDeprecationNotice reloaded(&status, settings, markers, [] {});
+        QCoreApplication::processEvents();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
     }
 
     void unavailableSkinDoesNotOfferTip() {

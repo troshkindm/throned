@@ -30,6 +30,8 @@ bool isOutboundIDValid(int id) {
 int getOutboundID(const QString& name) {
     if (name == "proxy") return -1;
     if (name == "direct") return -2;
+    if (name == "block") return blockID;
+    if (name == "warp-bypass") return warpBypassID;
     if (const auto& profile = Configs::dataManager->profilesRepo->GetProfileByName(name)) return profile->id;
 
     return INVALID_ID;
@@ -204,6 +206,13 @@ static void appendWarning(QString* warnings, const QString& msg) {
     if (warnings) warnings->append(msg + "\n");
 }
 
+// toString() is "" for a number, and the writer emits ports, ip_version and override_port as numbers.
+static QString jsonScalarText(const QJsonValue& val) {
+    if (!val.isDouble()) return val.toString();
+    const qint64 whole = val.toInteger();
+    return static_cast<double>(whole) == val.toDouble() ? QString::number(whole) : QString::number(val.toDouble());
+}
+
 // name/type are schema-only keys: skipped here, applied by the caller.
 static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, QString* warnings) {
     auto rule = std::make_shared<RouteRule>();
@@ -229,9 +238,11 @@ static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, QStr
                 }
             }
         } else if (val.isArray()) {
-            rule->set_field_value(key, QJsonArray2QListString(val.toArray()));
-        } else if (val.isString()) {
-            rule->set_field_value(key, {val.toString()});
+            QStringList items;
+            for (const auto& item: val.toArray()) items << jsonScalarText(item);
+            rule->set_field_value(key, items);
+        } else if (val.isString() || val.isDouble()) {
+            rule->set_field_value(key, {jsonScalarText(val)});
         } else if (val.isBool()) {
             rule->set_field_value(key, {val.toBool() ? "true" : "false"});
         }
@@ -957,16 +968,19 @@ bool RouteProfile::add_simple_address_rule(const QString& content, const std::sh
     const auto [subType, address] = SplitRuleLine(content);
     // An empty value would leave a rule that is all action and no condition.
     if (subType.isEmpty() || address.isEmpty()) return false;
+    // sing-box lowercases the host before matching but takes these values as written, so a capital letter here never matches.
+    const QString lowered = address.toLower();
     if (subType == "domain") {
-        if (!rule->domain.contains(address)) rule->domain.append(address);
+        if (!rule->domain.contains(lowered)) rule->domain.append(lowered);
         return true;
     } else if (subType == "suffix") {
-        if (!rule->domain_suffix.contains(address)) rule->domain_suffix.append(address);
+        if (!rule->domain_suffix.contains(lowered)) rule->domain_suffix.append(lowered);
         return true;
     } else if (subType == "keyword") {
-        if (!rule->domain_keyword.contains(address)) rule->domain_keyword.append(address);
+        if (!rule->domain_keyword.contains(lowered)) rule->domain_keyword.append(lowered);
         return true;
     } else if (subType == "regex") {
+        // Left as written: it is matched against the lowercased host too, but lowercasing a pattern can change it (\D is not \d).
         if (!rule->domain_regex.contains(address)) rule->domain_regex.append(address);
         return true;
     } else if (subType == "ruleset") {

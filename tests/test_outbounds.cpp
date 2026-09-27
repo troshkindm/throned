@@ -4,6 +4,7 @@
 #include "include/configs/outbounds/trusttunnel.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
+#include "include/database/MarkersRepo.h"
 #include "include/database/OtpProfilesRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"

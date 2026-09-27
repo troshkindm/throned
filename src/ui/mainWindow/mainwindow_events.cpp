@@ -1,4 +1,5 @@
 #include "include/ui/mainwindow.h"
+#include "include/ui/widget/SimpleRoutesPage.h"
 
 #include <QApplication>
 #include <QCursor>
@@ -111,7 +112,15 @@ void MainWindow::syncConnectionViewState() {
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
     QMainWindow::resizeEvent(event);
+    if (simpleModeActive) updateSimpleDensity();
+    updateNarrowLayout();
     scheduleProxyListRefresh();
+}
+
+bool MainWindow::event(QEvent *event) {
+    const bool handled = QMainWindow::event(event);
+    if (event->type() == QEvent::LayoutRequest) applyWindowMinimum();
+    return handled;
 }
 
 void MainWindow::scheduleProxyListRefresh() {
@@ -178,25 +187,47 @@ void MainWindow::openTraySelector(bool routing) {
 void MainWindow::refreshRoutingStatus() {
     if (auto *label = findChild<QLabel *>(QStringLiteral("routingStatus")))
         setStatusText(label, RoutingQuickMenu::statusSummary());
+    if (simpleRoutesPage != nullptr && !simpleRoutesPage->isDirty()) reloadSimpleRoutes();
+    refreshSimpleStatus();
+}
+
+void MainWindow::applyRoutingChange() {
+    // Applying a routing change means regenerating the config, so a running profile has to be restarted.
+    refreshRoutingStatus();
+    if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
+}
+
+void MainWindow::openCurrentRouteEditor() {
+    auto profile = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
+    // Raw profiles have their own editor; the structured one cannot show them.
+    if (!profile || profile->isRaw) {
+        on_menu_routing_settings_triggered();
+        return;
+    }
+    if (dialog_is_using) return;
+    dialog_is_using = true;
+    auto *editor = new RouteItem(this, profile);
+    connect(editor, &RouteItem::settingsChanged, this, [this](const std::shared_ptr<Configs::RouteProfile> &edited) {
+        Configs::dataManager->routesRepo->Save(edited);
+        applyRoutingChange();
+    });
+    connect(editor, &QDialog::finished, this, [this, editor] {
+        editor->deleteLater();
+        dialog_is_using = false;
+    });
+    editor->show();
 }
 
 void MainWindow::openRoutingQuickMenu(const QPoint &globalPos) {
     if (routingQuickMenu) routingQuickMenu->close();
 
-    // Applying a routing change means regenerating the config, so a running
-    // profile has to be restarted for it to take effect.
-    const auto applyToRunningProfile = [this] {
-        refreshRoutingStatus();
-        if (Configs::dataManager->settingsRepo->started_id >= 0)
-            profile_start(Configs::dataManager->settingsRepo->started_id);
-    };
-    const auto withActiveProfile = [applyToRunningProfile](const std::function<void(Configs::RouteProfile &)> &change) {
+    const auto withActiveProfile = [this](const std::function<void(Configs::RouteProfile &)> &change) {
         auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
             Configs::dataManager->settingsRepo->current_route_id);
         if (!profile) return;
         change(*profile);
         Configs::dataManager->routesRepo->Save(profile);
-        applyToRunningProfile();
+        applyRoutingChange();
     };
 
     RoutingQuickMenu::Callbacks cb;
@@ -206,28 +237,7 @@ void MainWindow::openRoutingQuickMenu(const QPoint &globalPos) {
     cb.setApplyProfileRules = [withActiveProfile](bool enabled) {
         withActiveProfile([enabled](Configs::RouteProfile &profile) { profile.applyProfileRules = enabled; });
     };
-    cb.openProfile = [this, applyToRunningProfile] {
-        auto profile = Configs::dataManager->routesRepo->GetRouteProfile(
-            Configs::dataManager->settingsRepo->current_route_id);
-        // Raw profiles have their own editor; the structured one cannot show them.
-        if (!profile || profile->isRaw) {
-            on_menu_routing_settings_triggered();
-            return;
-        }
-        if (dialog_is_using) return;
-        dialog_is_using = true;
-        auto *editor = new RouteItem(this, profile);
-        connect(editor, &RouteItem::settingsChanged, this,
-                [applyToRunningProfile](const std::shared_ptr<Configs::RouteProfile> &edited) {
-                    Configs::dataManager->routesRepo->Save(edited);
-                    applyToRunningProfile();
-                });
-        connect(editor, &QDialog::finished, this, [this, editor] {
-            editor->deleteLater();
-            dialog_is_using = false;
-        });
-        editor->show();
-    };
+    cb.openProfile = [this] { openCurrentRouteEditor(); };
     cb.manageProfiles = [this] { on_menu_routing_settings_triggered(); };
 
     routingQuickMenu = new RoutingQuickMenu(cb, this);
@@ -271,7 +281,10 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     } else if (type == QEvent::Resize) {
-        if (obj == ui->profilesTableView->viewport()) refreshProfilesEmptyState();
+        if (obj == ui->profilesTableView->viewport()) {
+            refreshProfilesEmptyState();
+            updateNarrowLayout();
+        }
         if (auto *label = qobject_cast<QLabel *>(obj); label && statusElidedLabels.contains(label)) {
             const QString full = label->property("statusFullText").toString();
             if (!full.isEmpty()) setStatusText(label, full);

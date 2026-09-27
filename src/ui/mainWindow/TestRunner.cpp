@@ -386,6 +386,10 @@ void TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<v
     runLatencyGroup(LatencyKind::Url, profileIDs, onFinished);
 }
 
+void TestRunner::queueUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished) {
+    runOnNewThread([=, this] { runLatencyGroup(LatencyKind::Url, profileIDs, onFinished, true); });
+}
+
 void TestRunner::runIpTests(const QList<int>& profileIDs) {
     runLatencyGroup(LatencyKind::Ip, profileIDs, {});
 }
@@ -395,7 +399,7 @@ void TestRunner::runUdpTests(const QList<int>& profileIDs) {
 }
 
 void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
-                                 const std::function<void()>& onFinished) {
+                                 const std::function<void()>& onFinished, bool waitForSession) {
     const bool isUrl = kind == LatencyKind::Url;
     const bool isUdp = kind == LatencyKind::Udp;
     const auto panelKind = isUrl   ? DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url
@@ -409,7 +413,9 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         finish();
         return;
     }
-    if (!session_.tryLock()) {
+    if (waitForSession) {
+        session_.lock();
+    } else if (!session_.tryLock()) {
         PostPassiveWarning(software_name, isUrl
                                               ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
                                               : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));

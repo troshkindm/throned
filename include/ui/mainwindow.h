@@ -62,6 +62,9 @@ class CoreProcess;
 namespace Configs {
 class Group;
 struct SubInfo;
+namespace AppRoutes {
+struct Route;
+}
 } // namespace Configs
 
 class TrayProfileSelector;
@@ -71,6 +74,7 @@ class TestRunner;
 class DialogVpnAuth;
 class UpdateStatusWidget;
 class PendingRestartNotice;
+class HijackDeprecationNotice;
 struct VpnAuthChallenge;
 
 struct VpnEndpointState {
@@ -207,9 +211,9 @@ public:
 
     void toggle_system_proxy();
 
-    void set_spmode_vpn(bool enable, bool save = true);
+    void set_spmode_vpn(bool enable, bool save = true, bool elevationConfirmed = false);
 
-    bool get_elevated_permissions(ExitReason reason = ExitReason::RestartWithTun);
+    bool get_elevated_permissions(ExitReason reason = ExitReason::RestartWithTun, bool confirmed = false);
 
     void start_select_mode(QObject *context, const std::function<void(int)> &callback);
 
@@ -420,7 +424,7 @@ private:
     class ConnectionsTreeFilterProxyModel *connectionsFilterModel = nullptr;
     class ConnectionsFilterHeader *connectionFilterHeader = nullptr;
     QHash<QString, bool> m_processExpanded; // per-process choices; the rest follow m_processesExpandedByDefault
-    bool m_processesExpandedByDefault = true;
+    bool m_processesExpandedByDefault = false;
     QTimer *connectionFilterDebounce = nullptr;
     QToolButton *connectionExpandButton = nullptr;
     QToolButton *connectionCloseAllButton = nullptr;
@@ -441,6 +445,7 @@ private:
     std::atomic<bool> pingProbeInFlight_{false};
     UpdateStatusWidget *updateStatusWidget = nullptr;
     PendingRestartNotice *pendingRestartNotice = nullptr;
+    HijackDeprecationNotice *hijackDeprecationNotice = nullptr;
     QString pendingUpdateAssetName;
     QString pendingUpdateDownloadUrl;
     std::atomic<bool> updateCheckInProgress_{false};
@@ -603,6 +608,7 @@ private:
     void hideEvent(QHideEvent *event) override;
 
     void resizeEvent(QResizeEvent *event) override;
+    bool event(QEvent *event) override;
 
     // Tell the connection lister whether its tab is actually on screen (stats tab
     // selected, window neither minimized nor hidden to tray) so it can drop to a
@@ -624,6 +630,73 @@ private:
     // The window minimum the .ui was designed with; applyTopBarMetrics() only ever
     // grows past this, so a smaller font returns to the designed floor.
     QSize designMinimumSize;
+
+    // Fold the header below its labelled width instead of refusing to shrink (#5).
+    struct NarrowLabel {
+        class QLabel *label;
+        QString full;
+        QString narrow;
+    };
+    QList<NarrowLabel> commandToggleLabels;
+    QList<QWidget *> statusDetailCells;
+    QList<class QPushButton *> selectionActionButtons;
+    class QPushButton *selectionActionsMenuButton = nullptr;
+    class QFrame *commandBarFrame = nullptr;
+    class QLabel *statsStripHint = nullptr;
+    class QLineEdit *serverSearchField = nullptr;
+    bool narrowLayout = false;
+    int fullLayoutWidth = 0;
+    int narrowHiddenMetrics = 0;
+    int narrowMinimumWidth = 0;
+    QWidget *fullModeContent = nullptr;
+    QWidget *simpleModeContent = nullptr;
+    QAction *simpleModeAction = nullptr;
+    bool simpleModeActive = false;
+    void setupSimpleMode();
+    void setSimpleMode(bool simple, bool save = true);
+    void refreshSimpleProfiles();
+    void refreshSimpleSubscription();
+    void refreshSimpleStatus();
+    void refreshSimpleTraffic(int down, int up);
+    int simpleProfileId = -1;
+    qint64 simpleConnectedSince = 0;
+    class SimpleServerSheet *simpleServerSheet = nullptr;
+    class SimpleModeSheet *simpleModeSheet = nullptr;
+    bool simplePingRunning = false;
+    class ThronedCaptionButton *simpleModeToggle = nullptr;
+    class SimpleModeNotice *simpleModeNotice = nullptr;
+    class QFrame *simpleAnnounce = nullptr;
+    void applyRoutingChange();
+    void openCurrentRouteEditor();
+    class QStackedWidget *simplePages = nullptr;
+    class SimpleRoutesPage *simpleRoutesPage = nullptr;
+    QHash<QString, bool> simpleDetectedApps;
+    bool simpleAppScanStarted = false;
+    void setupSimpleRoutes();
+    void openSimpleRoutes();
+    void reloadSimpleRoutes();
+    void scanSimpleApps();
+    QString simpleRoutesSummary() const;
+    bool simpleRuleSetBusy = false;
+    QStringList simpleRuleSetNext;
+    std::function<void(bool)> simpleRuleSetNextThen;
+    void downloadSimpleRuleSets(const QStringList &names, const std::function<void(bool)> &then);
+    void refreshStaleRuleSets();
+    void loadSimpleIcons(QHash<QString, QString> paths);
+    void applySimpleRoutes(const QList<Configs::AppRoutes::Route> &routes, int rest);
+    void refreshSimpleModeToggle();
+    void selectSimpleProfile(int profileId);
+    void openSimpleServerSheet();
+    void refreshSimpleServerSheet(int groupId);
+    void openSimpleModeSheet();
+    void chooseSimpleMode(int mode, bool elevationConfirmed);
+    void updateSimpleDensity();
+    void applyWindowMinimum();
+    void updateProfileMinimumHeight();
+    void setNarrowLayout(bool narrow);
+    void updateNarrowLayout();
+    // How many metric columns, counted from the right, the table width cannot hold.
+    [[nodiscard]] int metricColumnsOverflowing() const;
 
     // Debounced refresh_proxy_list trigger for font/theme/resize events.
     QTimer *m_proxyListRefreshDebounce = nullptr;

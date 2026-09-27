@@ -2,6 +2,8 @@
 
 #include <QStyledItemDelegate>
 
+struct ThronedThemeColors;
+
 // Paints the comfortable two-line profile row. The model stays a plain table
 // model: everything here reads ProfilesTableModel::RowVisualRole.
 class ProfileRowDelegate : public QStyledItemDelegate {
@@ -14,6 +16,11 @@ public:
     // Width the metric columns are pinned to: measured from the same fonts paint()
     // uses, because ResizeToContents does not agree with them.
     static int metricColumnWidth(int column, const QFont &font);
+
+    // Narrowest server column that still shows the address and the exit; metric columns give way below it.
+    static int serverColumnFloor(const QFont &font);
+
+    static QColor latencyColor(int latencyMs, const ThronedThemeColors &colors);
 
     // A short tint over one row, so a jump from the status bar lands somewhere
     // the eye can follow. strength 0 clears it.

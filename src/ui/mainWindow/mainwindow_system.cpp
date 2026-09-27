@@ -129,8 +129,11 @@ void MainWindow::on_commitDataRequest() {
 
     auto *settings = Configs::dataManager->settingsRepo.get();
 
-    settings->mainWindowGeometry = this->saveGeometry().toBase64(QByteArray::Base64Encoding);
-    if (!isMaximized()) {
+    if (simpleModeActive)
+        settings->simple_window_geometry = saveGeometry().toBase64();
+    else
+        settings->mainWindowGeometry = saveGeometry().toBase64();
+    if (!simpleModeActive && !isMaximized()) {
         auto news = QString("%1x%2").arg(size().width()).arg(size().height());
         if (settings->mw_size != news) settings->mw_size = news;
     }
@@ -260,7 +263,7 @@ void MainWindow::toggle_system_proxy() {
     }
 }
 
-bool MainWindow::get_elevated_permissions(ExitReason reason) {
+bool MainWindow::get_elevated_permissions(ExitReason reason, bool confirmed) {
     if (Configs::dataManager->settingsRepo->disable_privilege_req) {
         MW_show_log(tr("User opted for no privilege req, some features may not work"));
         return true;
@@ -295,8 +298,9 @@ bool MainWindow::get_elevated_permissions(ExitReason reason) {
     }
 #endif
 #ifdef Q_OS_WIN
-    auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Throned as admin"), QMessageBox::Yes | QMessageBox::No);
-    if (n == QMessageBox::Yes) {
+    // The simple screen explains the restart before asking, so it does not ask twice.
+    if (confirmed || QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Throned as admin"),
+                                          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
         this->exit_reason = reason;
         on_menu_exit_triggered();
     }
@@ -356,13 +360,13 @@ void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
     refresh_status();
 }
 
-void MainWindow::set_spmode_vpn(bool enable, bool save) {
+void MainWindow::set_spmode_vpn(bool enable, bool save, bool elevationConfirmed) {
     if (enable == Configs::dataManager->settingsRepo->spmode_vpn) return;
 
     if (enable) {
         bool requestPermission = !Configs::IsAdmin();
         if (requestPermission) {
-            if (!get_elevated_permissions(ExitReason::RestartWithTun)) {
+            if (!get_elevated_permissions(ExitReason::RestartWithTun, elevationConfirmed)) {
                 refresh_status();
                 return;
             }
@@ -620,7 +624,7 @@ void MainWindow::CheckUpdate(bool silent) {
     };
 
     auto resp = NetworkRequestHelper::HttpGet(
-        "https://api.github.com/repos/troshkindm/throned/releases", false, requestUsedProfile);
+        "https://api.github.com/repos/troshkindm/throned/releases", requestUsedProfile);
     if (!resp.error.isEmpty()) {
         rememberDirectFailure();
         if (!silent) runOnUiThread([=, this] {

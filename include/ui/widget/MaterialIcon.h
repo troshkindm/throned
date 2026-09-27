@@ -51,6 +51,7 @@ enum class Glyph {
     Users,
     Visibility,
     VisibilityOff,
+    Power,
 };
 
 QPixmap pixmap(Glyph glyph, const QColor &color, int pixels = 20);

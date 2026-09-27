@@ -144,6 +144,12 @@ ThronedTitleBar *install(QWidget *window, const QString &context) {
     return titleBar;
 }
 
+void setInteractive(QWidget *window, QWidget *control) {
+    purgeClosedWindows();
+    for (const auto &agent: agents())
+        if (agent->parent() == window) agent->setHitTestVisible(control, true);
+}
+
 void setBackdrop(const QString &attribute) {
     wantedBackdrop() = previewRun() ? QString() : attribute;
     purgeClosedWindows();

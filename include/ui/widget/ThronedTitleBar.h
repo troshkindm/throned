@@ -26,7 +26,9 @@ public:
     enum class Glyph { Minimize,
                        Maximize,
                        Restore,
-                       Close };
+                       Close,
+                       Compact,
+                       Expand };
 
     ThronedCaptionButton(Glyph glyph, QWidget *parent = nullptr);
     void setGlyph(Glyph glyph);
@@ -42,6 +44,9 @@ class ThronedTitleBar final : public QFrame {
 public:
     explicit ThronedTitleBar(const QString &context = {}, QWidget *parent = nullptr);
 
+    // A window-level view control, placed just before the window buttons.
+    ThronedCaptionButton *insertCaptionButton(ThronedCaptionButton::Glyph glyph, const QString &name);
+
     [[nodiscard]] ThronedCaptionButton *minimizeButton() const { return minimize_; }
 
     [[nodiscard]] ThronedCaptionButton *maximizeButton() const { return maximize_; }
@@ -50,10 +55,12 @@ public:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void changeEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private:
+    void applyMargins();
     ThronedCaptionButton *minimize_ = nullptr;
     ThronedCaptionButton *maximize_ = nullptr;
     ThronedCaptionButton *close_ = nullptr;

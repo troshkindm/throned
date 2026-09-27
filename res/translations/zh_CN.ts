@@ -1366,6 +1366,46 @@ It stays a preference, not a lock: if that profile stops working the selector st
 <context>
     <name>DialogBasicSettings</name>
     <message>
+        <source>TLS version</source>
+        <translation>TLS 版本</translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation>HTTP 版本</translation>
+    </message>
+    <message>
+        <source>TLS Version</source>
+        <translation>TLS 版本</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>HTTP 版本</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>自动</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it.</source>
+        <translation>“自动”会在服务器支持时使用 HTTP/2。</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</source>
+        <translation>获取订阅时提供的 TLS 版本。部分服务器会对默认握手返回验证码或拦截页面；改用 TLS 1.2 通常可以通过。</translation>
+    </message>
+    <message>
         <source>Direct test URL</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2381,6 +2421,149 @@ Select which parts to restore:</source>
     <message>
         <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
         <translation>订阅会发送自己的刷新周期；取消勾选则使用上面的数值。</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级设置</translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>TLS Version</source>
+        <translation>TLS 版本</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>HTTP 版本</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>自动</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it. Keep Default follows the Subscription settings.</source>
+        <translation>“自动”会在服务器支持时使用 HTTP/2。“保持默认”沿用订阅设置。</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching this subscription. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through. Keep Default follows the Subscription settings.</source>
+        <translation>获取此订阅时提供的 TLS 版本。部分服务器会对默认握手返回验证码或拦截页面；改用 TLS 1.2 通常可以通过。“保持默认”沿用订阅设置。</translation>
+    </message>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation>高级订阅设置</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>请求</translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation>留空则使用订阅设置中的用户代理。</translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation>用户代理</translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation>在此订阅的请求中发送 HWID、操作系统、系统版本和设备型号请求头。“保持默认”遵循订阅设置。</translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation>发送 HWID</translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation>保持默认</translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation>开</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>关</translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation>HWID</translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation>操作系统</translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation>系统版本</translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation>设备型号</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation>上次测试成功的配置在订阅不再包含它们时仍会保留。</translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation>保留可用的配置</translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation>每次更新后：</translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation>移除重复的配置</translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation>移除不安全的配置</translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation>核心拒绝的配置。核心无法访问时跳过。</translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation>移除无效的配置</translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation>更新完成后测试该组的配置，若已有测试在运行则在其之后进行。</translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation>运行 URL 测试</translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation>移除不可用的配置</translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation>按延迟排序</translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation>保持默认（%1）</translation>
     </message>
 </context>
 <context>
@@ -3814,6 +3997,10 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
 %3</source>
         <translation>更新了 %1, 失败了 %2:
 %3</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation>劫持功能已弃用，将在下一个版本中移除。Tun 模式可满足相同的用途。</translation>
     </message>
 </context>
 <context>
@@ -5840,6 +6027,33 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
 </context>
 <context>
+    <name>HijackDeprecationNotice</name>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>劫持（首选项 &gt; 路由设置 &gt; 劫持）已弃用，将在下一个版本中移除。</translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>系统 DNS 选项依赖于它，也将随之移除。</translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Tun 模式可满足相同的用途。</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation>劫持功能已弃用</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>路由设置</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>不再显示</translation>
+    </message>
+</context>
+<context>
     <name>JsonEditor</name>
     <message>
         <source>JSON Editor</source>
@@ -5888,6 +6102,156 @@ rendezvous service. Replaces the server address and port.</source>
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source>Could not update the autostart entry:</source>
+        <translation>无法更新开机自启动项：</translation>
+    </message>
+    <message>
+        <source>everything else directly</source>
+        <translation>其他直连</translation>
+    </message>
+    <message>
+        <source>everything else through the VPN</source>
+        <translation>其他通过 VPN</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n app(s)</source>
+        <translation>
+            <numerusform>%n 个应用</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Through the VPN</source>
+        <translation>通过 VPN</translation>
+    </message>
+    <message>
+        <source>Whole computer</source>
+        <translation>整台电脑</translation>
+    </message>
+    <message>
+        <source>Games, messengers and the browser</source>
+        <translation>游戏、聊天软件和浏览器</translation>
+    </message>
+    <message>
+        <source>Browser only</source>
+        <translation>仅浏览器</translation>
+    </message>
+    <message>
+        <source>Games and calls bypass the VPN</source>
+        <translation>游戏和通话不走 VPN</translation>
+    </message>
+    <message>
+        <source>Not chosen</source>
+        <translation>未选择</translation>
+    </message>
+    <message>
+        <source>Apps bypass the VPN</source>
+        <translation>应用不走 VPN</translation>
+    </message>
+    <message>
+        <source>No profiles</source>
+        <translation>没有配置</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>未连接</translation>
+    </message>
+    <message>
+        <source>Press the button to connect</source>
+        <translation>点击按钮进行连接</translation>
+    </message>
+    <message>
+        <source>Profile traffic</source>
+        <translation>配置流量</translation>
+    </message>
+    <message>
+        <source>Throned restarts with administrator rights for this, and Windows asks for permission. Choose Yes.</source>
+        <translation>为此 Throned 将以管理员权限重新启动，Windows 会请求许可，请选择“是”。</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 毫秒</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>剩余 %1</translation>
+    </message>
+    <message>
+        <source>Unlimited traffic</source>
+        <translation>无限流量</translation>
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation>已到期</translation>
+    </message>
+    <message>
+        <source>Until %1</source>
+        <translation>有效期至 %1</translation>
+    </message>
+    <message>
+        <source>Simple mode</source>
+        <translation>简洁模式</translation>
+    </message>
+    <message>
+        <source>Full interface</source>
+        <translation>完整界面</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <source>Add profiles</source>
+        <translation>添加配置</translation>
+    </message>
+    <message>
+        <source>Profile or subscription link</source>
+        <translation>配置或订阅链接</translation>
+    </message>
+    <message>
+        <source>System proxy</source>
+        <translation>系统代理</translation>
+    </message>
+    <message>
+        <source>Add a profile to get started</source>
+        <translation>添加配置以开始使用</translation>
+    </message>
+    <message>
+        <source>Connected</source>
+        <translation>已连接</translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation>正在连接…</translation>
+    </message>
+    <message>
+        <source>Disconnecting…</source>
+        <translation>正在断开连接…</translation>
+    </message>
+    <message>
+        <source>No profiles yet</source>
+        <translation>暂无配置</translation>
+    </message>
+    <message>
+        <source>Disconnect</source>
+        <translation>断开连接</translation>
+    </message>
+    <message>
+        <source>Connect</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <source>TUN</source>
+        <translation>TUN</translation>
+    </message>
+    <message>
+        <source>Graph</source>
+        <translation>图表</translation>
+    </message>
+    <message>
+        <source>Runtime</source>
+        <translation>运行时</translation>
+    </message>
     <message>
         <source>UDP targets</source>
         <translation>UDP 监测目标</translation>
@@ -7357,6 +7721,22 @@ Release note:
 <context>
     <name>QObject</name>
     <message>
+        <source>The selected TLS version is not supported on this system.</source>
+        <translation>此系统不支持所选的 TLS 版本。</translation>
+    </message>
+    <message>
+        <source>The server returned a web page instead of a subscription. If it is a CAPTCHA or a bot check, try another TLS version, HTTP version or User Agent in the group&apos;s Advanced settings.</source>
+        <translation>服务器返回的是网页而不是订阅内容。如果是验证码或机器人检测，请在分组的高级设置中尝试其他 TLS 版本、HTTP 版本或 User Agent。</translation>
+    </message>
+    <message>
+        <source>Unknown rule-set: %1</source>
+        <translation>未知的规则集：%1</translation>
+    </message>
+    <message>
+        <source>The download of %1 is not a rule-set.</source>
+        <translation>下载的 %1 不是规则集。</translation>
+    </message>
+    <message>
         <source>Request with proxy but no profile started.</source>
         <translation>用代理请求，但未启动代理配置档。</translation>
     </message>
@@ -8436,6 +8816,60 @@ How to update?</source>
         <source>Format</source>
         <translation>格式化</translation>
     </message>
+    <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation>已移除 %1 个重复的配置：</translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation>已移除 %1 个不安全的配置：</translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation>已跳过移除无效配置：无法访问核心。</translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation>已移除 %1 个无效的配置：</translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation>正在运行的配置已保留。</translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation>已移除 %1 个不可用的配置：</translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation>已跳过对 %1 的排序：另一个排序正在进行中。</translation>
+    </message>
+    <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation>可用，因此保留而不是删除:
+%1</translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation>%1 的 URL 测试之后：</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation>IPv4 转发会破坏 Tun 模式</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation>网络适配器“%1”开启了 IPv4 转发，通常是因为移动热点或 Internet 连接共享正在共享它。
+
+此时 Windows 会忽略让 Throned 自身连接不进入 Tun 的适配器绑定，导致这些连接回环进入 Tun 并失败。
+
+要解决此问题，请改为从 throned-tun 适配器共享热点，而不是“%1”（设置 &gt; 移动热点 &gt; 从以下位置共享我的 Internet 连接），或在使用 Tun 模式时关闭热点。</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -8825,6 +9259,404 @@ Your local edits are overwritten on each update.</source>
 </source>
         <translation>某些规则无法添加，请在保存前修复它们：
 </translation>
+    </message>
+</context>
+<context>
+    <name>SimpleModeNotice</name>
+    <message>
+        <source>Try Simple mode</source>
+        <translation>试试简洁模式</translation>
+    </message>
+    <message>
+        <source>A small window with one button: pick a server and connect.</source>
+        <translation>只有一个按钮的小窗口：选择服务器即可连接。</translation>
+    </message>
+    <message>
+        <source>Try it</source>
+        <translation>试一试</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>不再显示</translation>
+    </message>
+</context>
+<context>
+    <name>SimpleModeSheet</name>
+    <message>
+        <source>What goes through the VPN</source>
+        <translation>哪些流量走 VPN</translation>
+    </message>
+    <message>
+        <source>Whole computer</source>
+        <translation>整台电脑</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>推荐</translation>
+    </message>
+    <message>
+        <source>Everything that goes online: games, messengers, calls and the browser.</source>
+        <translation>所有联网内容：游戏、聊天软件、通话和浏览器。</translation>
+    </message>
+    <message>
+        <source>Continue</source>
+        <translation>继续</translation>
+    </message>
+    <message>
+        <source>Browser only</source>
+        <translation>仅浏览器</translation>
+    </message>
+    <message>
+        <source>Chrome, Edge, Firefox and apps that use the system proxy settings.</source>
+        <translation>Chrome、Edge、Firefox 以及使用系统代理设置的应用。</translation>
+    </message>
+    <message>
+        <source>Games, voice calls and most other apps bypass the VPN. No administrator rights needed.</source>
+        <translation>游戏、语音通话和大多数其他应用不走 VPN。无需管理员权限。</translation>
+    </message>
+</context>
+<context>
+    <name>SimpleRoutesPage</name>
+    <message>
+        <source>sites list</source>
+        <translation>网站列表</translation>
+    </message>
+    <message>
+        <source>IP networks</source>
+        <translation>IP 网段</translation>
+    </message>
+    <message>
+        <source>%1 sites</source>
+        <translation>%1 的网站</translation>
+    </message>
+    <message>
+        <source>%1 IP networks</source>
+        <translation>%1 的 IP 网段</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>重试</translation>
+    </message>
+    <message>
+        <source>Could not download the site lists: %1</source>
+        <translation>无法下载网站列表：%1</translation>
+    </message>
+    <message>
+        <source>Downloading site lists: %1 of %2</source>
+        <translation>正在下载网站列表：%1 / %2</translation>
+    </message>
+    <message>
+        <source>Site lists are ready</source>
+        <translation>网站列表已就绪</translation>
+    </message>
+    <message>
+        <source>Messengers</source>
+        <translation>聊天工具</translation>
+    </message>
+    <message>
+        <source>Social networks</source>
+        <translation>社交网络</translation>
+    </message>
+    <message>
+        <source>AI</source>
+        <translation>AI</translation>
+    </message>
+    <message>
+        <source>Development</source>
+        <translation>开发</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>视频</translation>
+    </message>
+    <message>
+        <source>Music</source>
+        <translation>音乐</translation>
+    </message>
+    <message>
+        <source>Games</source>
+        <translation>游戏</translation>
+    </message>
+    <message>
+        <source>Cloud storage</source>
+        <translation>云存储</translation>
+    </message>
+    <message>
+        <source>Work</source>
+        <translation>工作</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>其他</translation>
+    </message>
+    <message>
+        <source>Back</source>
+        <translation>返回</translation>
+    </message>
+    <message>
+        <source>Routing</source>
+        <translation>路由</translation>
+    </message>
+    <message>
+        <source>Advanced editor</source>
+        <translation>高级编辑器</translation>
+    </message>
+    <message>
+        <source>App, site, .exe or IP</source>
+        <translation>应用、网站、.exe 或 IP</translation>
+    </message>
+    <message>
+        <source>VPN</source>
+        <translation>VPN</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>直连</translation>
+    </message>
+    <message>
+        <source>Missing server</source>
+        <translation>服务器已删除</translation>
+    </message>
+    <message>
+        <source>My sites and apps</source>
+        <translation>我的网站和应用</translation>
+    </message>
+    <message>
+        <source>edited</source>
+        <translation>已修改</translation>
+    </message>
+    <message>
+        <source>Nothing yet</source>
+        <translation>暂无内容</translation>
+    </message>
+    <message>
+        <source>Send through</source>
+        <translation>发送方式</translation>
+    </message>
+    <message>
+        <source>Main VPN · %1</source>
+        <translation>主 VPN · %1</translation>
+    </message>
+    <message>
+        <source>Directly, around the VPN</source>
+        <translation>直连，不走 VPN</translation>
+    </message>
+    <message>
+        <source>Through %1</source>
+        <translation>通过 %1</translation>
+    </message>
+    <message>
+        <source>What it covers</source>
+        <translation>包含内容</translation>
+    </message>
+    <message>
+        <source>Remove %1</source>
+        <translation>移除 %1</translation>
+    </message>
+    <message>
+        <source>Nothing yet: type below</source>
+        <translation>暂无内容：在下方输入</translation>
+    </message>
+    <message>
+        <source>+ site, .exe or IP, then Enter</source>
+        <translation>+ 网站、.exe 或 IP，然后按 Enter</translation>
+    </message>
+    <message>
+        <source>Add to %1</source>
+        <translation>添加到 %1</translation>
+    </message>
+    <message>
+        <source>Choose a program…</source>
+        <translation>选择程序…</translation>
+    </message>
+    <message>
+        <source>Reset to the catalog</source>
+        <translation>恢复为目录默认</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>Everything else</source>
+        <translation>其他所有流量</translation>
+    </message>
+    <message>
+        <source>Whatever is not switched on above</source>
+        <translation>上方未开启的内容</translation>
+    </message>
+    <message>
+        <source>Everything else: %1</source>
+        <translation>其他所有流量：%1</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>直连</translation>
+    </message>
+    <message>
+        <source>Through the VPN</source>
+        <translation>通过 VPN</translation>
+    </message>
+    <message>
+        <source>This routing profile is written by hand, so it can only be changed in the advanced editor.</source>
+        <translation>此路由配置为手写，只能在高级编辑器中修改。</translation>
+    </message>
+    <message>
+        <source>Open the advanced editor</source>
+        <translation>打开高级编辑器</translation>
+    </message>
+    <message>
+        <source>Your programs</source>
+        <translation>你的程序</translation>
+    </message>
+    <message>
+        <source>%1: programs go through the VPN only in Whole computer mode.</source>
+        <translation>%1：程序仅在“整台电脑”模式下走 VPN。</translation>
+    </message>
+    <message>
+        <source>Switch</source>
+        <translation>切换</translation>
+    </message>
+    <message>
+        <source>Add the program %1</source>
+        <translation>添加程序 %1</translation>
+    </message>
+    <message>
+        <source>Add the site %1</source>
+        <translation>添加网站 %1</translation>
+    </message>
+    <message>
+        <source>Add the addresses %1</source>
+        <translation>添加地址 %1</translation>
+    </message>
+    <message>
+        <source>to My sites and apps</source>
+        <translation>到“我的网站和应用”</translation>
+    </message>
+    <message>
+        <source>Found on this computer</source>
+        <translation>在此电脑上找到</translation>
+    </message>
+    <message>
+        <source>Catalog</source>
+        <translation>目录</translation>
+    </message>
+    <message>
+        <source>Switched on from the catalog</source>
+        <translation>已从目录开启</translation>
+    </message>
+    <message>
+        <source>Hide the catalog</source>
+        <translation>收起目录</translation>
+    </message>
+    <message>
+        <source>Your own</source>
+        <translation>自定义</translation>
+    </message>
+    <message>
+        <source>Other rules in this profile: %1</source>
+        <translation>此配置中的其他规则：%1</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>打开</translation>
+    </message>
+    <message>
+        <source>Nothing found. Type a site or an .exe to add your own.</source>
+        <translation>未找到。输入网站或 .exe 以添加自定义项。</translation>
+    </message>
+    <message>
+        <source>your own</source>
+        <translation>自定义</translation>
+    </message>
+    <message>
+        <source>through the VPN</source>
+        <translation>通过 VPN</translation>
+    </message>
+    <message>
+        <source>directly</source>
+        <translation>直连</translation>
+    </message>
+    <message>
+        <source>through %1</source>
+        <translation>通过 %1</translation>
+    </message>
+    <message>
+        <source>everything else directly</source>
+        <translation>其他直连</translation>
+    </message>
+    <message>
+        <source>everything else through the VPN</source>
+        <translation>其他通过 VPN</translation>
+    </message>
+    <message>
+        <source>Everything is applied</source>
+        <translation>已全部应用</translation>
+    </message>
+    <message>
+        <source>Apply and reconnect</source>
+        <translation>应用并重新连接</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>应用</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n program(s)</source>
+        <translation>
+            <numerusform>%n 个程序</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n site(s)</source>
+        <translation>
+            <numerusform>%n 个网站</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n IP range(s)</source>
+        <translation>
+            <numerusform>%n 个 IP 段</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more app(s) and site(s)</source>
+        <translation>
+            <numerusform>另外 %n 个应用和网站</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>另外 %n 个</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>SimpleServerSheet</name>
+    <message>
+        <source>Server</source>
+        <translation>服务器</translation>
+    </message>
+    <message>
+        <source>Check ping</source>
+        <translation>测试延迟</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>测试中…</translation>
+    </message>
+    <message>
+        <source>This group has no profiles yet</source>
+        <translation>此分组还没有配置</translation>
+    </message>
+    <message>
+        <source>From clipboard</source>
+        <translation>从剪贴板</translation>
+    </message>
+    <message>
+        <source>From a link</source>
+        <translation>通过链接</translation>
     </message>
 </context>
 <context>

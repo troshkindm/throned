@@ -11,6 +11,9 @@ namespace Configs {
 SettingsRepo::SettingsRepo(Database& database) : db(database) {
     initMaps();
     createTables();
+    // Missing mode in an existing settings table means an upgrade, not a first launch.
+    if (auto existing = db.query("SELECT 1 FROM settings LIMIT 1"))
+        simple_mode = !existing->executeStep();
     loadAllSettings();
     // An empty secret disables authentication on the API service outright.
     if (core_box_api_secret.isEmpty()) {
@@ -73,6 +76,7 @@ void SettingsRepo::initMaps() {
         {"profiles_show_traffic", &profiles_show_traffic},
         {"profiles_search_all_groups", &profiles_search_all_groups},
         {"stats_panel_open", &stats_panel_open},
+        {"simple_mode", &simple_mode},
         {"use_custom_icons", &use_custom_icons},
         {"follow_status_in_taskbar", &follow_status_in_taskbar},
         {"xray_mux_default_on", &xray_mux_default_on},
@@ -120,6 +124,8 @@ void SettingsRepo::initMaps() {
         {"connection_sort", &connection_sort},
         {"traffic_stats_retention_days", &traffic_stats_retention_days},
         {"sub_auto_update", &sub_auto_update},
+        {"sub_tls_version", &sub_tls_version},
+        {"sub_http_version", &sub_http_version},
         {"route_auto_update", &route_auto_update},
         {"app_auto_update", &app_auto_update},
         {"vpn_mtu", &vpn_mtu},
@@ -188,6 +194,7 @@ void SettingsRepo::initMaps() {
         {"redirect_listen_address", &redirect_listen_address},
         {"proxy_scheme", &proxy_scheme},
         {"main_window_geometry", &mainWindowGeometry},
+        {"simple_window_geometry", &simple_window_geometry},
         {"xray_log_level", &xray_log_level},
         {"xray_geoip_url", &xray_geoip_url},
         {"xray_geosite_url", &xray_geosite_url},

@@ -12,6 +12,9 @@
         <file>dashboard-notice.html</file>
         <file>dashboard-bootstrap.html</file>
     </qresource>
+    <qresource prefix="/routing">
+        <file alias="apps.json">routing/apps.json</file>
+    </qresource>
     <qresource prefix="/schema">
         <file alias="sing-box.json">schema/sing-box.json</file>
     </qresource>

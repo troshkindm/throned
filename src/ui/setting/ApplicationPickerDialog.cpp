@@ -8,6 +8,7 @@
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileIconProvider>
@@ -332,6 +333,44 @@ QTableView *makeTable(ApplicationListModel *model, QSortFilterProxyModel **proxy
 }
 
 } // namespace
+
+QList<InstalledApplications::Entry> InstalledApplications::Scan() {
+    QList<Entry> result;
+    // Keyed by path: two vendors can ship the same generic launcher.exe, and each must stay visible.
+    QHash<QString, int> seen;
+    const auto add = [&](const QString &name, const QString &executable, const QString &path, bool running, const QString &package = {}) {
+        const QString key = (package.isEmpty() ? (path.isEmpty() ? executable : path) : package).toCaseFolded();
+        if (key.isEmpty()) return;
+        if (const auto it = seen.constFind(key); it != seen.cend()) {
+            result[*it].running = result[*it].running || running;
+            return;
+        }
+        seen.insert(key, result.size());
+        result.append({name, executable, path, package, running});
+    };
+    for (const auto &entry: installedApplications()) add(entry.name, entry.executableName, entry.path, false);
+    for (const auto &entry: runningApplications()) add(entry.name, entry.executableName, entry.path, true);
+#ifdef Q_OS_WIN
+    // Programs that only left a Start menu shortcut, and Store packages, never appear under Uninstall.
+    const QStringList startMenus{
+        QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation),
+        qEnvironmentVariable("ProgramData") + QStringLiteral("/Microsoft/Windows/Start Menu/Programs"),
+    };
+    for (const QString &root: startMenus) {
+        QDirIterator it(root, {QStringLiteral("*.lnk")}, QDir::Files, QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            const QFileInfo shortcut(it.next());
+            const QFileInfo target(shortcut.symLinkTarget());
+            if (target.suffix().compare(QStringLiteral("exe"), Qt::CaseInsensitive) != 0) continue;
+            add(shortcut.completeBaseName(), target.fileName(), QDir::toNativeSeparators(target.absoluteFilePath()), false);
+        }
+    }
+    QSettings packages(QStringLiteral("HKEY_CURRENT_USER\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\AppModel\\Repository\\Packages"),
+                       QSettings::NativeFormat);
+    for (const QString &package: packages.childGroups()) add(package.section(QLatin1Char('_'), 0, 0), {}, {}, false, package);
+#endif
+    return result;
+}
 
 class ApplicationPickerDialog::Private {
 public:

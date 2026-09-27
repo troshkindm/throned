@@ -13,6 +13,7 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/ui/group/dialog_edit_group_advanced.h"
 
 #define ADJUST_SIZE runOnThread([=, this] { adjustSize(); adjustPosition(mainwindow); }, this);
 
@@ -28,6 +29,13 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group>& ent, QWi
     ui->name->setText(ent->name);
     ui->auto_clear_unavailable->setChecked(ent->auto_clear_unavailable);
     ui->skip_auto_update->setChecked(ent->skip_auto_update);
+    subOptions = ent->sub_options;
+    connect(ui->advanced, &QPushButton::clicked, this, [this] {
+        auto dialog = new DialogEditGroupAdvanced(subOptions, this);
+        connect(dialog, &QDialog::accepted, this, [this, dialog] { subOptions = dialog->Options(); });
+        connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
+        dialog->open();
+    });
     ui->url->setText(ent->url);
 
     // The provider's own cycle wins while the box is ticked; unticking hands the
@@ -229,6 +237,7 @@ void DialogEditGroup::accept() {
     ent->provider.intervalFromProvider = ui->update_interval_from_provider->isChecked();
     if (!ent->provider.intervalFromProvider)
         ent->provider.updateIntervalMinutes = ui->update_interval_hours->value() * 60;
+    ent->sub_options = subOptions;
     ent->front_proxy_id = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy);
     ent->landing_proxy_id = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy);
     QDialog::accept();

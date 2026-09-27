@@ -18,6 +18,9 @@ namespace ThronedChrome {
 // and no resizer to remember.
 ThronedTitleBar *install(QWidget *window, const QString &context = {});
 
+// A control placed in the title bar; without this the platform treats it as caption and drags the window.
+void setInteractive(QWidget *window, QWidget *control);
+
 // Set a native material (e.g. "mica") or clear it; deterministic captures disable composition.
 void setBackdrop(const QString &attribute);
 } // namespace ThronedChrome

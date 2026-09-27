@@ -1,4 +1,5 @@
 #include "include/ui/mainwindow.h"
+#include "include/ui/widget/HoverMarqueeLabel.h"
 
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/api/RPC.h"
@@ -37,6 +38,8 @@
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/ui/widget/WindowNotices.h"
 #include "include/ui/widget/PendingRestartNotice.h"
+#include "include/ui/widget/HijackDeprecationNotice.h"
+#include "include/database/MarkersRepo.h"
 #include <QPainter>
 #include "include/ui/widget/ThronedToggle.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
@@ -466,11 +469,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     bodyLayout->setContentsMargins(10, 10, 10, 10);
     bodyLayout->setSpacing(7);
 
-    // The command bar belongs to the window chrome, not to the content: it sits
-    // edge to edge directly under the title bar so both read as one header band
-    // closed by a single hairline, instead of a card floating over another card.
+    // Share the title bar's surface without a second divider above the group pills.
     auto *commandBar = new QFrame(redesignedCentral);
     commandBar->setObjectName(QStringLiteral("commandBar"));
+    commandBarFrame = commandBar;
     commandBar->setFixedHeight(54);
     auto *commandLayout = new QHBoxLayout(commandBar);
     commandLayout->setContentsMargins(14, 7, 10, 7);
@@ -535,9 +537,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     retintDiagnostics();
     connect(themeManager(), &ThemeManager::themeChanged, this, retintDiagnostics);
 
-    auto addToggle = [commandBar, commandLayout](const QString &text, QCheckBox *toggle) {
+    auto addToggle = [this, commandBar, commandLayout](const QString &text, const QString &narrowText, QCheckBox *toggle) {
         auto *label = new QLabel(text, commandBar);
         label->setObjectName(QStringLiteral("controlLabel"));
+        commandToggleLabels.append({label, text, narrowText});
         commandLayout->addWidget(label);
         toggle->setParent(commandBar);
         toggle->hide();
@@ -545,12 +548,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         visualToggle->bindTo(toggle);
         commandLayout->addWidget(visualToggle);
     };
-    addToggle(tr("TUN mode"), ui->checkBox_VPN);
+    addToggle(tr("TUN mode"), tr("TUN"), ui->checkBox_VPN);
     auto *modeSeparator = new QFrame(commandBar);
     modeSeparator->setObjectName(QStringLiteral("vSeparator"));
     modeSeparator->setFixedSize(1, 33);
     commandLayout->addWidget(modeSeparator);
-    addToggle(tr("System proxy"), ui->checkBox_SystemProxy);
+    addToggle(tr("System proxy"), tr("Proxy"), ui->checkBox_SystemProxy);
     ui->checkBox_VPN->setParent(commandBar);
     ui->system_dns->setParent(commandBar);
     ui->system_dns->hide();
@@ -711,6 +714,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     stripLayout->addStretch(1);
     auto *stripHint = new QLabel(tr("Click a tab to open"), statsStrip);
     stripHint->setObjectName(QStringLiteral("stripHint"));
+    statsStripHint = stripHint;
     stripLayout->addWidget(stripHint);
     stripLayout->addSpacing(7);
     statsStripToggle = new QToolButton(statsStrip);
@@ -789,6 +793,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         cellLayout->addLayout(text, 1);
         if (value == ui->label_running && statusConnectionTest != nullptr)
             cellLayout->addWidget(statusConnectionTest, 0, Qt::AlignVCenter);
+        if (value != ui->label_running) statusDetailCells.append(cell);
         statusLayout->addWidget(cell, stretch);
     }
     if (statusConnectionCaption != nullptr) {
@@ -814,7 +819,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     auto *routingCaption = new QLabel(tr("Routing"), routingButton);
     routingCaption->setObjectName(QStringLiteral("statusCaption"));
     routingText->addWidget(routingCaption);
-    auto *routingStatus = new QLabel(routingButton);
+    auto *routingStatus = new HoverMarqueeLabel(routingButton);
     routingStatus->setObjectName(QStringLiteral("routingStatus"));
     routingStatus->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     routingStatus->installEventFilter(this);
@@ -862,12 +867,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         {tr("Resolve IP"), ui->actionResolve_Selected_Out_IP},
         {tr("Sites"), siteTestAction},
     };
+    auto *selectionMenu = new QMenu(selectionCard);
     for (const auto &[text, action]: selectionActions) {
         auto *button = new QPushButton(text, selectionCard);
         button->setObjectName(QStringLiteral("selectionAction"));
         connect(button, &QPushButton::clicked, action, &QAction::trigger);
         selectionLayout->addWidget(button);
+        selectionActionButtons.append(button);
+        connect(selectionMenu->addAction(text), &QAction::triggered, action, &QAction::trigger);
     }
+    // Five buttons do not fit a narrow window; the same actions fold into one menu there.
+    selectionActionsMenuButton = new QPushButton(tr("Test"), selectionCard);
+    selectionActionsMenuButton->setObjectName(QStringLiteral("selectionAction"));
+    selectionActionsMenuButton->setMenu(selectionMenu);
+    selectionActionsMenuButton->hide();
+    selectionLayout->addWidget(selectionActionsMenuButton);
     selectionCard->setFixedHeight(68);
     // The card is what tells you a selection exists, so it is also where you end one.
     // Clicking empty space still works, but a full table leaves no empty space to click.
@@ -894,6 +908,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         const int startedID = Configs::dataManager->settingsRepo->started_id;
         if (startedID >= 0) profile_start(startedID);
     });
+    hijackDeprecationNotice = new HijackDeprecationNotice(
+        updateStatusWidget, *Configs::dataManager->settingsRepo, *Configs::dataManager->markersRepo,
+        [this, uiPreviewMode] {
+            if (!uiPreviewMode) on_menu_routing_settings_triggered();
+        });
     connect(updateStatusWidget, &UpdateStatusWidget::restartRequested, this, [this, uiPreviewMode] {
         if (uiPreviewMode) return;
         exit_reason = ExitReason::RunUpdater;
@@ -937,7 +956,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(themeManager(), &ThemeManager::themeChanged, this, retintIcons);
     refreshRoutingStatus();
 
-    setMinimumSize(960, 680);
+    setMinimumSize(560, 360);
     FitWindowToScreen(this);
     ui->centralwidget = redesignedCentral;
     setCentralWidget(redesignedCentral);
@@ -982,7 +1001,7 @@ QFrame#titleBar QToolButton:hover { background: #292D33; }
 QFrame#titleBar QToolButton#titleClose:hover { background: #C42B35; }
 QFrame#vSeparator { background: #2F3136; border: none; }
 QFrame#commandBar {
-    background: #1B1E23; border: none; border-bottom: 1px solid #2F3136;
+    background: #1B1E23; border: none;
 }
 QFrame#statusCard, QFrame#selectionCard {
     background: #1B1E23; border: none; border-top: 1px solid #2F3136;
@@ -1337,6 +1356,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     parallelCoreCallPool->setMaxThreadCount(10);
     testRunner = std::make_unique<TestRunner>(this);
+    Subscription::updater()->SetUrlTester([this](const QList<int> &profileIDs, const Subscription::GroupUpdater::Finish &done) {
+        testRunner->queueUrlTests(profileIDs, done);
+    });
     // The .ui carries Return; numpad Enter is the same gesture.
     ui->menu_start->setShortcuts({QKeySequence(Qt::Key_Return), QKeySequence(Qt::Key_Enter)});
     connect(ui->menu_start, &QAction::triggered, this, [=, this]() { profile_start(); });
@@ -1503,6 +1525,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     serverSearch->setPlaceholderText(tr("Search servers..."));
     serverSearch->setClearButtonEnabled(true);
     serverSearch->setFixedSize(268, 33);
+    serverSearchField = serverSearch;
     // The per-column filter row is gone: this field already searches every one of
     // them, so Find belongs here rather than on a second control beside it.
     auto *findShortcut = new QShortcut(QKeySequence::Find, this);
@@ -2258,8 +2281,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         Configs::dataManager->settingsRepo->Save();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=, this](bool checked) {
-        AutoRun_SetEnabled(checked);
-        ui->actionStart_with_system->setChecked(checked);
+        if (QString error; !AutoRun_SetEnabled(checked, &error)) {
+            MessageBoxWarning(tr("Start with system"), tr("Could not update the autostart entry:") + "\n" + error);
+        }
+        ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
     });
     connect(ui->actionAllow_LAN, &QAction::triggered, this, [=, this](bool checked) {
         Configs::dataManager->settingsRepo->inbound_address = checked ? "::" : "127.0.0.1";
@@ -2684,6 +2709,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         prompt();
     });
 
+    setupSimpleMode();
     if (!Configs::dataManager->settingsRepo->flag_tray)
         show();
     else if (tray->isVisible())
@@ -2693,5 +2719,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 }
 
 MainWindow::~MainWindow() {
+    Subscription::updater()->SetUrlTester(nullptr);
     delete ui;
 }

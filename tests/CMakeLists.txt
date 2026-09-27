@@ -46,7 +46,10 @@ throned_add_qt_test(throned_window_notices_tests
             test_window_notices.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/WindowNotices.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/PendingRestartNotice.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/HijackDeprecationNotice.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleModeNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/MarkersRepo.cpp
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/UpdateStatusWidget.cpp
             ${PROJECT_SOURCE_DIR}/include/ui/widget/UpdateStatusWidget.h
@@ -117,6 +120,14 @@ throned_add_qt_test(throned_route_tests
         SOURCES test_route_rule.cpp ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Throned::FkYAML Throned::SQLiteCpp)
 
+throned_add_qt_test(throned_app_routes_tests
+        SOURCES test_app_routes.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/entities/AppRoutes.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
+        LIBRARIES Qt6::Widgets Qt6::Network Throned::FkYAML Throned::SQLiteCpp)
+target_compile_definitions(throned_app_routes_tests PRIVATE APP_CATALOG="${PROJECT_SOURCE_DIR}/res/routing/apps.json")
+
 throned_add_qt_test(throned_rule_line_tests
         SOURCES test_rule_line.cpp ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
         LIBRARIES Qt6::Widgets Qt6::Network)
@@ -173,3 +184,24 @@ if (UNIX AND NOT APPLE)
     set_property(TEST throned_protocol_editors APPEND PROPERTY
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif ()
+
+foreach (language en ru fa zh)
+    add_test(NAME throned_simple_mode_${language}
+        COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/simple-${language}
+            -ui-preview-simple -theme "Throned Graphite" -lang ${language})
+    set_tests_properties(throned_simple_mode_${language} PROPERTIES TIMEOUT 30
+        ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
+    if (UNIX AND NOT APPLE)
+        set_property(TEST throned_simple_mode_${language} APPEND PROPERTY
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    endif ()
+    add_test(NAME throned_narrow_layout_${language}
+        COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/narrow-${language}
+            -ui-preview-narrow-check -theme "Throned Graphite" -lang ${language})
+    set_tests_properties(throned_narrow_layout_${language} PROPERTIES TIMEOUT 30
+        ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
+    if (UNIX AND NOT APPLE)
+        set_property(TEST throned_narrow_layout_${language} APPEND PROPERTY
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    endif ()
+endforeach ()

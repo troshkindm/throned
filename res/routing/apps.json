@@ -1,0 +1,1711 @@
+{
+  "version": 2,
+  "sources": {
+    "ruleSets": "MetaCubeX meta-rules-dat, built from v2fly/domain-list-community (MIT); names from srslist.h"
+  },
+  "apps": [
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "category": "messaging",
+      "color": "#2AABEE",
+      "detect": [
+        "Telegram Desktop"
+      ],
+      "packages": [
+        "TelegramMessengerLLP.TelegramDesktop"
+      ],
+      "processes": {
+        "windows": [
+          "Telegram.exe"
+        ],
+        "linux": [
+          "Telegram",
+          "telegram-desktop"
+        ],
+        "macos": [
+          "Telegram"
+        ]
+      },
+      "ruleSets": [
+        "geosite-telegram",
+        "geoip-telegram"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "category": "messaging",
+      "color": "#5865F2",
+      "detect": [
+        "Discord"
+      ],
+      "processes": {
+        "windows": [
+          "Discord.exe"
+        ],
+        "linux": [
+          "Discord"
+        ],
+        "macos": [
+          "Discord"
+        ]
+      },
+      "ruleSets": [
+        "geosite-discord"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp",
+      "category": "messaging",
+      "color": "#25D366",
+      "detect": [
+        "WhatsApp"
+      ],
+      "packages": [
+        "5319275A.WhatsAppDesktop"
+      ],
+      "processes": {
+        "windows": [
+          "WhatsApp.exe"
+        ],
+        "macos": [
+          "WhatsApp"
+        ]
+      },
+      "ruleSets": [
+        "geosite-whatsapp"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "signal",
+      "name": "Signal",
+      "category": "messaging",
+      "color": "#3A76F0",
+      "detect": [
+        "Signal"
+      ],
+      "processes": {
+        "windows": [
+          "Signal.exe"
+        ],
+        "linux": [
+          "signal-desktop"
+        ],
+        "macos": [
+          "Signal"
+        ]
+      },
+      "ruleSets": [
+        "geosite-signal"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "viber",
+      "name": "Viber",
+      "category": "messaging",
+      "color": "#7360F2",
+      "detect": [
+        "Viber"
+      ],
+      "processes": {
+        "windows": [
+          "Viber.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-viber"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "category": "messaging",
+      "color": "#4A154B",
+      "detect": [
+        "Slack"
+      ],
+      "processes": {
+        "windows": [
+          "slack.exe"
+        ],
+        "linux": [
+          "slack"
+        ],
+        "macos": [
+          "Slack"
+        ]
+      },
+      "ruleSets": [
+        "geosite-slack"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "teams",
+      "name": "Microsoft Teams",
+      "category": "messaging",
+      "color": "#5B5FC7",
+      "detect": [
+        "Microsoft Teams"
+      ],
+      "packages": [
+        "MSTeams"
+      ],
+      "processes": {
+        "windows": [
+          "ms-teams.exe",
+          "ms-teams_modulehost.exe",
+          "Teams.exe"
+        ]
+      },
+      "domains": [
+        "teams.microsoft.com",
+        "teams.live.com",
+        "teams.cloud.microsoft"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "category": "messaging",
+      "color": "#0B5CFF",
+      "detect": [
+        "Zoom Workplace",
+        "Zoom"
+      ],
+      "processes": {
+        "windows": [
+          "Zoom.exe"
+        ],
+        "linux": [
+          "zoom"
+        ],
+        "macos": [
+          "zoom.us"
+        ]
+      },
+      "ruleSets": [
+        "geosite-zoom"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "line",
+      "name": "LINE",
+      "category": "messaging",
+      "color": "#06C755",
+      "detect": [
+        "LINE"
+      ],
+      "processes": {
+        "windows": [
+          "LINE.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-line"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "messenger",
+      "name": "Messenger",
+      "category": "messaging",
+      "color": "#0084FF",
+      "processes": {
+        "windows": [
+          "Messenger.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-messenger"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "category": "social",
+      "color": "#E1306C",
+      "packages": [
+        "Facebook.InstagramBeta"
+      ],
+      "ruleSets": [
+        "geosite-instagram"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "category": "social",
+      "color": "#1877F2",
+      "ruleSets": [
+        "geosite-facebook",
+        "geoip-facebook"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "x",
+      "name": "X (Twitter)",
+      "category": "social",
+      "color": "#3A3F47",
+      "ruleSets": [
+        "geosite-twitter",
+        "geosite-x",
+        "geoip-twitter"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "threads",
+      "name": "Threads",
+      "category": "social",
+      "color": "#2B2B2B",
+      "ruleSets": [
+        "geosite-threads"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "category": "social",
+      "color": "#EE1D52",
+      "packages": [
+        "BytedancePte.Ltd.TikTok"
+      ],
+      "ruleSets": [
+        "geosite-tiktok"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "category": "social",
+      "color": "#FF4500",
+      "ruleSets": [
+        "geosite-reddit"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "pinterest",
+      "name": "Pinterest",
+      "category": "social",
+      "color": "#E60023",
+      "ruleSets": [
+        "geosite-pinterest"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "category": "social",
+      "color": "#0A66C2",
+      "ruleSets": [
+        "geosite-linkedin"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "snapchat",
+      "name": "Snapchat",
+      "category": "social",
+      "color": "#E8C400",
+      "ruleSets": [
+        "geosite-snap"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "bluesky",
+      "name": "Bluesky",
+      "category": "social",
+      "color": "#1185FE",
+      "ruleSets": [
+        "geosite-bluesky"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "category": "ai",
+      "color": "#10A37F",
+      "detect": [
+        "ChatGPT"
+      ],
+      "processes": {
+        "windows": [
+          "ChatGPT.exe"
+        ],
+        "macos": [
+          "ChatGPT"
+        ]
+      },
+      "ruleSets": [
+        "geosite-openai"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "category": "ai",
+      "color": "#D97757",
+      "detect": [
+        "Claude"
+      ],
+      "processes": {
+        "windows": [
+          "claude.exe"
+        ],
+        "macos": [
+          "Claude"
+        ]
+      },
+      "ruleSets": [
+        "geosite-anthropic"
+      ],
+      "domains": [
+        "claude.ai",
+        "claude.com"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "category": "ai",
+      "color": "#4285F4",
+      "processes": {
+        "windows": [
+          "Gemini.exe",
+          "GeminiAppLauncher.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-google-gemini"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "category": "ai",
+      "color": "#20808D",
+      "detect": [
+        "Perplexity"
+      ],
+      "processes": {
+        "windows": [
+          "Perplexity.exe",
+          "Perplexity AI.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-perplexity"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "grok",
+      "name": "Grok",
+      "category": "ai",
+      "color": "#3A3F47",
+      "ruleSets": [
+        "geosite-xai"
+      ],
+      "domains": [
+        "grok.com"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "copilot",
+      "name": "Microsoft Copilot",
+      "category": "ai",
+      "color": "#0F6CBD",
+      "processes": {
+        "windows": [
+          "Copilot.exe"
+        ]
+      },
+      "domains": [
+        "copilot.microsoft.com"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "github-copilot",
+      "name": "GitHub Copilot",
+      "category": "ai",
+      "color": "#6E40C9",
+      "ruleSets": [
+        "geosite-github-copilot"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "category": "ai",
+      "color": "#4D6BFE",
+      "ruleSets": [
+        "geosite-deepseek"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "mistral",
+      "name": "Mistral",
+      "category": "ai",
+      "color": "#FA520F",
+      "domains": [
+        "mistral.ai"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face",
+      "category": "ai",
+      "color": "#E8A300",
+      "ruleSets": [
+        "geosite-huggingface"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "characterai",
+      "name": "Character.AI",
+      "category": "ai",
+      "color": "#3A3F47",
+      "domains": [
+        "character.ai"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "category": "ai",
+      "color": "#3A3F47",
+      "detect": [
+        "Ollama"
+      ],
+      "processes": {
+        "windows": [
+          "ollama.exe",
+          "ollama app.exe"
+        ],
+        "linux": [
+          "ollama"
+        ],
+        "macos": [
+          "ollama"
+        ]
+      },
+      "domains": [
+        "ollama.com",
+        "ollama.ai"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "lm-studio",
+      "name": "LM Studio",
+      "category": "ai",
+      "color": "#6C5CE7",
+      "detect": [
+        "LM Studio"
+      ],
+      "processes": {
+        "windows": [
+          "LM Studio.exe"
+        ]
+      },
+      "domains": [
+        "lmstudio.ai"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "category": "dev",
+      "color": "#3A3F47",
+      "detect": [
+        "GitHub Desktop"
+      ],
+      "processes": {
+        "windows": [
+          "GitHubDesktop.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-github"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab",
+      "category": "dev",
+      "color": "#FC6D26",
+      "ruleSets": [
+        "geosite-gitlab"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "bitbucket",
+      "name": "Bitbucket",
+      "category": "dev",
+      "color": "#0052CC",
+      "domains": [
+        "bitbucket.org",
+        "bitbucket.io"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "npm",
+      "name": "npm",
+      "category": "dev",
+      "color": "#CB3837",
+      "ruleSets": [
+        "geosite-npmjs"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "pypi",
+      "name": "PyPI",
+      "category": "dev",
+      "color": "#3775A9",
+      "domains": [
+        "pypi.org",
+        "pythonhosted.org"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "category": "dev",
+      "color": "#1D63ED",
+      "detect": [
+        "Docker Desktop"
+      ],
+      "processes": {
+        "windows": [
+          "Docker Desktop.exe",
+          "com.docker.backend.exe",
+          "com.docker.proxy.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-docker"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "jetbrains",
+      "name": "JetBrains",
+      "category": "dev",
+      "color": "#FE2857",
+      "detect": [
+        "IntelliJ IDEA",
+        "PyCharm",
+        "WebStorm",
+        "Rider",
+        "CLion",
+        "GoLand",
+        "PhpStorm",
+        "RubyMine",
+        "DataGrip",
+        "JetBrains Toolbox"
+      ],
+      "processes": {
+        "windows": [
+          "idea64.exe",
+          "pycharm64.exe",
+          "webstorm64.exe",
+          "rider64.exe",
+          "clion64.exe",
+          "goland64.exe",
+          "phpstorm64.exe",
+          "rubymine64.exe",
+          "datagrip64.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-jetbrains",
+        "geosite-jetbrains-ai"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "vscode",
+      "name": "Visual Studio Code",
+      "category": "dev",
+      "color": "#007ACC",
+      "detect": [
+        "Microsoft Visual Studio Code"
+      ],
+      "processes": {
+        "windows": [
+          "Code.exe"
+        ],
+        "linux": [
+          "code"
+        ]
+      },
+      "domains": [
+        "marketplace.visualstudio.com",
+        "vsassets.io"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "category": "dev",
+      "color": "#3A3F47",
+      "detect": [
+        "Cursor"
+      ],
+      "processes": {
+        "windows": [
+          "Cursor.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-cursor"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "windsurf",
+      "name": "Windsurf",
+      "category": "dev",
+      "color": "#0B9E8A",
+      "detect": [
+        "Windsurf"
+      ],
+      "processes": {
+        "windows": [
+          "Windsurf.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-windsurf"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "stackoverflow",
+      "name": "Stack Overflow",
+      "category": "dev",
+      "color": "#F48024",
+      "ruleSets": [
+        "geosite-stackexchange"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "category": "dev",
+      "color": "#3A3F47",
+      "ruleSets": [
+        "geosite-vercel"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "category": "video",
+      "color": "#FF0033",
+      "ruleSets": [
+        "geosite-youtube"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "category": "video",
+      "color": "#9146FF",
+      "ruleSets": [
+        "geosite-twitch"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "category": "video",
+      "color": "#E50914",
+      "packages": [
+        "4DF9E0F8.Netflix"
+      ],
+      "ruleSets": [
+        "geosite-netflix",
+        "geoip-netflix"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "prime-video",
+      "name": "Prime Video",
+      "category": "video",
+      "color": "#1A98FF",
+      "packages": [
+        "AmazonVideo.PrimeVideo"
+      ],
+      "ruleSets": [
+        "geosite-primevideo"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "disneyplus",
+      "name": "Disney+",
+      "category": "video",
+      "color": "#113CCF",
+      "ruleSets": [
+        "geosite-disney"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "max",
+      "name": "Max",
+      "category": "video",
+      "color": "#002BE7",
+      "ruleSets": [
+        "geosite-hbo"
+      ],
+      "domains": [
+        "max.com",
+        "hbomax.com"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "hulu",
+      "name": "Hulu",
+      "category": "video",
+      "color": "#1CE783",
+      "ruleSets": [
+        "geosite-hulu"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "crunchyroll",
+      "name": "Crunchyroll",
+      "category": "video",
+      "color": "#F47521",
+      "domains": [
+        "crunchyroll.com"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "kick",
+      "name": "Kick",
+      "category": "video",
+      "color": "#53FC18",
+      "ruleSets": [
+        "geosite-kick"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "vimeo",
+      "name": "Vimeo",
+      "category": "video",
+      "color": "#17D5FF",
+      "ruleSets": [
+        "geosite-vimeo"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "category": "music",
+      "color": "#1DB954",
+      "detect": [
+        "Spotify"
+      ],
+      "packages": [
+        "SpotifyAB.SpotifyMusic"
+      ],
+      "processes": {
+        "windows": [
+          "Spotify.exe"
+        ],
+        "linux": [
+          "spotify"
+        ],
+        "macos": [
+          "Spotify"
+        ]
+      },
+      "ruleSets": [
+        "geosite-spotify"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "soundcloud",
+      "name": "SoundCloud",
+      "category": "music",
+      "color": "#FF5500",
+      "ruleSets": [
+        "geosite-soundcloud"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "apple-music",
+      "name": "Apple Music",
+      "category": "music",
+      "color": "#FA2D48",
+      "detect": [
+        "Apple Music"
+      ],
+      "processes": {
+        "windows": [
+          "AppleMusic.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-apple-music"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "tidal",
+      "name": "TIDAL",
+      "category": "music",
+      "color": "#3A3F47",
+      "detect": [
+        "TIDAL"
+      ],
+      "processes": {
+        "windows": [
+          "TIDAL.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-tidal"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "deezer",
+      "name": "Deezer",
+      "category": "music",
+      "color": "#A238FF",
+      "detect": [
+        "Deezer"
+      ],
+      "processes": {
+        "windows": [
+          "Deezer.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-deezer"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "bandcamp",
+      "name": "Bandcamp",
+      "category": "music",
+      "color": "#1DA0C3",
+      "ruleSets": [
+        "geosite-bandcamp"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "amazon-music",
+      "name": "Amazon Music",
+      "category": "music",
+      "color": "#25D1DA",
+      "detect": [
+        "Amazon Music"
+      ],
+      "processes": {
+        "windows": [
+          "Amazon Music.exe",
+          "Amazon Music Helper.exe"
+        ]
+      },
+      "domains": [
+        "music.amazon.com"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "lastfm",
+      "name": "Last.fm",
+      "category": "music",
+      "color": "#D51007",
+      "processes": {
+        "windows": [
+          "Last.fm.exe",
+          "Last.fm Desktop Scrobbler.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-lastfm"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "pandora",
+      "name": "Pandora",
+      "category": "music",
+      "color": "#3668FF",
+      "domains": [
+        "pandora.com"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "category": "gaming",
+      "color": "#1B6FA8",
+      "detect": [
+        "Steam"
+      ],
+      "processes": {
+        "windows": [
+          "steam.exe",
+          "steamwebhelper.exe"
+        ],
+        "linux": [
+          "steam",
+          "steamwebhelper"
+        ],
+        "macos": [
+          "steam_osx"
+        ]
+      },
+      "ruleSets": [
+        "geosite-steam"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "epic-games",
+      "name": "Epic Games",
+      "category": "gaming",
+      "color": "#3A3F47",
+      "detect": [
+        "Epic Games Launcher"
+      ],
+      "processes": {
+        "windows": [
+          "EpicGamesLauncher.exe",
+          "EpicWebHelper.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-epicgames"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "battlenet",
+      "name": "Battle.net",
+      "category": "gaming",
+      "color": "#148EFF",
+      "detect": [
+        "Battle.net"
+      ],
+      "processes": {
+        "windows": [
+          "Battle.net.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-blizzard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "riot-games",
+      "name": "Riot Games",
+      "category": "gaming",
+      "color": "#D13639",
+      "detect": [
+        "Riot Client",
+        "VALORANT",
+        "League of Legends"
+      ],
+      "processes": {
+        "windows": [
+          "RiotClientServices.exe",
+          "RiotClientUx.exe",
+          "RiotClientUxRender.exe",
+          "VALORANT-Win64-Shipping.exe",
+          "LeagueClient.exe",
+          "League of Legends.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-riot"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "ubisoft-connect",
+      "name": "Ubisoft Connect",
+      "category": "gaming",
+      "color": "#0070FF",
+      "detect": [
+        "Ubisoft Connect"
+      ],
+      "processes": {
+        "windows": [
+          "UbisoftConnect.exe",
+          "upc.exe",
+          "UplayWebCore.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-ubisoft"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "ea",
+      "name": "EA app",
+      "category": "gaming",
+      "color": "#FF4747",
+      "detect": [
+        "EA app"
+      ],
+      "processes": {
+        "windows": [
+          "EADesktop.exe",
+          "EALauncher.exe",
+          "EABackgroundService.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-ea"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "gog",
+      "name": "GOG Galaxy",
+      "category": "gaming",
+      "color": "#86328A",
+      "detect": [
+        "GOG GALAXY"
+      ],
+      "processes": {
+        "windows": [
+          "GalaxyClient.exe",
+          "GalaxyCommunication.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-gog"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "xbox",
+      "name": "Xbox",
+      "category": "gaming",
+      "color": "#107C10",
+      "packages": [
+        "Microsoft.GamingApp"
+      ],
+      "processes": {
+        "windows": [
+          "XboxPcApp.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-xbox"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "playstation",
+      "name": "PlayStation",
+      "category": "gaming",
+      "color": "#0070D1",
+      "ruleSets": [
+        "geosite-playstation"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "rockstar",
+      "name": "Rockstar Games",
+      "category": "gaming",
+      "color": "#FCAF17",
+      "detect": [
+        "Rockstar Games Launcher"
+      ],
+      "detectExecutables": [
+        "Launcher.exe"
+      ],
+      "detectPaths": [
+        "Rockstar Games"
+      ],
+      "ruleSets": [
+        "geosite-rockstar"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "roblox",
+      "name": "Roblox",
+      "category": "gaming",
+      "color": "#3A3F47",
+      "detect": [
+        "Roblox"
+      ],
+      "processes": {
+        "windows": [
+          "RobloxPlayerBeta.exe",
+          "RobloxStudioBeta.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-roblox"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "minecraft",
+      "name": "Minecraft",
+      "category": "gaming",
+      "color": "#62B47A",
+      "detect": [
+        "Minecraft Launcher"
+      ],
+      "processes": {
+        "windows": [
+          "MinecraftLauncher.exe",
+          "Minecraft.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-mojang"
+      ],
+      "domains": [
+        "minecraft.net",
+        "minecraftservices.com"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "hoyoverse",
+      "name": "HoYoverse",
+      "category": "gaming",
+      "color": "#3A7BD5",
+      "detect": [
+        "HoYoPlay",
+        "Genshin Impact"
+      ],
+      "detectExecutables": [
+        "launcher.exe"
+      ],
+      "detectPaths": [
+        "HoYoPlay"
+      ],
+      "processes": {
+        "windows": [
+          "GenshinImpact.exe",
+          "StarRail.exe",
+          "ZenlessZoneZero.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-hoyoverse"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "faceit",
+      "name": "FACEIT",
+      "category": "gaming",
+      "color": "#FF5500",
+      "detect": [
+        "FACEIT"
+      ],
+      "processes": {
+        "windows": [
+          "FACEIT.exe",
+          "FACEITService.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-faceit"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "wargaming",
+      "name": "Wargaming",
+      "category": "gaming",
+      "color": "#C32121",
+      "detect": [
+        "Wargaming.net Game Center"
+      ],
+      "processes": {
+        "windows": [
+          "wgc.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-wargaming"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "gaijin",
+      "name": "War Thunder",
+      "category": "gaming",
+      "color": "#B8322B",
+      "detect": [
+        "War Thunder"
+      ],
+      "processes": {
+        "windows": [
+          "aces.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-gaijin"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "nintendo",
+      "name": "Nintendo",
+      "category": "gaming",
+      "color": "#E60012",
+      "ruleSets": [
+        "geosite-nintendo"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "itchio",
+      "name": "itch.io",
+      "category": "gaming",
+      "color": "#FA5C5C",
+      "detect": [
+        "itch"
+      ],
+      "processes": {
+        "windows": [
+          "itch.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-itchio"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "curseforge",
+      "name": "CurseForge",
+      "category": "gaming",
+      "color": "#F16436",
+      "detect": [
+        "CurseForge"
+      ],
+      "processes": {
+        "windows": [
+          "CurseForge.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-curseforge"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "nexusmods",
+      "name": "Nexus Mods",
+      "category": "gaming",
+      "color": "#D98F40",
+      "detect": [
+        "Vortex"
+      ],
+      "processes": {
+        "windows": [
+          "Vortex.exe"
+        ]
+      },
+      "domains": [
+        "nexusmods.com",
+        "nexus-cdn.com"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "google-drive",
+      "name": "Google Drive",
+      "category": "cloud",
+      "color": "#1FA463",
+      "detect": [
+        "Google Drive"
+      ],
+      "processes": {
+        "windows": [
+          "GoogleDriveFS.exe"
+        ]
+      },
+      "domains": [
+        "drive.google.com",
+        "drive.usercontent.google.com"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "onedrive",
+      "name": "OneDrive",
+      "category": "cloud",
+      "color": "#0078D4",
+      "detect": [
+        "Microsoft OneDrive"
+      ],
+      "processes": {
+        "windows": [
+          "OneDrive.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-onedrive"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "category": "cloud",
+      "color": "#0061FF",
+      "detect": [
+        "Dropbox"
+      ],
+      "processes": {
+        "windows": [
+          "Dropbox.exe"
+        ],
+        "linux": [
+          "dropbox"
+        ],
+        "macos": [
+          "Dropbox"
+        ]
+      },
+      "ruleSets": [
+        "geosite-dropbox"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "icloud",
+      "name": "iCloud",
+      "category": "cloud",
+      "color": "#3693F3",
+      "detect": [
+        "iCloud"
+      ],
+      "processes": {
+        "windows": [
+          "iCloudDrive.exe",
+          "iCloudServices.exe",
+          "iCloudPhotos.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-icloud"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "mega",
+      "name": "MEGA",
+      "category": "cloud",
+      "color": "#D9272E",
+      "detect": [
+        "MEGAsync"
+      ],
+      "processes": {
+        "windows": [
+          "MEGAsync.exe"
+        ],
+        "linux": [
+          "megasync"
+        ]
+      },
+      "ruleSets": [
+        "geosite-mega"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "box",
+      "name": "Box",
+      "category": "cloud",
+      "color": "#0061D5",
+      "detect": [
+        "Box"
+      ],
+      "processes": {
+        "windows": [
+          "Box.exe"
+        ]
+      },
+      "domains": [
+        "box.com",
+        "box.net",
+        "boxcdn.net"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "proton",
+      "name": "Proton",
+      "category": "cloud",
+      "color": "#6D4AFF",
+      "detect": [
+        "Proton Drive"
+      ],
+      "processes": {
+        "windows": [
+          "ProtonDrive.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-protonmail"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "adobe",
+      "name": "Adobe Creative Cloud",
+      "category": "cloud",
+      "color": "#DA1F26",
+      "detect": [
+        "Adobe Creative Cloud"
+      ],
+      "processes": {
+        "windows": [
+          "Creative Cloud.exe",
+          "Adobe Desktop Service.exe",
+          "CoreSync.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-adobe"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "synology",
+      "name": "Synology Drive",
+      "category": "cloud",
+      "color": "#3A3F47",
+      "detect": [
+        "Synology Drive Client"
+      ],
+      "processes": {
+        "windows": [
+          "cloud-drive-ui.exe",
+          "cloud-drive-daemon.exe",
+          "cloud-drive-connect.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-synology"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "category": "work",
+      "color": "#3A3F47",
+      "detect": [
+        "Notion"
+      ],
+      "processes": {
+        "windows": [
+          "Notion.exe"
+        ],
+        "macos": [
+          "Notion"
+        ]
+      },
+      "ruleSets": [
+        "geosite-notion"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "category": "work",
+      "color": "#A259FF",
+      "detect": [
+        "Figma"
+      ],
+      "processes": {
+        "windows": [
+          "Figma.exe"
+        ],
+        "macos": [
+          "Figma"
+        ]
+      },
+      "ruleSets": [
+        "geosite-figma"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "category": "work",
+      "color": "#00C4CC",
+      "detect": [
+        "Canva"
+      ],
+      "processes": {
+        "windows": [
+          "Canva.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-canva"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "trello",
+      "name": "Trello",
+      "category": "work",
+      "color": "#0C66E4",
+      "processes": {
+        "windows": [
+          "Trello.exe"
+        ]
+      },
+      "ruleSets": [
+        "geosite-trello"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "atlassian",
+      "name": "Jira and Confluence",
+      "category": "work",
+      "color": "#1868DB",
+      "ruleSets": [
+        "geosite-atlassian"
+      ],
+      "confidence": "none"
+    },
+    {
+      "id": "miro",
+      "name": "Miro",
+      "category": "work",
+      "color": "#E8B800",
+      "detect": [
+        "Miro"
+      ],
+      "processes": {
+        "windows": [
+          "Miro.exe"
+        ]
+      },
+      "domains": [
+        "miro.com"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "category": "work",
+      "color": "#5E6AD2",
+      "processes": {
+        "windows": [
+          "Linear.exe"
+        ]
+      },
+      "domains": [
+        "linear.app"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "asana",
+      "name": "Asana",
+      "category": "work",
+      "color": "#F06A6A",
+      "processes": {
+        "windows": [
+          "Asana.exe"
+        ]
+      },
+      "domains": [
+        "asana.com"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "clickup",
+      "name": "ClickUp",
+      "category": "work",
+      "color": "#7B68EE",
+      "detect": [
+        "ClickUp"
+      ],
+      "processes": {
+        "windows": [
+          "ClickUp.exe"
+        ]
+      },
+      "domains": [
+        "clickup.com"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

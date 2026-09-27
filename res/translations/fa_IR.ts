@@ -1176,6 +1176,46 @@ Total speed: %5/s↑ %6/s↓</source>
 <context>
     <name>DialogBasicSettings</name>
     <message>
+        <source>TLS version</source>
+        <translation>نسخهٔ TLS</translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation>نسخهٔ HTTP</translation>
+    </message>
+    <message>
+        <source>TLS Version</source>
+        <translation>نسخهٔ TLS</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>نسخهٔ HTTP</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>خودکار</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it.</source>
+        <translation>«خودکار» در صورت پشتیبانی سرور از HTTP/2 استفاده می‌کند.</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</source>
+        <translation>نسخه‌های TLS که هنگام دریافت اشتراک‌ها پیشنهاد می‌شوند. برخی سرورها به دست‌دهی پیش‌فرض با CAPTCHA یا صفحهٔ مسدودسازی پاسخ می‌دهند؛ TLS 1.2 اغلب عبور می‌کند.</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throned to the &quot;Open with&quot; list for JSON and YAML config files, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2050,6 +2090,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditAutoSelector</name>
@@ -2295,6 +2339,156 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source>Could not update the autostart entry:</source>
+        <translation>به‌روزرسانی ورودی اجرای خودکار ممکن نشد:</translation>
+    </message>
+    <message>
+        <source>everything else directly</source>
+        <translation>بقیه مستقیم</translation>
+    </message>
+    <message>
+        <source>everything else through the VPN</source>
+        <translation>بقیه از طریق VPN</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n app(s)</source>
+        <translation>
+            <numerusform>%n برنامه</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Through the VPN</source>
+        <translation>از طریق VPN</translation>
+    </message>
+    <message>
+        <source>Whole computer</source>
+        <translation>کل رایانه</translation>
+    </message>
+    <message>
+        <source>Games, messengers and the browser</source>
+        <translation>بازی‌ها، پیام‌رسان‌ها و مرورگر</translation>
+    </message>
+    <message>
+        <source>Browser only</source>
+        <translation>فقط مرورگر</translation>
+    </message>
+    <message>
+        <source>Games and calls bypass the VPN</source>
+        <translation>بازی‌ها و تماس‌ها از VPN عبور نمی‌کنند</translation>
+    </message>
+    <message>
+        <source>Not chosen</source>
+        <translation>انتخاب نشده</translation>
+    </message>
+    <message>
+        <source>Apps bypass the VPN</source>
+        <translation>برنامه‌ها از VPN عبور نمی‌کنند</translation>
+    </message>
+    <message>
+        <source>No profiles</source>
+        <translation>پروفایلی نیست</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>متصل نیست</translation>
+    </message>
+    <message>
+        <source>Press the button to connect</source>
+        <translation>برای اتصال دکمه را بزنید</translation>
+    </message>
+    <message>
+        <source>Profile traffic</source>
+        <translation>ترافیک پروفایل</translation>
+    </message>
+    <message>
+        <source>Throned restarts with administrator rights for this, and Windows asks for permission. Choose Yes.</source>
+        <translation>برای این کار Throned با دسترسی مدیر دوباره اجرا می‌شود و ویندوز اجازه می‌خواهد. «بله» را انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 میلی‌ثانیه</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>%1 باقی‌مانده</translation>
+    </message>
+    <message>
+        <source>Unlimited traffic</source>
+        <translation>ترافیک نامحدود</translation>
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation>منقضی شده</translation>
+    </message>
+    <message>
+        <source>Until %1</source>
+        <translation>تا %1</translation>
+    </message>
+    <message>
+        <source>Simple mode</source>
+        <translation>حالت ساده</translation>
+    </message>
+    <message>
+        <source>Full interface</source>
+        <translation>رابط کامل</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile or subscription link</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>System proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a profile to get started</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disconnecting…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No profiles yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disconnect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TUN</source>
+        <translation>TUN</translation>
+    </message>
+    <message>
+        <source>Graph</source>
+        <translation>نمودار</translation>
+    </message>
+    <message>
+        <source>Runtime</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message numerus="yes">
         <source>%n remote rule-set(s) refreshed</source>
         <translation type="unfinished">
@@ -3280,6 +3474,22 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 <context>
     <name>QObject</name>
     <message>
+        <source>The selected TLS version is not supported on this system.</source>
+        <translation>نسخهٔ TLS انتخاب‌شده در این سیستم پشتیبانی نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>The server returned a web page instead of a subscription. If it is a CAPTCHA or a bot check, try another TLS version, HTTP version or User Agent in the group&apos;s Advanced settings.</source>
+        <translation>سرور به‌جای اشتراک یک صفحهٔ وب برگرداند. اگر CAPTCHA یا بررسی ربات است، نسخهٔ TLS، نسخهٔ HTTP یا User Agent دیگری را در تنظیمات پیشرفتهٔ گروه امتحان کنید.</translation>
+    </message>
+    <message>
+        <source>Unknown rule-set: %1</source>
+        <translation>rule-set ناشناخته: %1</translation>
+    </message>
+    <message>
+        <source>The download of %1 is not a rule-set.</source>
+        <translation>فایل بارگیری‌شده %1 یک rule-set نیست.</translation>
+    </message>
+    <message>
         <source>Request with proxy but no profile started.</source>
         <translation type="unfinished">درخواست با پروکسی اما هیچ نمایه‌ای شروع نشده است.</translation>
     </message>
@@ -3931,6 +4141,55 @@ Release note:
         <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -4025,6 +4284,10 @@ Release note:
     <message>
         <source>The subscription sends its own refresh cycle; unchecking this keeps the number above instead.</source>
         <translation>اشتراک بازه به‌روزرسانی خود را می‌فرستد؛ با برداشتن تیک، عدد بالا استفاده می‌شود.</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5571,6 +5834,404 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile&apos;s rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules. A chain endpoint can hand out one rule per inner OpenVPN / OpenConnect hop too, so traffic can be routed to a hop before the exit.</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SimpleModeNotice</name>
+    <message>
+        <source>Try Simple mode</source>
+        <translation>حالت ساده را امتحان کنید</translation>
+    </message>
+    <message>
+        <source>A small window with one button: pick a server and connect.</source>
+        <translation>پنجره‌ای کوچک با یک دکمه: سرور را انتخاب کنید و وصل شوید.</translation>
+    </message>
+    <message>
+        <source>Try it</source>
+        <translation>امتحان کن</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>دیگر نمایش نده</translation>
+    </message>
+</context>
+<context>
+    <name>SimpleModeSheet</name>
+    <message>
+        <source>What goes through the VPN</source>
+        <translation>چه چیزی از VPN عبور می‌کند</translation>
+    </message>
+    <message>
+        <source>Whole computer</source>
+        <translation>کل رایانه</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>پیشنهادی</translation>
+    </message>
+    <message>
+        <source>Everything that goes online: games, messengers, calls and the browser.</source>
+        <translation>هر چیزی که به اینترنت وصل می‌شود: بازی‌ها، پیام‌رسان‌ها، تماس‌ها و مرورگر.</translation>
+    </message>
+    <message>
+        <source>Continue</source>
+        <translation>ادامه</translation>
+    </message>
+    <message>
+        <source>Browser only</source>
+        <translation>فقط مرورگر</translation>
+    </message>
+    <message>
+        <source>Chrome, Edge, Firefox and apps that use the system proxy settings.</source>
+        <translation>Chrome، Edge، Firefox و برنامه‌هایی که از تنظیمات پروکسی سیستم استفاده می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Games, voice calls and most other apps bypass the VPN. No administrator rights needed.</source>
+        <translation>بازی‌ها، تماس‌های صوتی و بیشتر برنامه‌های دیگر از VPN عبور نمی‌کنند. به دسترسی مدیر نیازی نیست.</translation>
+    </message>
+</context>
+<context>
+    <name>SimpleRoutesPage</name>
+    <message>
+        <source>sites list</source>
+        <translation>فهرست سایت‌ها</translation>
+    </message>
+    <message>
+        <source>IP networks</source>
+        <translation>شبکه‌های IP</translation>
+    </message>
+    <message>
+        <source>%1 sites</source>
+        <translation>سایت‌های %1</translation>
+    </message>
+    <message>
+        <source>%1 IP networks</source>
+        <translation>شبکه‌های IP %1</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>تلاش دوباره</translation>
+    </message>
+    <message>
+        <source>Could not download the site lists: %1</source>
+        <translation>بارگیری فهرست سایت‌ها ممکن نشد: %1</translation>
+    </message>
+    <message>
+        <source>Downloading site lists: %1 of %2</source>
+        <translation>در حال بارگیری فهرست سایت‌ها: %1 از %2</translation>
+    </message>
+    <message>
+        <source>Site lists are ready</source>
+        <translation>فهرست سایت‌ها آماده است</translation>
+    </message>
+    <message>
+        <source>Messengers</source>
+        <translation>پیام‌رسان‌ها</translation>
+    </message>
+    <message>
+        <source>Social networks</source>
+        <translation>شبکه‌های اجتماعی</translation>
+    </message>
+    <message>
+        <source>AI</source>
+        <translation>هوش مصنوعی</translation>
+    </message>
+    <message>
+        <source>Development</source>
+        <translation>توسعه</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>ویدیو</translation>
+    </message>
+    <message>
+        <source>Music</source>
+        <translation>موسیقی</translation>
+    </message>
+    <message>
+        <source>Games</source>
+        <translation>بازی‌ها</translation>
+    </message>
+    <message>
+        <source>Cloud storage</source>
+        <translation>فضای ابری</translation>
+    </message>
+    <message>
+        <source>Work</source>
+        <translation>کار</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>سایر</translation>
+    </message>
+    <message>
+        <source>Back</source>
+        <translation>بازگشت</translation>
+    </message>
+    <message>
+        <source>Routing</source>
+        <translation>مسیریابی</translation>
+    </message>
+    <message>
+        <source>Advanced editor</source>
+        <translation>ویرایشگر پیشرفته</translation>
+    </message>
+    <message>
+        <source>App, site, .exe or IP</source>
+        <translation>برنامه، سایت، ‎.exe یا IP</translation>
+    </message>
+    <message>
+        <source>VPN</source>
+        <translation>VPN</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>مستقیم</translation>
+    </message>
+    <message>
+        <source>Missing server</source>
+        <translation>سرور حذف شده</translation>
+    </message>
+    <message>
+        <source>My sites and apps</source>
+        <translation>سایت‌ها و برنامه‌های من</translation>
+    </message>
+    <message>
+        <source>edited</source>
+        <translation>ویرایش‌شده</translation>
+    </message>
+    <message>
+        <source>Nothing yet</source>
+        <translation>هنوز چیزی نیست</translation>
+    </message>
+    <message>
+        <source>Send through</source>
+        <translation>ارسال از طریق</translation>
+    </message>
+    <message>
+        <source>Main VPN · %1</source>
+        <translation>VPN اصلی · %1</translation>
+    </message>
+    <message>
+        <source>Directly, around the VPN</source>
+        <translation>مستقیم، بدون VPN</translation>
+    </message>
+    <message>
+        <source>Through %1</source>
+        <translation>از طریق %1</translation>
+    </message>
+    <message>
+        <source>What it covers</source>
+        <translation>شامل چه چیزی است</translation>
+    </message>
+    <message>
+        <source>Remove %1</source>
+        <translation>حذف %1</translation>
+    </message>
+    <message>
+        <source>Nothing yet: type below</source>
+        <translation>هنوز چیزی نیست: پایین بنویسید</translation>
+    </message>
+    <message>
+        <source>+ site, .exe or IP, then Enter</source>
+        <translation>+ سایت، ‎.exe یا IP، سپس Enter</translation>
+    </message>
+    <message>
+        <source>Add to %1</source>
+        <translation>افزودن به %1</translation>
+    </message>
+    <message>
+        <source>Choose a program…</source>
+        <translation>انتخاب برنامه…</translation>
+    </message>
+    <message>
+        <source>Reset to the catalog</source>
+        <translation>بازگشت به فهرست</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>پیش‌فرض</translation>
+    </message>
+    <message>
+        <source>Everything else</source>
+        <translation>بقیه</translation>
+    </message>
+    <message>
+        <source>Whatever is not switched on above</source>
+        <translation>هر چیزی که بالا روشن نشده</translation>
+    </message>
+    <message>
+        <source>Everything else: %1</source>
+        <translation>بقیه: %1</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>مستقیم</translation>
+    </message>
+    <message>
+        <source>Through the VPN</source>
+        <translation>از طریق VPN</translation>
+    </message>
+    <message>
+        <source>This routing profile is written by hand, so it can only be changed in the advanced editor.</source>
+        <translation>این پروفایل مسیریابی دستی نوشته شده و فقط در ویرایشگر پیشرفته قابل تغییر است.</translation>
+    </message>
+    <message>
+        <source>Open the advanced editor</source>
+        <translation>باز کردن ویرایشگر پیشرفته</translation>
+    </message>
+    <message>
+        <source>Your programs</source>
+        <translation>برنامه‌های شما</translation>
+    </message>
+    <message>
+        <source>%1: programs go through the VPN only in Whole computer mode.</source>
+        <translation>%1: برنامه‌ها فقط در حالت «کل رایانه» از VPN عبور می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Switch</source>
+        <translation>تغییر</translation>
+    </message>
+    <message>
+        <source>Add the program %1</source>
+        <translation>افزودن برنامه %1</translation>
+    </message>
+    <message>
+        <source>Add the site %1</source>
+        <translation>افزودن سایت %1</translation>
+    </message>
+    <message>
+        <source>Add the addresses %1</source>
+        <translation>افزودن نشانی‌های %1</translation>
+    </message>
+    <message>
+        <source>to My sites and apps</source>
+        <translation>به سایت‌ها و برنامه‌های من</translation>
+    </message>
+    <message>
+        <source>Found on this computer</source>
+        <translation>پیدا شده روی این رایانه</translation>
+    </message>
+    <message>
+        <source>Catalog</source>
+        <translation>فهرست</translation>
+    </message>
+    <message>
+        <source>Switched on from the catalog</source>
+        <translation>روشن‌شده از فهرست</translation>
+    </message>
+    <message>
+        <source>Hide the catalog</source>
+        <translation>پنهان کردن فهرست</translation>
+    </message>
+    <message>
+        <source>Your own</source>
+        <translation>موارد خودتان</translation>
+    </message>
+    <message>
+        <source>Other rules in this profile: %1</source>
+        <translation>قوانین دیگر در این پروفایل: %1</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>باز کردن</translation>
+    </message>
+    <message>
+        <source>Nothing found. Type a site or an .exe to add your own.</source>
+        <translation>چیزی پیدا نشد. برای افزودن، سایت یا ‎.exe بنویسید.</translation>
+    </message>
+    <message>
+        <source>your own</source>
+        <translation>موارد خودتان</translation>
+    </message>
+    <message>
+        <source>through the VPN</source>
+        <translation>از طریق VPN</translation>
+    </message>
+    <message>
+        <source>directly</source>
+        <translation>مستقیم</translation>
+    </message>
+    <message>
+        <source>through %1</source>
+        <translation>از طریق %1</translation>
+    </message>
+    <message>
+        <source>everything else directly</source>
+        <translation>بقیه مستقیم</translation>
+    </message>
+    <message>
+        <source>everything else through the VPN</source>
+        <translation>بقیه از طریق VPN</translation>
+    </message>
+    <message>
+        <source>Everything is applied</source>
+        <translation>همه اعمال شد</translation>
+    </message>
+    <message>
+        <source>Apply and reconnect</source>
+        <translation>اعمال و اتصال دوباره</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>اعمال</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n program(s)</source>
+        <translation>
+            <numerusform>%n برنامه</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n site(s)</source>
+        <translation>
+            <numerusform>%n سایت</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n IP range(s)</source>
+        <translation>
+            <numerusform>%n بازه IP</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more app(s) and site(s)</source>
+        <translation>
+            <numerusform>%n برنامه و سایت دیگر</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>%n مورد دیگر</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>SimpleServerSheet</name>
+    <message>
+        <source>Server</source>
+        <translation>سرور</translation>
+    </message>
+    <message>
+        <source>Check ping</source>
+        <translation>بررسی پینگ</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>در حال بررسی…</translation>
+    </message>
+    <message>
+        <source>This group has no profiles yet</source>
+        <translation>این گروه هنوز پروفایلی ندارد</translation>
+    </message>
+    <message>
+        <source>From clipboard</source>
+        <translation>از کلیپ‌بورد</translation>
+    </message>
+    <message>
+        <source>From a link</source>
+        <translation>از پیوند</translation>
     </message>
 </context>
 <context>
@@ -7170,6 +7831,172 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>TLS Version</source>
+        <translation>نسخهٔ TLS</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>نسخهٔ HTTP</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>خودکار</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it. Keep Default follows the Subscription settings.</source>
+        <translation>«خودکار» در صورت پشتیبانی سرور از HTTP/2 استفاده می‌کند. «پیش‌فرض» از تنظیمات اشتراک پیروی می‌کند.</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching this subscription. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through. Keep Default follows the Subscription settings.</source>
+        <translation>نسخه‌های TLS که هنگام دریافت این اشتراک پیشنهاد می‌شوند. برخی سرورها به دست‌دهی پیش‌فرض با CAPTCHA یا صفحهٔ مسدودسازی پاسخ می‌دهند؛ TLS 1.2 اغلب عبور می‌کند. «پیش‌فرض» از تنظیمات اشتراک پیروی می‌کند.</translation>
+    </message>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HijackDeprecationNotice</name>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

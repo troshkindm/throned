@@ -61,6 +61,20 @@ function(add_ui_scenario NAME)
     set_property(GLOBAL PROPERTY "UI_${NAME}_GROUPS" "${SC_GROUPS}")
 endfunction()
 
+add_ui_scenario(simple-light GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -ui-preview-simple -ui-preview-simple-light -theme "System"
+    EXPECTED simple-light-idle.png simple-light-profiles.png simple-light-mode.png simple-light-empty.png
+        simple-light-update.png simple-light-restored.png simple-light-subscription.png simple-light-routes.png simple-light-routes-catalog.png simple-light-routes-detail.png
+        simple-light-connecting.png simple-light-connected.png)
+foreach (simple_theme "Throned Graphite" "System" "Retro 2009 Teal" "Retro 2009 Pink" "Mica (Windows 11)")
+    string(MAKE_C_IDENTIFIER "${simple_theme}" simple_id)
+    add_ui_scenario(simple-${simple_id} GROUPS all
+        ARGS -ui-preview @PREFIX@ -ui-preview-docs -ui-preview-simple -theme "${simple_theme}"
+        EXPECTED simple-${simple_id}-idle.png simple-${simple_id}-profiles.png simple-${simple_id}-mode.png
+            simple-${simple_id}-empty.png simple-${simple_id}-update.png simple-${simple_id}-restored.png
+            simple-${simple_id}-subscription.png simple-${simple_id}-routes.png simple-${simple_id}-routes-catalog.png simple-${simple_id}-routes-detail.png
+            simple-${simple_id}-connecting.png simple-${simple_id}-connected.png)
+endforeach ()
 add_ui_scenario(main-shell GROUPS all
     ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite"
     EXPECTED
@@ -71,6 +85,16 @@ add_ui_scenario(main-shell GROUPS all
         main-shell-stop-button.png main-shell-update-downloading.png
         main-shell-update-preparing.png main-shell-update-ready.png main-shell-update-error.png
         main-shell-restart-needed.png)
+add_ui_scenario(main-narrow GROUPS all
+    ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-size 560x440
+    EXPECTED
+        main-narrow-panel-opening.png main-narrow-panel-closing.png
+        main-narrow-search-filtered.png main-narrow-closed.png main-narrow-logs.png
+        main-narrow-logs-menu.png main-narrow-logs-menu-in-place.png main-narrow-graph.png
+        main-narrow-window.png main-narrow-menu.png main-narrow-menu-in-place.png
+        main-narrow-stop-button.png main-narrow-update-downloading.png
+        main-narrow-update-preparing.png main-narrow-update-ready.png main-narrow-update-error.png
+        main-narrow-restart-needed.png)
 add_ui_scenario(quick-add GROUPS smoke all
     ARGS -ui-preview @PREFIX@ -ui-preview-docs -theme "Throned Graphite" -ui-preview-quick-add
     EXPECTED quick-add-quick-add.png quick-add-quick-add-detected.png

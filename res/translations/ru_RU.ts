@@ -1408,6 +1408,46 @@ It stays a preference, not a lock: if that profile stops working the selector st
 <context>
     <name>DialogBasicSettings</name>
     <message>
+        <source>TLS version</source>
+        <translation>Версия TLS</translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>TLS Version</source>
+        <translation>Версия TLS</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>Авто</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it.</source>
+        <translation>«Авто» использует HTTP/2, если сервер его поддерживает.</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</source>
+        <translation>Версии TLS, предлагаемые при загрузке подписок. Некоторые серверы отвечают на стандартное рукопожатие CAPTCHA или страницей блокировки; с TLS 1.2 часто удаётся пройти.</translation>
+    </message>
+    <message>
         <source>Basic Settings</source>
         <translation>Основные настройки</translation>
     </message>
@@ -2749,6 +2789,149 @@ This backup may have been created with a newer version of the application.</sour
     <message>
         <source> h</source>
         <translation> ч</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>TLS Version</source>
+        <translation>Версия TLS</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>Авто</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it. Keep Default follows the Subscription settings.</source>
+        <translation>«Авто» использует HTTP/2, если сервер его поддерживает. «По умолчанию» берёт значение из настроек подписок.</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching this subscription. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through. Keep Default follows the Subscription settings.</source>
+        <translation>Версии TLS, предлагаемые при загрузке этой подписки. Некоторые серверы отвечают на стандартное рукопожатие CAPTCHA или страницей блокировки; с TLS 1.2 часто удаётся пройти. «По умолчанию» берёт значение из настроек подписок.</translation>
+    </message>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation>Дополнительные настройки подписки</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>Запрос</translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation>Если пусто, используется User Agent из настроек подписок.</translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation>User Agent</translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation>Отправлять с запросами этой подписки заголовки HWID, ОС, версии ОС и модели устройства. «По умолчанию» следует настройкам подписок.</translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation>Отправлять HWID</translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation>Вкл.</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Выкл.</translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation>HWID</translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation>ОС</translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation>Версия ОС</translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation>Модель устройства</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновление</translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation>Профили, последняя проверка которых прошла успешно, сохраняются, даже если подписка их больше не содержит.</translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation>Сохранять рабочие профили</translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation>После каждого обновления:</translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation>Удалять дубликаты</translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation>Удалять небезопасные профили</translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation>Профили, которые отклоняет ядро. Пропускается, пока ядро недоступно.</translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation>Удалять недействительные профили</translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation>Проверяет профили группы после завершения обновления — после уже идущей проверки, если она есть.</translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation>Запускать URL-тест</translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation>Удалять недоступные профили</translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation>Сортировать по задержке</translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation>По умолчанию (%1)</translation>
     </message>
 </context>
 <context>
@@ -4155,6 +4338,10 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation>По одному домену в строке. Они перебираются по порядку, используется первый, принявший регистрацию. Оставьте пустым, чтобы использовать %1.</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation>Перехват устарел и будет удалён в следующем выпуске. Режим TUN решает ту же задачу.</translation>
     </message>
 </context>
 <context>
@@ -6318,7 +6505,178 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
 </context>
 <context>
+    <name>HijackDeprecationNotice</name>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>Перехват (Настройки &gt; Настройки маршрутизации &gt; Перехват) устарел и будет удалён в следующем выпуске.</translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>От него зависит параметр «Системный DNS», он будет удалён вместе с ним.</translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Режим TUN решает ту же задачу.</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation>Перехват устарел</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>Настройки маршрутизации</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>Больше не показывать</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
+    <message>
+        <source>Could not update the autostart entry:</source>
+        <translation>Не удалось обновить запись автозапуска:</translation>
+    </message>
+    <message>
+        <source>everything else directly</source>
+        <translation>остальное напрямую</translation>
+    </message>
+    <message>
+        <source>everything else through the VPN</source>
+        <translation>остальное через VPN</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n app(s)</source>
+        <translation>
+            <numerusform>%n приложение</numerusform>
+            <numerusform>%n приложения</numerusform>
+            <numerusform>%n приложений</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Through the VPN</source>
+        <translation>Через VPN работает</translation>
+    </message>
+    <message>
+        <source>Whole computer</source>
+        <translation>Весь компьютер</translation>
+    </message>
+    <message>
+        <source>Games, messengers and the browser</source>
+        <translation>Игры, мессенджеры и браузер</translation>
+    </message>
+    <message>
+        <source>Browser only</source>
+        <translation>Только браузер</translation>
+    </message>
+    <message>
+        <source>Games and calls bypass the VPN</source>
+        <translation>Игры и звонки идут без VPN</translation>
+    </message>
+    <message>
+        <source>Not chosen</source>
+        <translation>Не выбрано</translation>
+    </message>
+    <message>
+        <source>Apps bypass the VPN</source>
+        <translation>Программы идут мимо VPN</translation>
+    </message>
+    <message>
+        <source>No profiles</source>
+        <translation>Нет профилей</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>Не подключено</translation>
+    </message>
+    <message>
+        <source>Press the button to connect</source>
+        <translation>Нажмите кнопку, чтобы подключиться</translation>
+    </message>
+    <message>
+        <source>Profile traffic</source>
+        <translation>Трафик профиля</translation>
+    </message>
+    <message>
+        <source>Throned restarts with administrator rights for this, and Windows asks for permission. Choose Yes.</source>
+        <translation>Для этого Throned перезапустится с правами администратора, и Windows спросит разрешение. Нажмите «Да».</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>%1 left</source>
+        <translation>Осталось %1</translation>
+    </message>
+    <message>
+        <source>Unlimited traffic</source>
+        <translation>Безлимитный трафик</translation>
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation>Истекла</translation>
+    </message>
+    <message>
+        <source>Until %1</source>
+        <translation>До %1</translation>
+    </message>
+    <message>
+        <source>Simple mode</source>
+        <translation>Простой режим</translation>
+    </message>
+    <message>
+        <source>Full interface</source>
+        <translation>Полный интерфейс</translation>
+    </message>
+    <message>
+        <source>Add profiles</source>
+        <translation>Добавить профили</translation>
+    </message>
+    <message>
+        <source>Profile or subscription link</source>
+        <translation>Ссылка на профиль или подписку</translation>
+    </message>
+    <message>
+        <source>Add a profile to get started</source>
+        <translation>Добавьте профиль для подключения</translation>
+    </message>
+    <message>
+        <source>Connected</source>
+        <translation>Подключено</translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation>Подключение…</translation>
+    </message>
+    <message>
+        <source>Disconnecting…</source>
+        <translation>Отключение…</translation>
+    </message>
+    <message>
+        <source>No profiles yet</source>
+        <translation>Профилей пока нет</translation>
+    </message>
+    <message>
+        <source>Disconnect</source>
+        <translation>Отключиться</translation>
+    </message>
+    <message>
+        <source>Connect</source>
+        <translation>Подключиться</translation>
+    </message>
+    <message>
+        <source>TUN</source>
+        <translation>TUN</translation>
+    </message>
+    <message>
+        <source>Graph</source>
+        <translation>График</translation>
+    </message>
+    <message>
+        <source>Runtime</source>
+        <translation>Статистика</translation>
+    </message>
     <message>
         <source>UDP targets</source>
         <translation>Цели UDP-мониторинга</translation>
@@ -7994,6 +8352,414 @@ Name: %1</source>
     </message>
 </context>
 <context>
+    <name>SimpleModeNotice</name>
+    <message>
+        <source>Try Simple mode</source>
+        <translation>Попробуйте простой режим</translation>
+    </message>
+    <message>
+        <source>A small window with one button: pick a server and connect.</source>
+        <translation>Небольшое окно с одной кнопкой: выберите сервер и подключитесь.</translation>
+    </message>
+    <message>
+        <source>Try it</source>
+        <translation>Попробовать</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>Больше не показывать</translation>
+    </message>
+</context>
+<context>
+    <name>SimpleModeSheet</name>
+    <message>
+        <source>What goes through the VPN</source>
+        <translation>Что работает через VPN</translation>
+    </message>
+    <message>
+        <source>Whole computer</source>
+        <translation>Весь компьютер</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>Рекомендуем</translation>
+    </message>
+    <message>
+        <source>Everything that goes online: games, messengers, calls and the browser.</source>
+        <translation>Всё, что выходит в интернет: игры, мессенджеры, звонки и браузер.</translation>
+    </message>
+    <message>
+        <source>Continue</source>
+        <translation>Продолжить</translation>
+    </message>
+    <message>
+        <source>Browser only</source>
+        <translation>Только браузер</translation>
+    </message>
+    <message>
+        <source>Chrome, Edge, Firefox and apps that use the system proxy settings.</source>
+        <translation>Chrome, Edge, Firefox и программы, которые берут прокси из настроек системы.</translation>
+    </message>
+    <message>
+        <source>Games, voice calls and most other apps bypass the VPN. No administrator rights needed.</source>
+        <translation>Игры, голосовые звонки и большинство других программ идут мимо VPN. Права администратора не нужны.</translation>
+    </message>
+</context>
+<context>
+    <name>SimpleRoutesPage</name>
+    <message>
+        <source>sites list</source>
+        <translation>список сайтов</translation>
+    </message>
+    <message>
+        <source>IP networks</source>
+        <translation>IP-сети</translation>
+    </message>
+    <message>
+        <source>%1 sites</source>
+        <translation>Сайты %1</translation>
+    </message>
+    <message>
+        <source>%1 IP networks</source>
+        <translation>IP-сети %1</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Повторить</translation>
+    </message>
+    <message>
+        <source>Could not download the site lists: %1</source>
+        <translation>Не удалось загрузить списки сайтов: %1</translation>
+    </message>
+    <message>
+        <source>Downloading site lists: %1 of %2</source>
+        <translation>Загружаем списки сайтов: %1 из %2</translation>
+    </message>
+    <message>
+        <source>Site lists are ready</source>
+        <translation>Списки сайтов готовы</translation>
+    </message>
+    <message>
+        <source>Messengers</source>
+        <translation>Мессенджеры</translation>
+    </message>
+    <message>
+        <source>Social networks</source>
+        <translation>Соцсети</translation>
+    </message>
+    <message>
+        <source>AI</source>
+        <translation>ИИ</translation>
+    </message>
+    <message>
+        <source>Development</source>
+        <translation>Разработка</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Видео</translation>
+    </message>
+    <message>
+        <source>Music</source>
+        <translation>Музыка</translation>
+    </message>
+    <message>
+        <source>Games</source>
+        <translation>Игры</translation>
+    </message>
+    <message>
+        <source>Cloud storage</source>
+        <translation>Облака</translation>
+    </message>
+    <message>
+        <source>Work</source>
+        <translation>Работа</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Другое</translation>
+    </message>
+    <message>
+        <source>Back</source>
+        <translation>Назад</translation>
+    </message>
+    <message>
+        <source>Routing</source>
+        <translation>Маршруты</translation>
+    </message>
+    <message>
+        <source>Advanced editor</source>
+        <translation>Расширенный редактор</translation>
+    </message>
+    <message>
+        <source>App, site, .exe or IP</source>
+        <translation>Приложение, сайт, .exe или IP</translation>
+    </message>
+    <message>
+        <source>VPN</source>
+        <translation>VPN</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Missing server</source>
+        <translation>Сервер удалён</translation>
+    </message>
+    <message>
+        <source>My sites and apps</source>
+        <translation>Свои сайты и программы</translation>
+    </message>
+    <message>
+        <source>edited</source>
+        <translation>изменено</translation>
+    </message>
+    <message>
+        <source>Nothing yet</source>
+        <translation>Пока пусто</translation>
+    </message>
+    <message>
+        <source>Send through</source>
+        <translation>Куда направить</translation>
+    </message>
+    <message>
+        <source>Main VPN · %1</source>
+        <translation>Основной VPN · %1</translation>
+    </message>
+    <message>
+        <source>Directly, around the VPN</source>
+        <translation>Напрямую, мимо VPN</translation>
+    </message>
+    <message>
+        <source>Through %1</source>
+        <translation>Через %1</translation>
+    </message>
+    <message>
+        <source>What it covers</source>
+        <translation>Что входит</translation>
+    </message>
+    <message>
+        <source>Remove %1</source>
+        <translation>Убрать %1</translation>
+    </message>
+    <message>
+        <source>Nothing yet: type below</source>
+        <translation>Пока пусто — впишите ниже</translation>
+    </message>
+    <message>
+        <source>+ site, .exe or IP, then Enter</source>
+        <translation>+ сайт, .exe или IP, затем Enter</translation>
+    </message>
+    <message>
+        <source>Add to %1</source>
+        <translation>Добавить в «%1»</translation>
+    </message>
+    <message>
+        <source>Choose a program…</source>
+        <translation>Выбрать программу…</translation>
+    </message>
+    <message>
+        <source>Reset to the catalog</source>
+        <translation>Сбросить к каталогу</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>Everything else</source>
+        <translation>Всё остальное</translation>
+    </message>
+    <message>
+        <source>Whatever is not switched on above</source>
+        <translation>То, что не включено выше</translation>
+    </message>
+    <message>
+        <source>Everything else: %1</source>
+        <translation>Всё остальное: %1</translation>
+    </message>
+    <message>
+        <source>Directly</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Through the VPN</source>
+        <translation>Через VPN</translation>
+    </message>
+    <message>
+        <source>This routing profile is written by hand, so it can only be changed in the advanced editor.</source>
+        <translation>Этот профиль маршрутизации написан вручную, его можно изменить только в расширенном редакторе.</translation>
+    </message>
+    <message>
+        <source>Open the advanced editor</source>
+        <translation>Открыть расширенный редактор</translation>
+    </message>
+    <message>
+        <source>Your programs</source>
+        <translation>Ваши программы</translation>
+    </message>
+    <message>
+        <source>%1: programs go through the VPN only in Whole computer mode.</source>
+        <translation>%1: программы идут через VPN только в режиме «Весь компьютер».</translation>
+    </message>
+    <message>
+        <source>Switch</source>
+        <translation>Переключить</translation>
+    </message>
+    <message>
+        <source>Add the program %1</source>
+        <translation>Добавить программу %1</translation>
+    </message>
+    <message>
+        <source>Add the site %1</source>
+        <translation>Добавить сайт %1</translation>
+    </message>
+    <message>
+        <source>Add the addresses %1</source>
+        <translation>Добавить адреса %1</translation>
+    </message>
+    <message>
+        <source>to My sites and apps</source>
+        <translation>в «Свои сайты и программы»</translation>
+    </message>
+    <message>
+        <source>Found on this computer</source>
+        <translation>Найдено на этом компьютере</translation>
+    </message>
+    <message>
+        <source>Catalog</source>
+        <translation>Каталог</translation>
+    </message>
+    <message>
+        <source>Switched on from the catalog</source>
+        <translation>Включено из каталога</translation>
+    </message>
+    <message>
+        <source>Hide the catalog</source>
+        <translation>Свернуть каталог</translation>
+    </message>
+    <message>
+        <source>Your own</source>
+        <translation>Своё</translation>
+    </message>
+    <message>
+        <source>Other rules in this profile: %1</source>
+        <translation>Другие правила в профиле: %1</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>Открыть</translation>
+    </message>
+    <message>
+        <source>Nothing found. Type a site or an .exe to add your own.</source>
+        <translation>Ничего не нашлось. Впишите сайт или .exe, чтобы добавить своё.</translation>
+    </message>
+    <message>
+        <source>your own</source>
+        <translation>своё</translation>
+    </message>
+    <message>
+        <source>through the VPN</source>
+        <translation>через VPN</translation>
+    </message>
+    <message>
+        <source>directly</source>
+        <translation>напрямую</translation>
+    </message>
+    <message>
+        <source>through %1</source>
+        <translation>через %1</translation>
+    </message>
+    <message>
+        <source>everything else directly</source>
+        <translation>остальное напрямую</translation>
+    </message>
+    <message>
+        <source>everything else through the VPN</source>
+        <translation>остальное через VPN</translation>
+    </message>
+    <message>
+        <source>Everything is applied</source>
+        <translation>Всё применено</translation>
+    </message>
+    <message>
+        <source>Apply and reconnect</source>
+        <translation>Применить и переподключить</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Применить</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n program(s)</source>
+        <translation>
+            <numerusform>%n программа</numerusform>
+            <numerusform>%n программы</numerusform>
+            <numerusform>%n программ</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n site(s)</source>
+        <translation>
+            <numerusform>%n сайт</numerusform>
+            <numerusform>%n сайта</numerusform>
+            <numerusform>%n сайтов</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n IP range(s)</source>
+        <translation>
+            <numerusform>%n IP-сеть</numerusform>
+            <numerusform>%n IP-сети</numerusform>
+            <numerusform>%n IP-сетей</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more app(s) and site(s)</source>
+        <translation>
+            <numerusform>Ещё %n приложение и сайт</numerusform>
+            <numerusform>Ещё %n приложения и сайта</numerusform>
+            <numerusform>Ещё %n приложений и сайтов</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>ещё %n</numerusform>
+            <numerusform>ещё %n</numerusform>
+            <numerusform>ещё %n</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>SimpleServerSheet</name>
+    <message>
+        <source>Server</source>
+        <translation>Сервер</translation>
+    </message>
+    <message>
+        <source>Check ping</source>
+        <translation>Проверить пинг</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>Проверяем…</translation>
+    </message>
+    <message>
+        <source>This group has no profiles yet</source>
+        <translation>В этой группе пока нет профилей</translation>
+    </message>
+    <message>
+        <source>From clipboard</source>
+        <translation>Из буфера обмена</translation>
+    </message>
+    <message>
+        <source>From a link</source>
+        <translation>По ссылке</translation>
+    </message>
+</context>
+<context>
     <name>UpdateStatusWidget</name>
     <message>
         <source>Downloading %1</source>
@@ -8145,6 +8911,22 @@ Name: %1</source>
 </context>
 <context>
     <name>QObject</name>
+    <message>
+        <source>The selected TLS version is not supported on this system.</source>
+        <translation>Выбранная версия TLS не поддерживается в этой системе.</translation>
+    </message>
+    <message>
+        <source>The server returned a web page instead of a subscription. If it is a CAPTCHA or a bot check, try another TLS version, HTTP version or User Agent in the group&apos;s Advanced settings.</source>
+        <translation>Сервер вернул веб-страницу вместо подписки. Если это CAPTCHA или проверка на бота, попробуйте другую версию TLS, версию HTTP или User Agent в дополнительных настройках группы.</translation>
+    </message>
+    <message>
+        <source>Unknown rule-set: %1</source>
+        <translation>Неизвестный rule-set: %1</translation>
+    </message>
+    <message>
+        <source>The download of %1 is not a rule-set.</source>
+        <translation>Загруженный %1 не является rule-set.</translation>
+    </message>
     <message>
         <source>Request with proxy but no profile started.</source>
         <translation>Запрос через прокси, но профиль не запущен.</translation>
@@ -9283,6 +10065,60 @@ Deleted %5 Profiles:
     <message>
         <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation>Создание идентификатора WARP регистрирует новое устройство в Cloudflare.&lt;br&gt;&lt;br&gt;Принимаете ли вы &lt;a href=&quot;%1&quot;&gt;условия обслуживания Cloudflare WARP&lt;/a&gt;?</translation>
+    </message>
+    <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation>Удалены дубликаты профилей (%1):</translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation>Удалены небезопасные профили (%1):</translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation>Удаление недействительных профилей пропущено: ядро недоступно.</translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation>Удалены недействительные профили (%1):</translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation>Запущенный профиль сохранён.</translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation>Удалены недоступные профили (%1):</translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation>Сортировка %1 пропущена: уже идёт другая сортировка.</translation>
+    </message>
+    <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation>Рабочие, поэтому сохранены, а не удалены:
+%1</translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation>После URL-теста %1:</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation>Пересылка IPv4 ломает режим TUN</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation>Для сетевого адаптера «%1» включена пересылка IPv4 — обычно потому, что его раздаёт мобильный хот-спот или общий доступ к подключению к Интернету.
+
+Тогда Windows игнорирует привязку к адаптеру, которая не пускает собственные соединения Throned в TUN, поэтому они зацикливаются в нём и обрываются.
+
+Чтобы это исправить, раздавайте хот-спот с адаптера throned-tun вместо «%1» (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или выключайте хот-спот, пока используется режим TUN.</translation>
     </message>
 </context>
 <context>

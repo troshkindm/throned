@@ -13,6 +13,7 @@
 #include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/DeviceDetailsHelper.hpp"
+#include "include/database/entities/Group.h"
 
 #include <QStyleFactory>
 #include <QFileDialog>
@@ -49,6 +50,10 @@
 #include <QScrollArea>
 #include <QStackedWidget>
 #include <QTabBar>
+#include <QSslSocket>
+#include <QStandardItemModel>
+
+#include <algorithm>
 
 #include "include/sys/UrlScheme.hpp"
 #include "include/ui/mainwindow.h"
@@ -259,6 +264,11 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     ui->user_agent->setText(Configs::dataManager->settingsRepo->user_agent);
     ui->user_agent->setPlaceholderText(Configs::dataManager->settingsRepo->GetUserAgent(true));
+    ui->sub_tls_version->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->sub_tls_version, 0, ui->sub_tls_version->count() - 1));
+    ui->sub_http_version->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->sub_http_version, 0, ui->sub_http_version->count() - 1));
+    if (auto *model = qobject_cast<QStandardItemModel *>(ui->sub_tls_version->model()); model && !QSslSocket::isProtocolSupported(QSsl::TlsV1_3)) {
+        model->item(static_cast<int>(Configs::subTlsVersion::tls13))->setEnabled(false);
+    }
     D_LOAD_BOOL(net_use_proxy)
     D_LOAD_BOOL(allow_stopping_active_profile)
     D_LOAD_BOOL(sub_clear)
@@ -710,6 +720,8 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                 auto *updates = makeSection(tr("Automatic updates"), tr("Schedule subscription and routing-profile refreshes."));
                 auto *layout = qobject_cast<QVBoxLayout *>(updates->layout());
                 addControlRow(layout, tr("User agent"), ui->user_agent);
+                addControlRow(layout, tr("TLS version"), ui->sub_tls_version, ui->sub_tls_version_l->toolTip());
+                addControlRow(layout, tr("HTTP version"), ui->sub_http_version, ui->sub_http_version_l->toolTip());
                 addToggleRow(layout, tr("Update subscriptions automatically"), ui->sub_auto_update_enable);
                 addControlRow(layout, tr("Subscription interval (minutes)"), ui->sub_auto_update);
                 addToggleRow(layout, tr("Update routing profiles automatically"), ui->route_auto_update_enable);
@@ -1228,6 +1240,8 @@ void DialogBasicSettings::accept() {
     // The PeriodicRunner reads these intervals live; no timer needs restarting.
 
     Configs::dataManager->settingsRepo->user_agent = ui->user_agent->text().trimmed();
+    Configs::dataManager->settingsRepo->sub_tls_version = ui->sub_tls_version->currentIndex();
+    Configs::dataManager->settingsRepo->sub_http_version = ui->sub_http_version->currentIndex();
     D_SAVE_BOOL(net_use_proxy)
     D_SAVE_BOOL(allow_stopping_active_profile)
     D_SAVE_BOOL(sub_clear)

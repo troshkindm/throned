@@ -1000,6 +1000,13 @@
 </context>
 <context>
     <name>MainWindow</name>
+    <message numerus="yes">
+        <source>%n app(s)</source>
+        <translation>
+            <numerusform>%n app</numerusform>
+            <numerusform>%n apps</numerusform>
+        </translation>
+    </message>
     <message>
         <source>Diagnostics and traffic statistics (Ctrl+Shift+D)</source>
         <translation>Diagnostics and traffic statistics (Ctrl+Shift+D)</translation>
@@ -1061,6 +1068,44 @@
         <translation>
             <numerusform>%n remote rule-set refreshed</numerusform>
             <numerusform>%n remote rule-sets refreshed</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>SimpleRoutesPage</name>
+    <message numerus="yes">
+        <source>%n program(s)</source>
+        <translation>
+            <numerusform>%n program</numerusform>
+            <numerusform>%n programs</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n site(s)</source>
+        <translation>
+            <numerusform>%n site</numerusform>
+            <numerusform>%n sites</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n IP range(s)</source>
+        <translation>
+            <numerusform>%n IP range</numerusform>
+            <numerusform>%n IP ranges</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more app(s) and site(s)</source>
+        <translation>
+            <numerusform>%n more app or site</numerusform>
+            <numerusform>%n more apps and sites</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>%n more</numerusform>
+            <numerusform>%n more</numerusform>
         </translation>
     </message>
 </context>

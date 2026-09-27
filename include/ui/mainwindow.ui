@@ -619,7 +619,7 @@ QToolButton::menu-indicator {
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLabel" name="label_running">
+       <widget class="HoverMarqueeLabel" name="label_running">
         <property name="text">
          <string/>
         </property>
@@ -1340,6 +1340,11 @@ QToolButton::menu-indicator {
   </action>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>HoverMarqueeLabel</class>
+   <extends>QLabel</extends>
+   <header>include/ui/widget/HoverMarqueeLabel.h</header>
+  </customwidget>
   <customwidget>
    <class>GroupTabWidget</class>
    <extends>QTabWidget</extends>

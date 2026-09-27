@@ -52,15 +52,6 @@ QFont captionFont(const QFont &base) {
     return font;
 }
 
-QColor latencyColor(int latencyMs, const ThronedThemeColors &colors) {
-    if (latencyMs == Configs::kLatencyConnectOnly) return colors.accent;
-    if (latencyMs < 0) return colors.danger;
-    if (latencyMs == 0) return colors.textSubtle;
-    if (latencyMs <= 100) return colors.success;
-    if (latencyMs <= 300) return colors.warning;
-    return colors.danger;
-}
-
 // Two stacked baselines inside one cell, both vertically centred as a pair.
 QPair<QRect, QRect> lineRects(const QRect &cell, int topHeight, int bottomHeight) {
     const int block = topHeight + kLineGap + bottomHeight;
@@ -150,6 +141,16 @@ int ProfileRowDelegate::metricColumnWidth(int column, const QFont &font) {
         default:
             return 0;
     }
+}
+
+int ProfileRowDelegate::serverColumnFloor(const QFont &font) {
+    const QFontMetrics meta(metaFont(font));
+    const QFontMetrics caption(captionFont(font));
+    const QFontMetrics small(secondaryFont(font));
+    return meta.horizontalAdvance(QStringLiteral("255.255.255.255:65535")) + kExitGap +
+           meta.horizontalAdvance(QStringLiteral("255.255.255.255")) + kPadX * 2 +
+           caption.horizontalAdvance(QStringLiteral("WW")) + 9 + 7 +
+           chipWidth(small, QStringLiteral("Shadowsocks")) + kChipGap;
 }
 
 void ProfileRowDelegate::setFlash(int row, qreal strength) {
@@ -295,7 +296,7 @@ void ProfileRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
         }
         case ProfilesTableModel::ColcPing: {
             const QColor pingInk = selected ? opt.palette.color(QPalette::HighlightedText)
-                                            : latencyColor(visual.latencyMs, colors);
+                                            : ProfileRowDelegate::latencyColor(visual.latencyMs, colors);
             drawStack(painter, cell, visual.latency, pingInk, bold,
                       visual.udp.isEmpty() ? QString() : tr("UDP %1").arg(visual.udp),
                       visual.udpDegraded && !selected ? colors.warning : subtle,
@@ -365,4 +366,13 @@ QSize ProfileRowDelegate::sizeHint(const QStyleOptionViewItem &option, const QMo
             break;
     }
     return {width + kPadX * 2, height};
+}
+
+QColor ProfileRowDelegate::latencyColor(int latencyMs, const ThronedThemeColors &colors) {
+    if (latencyMs == Configs::kLatencyConnectOnly) return colors.accent;
+    if (latencyMs < 0) return colors.danger;
+    if (latencyMs == 0) return colors.textSubtle;
+    if (latencyMs <= 100) return colors.success;
+    if (latencyMs <= 300) return colors.warning;
+    return colors.danger;
 }

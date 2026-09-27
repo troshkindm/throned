@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -13,6 +14,25 @@
 #include "include/global/Utils.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
+
+namespace {
+class ElidedStatusLabel : public QLabel {
+public:
+    using QLabel::QLabel;
+
+    QSize minimumSizeHint() const override {
+        return {0, QLabel::minimumSizeHint().height()};
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QPainter painter(this);
+        const QRect rect = contentsRect();
+        const QString shown = fontMetrics().elidedText(text(), Qt::ElideRight, rect.width());
+        style()->drawItemText(&painter, rect, alignment(), palette(), isEnabled(), shown, foregroundRole());
+    }
+};
+} // namespace
 
 UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
     setObjectName(QStringLiteral("updateStatus"));
@@ -32,13 +52,13 @@ UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
     icon_->setFixedSize(20, 20);
     row->addWidget(icon_);
 
-    title_ = new QLabel(this);
+    title_ = new ElidedStatusLabel(this);
     title_->setObjectName(QStringLiteral("updateStatusTitle"));
     title_->setTextFormat(Qt::PlainText);
     title_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     row->addWidget(title_);
 
-    detail_ = new QLabel(this);
+    detail_ = new ElidedStatusLabel(this);
     detail_->setObjectName(QStringLiteral("updateStatusDetail"));
     detail_->setTextFormat(Qt::PlainText);
     detail_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -89,6 +109,41 @@ QString UpdateStatusWidget::displayName(const QString &assetName) {
                                                    QRegularExpression::CaseInsensitiveOption);
     base.remove(platformSuffix);
     return base.isEmpty() ? QStringLiteral("Throned") : QStringLiteral("Throned %1").arg(base);
+}
+
+void UpdateStatusWidget::setCompact(bool compact) {
+    if (compact == (compactLayout_ != nullptr)) return;
+    auto *outer = qobject_cast<QVBoxLayout *>(layout());
+    auto *row = qobject_cast<QHBoxLayout *>(outer->itemAt(0)->layout());
+    if (compact) {
+        title_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        row->removeWidget(detail_);
+        row->removeWidget(primary_);
+        row->removeWidget(secondary_);
+        row->setStretchFactor(title_, 1);
+        compactLayout_ = new QVBoxLayout;
+        compactLayout_->addWidget(detail_);
+        auto *actions = new QHBoxLayout;
+        actions->addWidget(primary_);
+        actions->addWidget(secondary_);
+        actions->addStretch();
+        compactLayout_->addLayout(actions);
+        outer->insertLayout(1, compactLayout_);
+    } else {
+        title_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+        compactLayout_->removeWidget(detail_);
+        auto *actions = compactLayout_->itemAt(0)->layout();
+        actions->removeWidget(primary_);
+        actions->removeWidget(secondary_);
+        outer->removeItem(compactLayout_);
+        delete compactLayout_;
+        compactLayout_ = nullptr;
+        row->setStretchFactor(title_, 0);
+        row->addWidget(detail_, 1);
+        row->addWidget(primary_);
+        row->addWidget(secondary_);
+    }
+    setFixedHeight(compact ? 96 : 50);
 }
 
 void UpdateStatusWidget::setState(State state) {

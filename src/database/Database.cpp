@@ -271,7 +271,7 @@ namespace {
 // Child-first order: delete order matters once foreign keys are re-enabled.
 const std::vector<std::string> kProfileTables = {"profiles", "groups_order", "groups"};
 const std::vector<std::string> kRouteTables = {"route_rules", "route_profiles"};
-const std::vector<std::string> kSettingsTables = {"settings"};
+const std::vector<std::string> kSettingsTables = {"settings", "markers"};
 const std::vector<std::string> kOtpTables = {"otp_profiles"};
 
 std::vector<std::string> tableColumns(SQLite::Database& d, const std::string& schema, const std::string& table) {
@@ -360,8 +360,12 @@ void Database::restoreSelective(const std::string& srcPath, const BackupParts& p
             for (const auto& t: kProfileTables) copyTable(db, t);
         if (parts.routes)
             for (const auto& t: kRouteTables) copyTable(db, t);
-        if (parts.settings)
+        if (parts.settings) {
             for (const auto& t: kSettingsTables) copyTable(db, t);
+            // Settings saved before the markers table existed have been through no migration yet.
+            if (!tableExists(db, "bak", "markers") && tableExists(db, "main", "markers"))
+                db.exec("DELETE FROM main.markers");
+        }
         if (parts.otp)
             for (const auto& t: kOtpTables) copyTable(db, t);
 

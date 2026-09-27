@@ -16,7 +16,8 @@
 namespace Configs {
 // Loopback/broadcast are deliberately absent: routing them into the tun breaks the sing-box <-> Xray bridges and local DNS.
 inline QStringList defaultTunPrivateRanges() {
-    return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4"};
+    return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4",
+            "fc00::/7", "fe80::/10", "ff00::/8"};
 }
 
 class SettingsRepo {
@@ -136,6 +137,8 @@ public:
     int stats_tab = 0; // either connection or log
     // The log/connections panel starts closed; remember its last open height.
     bool stats_panel_open = false;
+    bool simple_mode = false;
+    QString simple_window_geometry;
     int stats_panel_height = 240;
     // Stats::ConnectionSort; 0 == Stats::Default, the core's own ordering.
     int connection_sort = 0;
@@ -173,6 +176,9 @@ public:
 
     // Subscription
     QString user_agent = ""; // set at main.cpp
+    // Configs::subTlsVersion / Configs::subHttpVersion values.
+    int sub_tls_version = 0;
+    int sub_http_version = 0;
     // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30); *_last is epoch seconds.
     int sub_auto_update = -30;
     qint64 sub_auto_update_last = 0;

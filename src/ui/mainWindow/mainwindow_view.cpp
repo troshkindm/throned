@@ -41,27 +41,6 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/StartStopButton.hpp"
 
-void MainWindow::applyTopBarMetrics() {
-    // MainPreview deliberately lets each compact nav item fit its own label.
-    const QList<QToolButton *> menuButtons = {
-        ui->toolButton_program,
-        ui->toolButton_preferences,
-        ui->toolButton_testing,
-        ui->toolButton_routing,
-        ui->toolButton_tools,
-    };
-    for (auto *button: menuButtons) {
-        button->setMinimumWidth(0);
-        button->setMaximumWidth(QWIDGETSIZE_MAX);
-        button->updateGeometry();
-    }
-    // An explicit minimum stops the layout raising the floor itself, and translated nav labels can outgrow the designed one.
-    const QSize contentMin = minimumSizeHint();
-    setMinimumSize(qMax(designMinimumSize.width(), contentMin.width()),
-                   qMax(designMinimumSize.height(), contentMin.height()));
-    FitWindowToScreen(this);
-}
-
 void MainWindow::UpdateDataView(bool force) {
     const auto now = QDateTime::currentMSecsSinceEpoch();
     if (!force && now - lastUpdatedMs.load() < 100) {
@@ -332,9 +311,11 @@ void MainWindow::refresh_startstop_button() {
     else
         state = StartStopButton::State::Disabled;
     btn->setState(state);
+    refreshSimpleStatus();
 }
 
 void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp) {
+    refreshSimpleTraffic(proxyDl + directDl, proxyUp + directUp);
     if (speedChartWidget) {
         speedChartWidget->addSample(proxyDl, proxyUp, directDl, directUp);
     }
@@ -566,6 +547,7 @@ void MainWindow::setFavoritesButtonVisible(bool on) {
 }
 
 void MainWindow::applyProfileColumnVisibility() {
+    narrowHiddenMetrics = metricColumnsOverflowing();
     if (profilesTableModel == nullptr) return;
     auto *view = ui->profilesTableView;
     const auto *settings = Configs::dataManager->settingsRepo.get();
@@ -576,9 +558,17 @@ void MainWindow::applyProfileColumnVisibility() {
             view->setColumnHidden(column, false);
         return;
     }
+    // A narrow table keeps the server readable: the right-most enabled metrics give way first.
+    QList<int> droppable;
+    if (settings->profiles_show_speed) droppable << ProfilesTableModel::ColcSpeed;
+    if (settings->profiles_show_traffic) droppable << ProfilesTableModel::ColcTraffic;
+    QList<int> dropped;
+    for (int i = 0; i < narrowHiddenMetrics && !droppable.isEmpty(); ++i) dropped << droppable.takeLast();
     view->setColumnHidden(ProfilesTableModel::ColcPing, !settings->profiles_show_ping);
-    view->setColumnHidden(ProfilesTableModel::ColcSpeed, !settings->profiles_show_speed);
-    view->setColumnHidden(ProfilesTableModel::ColcTraffic, !settings->profiles_show_traffic);
+    view->setColumnHidden(ProfilesTableModel::ColcSpeed,
+                          !settings->profiles_show_speed || dropped.contains(ProfilesTableModel::ColcSpeed));
+    view->setColumnHidden(ProfilesTableModel::ColcTraffic,
+                          !settings->profiles_show_traffic || dropped.contains(ProfilesTableModel::ColcTraffic));
     refresh_proxy_list_column_size();
 }
 
@@ -1116,6 +1106,7 @@ void MainWindow::refreshProfileRowStyle() {
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(comfortable ? ProfileRowDelegate::RowHeight : 34);
     if (auto *filterHeader = dynamic_cast<ProfilesTableFilterHeader *>(ui->profilesTableView->horizontalHeader()))
         filterHeader->setRowStyle(comfortable);
+    updateProfileMinimumHeight();
     applyProfileColumnVisibility();
     // Widths saved for the other column set would land on the wrong columns.
     if (auto group = Configs::dataManager->groupsRepo->CurrentGroup(); group != nullptr) {

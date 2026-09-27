@@ -66,6 +66,8 @@ const char *pathFor(MaterialIcon::Glyph glyph) {
             return "M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z";
         case Glyph::Process:
             return "M20 4H4a2 2 0 0 0-2 2v12c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6a2 2 0 0 0-2-2zm0 14H4V8h16v10zm-2-1h-6v-2h6v2zM7.5 17l-1.41-1.41L8.67 13l-2.59-2.59L7.5 9l4 4-4 4z";
+        case Glyph::Power:
+            return "M13 3h-2v10h2V3zm4.83 2.17-1.42 1.42A6.98 6.98 0 0 1 19 12a7 7 0 1 1-11.41-5.41L6.17 5.17A8.98 8.98 0 0 0 3 12a9 9 0 1 0 14.83-6.83z";
         case Glyph::Public:
             return "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM4 12c0-.61.08-1.21.21-1.78L9 15v1a2 2 0 0 0 2 2v1.93A8 8 0 0 1 4 12zm13.89 5.4A2 2 0 0 0 16 16h-1v-3a1 1 0 0 0-1-1H8v-2h2a1 1 0 0 0 1-1V7h2a2 2 0 0 0 2-2v-.41A8 8 0 0 1 17.89 17.4z";
         case Glyph::QrCode:
@@ -175,6 +177,8 @@ const char *glyphName(MaterialIcon::Glyph glyph) {
             return "more";
         case Glyph::Process:
             return "process";
+        case Glyph::Power:
+            return "power";
         case Glyph::Public:
             return "public";
         case Glyph::QrCode:

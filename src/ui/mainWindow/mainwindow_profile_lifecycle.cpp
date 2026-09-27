@@ -69,6 +69,7 @@ bool MainWindow::set_system_dns(bool set, bool save_set) {
 }
 
 int MainWindow::get_profile_to_start() {
+    if (simpleModeActive) return simpleProfileId;
     const auto ents = get_now_selected_list();
     if (ents.size() == 1) {
         return ents.first();
@@ -378,7 +379,7 @@ void MainWindow::profile_start(int _id) {
             // "Only route advertised network" rejects this probe.
             if (exitIsEndpoint) return;
 
-            auto resp = NetworkRequestHelper::HttpGet("http://ip-api.com/json/", false, true);
+            auto resp = NetworkRequestHelper::HttpGet("http://ip-api.com/json/", true);
             if (resp.error.isEmpty()) {
                 QJsonDocument doc = QJsonDocument::fromJson(resp.data);
                 if (doc.isObject()) {

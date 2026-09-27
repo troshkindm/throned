@@ -99,6 +99,14 @@ void ThronedCaptionButton::paintEvent(QPaintEvent *) {
             painter.drawLine(QPointF(centre.x() - half, centre.y() - half), QPointF(centre.x() + half, centre.y() + half));
             painter.drawLine(QPointF(centre.x() + half, centre.y() - half), QPointF(centre.x() - half, centre.y() + half));
             break;
+        case Glyph::Compact:
+            painter.drawRect(QRectF(centre.x() - 3, centre.y() - half, 6, half * 2));
+            painter.drawLine(QPointF(centre.x() - 1, centre.y() + half - 2), QPointF(centre.x() + 1, centre.y() + half - 2));
+            break;
+        case Glyph::Expand:
+            painter.drawRect(QRectF(centre.x() - half - 1, centre.y() - half + 1, half * 2 + 2, half * 2 - 4));
+            painter.drawLine(QPointF(centre.x() - 3, centre.y() + half), QPointF(centre.x() + 3, centre.y() + half));
+            break;
     }
 }
 
@@ -106,7 +114,6 @@ ThronedTitleBar::ThronedTitleBar(const QString &context, QWidget *parent) : QFra
     setObjectName(QStringLiteral("titleBar"));
     setFixedHeight(TitleBarHeight);
     auto *layout = new QHBoxLayout(this);
-    layout->setContentsMargins(14, 0, 0, 0);
     layout->setSpacing(10);
     layout->addWidget(new ThronedLogoMark(this));
     auto *brand = new QLabel(QStringLiteral("Throned"), this);
@@ -147,6 +154,26 @@ ThronedTitleBar::ThronedTitleBar(const QString &context, QWidget *parent) : QFra
     });
     connect(close_, &QToolButton::clicked, this, [this] { window()->close(); });
     window()->installEventFilter(this);
+    applyMargins();
+}
+
+// Box layouts mirror their items for right-to-left text but not their margins.
+void ThronedTitleBar::applyMargins() {
+    const bool rtl = layoutDirection() == Qt::RightToLeft;
+    layout()->setContentsMargins(rtl ? 0 : 14, 0, rtl ? 14 : 0, 0);
+}
+
+void ThronedTitleBar::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LayoutDirectionChange) applyMargins();
+    QFrame::changeEvent(event);
+}
+
+ThronedCaptionButton *ThronedTitleBar::insertCaptionButton(ThronedCaptionButton::Glyph glyph, const QString &name) {
+    auto *button = new ThronedCaptionButton(glyph, this);
+    button->setObjectName(name);
+    auto *box = static_cast<QHBoxLayout *>(layout());
+    box->insertWidget(box->indexOf(minimize_), button);
+    return button;
 }
 
 bool ThronedTitleBar::eventFilter(QObject *watched, QEvent *event) {

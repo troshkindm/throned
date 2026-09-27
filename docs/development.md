@@ -324,3 +324,71 @@ Three things are deliberately not reported, because each was a false positive
 when tried: widgets Qt names itself, text on a widget that has never been shown
 (it still sits at its default size), and text the code elided on purpose — an
 ellipsis at the end is a decision, not an accident.
+
+### Main-window modes
+
+The full interface folds its header when space runs out and temporarily hides
+traffic, then speed columns without changing the saved column preferences.
+Its minimum height follows visible content and always reserves a complete server
+row. Connection and routing labels reveal overflowing names on hover.
+
+The Program menu and the first toolbar button open Simple mode; Full interface
+returns to the table. `simple_mode` remembers the choice, while
+`simple_window_geometry` and `main_window_geometry` preserve each mode's size.
+Only an empty settings table defaults to Simple mode; an existing installation
+without the setting stays in Full mode. Preview fixtures explicitly start in
+Full mode so their entry point does not depend on the first-launch default.
+Both views share profile operations, proxy toggles and the update/notice footer.
+The simple screen puts the connect button first, then the server card and a
+grouped list. The server card opens a bottom sheet (`SimpleServerSheet`) with
+group tabs, latency, the subscription allowance (which opens the shared
+subscription card) and the add-profile actions; it replaces the dropdown, whose
+popup fought the main window for Return and Escape. Sheets accept those keys in
+`ShortcutOverride`, or the main window's own shortcuts swallow them.
+"Through the VPN" maps the two proxy toggles onto what a user expects:
+Whole computer is TUN, Browser only is the system proxy. When TUN needs
+elevation on Windows, the sheet explains the restart first and then skips the
+second confirmation (`get_elevated_permissions(..., confirmed)`); other systems
+keep their own prompts. Choosing a server while connected reconnects to it.
+The simple screen reports combined live speed and the selected/running profile's
+accumulated traffic, not a separate session counter.
+
+The Routing row opens `SimpleRoutesPage`, an app-by-app view of the current
+routing profile. Each app is ordinary route rules named `throned-app:<id>`
+(sites and CIDRs) and `throned-app:<id>:process` (programs): sing-box ANDs
+`process_name` with the address fields, so one rule could only match both at
+once. `Configs::AppRoutes` reads and writes only those rules, keeps them where
+the first one stood, and leaves every other rule alone; "Everything else" is the
+profile's default outbound. Raw profiles are read-only there.
+
+`res/routing/apps.json`, compiled into the binary, describes about a hundred
+services: processes per platform, the MetaCubeX rule-sets (built from
+v2fly/domain-list-community) that carry their sites and IP ranges, and own
+domains only where no maintained list exists. `test_app_routes` fails on a
+rule-set name missing from `srslist.h`, a generic executable such as
+`launcher.exe`, or one program claimed by two entries. Generic launchers are
+only used to detect, together with an install-path fragment.
+
+"Found on this computer" matches `InstalledApplications::Scan()` - Uninstall
+entries, running processes, Start menu shortcuts and Store packages - against
+executable names, whole-word display names and package prefixes. A found app
+shows its own icon, taken from the executable the scan located (`IconPaths`);
+Store packages and apps not on the computer keep the letter tile. Previews use a
+fixed program list instead of scanning the machine, so they only show letters.
+Group titles stay pinned while their rows scroll, and the top fade starts below
+the pinned title.
+
+Opening the screen downloads the rule-sets the staged entries use into
+`rulesets/` beside the data files (`Configs::RuleSetCache`), with progress in
+the footer; Apply waits for them. A download is accepted only if it starts with
+the `SRS` magic, so a mirror's error page never replaces a working list. The
+config generator uses a downloaded file as a local rule-set and otherwise keeps
+asking the core to fetch the remote one, which covers every other rule-set
+name too. Files older than a week are refreshed quietly when the screen opens.
+Edits stay staged until Apply, because applying restarts a running connection.
+
+`ctest -R "narrow_layout|simple_mode"` checks resizing, profile/group selection,
+empty groups, settings persistence and return to the full interface in four
+languages. `-ui-preview-simple` renders the isolated simple-mode fixture;
+the gallery includes Graphite, System and both Retro 2009 skins. No connection
+is started by the preview's large button.

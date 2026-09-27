@@ -21,6 +21,7 @@
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/HijackDeprecationNotice.h"
 
 namespace {
 
@@ -323,6 +324,7 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             if (changed(MwArg::Route)) {
                 settings->Save();
                 suggestRestartProxy = true;
+                if (hijackDeprecationNotice != nullptr) hijackDeprecationNotice->refresh();
             }
             if (changed(MwArg::NeedRestart)) {
                 suggestRestartProxy = false;

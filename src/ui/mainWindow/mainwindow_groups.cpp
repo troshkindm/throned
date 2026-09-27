@@ -127,6 +127,7 @@ void MainWindow::refresh_groups() {
     // Rebuilding tabs can repaint the backing group. Favourites are an external
     // view, so restore the strip's deliberately suppressed group emphasis.
     syncGroupTabSelection();
+    refreshSimpleProfiles();
 }
 
 // The strip right of the last tab belongs to the tabWidget, not the tab bar.
@@ -362,6 +363,7 @@ void MainWindow::endSubscriptionHover() {
 // A subscription refresh rewrites the allowance but leaves the tabs standing, so the
 // readout is repainted on its own rather than through a full rebuild of the strip.
 void MainWindow::refreshSubscriptionReadouts() {
+    refreshSimpleSubscription();
     auto *bar = ui->tabWidget->groupTabBar();
     if (bar == nullptr) return;
     for (int i = 0; i < bar->count(); i++) {
@@ -433,6 +435,10 @@ void MainWindow::refreshAnnounceStrip() {
     const QString text = group == nullptr ? QString() : group->provider.announce.trimmed();
     const bool unseen = !text.isEmpty() && announceFingerprint(text) != group->provider.announceSeen;
     announceHost->setVisible(unseen);
+    if (simpleAnnounce != nullptr) {
+        simpleAnnounce->setVisible(unseen);
+        if (unseen) setStatusText(simpleAnnounce->findChild<QLabel *>(QStringLiteral("subAnnounceText")), text);
+    }
     // The header borrows the card's top border; with the notice above it, it needs one.
     if (auto *header = ui->profilesTableView->horizontalHeader();
         header->property("thronedTopEdge").toBool() != unseen) {
@@ -450,4 +456,5 @@ void MainWindow::dismissAnnounce() {
     group->provider.announceSeen = announceFingerprint(group->provider.announce);
     Configs::dataManager->groupsRepo->Save(group);
     announceHost->hide();
+    if (simpleAnnounce != nullptr) simpleAnnounce->hide();
 }

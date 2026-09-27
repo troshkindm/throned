@@ -22,7 +22,7 @@ public:
 
     bool onEnd() override;
 
-    QComboBox *_flow;
+    bool blocksMultiplex() override;
 
 private:
     Ui::EditVless *ui;

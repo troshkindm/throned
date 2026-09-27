@@ -107,6 +107,9 @@ protected:
 public:
     virtual bool IsXray() { return false; }
 
+    // Owns the stream GetXrayStream() returns; a custom Xray outbound runs on Xray but has none.
+    virtual bool HasXrayStream() { return false; }
+
     virtual bool IsExtraCore() { return false; }
 
     virtual bool IsXrayFullConfig() { return false; }

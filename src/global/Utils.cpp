@@ -289,6 +289,8 @@ void ShowPassiveWarning(const QString &title, const QString &text) {
         return;
     }
     box = new QMessageBox(QMessageBox::Warning, title, text, QMessageBox::Ok, GetMessageBoxParent());
+    // Callers embed foreign text (adapter names, SQLite messages); AutoText would render a tag-like one as HTML.
+    box->setTextFormat(Qt::PlainText);
     box->setAttribute(Qt::WA_DeleteOnClose);
     box->setWindowModality(Qt::NonModal);
     box->show();
@@ -514,6 +516,8 @@ void LaunchFiles_FlushPending() {
 void runOnNewThread(const std::function<void()> &callback, bool wait) {
     auto *timer = new QTimer();
     auto thread = new QThread();
+
+    if (auto *app = QCoreApplication::instance()) thread->moveToThread(app->thread());
     timer->moveToThread(thread);
     timer->setSingleShot(true);
 
@@ -524,7 +528,7 @@ void runOnNewThread(const std::function<void()> &callback, bool wait) {
     QObject::connect(timer, &QTimer::timeout, [=, &loop]() {
         callback();
         timer->deleteLater();
-        QMetaObject::invokeMethod(thread, "quit", Qt::QueuedConnection);
+        thread->quit();
 
         if (wait) {
             QMetaObject::invokeMethod(&loop, "quit", Qt::QueuedConnection);

@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QIcon>
+#include <QList>
 #include <QStringList>
 
 #include <functional>
@@ -29,3 +30,16 @@ namespace ApplicationIcons {
 void resolve(const QString &executableName, QObject *context, std::function<void(const QIcon &)> ready);
 
 } // namespace ApplicationIcons
+
+// Installed and running programs, as the picker lists them. Reads the registry or
+// application folders and the process table, so call it off the UI thread.
+namespace InstalledApplications {
+struct Entry {
+    QString name;
+    QString executable;
+    QString path;
+    QString package; // Microsoft Store package full name, for a Store app
+    bool running = false;
+};
+QList<Entry> Scan();
+} // namespace InstalledApplications

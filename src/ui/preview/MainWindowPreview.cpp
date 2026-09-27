@@ -80,7 +80,7 @@ void RunMainWindow(const QString &prefix) {
             bool heightOk = false;
             const int width = parts.at(0).toInt(&widthOk);
             const int height = parts.at(1).toInt(&heightOk);
-            if (widthOk && heightOk && width >= 900 && height >= 620)
+            if (widthOk && heightOk && width >= 480 && height >= 320)
                 previewSize = QSize(width, height);
         }
     }
@@ -380,6 +380,19 @@ void RunMainWindow(const QString &prefix) {
     // refresh_proxy_list() completes its model reset on the UI queue. Wait
     // for that reset before treating rowCount as the search baseline.
     QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
+        if (arguments.contains(QStringLiteral("-ui-preview-simple"))) {
+            if (arguments.contains(QStringLiteral("-ui-preview-simple-light"))) {
+                themeManager()->system_palette = QPalette(QColor(QStringLiteral("#efefef")));
+                qApp->setPalette(themeManager()->system_palette);
+                themeManager()->ApplyTheme(QStringLiteral("System"), true);
+            }
+            VerifySimpleMode(window, prefix);
+            return;
+        }
+        if (arguments.contains(QStringLiteral("-ui-preview-narrow-check"))) {
+            VerifyNarrowLayout(window, prefix);
+            return;
+        }
         if (arguments.contains(QStringLiteral("-ui-preview-protocols"))) {
             CaptureProtocolEditors(window, prefix);
             return;

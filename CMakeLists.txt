@@ -152,6 +152,8 @@ set_target_properties(Throned PROPERTIES
         MACOSX_BUNDLE TRUE
         WIN32_EXECUTABLE TRUE
         UNITY_BUILD ${THRONED_UNITY_BUILD}
+        # A batch must see the complete class before mainwindow_interface.h selects its reduced declaration.
+        UNITY_BUILD_CODE_BEFORE_INCLUDE "#include \"include/ui/mainwindow.h\""
 )
 
 set(TS_FILES

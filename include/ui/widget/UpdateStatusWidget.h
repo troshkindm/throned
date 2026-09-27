@@ -6,6 +6,7 @@
 class QLabel;
 class QProgressBar;
 class QPushButton;
+class QVBoxLayout;
 
 // Shared footer slot: update progress takes precedence over queued tips and warnings.
 class UpdateStatusWidget final : public QFrame {
@@ -25,6 +26,7 @@ public:
     explicit UpdateStatusWidget(QWidget *parent = nullptr);
 
     [[nodiscard]] State state() const { return state_; }
+    void setCompact(bool compact);
 
     void showDownloading(const QString &assetName, qint64 received, qint64 total);
     void showPreparing(const QString &assetName);
@@ -71,4 +73,5 @@ private:
     QProgressBar *progress_ = nullptr;
     QPushButton *primary_ = nullptr;
     QPushButton *secondary_ = nullptr;
+    QVBoxLayout *compactLayout_ = nullptr;
 };

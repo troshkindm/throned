@@ -32,5 +32,7 @@ public:
     bool IsXray() override {
         return true;
     }
+
+    bool HasXrayStream() override { return true; }
 };
 } // namespace Configs

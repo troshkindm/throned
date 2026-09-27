@@ -12,7 +12,7 @@ class EditHysteria : public QWidget, public ProfileEditor {
     Q_OBJECT
 
 public:
-    explicit EditHysteria(QWidget *parent = nullptr);
+    explicit EditHysteria(QWidget* parent = nullptr);
 
     ~EditHysteria() override;
 
@@ -20,13 +20,11 @@ public:
 
     bool onEnd() override;
 
-    QComboBox *_protocol_version;
-    QComboBox *_obfuscation_type;
-    QCheckBox *_realm_enabled;
-
-    void editHysteriaLayout(const QString &version, const QString &obfs_type);
+    bool locksServerAddress() override;
 
 private:
-    Ui::EditHysteria *ui;
+    Ui::EditHysteria* ui;
     std::shared_ptr<Configs::Profile> ent;
+
+    void editHysteriaLayout(const QString& version, const QString& obfs_type);
 };
