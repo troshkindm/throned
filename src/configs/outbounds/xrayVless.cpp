@@ -79,7 +79,7 @@ QString xrayVless::ExportToLink() {
     mergeUrlQuery(query, streamSetting->ExportToLink());
     mergeUrlQuery(query, multiplex->ExportToLink());
 
-    if (!query.isEmpty()) url.setQuery(query);
+    if (!query.isEmpty()) url.setQuery(query.toString(QUrl::FullyEncoded).replace('+', "%2B"), QUrl::TolerantMode);
     return url.toString(QUrl::FullyEncoded);
 }
 
@@ -121,5 +121,14 @@ BuildResult xrayVless::BuildXray() {
     if (!streamObj.isEmpty()) object["streamSettings"] = streamObj;
     if (auto muxObj = multiplex->Build().object; !muxObj.isEmpty()) object["mux"] = muxObj;
     return {object, ""};
+}
+
+SecurityInfo xrayVless::GetSecurity() {
+    auto info = outbound::GetSecurity();
+    if (info.level == SecurityLevel::None && IsVlessEncrypted(encryption)) {
+        info.label = QObject::tr("Encrypted");
+        info.level = SecurityLevel::Secure;
+    }
+    return info;
 }
 } // namespace Configs

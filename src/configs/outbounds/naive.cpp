@@ -182,7 +182,10 @@ BuildResult naive::Build() {
         if (!congestion_control.isEmpty()) object["quic_congestion_control"] = congestion_control;
     }
     // Not tls->Build(): it injects the global skip_cert / fragment defaults, which the core rejects for naive.
-    object["tls"] = naiveTLS(tls->ExportToJson(), false);
+    auto tlsObj = tls->ExportToJson();
+    // ExportToJson keeps Throne-only fields (ech.resolver); the core rejects unknown keys, so use ECH's own Build().
+    if (tls->ech->enabled) tlsObj["ech"] = tls->ech->Build().object;
+    object["tls"] = naiveTLS(tlsObj, false);
     return {object, ""};
 }
 

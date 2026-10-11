@@ -46,24 +46,26 @@ void SettingsRepo::initMaps() {
         {"vpn_auto_redirect", &vpn_auto_redirect},
         {"vpn_l3_bridge", &vpn_l3_bridge},
         {"sub_clear", &sub_clear},
+        {"sub_respect_server_interval", &sub_respect_server_interval},
         {"sub_show_change_popup", &sub_show_change_popup},
         {"net_insecure", &net_insecure},
         {"sub_send_hwid", &sub_send_hwid},
         {"start_minimal", &start_minimal},
         {"enable_ntp", &enable_ntp},
-        {"enable_dns_server", &enable_dns_server},
-        {"dns_server_listen_lan", &dns_server_listen_lan},
-        {"enable_redirect", &enable_redirect},
-        {"system_dns_set", &system_dns_set},
         {"windows_set_admin", &windows_set_admin},
         {"disable_win_admin", &disable_run_admin},
         {"enable_stats", &enable_stats},
         {"disable_privilege_req", &disable_privilege_req},
         {"enable_tun_routing", &enable_tun_routing},
         {"use_mozilla_certs", &use_mozilla_certs},
+        {"kill_switch", &kill_switch},
+        {"remote_api_enable", &remote_api_enable},
+        {"remote_api_lan", &remote_api_lan},
         {"allow_beta_update", &allow_beta_update},
         {"adblock_enable", &adblock_enable},
         {"show_system_dns", &show_system_dns},
+        {"enable_dns_server", &enable_dns_server},
+        {"enable_redirect", &enable_redirect},
         {"dpi_bypass_block_quic", &dpi_bypass_block_quic},
         {"apply_dns_to_full_config", &apply_dns_to_full_config},
         {"monitor_ping", &monitor_ping},
@@ -85,7 +87,6 @@ void SettingsRepo::initMaps() {
         {"show_config_security", &show_config_security},
         {"log_enable_include", &log_enable_include},
         {"log_enable_exclude", &log_enable_exclude},
-        {"log_auto_scroll", &log_auto_scroll},
         {"enable_warp", &enable_warp},
         {"warp_tos_accepted", &warp_tos_accepted},
         {"enable_dns_routing", &enable_dns_routing},
@@ -119,6 +120,7 @@ void SettingsRepo::initMaps() {
         {"language", &language},
         {"font_size", &font_size},
         {"max_log_line", &max_log_line},
+        {"log_font_size", &log_font_size},
         {"stats_tab", &stats_tab},
         {"stats_panel_height", &stats_panel_height},
         {"connection_sort", &connection_sort},
@@ -130,10 +132,9 @@ void SettingsRepo::initMaps() {
         {"app_auto_update", &app_auto_update},
         {"vpn_mtu", &vpn_mtu},
         {"ntp_server_port", &ntp_server_port},
-        {"dns_server_listen_port", &dns_server_listen_port},
-        {"redirect_listen_port", &redirect_listen_port},
         {"core_box_clash_api", &core_box_clash_api},
         {"core_box_api_port", &core_box_api_port},
+        {"remote_api_port", &remote_api_port},
         {"speed_test_mode", &speed_test_mode},
         {"speed_test_timeout_ms", &speed_test_timeout_ms},
         {"url_test_timeout_ms", &url_test_timeout_ms},
@@ -169,14 +170,18 @@ void SettingsRepo::initMaps() {
         {"custom_inbound", &custom_inbound},
         {"custom_route", &custom_route_global},
         {"font", &font},
+        {"log_font_family", &log_font_family},
         {"hk_mw", &hotkey_mainwindow},
         {"hk_group", &hotkey_group},
         {"hk_route", &hotkey_route},
         {"hk_spmenu", &hotkey_system_proxy_menu},
         {"hk_toggle", &hotkey_toggle_system_proxy},
+        {"hk_startstop", &hotkey_toggle_connection},
+        {"hk_tun", &hotkey_toggle_tun},
+        {"remote_api_key", &remote_api_key},
+        {"remote_api_allow", &remote_api_allow},
         {"active_routing", &active_routing},
         {"mw_size", &mw_size},
-        {"vpn_impl", &vpn_implementation},
         {"vpn_tun_ipv4_cidr", &vpn_tun_ipv4_cidr},
         {"vpn_tun_ipv6_cidr", &vpn_tun_ipv6_cidr},
         {"sub_custom_hwid_params", &sub_custom_hwid_params},
@@ -189,9 +194,6 @@ void SettingsRepo::initMaps() {
         {"ntp_server_address", &ntp_server_address},
         {"ntp_interval", &ntp_interval},
         {"ntp_outbound", &ntp_outbound},
-        {"dns_v4_resp", &dns_v4_resp},
-        {"dns_v6_resp", &dns_v6_resp},
-        {"redirect_listen_address", &redirect_listen_address},
         {"proxy_scheme", &proxy_scheme},
         {"main_window_geometry", &mainWindowGeometry},
         {"simple_window_geometry", &simple_window_geometry},
@@ -227,7 +229,6 @@ void SettingsRepo::initMaps() {
 
     stringListMap = {
         {"dismissed_notices", &dismissed_notices},
-        {"dns_server_rules", &dns_server_rules},
         {"dns_predefined_rules", &dns_predefined_rules},
         {"extra_core_paths", &extraCorePaths},
         {"log_include_keyword", &log_include_keyword},
@@ -292,10 +293,6 @@ void SettingsRepo::loadAllSettings() {
             remote_dns_disable_ipv6 = str == "ipv4_only";
             continue;
         }
-        if (key == "sub_auto_update_last") {
-            sub_auto_update_last = str.toLongLong();
-            continue;
-        }
         if (key == "route_auto_update_last") {
             route_auto_update_last = str.toLongLong();
             continue;
@@ -330,15 +327,15 @@ void SettingsRepo::loadAllSettings() {
             continue;
         }
     }
-    // Nothing writes these back, so drop them or they keep overriding the migrated flags on every load.
-    db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy')");
+    // Retired keys nothing writes back; the DNS ones would otherwise keep overriding the migrated flags on every load.
+    db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll')");
 }
 
 void SettingsRepo::saveAllSettings() const {
     if (noSave) return;
 
     std::vector<std::pair<std::string, std::string>> keyValues;
-    keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 4);
+    keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 3);
 
     const auto addPair = [&keyValues](const QString& key, const auto& value) {
         keyValues.emplace_back(key.toStdString(), value);
@@ -367,9 +364,7 @@ void SettingsRepo::saveAllSettings() const {
     addPair(QStringLiteral("xray_vless_preference"),
             std::to_string(static_cast<int>(xray_vless_preference)));
 
-    // qint64 timestamps: out of range for the int map, so persisted here.
-    addPair(QStringLiteral("sub_auto_update_last"),
-            std::to_string(sub_auto_update_last));
+    // qint64 timestamp: out of range for the int map, so persisted here.
     addPair(QStringLiteral("route_auto_update_last"),
             std::to_string(route_auto_update_last));
     addPair(QStringLiteral("app_auto_update_last"),

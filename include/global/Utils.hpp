@@ -49,8 +49,8 @@ enum class MwMessage {
     RestartProgram,
     Raise,
     UpdateShortcuts,
-    ProfileChanged, // arg MwArg::RestartProxy when the saved profile is part of the running config
-    GroupsChanged,
+    ProfileChanged,       // arg MwArg::RestartProxy when the saved profile is part of the running config
+    GroupsChanged,        // arg MwArg::RestartProxy when the edited group changed what a running profile dials
     SubscriptionFinished, // arg MwArg::Quiet skips the import-count line
     SubscriptionNewGroup,
     // args: { group id, then the id of every profile it deleted or replaced in place }
@@ -67,11 +67,13 @@ inline const QString Vpn = QStringLiteral("vpn");
 inline const QString NeedRestart = QStringLiteral("needRestart");
 inline const QString ChoosePort = QStringLiteral("choosePort");
 inline const QString DisableTray = QStringLiteral("disableTray");
-inline const QString SystemDns = QStringLiteral("systemDns");
 inline const QString TrayIcon = QStringLiteral("trayIcon");
 inline const QString MaxLogLines = QStringLiteral("maxLogLines");
 inline const QString DisableAdmin = QStringLiteral("disableAdmin");
 inline const QString ProfileListDisplay = QStringLiteral("profileListDisplay");
+inline const QString KillSwitch = QStringLiteral("killSwitch");
+inline const QString LogFont = QStringLiteral("logFont");
+inline const QString RemoteApi = QStringLiteral("remoteApi");
 // ProfileChanged arg.
 inline const QString RestartProxy = QStringLiteral("restartProxy");
 // SubscriptionFinished arg.
@@ -237,6 +239,11 @@ UpdatePromptChoice ShowUpdatePrompt(QWidget *parent, const QString &title, const
 void ActivateWindow(QWidget *w);
 
 void HideWindow(QWidget *w);
+
+QStringList LogFontFamilies(const QString &preferred);
+
+// The family the log view actually renders with.
+QString ResolveLogFontFamily(const QString &preferred);
 
 void runOnUiThread(const std::function<void()> &callback, bool wait = false);
 

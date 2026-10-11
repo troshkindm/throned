@@ -47,6 +47,7 @@ void DialogEditProfile::loadXrayStream() {
     ui->xray_alpn->setText(stream->TLS->alpn.join(","));
     ui->xray_pinned_peer_cert_sha256->setText(stream->TLS->pinnedPeerCertSha256);
     ui->xray_verify_peer_cert_by_name->setText(stream->TLS->verifyPeerCertByName);
+    ui->xray_ech_config_list->setText(stream->TLS->echConfigList);
     ui->xray_reality_pbk->setText(stream->reality->password);
     ui->xray_reality_sid->setText(stream->reality->shortId);
     ui->xray_reality_spiderx->setText(stream->reality->spiderX);
@@ -99,6 +100,7 @@ void DialogEditProfile::saveXrayStream() {
     stream->TLS->alpn = SplitAndTrim(ui->xray_alpn->text(), ",", false);
     stream->TLS->pinnedPeerCertSha256 = ui->xray_pinned_peer_cert_sha256->text().trimmed();
     stream->TLS->verifyPeerCertByName = ui->xray_verify_peer_cert_by_name->text().trimmed();
+    stream->TLS->echConfigList = ui->xray_ech_config_list->text().trimmed();
     stream->reality->password = ui->xray_reality_pbk->text().trimmed();
     stream->reality->shortId = ui->xray_reality_sid->text().trimmed();
     stream->reality->spiderX = ui->xray_reality_spiderx->text().trimmed();

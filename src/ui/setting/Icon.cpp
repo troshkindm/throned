@@ -15,27 +15,26 @@ QString statusName(Icon::TrayIconStatus status) {
     switch (status) {
         case Icon::TrayIconStatus::None:
             return QStringLiteral("Off");
+        case Icon::TrayIconStatus::Connecting:
+            return QStringLiteral("Connecting");
         case Icon::TrayIconStatus::Running:
             return QStringLiteral("Throned");
         case Icon::TrayIconStatus::SystemProxy:
             return QStringLiteral("Proxy");
         case Icon::TrayIconStatus::Vpn:
             return QStringLiteral("Tun");
-        case Icon::TrayIconStatus::Dns:
-            return QStringLiteral("Dns");
-        case Icon::TrayIconStatus::SystemProxyDns:
-            return QStringLiteral("Proxy-Dns");
     }
     MW_show_log("Icon::GetTrayIcon: Unknown status");
     return QStringLiteral("Off");
 }
 
-QIcon loadNamedIcon(const QString &name, bool useCustom) {
+QIcon loadNamedIcon(const QString &name, bool useCustom, const QString &customFallback = {}) {
     if (useCustom) {
-        // QIcon(path).isNull() is not a decode check: a PNG with a valid signature and a corrupt body passes it.
-        if (const auto custom = QPixmap(QStringLiteral("icons/") + name + QStringLiteral(".png")); !custom.isNull()) return QIcon(custom);
-        if (name == QStringLiteral("Throned")) {
-            if (const QPixmap legacy(QStringLiteral("icons/Throne.png")); !legacy.isNull()) return QIcon(legacy);
+        const QString legacy = name == QStringLiteral("Throned") ? QStringLiteral("Throne") : QString();
+        for (const auto &candidate: {name, customFallback, legacy}) {
+            if (candidate.isEmpty()) continue;
+            // QIcon(path).isNull() is not a decode check: a PNG with a valid signature and a corrupt body passes it.
+            if (const auto custom = QPixmap(QStringLiteral("icons/") + candidate + QStringLiteral(".png")); !custom.isNull()) return QIcon(custom);
         }
     }
     return QIcon(QStringLiteral(":/Throned/") + name + QStringLiteral(".png"));
@@ -54,7 +53,9 @@ QIcon Icon::GetTrayIcon(TrayIconStatus status) {
     }
     if (const auto it = g_trayIcons.constFind(status); it != g_trayIcons.cend()) return it.value();
 
-    const QIcon icon = loadNamedIcon(statusName(status), useCustom);
+    // A custom set without Connecting.png keeps its own Off icon rather than mixing in the bundled one.
+    const QString customFallback = status == TrayIconStatus::Connecting ? statusName(TrayIconStatus::None) : QString();
+    const QIcon icon = loadNamedIcon(statusName(status), useCustom, customFallback);
     g_trayIcons.insert(status, icon);
     return icon;
 }

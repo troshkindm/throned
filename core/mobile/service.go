@@ -206,8 +206,11 @@ func (w *platformInterfaceWrapper) FindConnectionOwner(request *adapter.FindConn
 		if uid == -1 {
 			return nil, E.New("procfs: not found")
 		}
+		// procfs knows only the uid; without its packages, package_name rules could never match here.
+		packageNames, _ := w.iif.PackageNamesByUid(uid)
 		return &adapter.ConnectionOwner{
-			UserId: uid,
+			UserId:       uid,
+			PackageNames: iteratorToArray[string](packageNames),
 		}, nil
 	}
 
@@ -215,11 +218,15 @@ func (w *platformInterfaceWrapper) FindConnectionOwner(request *adapter.FindConn
 	if err != nil {
 		return nil, err
 	}
+	var processPaths []string
+	if result.ProcessPath != "" {
+		processPaths = []string{result.ProcessPath}
+	}
 	return &adapter.ConnectionOwner{
-		UserId:              result.UserId,
-		UserName:            result.UserName,
-		ProcessPath:         result.ProcessPath,
-		AndroidPackageNames: result.androidPackageNames,
+		UserId:       result.UserId,
+		UserName:     result.UserName,
+		ProcessPaths: processPaths,
+		PackageNames: result.androidPackageNames,
 	}, nil
 }
 
@@ -280,5 +287,13 @@ func (w *platformInterfaceWrapper) UsePlatformBridge() bool {
 }
 
 func (w *platformInterfaceWrapper) CreateBridge(options adapter.BridgeOptions) (adapter.BridgeSession, error) {
+	return nil, os.ErrInvalid
+}
+
+func (w *platformInterfaceWrapper) UsePlatformAutoRedirect() bool {
+	return false
+}
+
+func (w *platformInterfaceWrapper) CreateAutoRedirect(options adapter.AutoRedirectOptions) (adapter.AutoRedirectSession, error) {
 	return nil, os.ErrInvalid
 }

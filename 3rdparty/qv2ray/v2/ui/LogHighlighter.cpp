@@ -124,6 +124,12 @@ namespace Qv2ray::ui {
         rule.format = processNameFormat;
         rule.captureGroup = 1;
         highlightingRules.append(rule);
+        searchFormat.setBackground(darkMode ? QColor(150, 110, 0) : QColor(255, 225, 90));
+        searchFormat.setForeground(darkMode ? Qt::white : Qt::black);
+    }
+
+    void SyntaxHighlighter::setSearchPattern(const QRegularExpression &pattern) {
+        searchPattern = pattern;
     }
 
     void SyntaxHighlighter::highlightBlock(const QString &text) {
@@ -135,6 +141,15 @@ namespace Qv2ray::ui {
                 const int capture = rule.captureGroup;
                 if (match.capturedStart(capture) >= 0)
                     setFormat(match.capturedStart(capture), match.capturedLength(capture), rule.format);
+            }
+        }
+
+        // Last, so search hits paint over the syntax colors.
+        if (!searchPattern.pattern().isEmpty()) {
+            QRegularExpressionMatchIterator matchIterator = searchPattern.globalMatch(text);
+            while (matchIterator.hasNext()) {
+                QRegularExpressionMatch match = matchIterator.next();
+                if (match.capturedLength() > 0) setFormat(match.capturedStart(), match.capturedLength(), searchFormat);
             }
         }
 

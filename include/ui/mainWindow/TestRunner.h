@@ -29,19 +29,18 @@ public:
     TestRunner(const TestRunner&) = delete;
     TestRunner& operator=(const TestRunner&) = delete;
 
-    // `onFinished` fires on every exit path, so a caller may block on it.
-    void runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {});
+    // The run* calls return whether a session started; onFinished fires either way, on a refusal before they return.
+    bool runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
 
     // Waits out a running session instead of refusing it; returns at once and is safe from any thread.
     void queueUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished);
 
-    void runIpTests(const QList<int>& profileIDs);
+    bool runIpTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
 
-    // TCP latency says nothing about UDP: carriers throttle it separately, which
-    // is what kills QUIC-based protocols while every URL test still reports green.
     void runUdpTests(const QList<int>& profileIDs);
 
-    void runSpeedTests(const QList<int>& profileIDs, bool testCurrent = false);
+    bool runSpeedTests(const QList<int>& profileIDs, bool testCurrent = false,
+                       const std::function<void()>& onFinished = {}, bool interactive = true);
 
     // One HTTP probe per site through each selected profile. The verdict is what the
     // site answered, not whether it liked us: a geo-block replies and a filter does not.
@@ -78,6 +77,9 @@ public:
 
     bool isTestingCurrent() const { return testingCurrent_.load(); }
 
+    // Whether stop() was called since the latest session started.
+    bool stopRequested() const { return stopRequested_.load(); }
+
 private:
     enum class LatencyKind { Url,
                              Ip,
@@ -94,10 +96,11 @@ private:
         // Not derivable from an empty outboundTags: a test-current run leaves both empty but wants "proxy".
         bool useDefaultOutbound = false;
         bool testCurrent = false;
+        bool interactive = true;
     };
 
-    void runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
-                         const std::function<void()>& onFinished, bool waitForSession = false);
+    bool runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
+                         const std::function<void()>& onFinished, bool waitForSession = false, bool interactive = true);
 
     void runUrlProbe(const Target& target);
 

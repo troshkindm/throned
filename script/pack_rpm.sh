@@ -51,7 +51,7 @@ chmod +x "$POST_INSTALL"
 
 DEP_ARGS=("-d" "desktop-file-utils")
 if [[ "$SYSTEM_QT" == "systemqt" ]]; then
-    DEP_ARGS+=("-d" "qt6-qtbase-gui" "-d" "qt6-qtsvg" "-d" "qt6-qtwayland" "-d" "xcb-util-cursor" "-d" "google-noto-emoji-color-fonts")
+    DEP_ARGS+=("-d" "(qt6-qtbase-gui >= 6.5 or libQt6Gui6 >= 6.5)" "-d" "(qt6-qtsvg or libQt6Svg6)" "-d" "(qt6-qtwayland >= 6.5 or libQt6WaylandClient6 >= 6.5)" "-d" "(xcb-util-cursor or libxcb-cursor0)" "-d" "(google-noto-emoji-color-fonts or google-noto-coloremoji-fonts or noto-coloremoji-fonts)")
 fi
 
 fpm -s dir -t rpm \

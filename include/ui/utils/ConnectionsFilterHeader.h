@@ -2,6 +2,7 @@
 
 #include <array>
 
+#include <QHash>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -58,6 +59,15 @@ public:
         if (section >= 0) updateSection(section);
     }
 
+    // Only ever widens: an exact fit would resize the section every poll as live digits change.
+    void growSection(int section) {
+        const auto *view = qobject_cast<QAbstractItemView *>(parent());
+        const int contentWidth = view != nullptr ? view->sizeHintForColumn(section) : -1;
+        if (contentWidth <= m_grownWidths.value(section)) return;
+        m_grownWidths.insert(section, contentWidth * 115 / 100);
+        resizeSections();
+    }
+
     QSize sizeHint() const override {
         QSize s = QHeaderView::sizeHint();
         if (m_filtersVisible) {
@@ -76,6 +86,7 @@ protected:
         if (m_filtersVisible && editForColumn(logicalIndex) != nullptr) {
             s.setWidth(qMax(s.width(), 120));
         }
+        s.setWidth(qMax(s.width(), m_grownWidths.value(logicalIndex)));
         return s;
     }
 
@@ -230,4 +241,5 @@ private:
     bool m_filtersVisible = false;
     int m_sortSection = -1;
     bool m_sortDescending = false;
+    QHash<int, int> m_grownWidths;
 };

@@ -24,26 +24,6 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
-       <widget class="QLabel" name="label_4">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string notr="true">Stack</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="vpn_implementation">
-        <property name="editable">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLabel" name="label_10">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -125,7 +105,7 @@
         <item>
          <widget class="QCheckBox" name="auto_redirect">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Required on newer Linux kernels for the system and mixed stacks to pass traffic. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Improves Tun routing and performance using nftables. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Auto Redirect</string>
@@ -277,7 +257,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>vpn_implementation</tabstop>
   <tabstop>vpn_mtu</tabstop>
   <tabstop>vpn_ipv6</tabstop>
   <tabstop>tun_ipv4_cidr</tabstop>

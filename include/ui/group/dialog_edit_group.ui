@@ -33,7 +33,7 @@
      </property>
      <layout class="QGridLayout" name="main">
       <item row="3" column="1">
-       <widget class="QComboBox" name="landing_proxy"/>
+       <widget class="QComboBox" name="landing_proxy" />
       </item>
       <item row="1" column="1">
        <widget class="QComboBox" name="type">
@@ -66,7 +66,7 @@
       <item row="2" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QComboBox" name="front_proxy"/>
+         <widget class="QComboBox" name="front_proxy" />
         </item>
        </layout>
       </item>
@@ -85,14 +85,38 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="name"/>
+       <widget class="QLineEdit" name="name" />
       </item>
       <item row="4" column="1">
-       <widget class="QCheckBox" name="auto_clear_unavailable">
-        <property name="text">
-         <string>Auto Clear Unavailable Profiles</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="common_options_layout">
+        <item>
+         <widget class="QCheckBox" name="auto_clear_unavailable">
+          <property name="text">
+           <string>Auto Clear Unavailable Profiles</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="sub_options_spacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="advanced">
+          <property name="text">
+           <string>Advanced</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
      <zorder>label</zorder>
@@ -119,7 +143,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="MyLineEdit" name="url"/>
+       <widget class="MyLineEdit" name="url" />
       </item>
       <item row="1" column="1">
        <layout class="QHBoxLayout" name="sub_options_layout">
@@ -127,26 +151,6 @@
          <widget class="QCheckBox" name="skip_auto_update">
           <property name="text">
            <string>Skip automatic update</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="sub_options_spacer">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="advanced">
-          <property name="text">
-           <string>Advanced</string>
           </property>
          </widget>
         </item>
@@ -243,7 +247,7 @@
   <tabstop>copy_links</tabstop>
   <tabstop>copy_links_nkr</tabstop>
  </tabstops>
- <resources/>
+ <resources />
  <connections>
   <connection>
    <sender>buttonBox</sender>

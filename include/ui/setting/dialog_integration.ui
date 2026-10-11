@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogIntegration</class>
+ <widget class="QDialog" name="DialogIntegration">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>410</width>
+    <height>383</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Integration Settings</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Global Hotkeys</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Trigger main window</string>
+         </property>
+         <property name="buddy">
+          <cstring>show_mainwindow</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QtExtKeySequenceEdit" name="show_mainwindow"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Show groups</string>
+         </property>
+         <property name="buddy">
+          <cstring>show_groups</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QtExtKeySequenceEdit" name="show_groups"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Show routes</string>
+         </property>
+         <property name="buddy">
+          <cstring>show_routes</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QtExtKeySequenceEdit" name="show_routes"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Proxy mode</string>
+         </property>
+         <property name="buddy">
+          <cstring>system_proxy</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QtExtKeySequenceEdit" name="system_proxy"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="toggle_proxy_l">
+         <property name="text">
+          <string>Toggle System Proxy</string>
+         </property>
+         <property name="buddy">
+          <cstring>toggle_proxy</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QtExtKeySequenceEdit" name="toggle_proxy"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="toggle_connection_l">
+         <property name="text">
+          <string>Start/Stop Profile</string>
+         </property>
+         <property name="buddy">
+          <cstring>toggle_connection</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QtExtKeySequenceEdit" name="toggle_connection"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="toggle_tun_l">
+         <property name="text">
+          <string>Toggle Tun Mode</string>
+         </property>
+         <property name="buddy">
+          <cstring>toggle_tun</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QtExtKeySequenceEdit" name="toggle_tun"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Shortcuts</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QScrollArea" name="shortcut_area">
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>59</width>
+            <height>16</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_api">
+      <attribute name="title">
+       <string>Throne API</string>
+      </attribute>
+      <layout class="QFormLayout" name="apiLayout">
+       <item row="0" column="0" colspan="2">
+        <widget class="QCheckBox" name="api_enable">
+         <property name="text">
+          <string>Enable the Throne API</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="api_listen_l">
+         <property name="text">
+          <string>Listen on</string>
+         </property>
+         <property name="buddy">
+          <cstring>api_listen</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="api_listen">
+         <item>
+          <property name="text">
+           <string>This computer only</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Local network</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="api_port_l">
+         <property name="text">
+          <string>Port</string>
+         </property>
+         <property name="buddy">
+          <cstring>api_port</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="api_port">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>65535</number>
+         </property>
+         <property name="value">
+          <number>9095</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="api_allow_l">
+         <property name="text">
+          <string>Allowed addresses</string>
+         </property>
+         <property name="buddy">
+          <cstring>api_allow</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="api_allow">
+         <property name="placeholderText">
+          <string>Any address, or e.g. 192.168.1.0/24, 10.0.0.5</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="api_key_l">
+         <property name="text">
+          <string>Key</string>
+         </property>
+         <property name="buddy">
+          <cstring>api_key</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="api_key">
+         <property name="echoMode">
+          <enum>QLineEdit::EchoMode::Password</enum>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <layout class="QHBoxLayout" name="apiKeyButtons">
+         <item>
+          <widget class="QPushButton" name="api_key_show">
+           <property name="text">
+            <string>Show</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="api_key_copy">
+           <property name="text">
+            <string>Copy</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="api_key_regenerate">
+           <property name="text">
+            <string>Regenerate</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="apiKeyButtonsSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="6" column="1">
+        <layout class="QHBoxLayout" name="apiCopyLayout">
+         <item>
+          <widget class="QPushButton" name="api_copy_env">
+           <property name="text">
+            <string>Copy for scripts</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="apiCopySpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="api_status_l">
+         <property name="text">
+          <string>Status</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLabel" name="api_status">
+         <property name="textFormat">
+          <enum>Qt::TextFormat::PlainText</enum>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="2">
+        <widget class="QLabel" name="api_lan_warning">
+         <property name="text">
+          <string>Devices on your network can control Throne with this key. Your firewall may ask to allow Throne.</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::TextFormat::PlainText</enum>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0" colspan="2">
+        <widget class="QLabel" name="api_help">
+         <property name="textFormat">
+          <enum>Qt::TextFormat::RichText</enum>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="focusPolicy">
+      <enum>Qt::FocusPolicy::StrongFocus</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QtExtKeySequenceEdit</class>
+   <extends>QKeySequenceEdit</extends>
+   <header>include/ui/widget/QtExtKeySequenceEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DialogIntegration</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>258</x>
+     <y>255</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>DialogIntegration</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>258</x>
+     <y>255</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

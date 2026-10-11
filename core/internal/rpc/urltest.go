@@ -27,6 +27,9 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 
 	// Held, not re-read: StopTest rearms a fresh context, uncancelled.
 	testCtx := probe.TestContext()
+	if in.GetTestCurrent() {
+		testCtx = probe.LiveInstance(testCtx)
+	}
 
 	// A muxed config needs a warm connection; the live instance already is one.
 	twice := !in.GetTestCurrent()

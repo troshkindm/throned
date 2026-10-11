@@ -4,6 +4,8 @@
 #include "include/configs/outbounds/trusttunnel.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
+#include "include/database/IpListsRepo.h"
+#include "include/database/IpScansRepo.h"
 #include "include/database/MarkersRepo.h"
 #include "include/database/OtpProfilesRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -17,7 +19,7 @@
 void Logging::Write(Level, const QString &, const char *, int) {}
 
 // Outbound generators need real settings, but no profile repositories or persistent database.
-Configs::DatabaseManager::DatabaseManager(const std::string &path) : db(path), statsDb(":memory:") {
+Configs::DatabaseManager::DatabaseManager(const std::string &path) : db(path), statsDb(":memory:"), scanDb(":memory:") {
     settingsRepo = std::make_unique<SettingsRepo>(db);
 }
 
@@ -181,6 +183,21 @@ private slots:
         QCOMPARE(result.object["quic_congestion_control"].toString(), QString("bbr"));
         QVERIFY(!result.object["tls"].toObject().contains("utls"));
         QVERIFY(!result.object["tls"].toObject().contains("reality"));
+    }
+
+    void echResolverSurvivesLinkAndJsonRoundTrips() {
+        Configs::ECH ech;
+        QVERIFY(ech.ParseFromLink("vless://proxy.example:443?ech=cover.example%2Bhttps%3A%2F%2Fdns.example%2Fdns-query"));
+        QVERIFY(ech.enabled);
+        QCOMPARE(ech.QueryTarget(), QString("cover.example+https://dns.example/dns-query"));
+        Configs::ECH fromJson;
+        QVERIFY(fromJson.ParseFromJson(ech.ExportToJson()));
+        QCOMPARE(fromJson.QueryTarget(), ech.QueryTarget());
+        Configs::ECH fromLink;
+        QVERIFY(fromLink.ParseFromLink("vless://proxy.example:443?" + ech.ExportToLink()));
+        QCOMPARE(fromLink.QueryTarget(), ech.QueryTarget());
+        QVERIFY(fromLink.ParseFromLink("vless://proxy.example:443?ech=false"));
+        QVERIFY(!fromLink.enabled);
     }
 
     void httpUsesSchemeDefaultPort() {

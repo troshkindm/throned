@@ -28,6 +28,7 @@
 #include "include/database/SettingsRepo.h"
 #include "include/global/LocalNetwork.hpp"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
+#include "include/sys/KillSwitch.hpp"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
@@ -241,6 +242,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
 
     const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
     const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
+    const auto killSwitchState = Sys::KillSwitch::instance()->state();
 
     auto make_title = [=, this](bool isTray) {
         QStringList tt;
@@ -250,6 +252,8 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
         if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
         if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
+        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
+        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) tt << "[" + tr("Kill switch: not active") + "]";
         tt << software_name;
         if (!isTray) tt << QString(NKR_VERSION);
         if (!activeRouteName.isEmpty()) {
@@ -264,40 +268,34 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         return tt.join(isTray ? "\n" : " ");
     };
 
-    auto icon_status_new = Icon::TrayIconStatus::None;
-
-    if (running != nullptr) {
-        if (settings->spmode_vpn) {
-            icon_status_new = Icon::TrayIconStatus::Vpn;
-        } else if (settings->system_dns_set && settings->spmode_system_proxy) {
-            icon_status_new = Icon::TrayIconStatus::SystemProxyDns;
-        } else if (settings->system_dns_set) {
-            icon_status_new = Icon::TrayIconStatus::Dns;
-        } else if (settings->spmode_system_proxy) {
-            icon_status_new = Icon::TrayIconStatus::SystemProxy;
-        } else {
-            icon_status_new = Icon::TrayIconStatus::Running;
-        }
-    }
-
     setWindowTitle(make_title(false));
-    if (icon_status_new != icon_status) QApplication::setWindowIcon(GetTaskbarIcon(icon_status_new));
-
-    if (tray != nullptr) {
-        tray->setToolTip(make_title(true));
-        if (icon_status_new != icon_status) tray->setIcon(Icon::GetTrayIcon(icon_status_new));
-    }
-
-    icon_status = icon_status_new;
+    if (tray != nullptr) tray->setToolTip(make_title(true));
 
     refresh_startstop_button();
 }
 
 void MainWindow::refresh_startstop_button() {
+    // Every change to the start/stop flags or `running` is followed by a call here, on the UI thread.
+    if (const auto connState = connection_state(); connState != m_lastConnectionState) {
+        m_lastConnectionState = connState;
+        emit connection_state_changed(connState);
+    }
+
     auto *btn = ui->toolButton_startstop;
     if (btn == nullptr) return;
 
     const auto &settings = Configs::dataManager->settingsRepo;
+
+    auto mode = StartStopButton::Mode::Off;
+    if (running != nullptr) {
+        if (settings->spmode_vpn)
+            mode = StartStopButton::Mode::Tun;
+        else if (settings->spmode_system_proxy)
+            mode = StartStopButton::Mode::SystemProxy;
+        else
+            mode = StartStopButton::Mode::Core;
+    }
+    btn->setMode(mode);
 
     StartStopButton::State state;
     if (m_profileConnecting)
@@ -312,10 +310,58 @@ void MainWindow::refresh_startstop_button() {
         state = StartStopButton::State::Disabled;
     btn->setState(state);
     refreshSimpleStatus();
+
+    auto lock = StartStopButton::Lock::Hidden;
+    if (settings->kill_switch) {
+        switch (Sys::KillSwitch::instance()->state()) {
+            case Sys::KillSwitch::State::Disabled:
+                break;
+            case Sys::KillSwitch::State::Arming:
+                lock = StartStopButton::Lock::Pending;
+                break;
+            case Sys::KillSwitch::State::Armed:
+                lock = running != nullptr && settings->spmode_vpn ? StartStopButton::Lock::Passing : StartStopButton::Lock::Blocking;
+                break;
+            case Sys::KillSwitch::State::Failed:
+                lock = StartStopButton::Lock::Fault;
+                break;
+        }
+    }
+    btn->setLock(lock);
+
+    if (trayConnectAction != nullptr) {
+        if (m_profileConnecting) {
+            trayConnectAction->setText(tr("Connecting"));
+        } else if (m_profileDisconnecting) {
+            trayConnectAction->setText(tr("Disconnecting"));
+        } else {
+            trayConnectAction->setText(running != nullptr ? tr("Disconnect") : tr("Connect"));
+        }
+        trayConnectAction->setEnabled(!m_profileConnecting && !m_profileDisconnecting &&
+                                      (running != nullptr || get_profile_to_start() >= 0));
+    }
+
+    // Here rather than in refresh_status(): the connecting/disconnecting flags only ever refresh this button.
+    auto iconStatus = Icon::TrayIconStatus::None;
+    if (m_profileConnecting || m_profileDisconnecting)
+        iconStatus = Icon::TrayIconStatus::Connecting;
+    else if (mode == StartStopButton::Mode::Tun)
+        iconStatus = Icon::TrayIconStatus::Vpn;
+    else if (mode == StartStopButton::Mode::SystemProxy)
+        iconStatus = Icon::TrayIconStatus::SystemProxy;
+    else if (mode == StartStopButton::Mode::Core)
+        iconStatus = Icon::TrayIconStatus::Running;
+    if (iconStatus != icon_status) {
+        QApplication::setWindowIcon(GetTaskbarIcon(iconStatus));
+        if (tray != nullptr) tray->setIcon(Icon::GetTrayIcon(iconStatus));
+        icon_status = iconStatus;
+    }
 }
 
 void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp) {
     refreshSimpleTraffic(proxyDl + directDl, proxyUp + directUp);
+    m_liveRates = LiveRates{.proxyUp = proxyUp, .proxyDown = proxyDl, .directUp = directUp, .directDown = directDl};
+    m_liveRatesAt.start();
     if (speedChartWidget) {
         speedChartWidget->addSample(proxyDl, proxyUp, directDl, directUp);
     }
@@ -332,7 +378,6 @@ void MainWindow::refresh_proxy_list_column_size() {
         m_adjustingColumns = true;
         QScrollBar *vBar = ui->profilesTableView->verticalScrollBar();
         const bool vBarBlocked = vBar->blockSignals(true);
-        hHeader->blockSignals(true);
         const int columnCount = hHeader->count();
         // Widths saved before the column set last changed no longer line up with
         // the header, so fall back to auto-sizing instead of indexing past the end.
@@ -386,7 +431,6 @@ void MainWindow::refresh_proxy_list_column_size() {
             ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         }
         hHeader->adjustPositions();
-        hHeader->blockSignals(false);
         // The view learns about section widths through sectionResized, which was just
         // blocked to keep this routine from re-entering itself. Without a nudge the
         // header ends up at the new width while the rows are still painted at the old

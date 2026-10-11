@@ -213,8 +213,62 @@ static QString jsonScalarText(const QJsonValue& val) {
     return static_cast<double>(whole) == val.toDouble() ? QString::number(whole) : QString::number(val.toDouble());
 }
 
+// name, type and outbound, plus exactly the keys RouteRule::set_field_value stores.
+static bool isStorableRuleKey(const QString& key) {
+    static const QSet<QString> keys = {
+        "name",
+        "type",
+        "outbound",
+        "ip_version",
+        "network",
+        "protocol",
+        "inbound",
+        "domain",
+        "domain_suffix",
+        "domain_keyword",
+        "domain_regex",
+        "source_ip_cidr",
+        "source_ip_is_private",
+        "ip_cidr",
+        "ip_is_private",
+        "source_port",
+        "source_port_range",
+        "port",
+        "port_range",
+        "process_name",
+        "process_path",
+        "process_path_regex",
+        "package_name",
+        "wifi_ssid",
+        "wifi_bssid",
+        "rule_set",
+        "invert",
+        "action",
+        "method",
+        "reject_method",
+        "no_drop",
+        "override_address",
+        "override_port",
+        "tls_spoof",
+        "tls_spoof_method",
+        "override_destination",
+        "strategy",
+        "sniffers",
+    };
+    return keys.contains(key);
+}
+
 // name/type are schema-only keys: skipped here, applied by the caller.
-static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, QString* warnings) {
+// A key that cannot be stored drops the whole rule (nullptr): without that condition it would match more.
+// position is the rule's 1-based place in its array, naming a rule that has no name.
+static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, int position, QString* warnings) {
+    for (const auto& key: obj.keys()) {
+        if (isStorableRuleKey(key)) continue;
+        const QString nm = obj.value("name").toString();
+        appendWarning(warnings, QString("rule \"%1\" dropped: unsupported field \"%2\"")
+                                    .arg(nm.isEmpty() ? QString("#%1").arg(position) : nm, key));
+        return nullptr;
+    }
     auto rule = std::make_shared<RouteRule>();
     for (const auto& key: obj.keys()) {
         if (key == "name" || key == "type") continue;
@@ -257,18 +311,27 @@ QList<std::shared_ptr<RouteRule>> RouteProfile::parseJsonArray(const QJsonArray&
     }
 
     auto rules = QList<std::shared_ptr<RouteRule>>();
+    QString ruleWarnings;
     auto ruleID = 1;
+    int position = 0;
     for (const auto& item: arr) {
         if (!item.isObject()) {
             parseError->append(QString("expected array of json objects but have member of type '%1'").arg(item.type()));
             return {};
         }
         const QJsonObject ro = item.toObject();
-        auto rule = parse_rule_object(ro, warnings);
+        auto rule = parse_rule_object(ro, ++position, &ruleWarnings);
+        if (!rule) continue;
         const QString nm = ro.value("name").toString();
         rule->name = nm.isEmpty() ? ("imported rule #" + Int2String(ruleID++)) : nm;
         rules << rule;
     }
+    // An array is nothing but its rules, so losing them all fails like an empty one (ruleWarnings then holds only drops).
+    if (rules.isEmpty()) {
+        parseError->append("No rule in the array can be imported:\n" + ruleWarnings.trimmed());
+        return {};
+    }
+    if (warnings) warnings->append(ruleWarnings);
 
     return rules;
 }
@@ -531,12 +594,16 @@ std::shared_ptr<RouteProfile> RouteProfile::FromShareInput(const QString& input,
         QMap<int, int> endpointIDMap;
         profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, materializeEndpoints, &endpointIDMap, &profile->innerHopEndpointIDs);
         int fallbackNum = 1;
+        int position = 0;
         for (const auto& v: root.value("rules").toArray()) {
+            ++position;
             if (!v.isObject()) continue;
             const QJsonObject ro = v.toObject();
             const ruleType type = tokenToRuleType(ro.value("type").toString());
-            // an endpoint rule's outbound is the sharer's profile id; it must survive the proxy fallback
-            auto rule = parse_rule_object(ro, type == endpointPreferredBy ? nullptr : warnings);
+            // an endpoint rule's outbound is the sharer's profile id; it must survive the proxy fallback.
+            // Shared as {name, type, outbound} it is never dropped, and SyncEndpointRules re-pairs one that is.
+            auto rule = parse_rule_object(ro, position, type == endpointPreferredBy ? nullptr : warnings);
+            if (!rule) continue;
             rule->type = type;
             if (type == endpointPreferredBy) {
                 rule->outboundID = endpointIDMap.value(ro.value("outbound").toInt(INVALID_ID), INVALID_ID);
@@ -955,6 +1022,111 @@ bool RouteProfile::AppendSimpleRule(const QString& rawRule, simpleAction action,
     if (!rule || !add_simple_rule(raw, rule, type)) return false;
     if (isNewRule) Rules.append(rule);
     return true;
+}
+
+bool RouteProfile::HasSimpleRule(const QString& rawRule, simpleAction action) {
+    const QString raw = rawRule.trimmed();
+    const auto type = get_rule_type(raw, action);
+    if (type == custom) return false;
+
+    for (const auto& rule: Rules) {
+        if (rule->type != type) continue;
+        QString value;
+        const auto* values = simple_rule_values(raw, *rule, &value);
+        if (values && values->contains(value)) return true;
+    }
+    return false;
+}
+
+bool RouteProfile::RemoveSimpleRule(const QString& rawRule, simpleAction action) {
+    const QString raw = rawRule.trimmed();
+    const auto type = get_rule_type(raw, action);
+    if (type == custom) return false;
+
+    // Every rule of the type, not just the first: an imported profile may carry duplicates, and a toggle must really switch off.
+    bool removed = false;
+    for (const auto& rule: QList(Rules)) {
+        if (rule->type != type) continue;
+        QString value;
+        auto* values = simple_rule_values(raw, *rule, &value);
+        if (!values || values->removeAll(value) == 0) continue;
+        removed = true;
+        // Only the rule just emptied: a FilterEmptyRules() sweep would take unrelated empty rules with it.
+        if (rule->isEmpty()) Rules.removeOne(rule);
+    }
+    return removed;
+}
+
+QString RouteProfile::CoveringSimpleRule(const QString& rawRule, simpleAction action, simpleAction* coveringAction) {
+    const QString raw = rawRule.trimmed();
+    const auto colonIdx = raw.indexOf(':');
+    if (colonIdx == -1) return {};
+    const QString prefix = raw.left(colonIdx).trimmed();
+    const QString value = raw.mid(colonIdx + 1).trimmed().toLower();
+    if (value.isEmpty() || (prefix != "suffix" && prefix != "keyword")) return {};
+
+    const auto addressAction = [](int type) -> std::optional<simpleAction> {
+        switch (type) {
+            case simpleAddressProxy:
+                return proxy;
+            case simpleAddressBypass:
+                return bypass;
+            case simpleAddressBlock:
+                return block;
+            case simpleAddressWarpBypass:
+                return warpBypass;
+            default:
+                return std::nullopt;
+        }
+    };
+
+    // Rules match in list order, and a rule the action does not have yet gets appended at the end.
+    const auto ownType = get_rule_type(raw, action);
+    for (const auto& rule: Rules) {
+        if (rule->type == ownType) break;
+        const auto other = addressAction(rule->type);
+        if (!other || *other == action) continue;
+
+        // Every host a suffix or keyword matches contains the value, so an earlier keyword inside it catches them all.
+        // The same line elsewhere does not count: adding rawRule moves it out of that list.
+        for (const auto& keyword: rule->domain_keyword) {
+            const QString k = keyword.toLower();
+            if (!k.isEmpty() && value.contains(k) && !(prefix == "keyword" && k == value)) {
+                *coveringAction = *other;
+                return "keyword:" + keyword;
+            }
+        }
+        // A suffix covers a longer suffix, and only whole labels count: github.com covers api.github.com, not mygithub.com.
+        if (prefix != "suffix") continue;
+        for (const auto& suffix: rule->domain_suffix) {
+            const QString s = suffix.toLower();
+            if (!s.isEmpty() && value.endsWith("." + s)) {
+                *coveringAction = *other;
+                return "suffix:" + suffix;
+            }
+        }
+    }
+    return {};
+}
+
+QList<QString>* RouteProfile::simple_rule_values(const QString& content, RouteRule& rule, QString* value) {
+    const auto colonIdx = content.indexOf(':');
+    if (colonIdx == -1) return nullptr;
+    *value = content.mid(colonIdx + 1).trimmed();
+    if (value->isEmpty()) return nullptr;
+
+    const QString prefix = content.left(colonIdx).trimmed();
+    // Stored lowercased by add_simple_address_rule, so looked up the same way.
+    if (prefix == "domain" || prefix == "suffix" || prefix == "keyword") *value = value->toLower();
+    if (prefix == "domain") return &rule.domain;
+    if (prefix == "suffix") return &rule.domain_suffix;
+    if (prefix == "keyword") return &rule.domain_keyword;
+    if (prefix == "regex") return &rule.domain_regex;
+    if (prefix == "ruleset") return &rule.rule_set;
+    if (prefix == "ip") return &rule.ip_cidr;
+    if (prefix == "processName") return &rule.process_name;
+    if (prefix == "processPath") return &rule.process_path;
+    return nullptr;
 }
 
 bool RouteProfile::add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type) {

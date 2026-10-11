@@ -229,13 +229,26 @@ func dialerHTTPClient(dial func(ctx context.Context, network, address string) (n
 	}
 }
 
+type liveInstanceKey struct{}
+
+// Marks a batch run on the live instance, whose own DNS already reaches names through its tunnel, cached.
+func LiveInstance(ctx context.Context) context.Context {
+	return context.WithValue(ctx, liveInstanceKey{}, true)
+}
+
 // Dials carry a child of the batch context, not the per-request one, so cancelling the batch tears
 // them down -- and so does the closer, leaving none inside the outbound once the probe returns.
-func outboundHTTPClient(ctx context.Context, outbound adapter.Outbound) (*http.Client, func()) {
+func outboundHTTPClient(ctx context.Context, i Box, tag string, outbound adapter.Outbound) (*http.Client, func()) {
 	dialCtx, cancelDials := context.WithCancel(ctx)
-	client, closeClient := dialerHTTPClient(func(_ context.Context, network, addr string) (net.Conn, error) {
+	dial := func(_ context.Context, network, addr string) (net.Conn, error) {
 		return outbound.DialContext(dialCtx, "tcp", metadata.ParseSocksaddr(addr))
-	}, 0)
+	}
+	if endpoints := service.FromContext[adapter.EndpointManager](i.Context()); endpoints != nil && ctx.Value(liveInstanceKey{}) == nil {
+		if _, isEndpoint := endpoints.Get(tag); isEndpoint {
+			dial = tunnelResolvingDial(dialCtx, outbound)
+		}
+	}
+	client, closeClient := dialerHTTPClient(dial, 0)
 	return client, func() {
 		cancelDials()
 		closeClient()

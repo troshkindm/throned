@@ -14,11 +14,15 @@ class DialogEditGroupAdvanced : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, QWidget *parent = nullptr);
+    // serverIntervalHours: the interval the group's server last sent, 0 if none. A plain group gets no subscription sections.
+    DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, int serverIntervalHours,
+                            const Configs::EndpointSource &endpoint, bool subscription, QWidget *parent = nullptr);
 
     ~DialogEditGroupAdvanced() override;
 
     [[nodiscard]] Configs::SubscriptionOptions Options() const { return options; }
+
+    [[nodiscard]] Configs::EndpointSource Endpoint() const { return endpoint; }
 
 public slots:
     void accept() override;
@@ -26,7 +30,14 @@ public slots:
 private:
     Ui::DialogEditGroupAdvanced *ui;
     Configs::SubscriptionOptions options;
+    Configs::EndpointSource endpoint;
     bool globalSendHwid = false;
+
+    void loadEndpoint();
+
+    [[nodiscard]] Configs::EndpointSource::Mode endpointMode() const;
+
+    void syncEndpoint();
 
     void syncHwidFields();
 

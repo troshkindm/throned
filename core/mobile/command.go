@@ -10,6 +10,7 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/memory"
+	N "github.com/sagernet/sing/common/network"
 )
 
 type StatusMessage struct {
@@ -129,9 +130,11 @@ func (i *Instance) Groups() OutboundGroupIterator {
 			continue
 		}
 		g := &OutboundGroup{
-			Tag:      outboundGroup.Tag(),
-			Type:     outboundGroup.Type(),
-			Selected: outboundGroup.Now(),
+			Tag:  outboundGroup.Tag(),
+			Type: outboundGroup.Type(),
+		}
+		if selected := outboundGroup.Selected(N.NetworkTCP); selected != nil {
+			g.Selected = selected.Tag()
 		}
 		_, g.Selectable = outboundGroup.(*group.Selector)
 		if i.cacheFile != nil {
@@ -148,7 +151,7 @@ func (i *Instance) Groups() OutboundGroupIterator {
 				Tag:  itemTag,
 				Type: itemOutbound.Type(),
 			}
-			if history := i.urlTestHistory.LoadURLTestHistory(group.RealTag(i.outbounds, itemOutbound)); history != nil {
+			if history := i.urlTestHistory.LoadURLTestHistory(group.RealTag(itemOutbound, N.NetworkTCP)); history != nil {
 				item.URLTestTime = history.Time.Unix()
 				item.URLTestDelay = int32(history.Delay)
 			}

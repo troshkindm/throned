@@ -29,7 +29,6 @@
 #include "include/configs/sub/warp.h"
 #include "include/configs/sub/RouteUpdater.hpp"
 
-#include <srslist.h>
 #include "include/database/RoutesRepo.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteProfileSimpleEditor.h"
@@ -128,14 +127,6 @@ void DialogManageRoutes::reloadProfileItems() {
         ui->route_profiles->setCurrentRow(0);
     }
     blocker.unblock();
-}
-
-void DialogManageRoutes::set_dns_hijack_enability(const bool enable) const {
-    ui->dnshijack_allow_lan->setEnabled(enable);
-    ui->dnshijack_listenport->setEnabled(enable);
-    ui->dnshijack_rules->setEnabled(enable);
-    ui->dnshijack_v4resp->setEnabled(enable);
-    ui->dnshijack_v6resp->setEnabled(enable);
 }
 
 void DialogManageRoutes::show_predefined_dns_editor() {
@@ -320,15 +311,6 @@ void DialogManageRoutes::show_dns_object_editor() {
     w->deleteLater();
 }
 
-bool DialogManageRoutes::validate_dns_rules(const QString &rawString) {
-    auto rules = rawString.split("\n");
-    for (const auto &rawRule: rules) {
-        const QString rule = rawRule.trimmed();
-        if (!rule.isEmpty() && !rule.startsWith("ruleset:") && !rule.startsWith("domain:") && !rule.startsWith("suffix:") && !rule.startsWith("regex:")) return false;
-    }
-    return true;
-}
-
 DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
     ui->setupUi(this);
     setObjectName(QStringLiteral("routeProfileEditor"));
@@ -411,7 +393,6 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     bodyLayout->addWidget(ui->buttonBox, 0, Qt::AlignRight);
     root->addWidget(body, 1);
     ui->verticalLayout_3->setAlignment(Qt::AlignTop);
-    ui->verticalLayout_7->setAlignment(Qt::AlignTop);
     ui->verticalLayout_8->setAlignment(Qt::AlignTop);
     ui->verticalLayout_4->setAlignment(Qt::AlignTop);
     ui->gridLayout_2->setHorizontalSpacing(14);
@@ -676,46 +657,6 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
         on_import_route_clicked();
     });
 
-    ui->dnshijack_enable->setChecked(Configs::dataManager->settingsRepo->enable_dns_server);
-    set_dns_hijack_enability(Configs::dataManager->settingsRepo->enable_dns_server);
-    ui->dnshijack_allow_lan->setChecked(Configs::dataManager->settingsRepo->dns_server_listen_lan);
-    ui->dnshijack_listenport->setValidator(QRegExpValidator_Number);
-    ui->dnshijack_listenport->setText(Int2String(Configs::dataManager->settingsRepo->dns_server_listen_port));
-    ui->dnshijack_v4resp->setText(Configs::dataManager->settingsRepo->dns_v4_resp);
-    ui->dnshijack_v6resp->setText(Configs::dataManager->settingsRepo->dns_v6_resp);
-    connect(ui->dnshijack_what, &QPushButton::clicked, this, [=, this] {
-        MessageBoxInfo("What is this?", Configs::Information::HijackInfo);
-    });
-
-    QStringList ruleItems = {"domain:", "suffix:", "regex:"};
-    for (const auto &item: ruleSetList) {
-        ruleItems.append("ruleset:" + QString::fromUtf8(item.first.data(), item.first.size()));
-    }
-    rule_editor = new AutoCompleteTextEdit("", ruleItems, this);
-    ui->hijack_box->layout()->replaceWidget(ui->dnshijack_rules, rule_editor);
-    ui->dnshijack_rules_l->setBuddy(rule_editor);
-    rule_editor->setPlainText(Configs::dataManager->settingsRepo->dns_server_rules.join("\n"));
-    ui->dnshijack_rules->hide();
-#ifndef Q_OS_LINUX
-    ui->dnshijack_listenport->setVisible(false);
-    ui->dnshijack_listenport_l->setVisible(false);
-#endif
-
-    ui->redirect_enable->setChecked(Configs::dataManager->settingsRepo->enable_redirect);
-    ui->redirect_listenaddr->setEnabled(Configs::dataManager->settingsRepo->enable_redirect);
-    ui->redirect_listenaddr->setText(Configs::dataManager->settingsRepo->redirect_listen_address);
-    ui->redirect_listenport->setEnabled(Configs::dataManager->settingsRepo->enable_redirect);
-    ui->redirect_listenport->setValidator(QRegExpValidator_Number);
-    ui->redirect_listenport->setText(Int2String(Configs::dataManager->settingsRepo->redirect_listen_port));
-
-    connect(ui->dnshijack_enable, &QCheckBox::stateChanged, this, [=, this](bool state) {
-        set_dns_hijack_enability(state);
-    });
-    connect(ui->redirect_enable, &QCheckBox::stateChanged, this, [=, this](bool state) {
-        ui->redirect_listenaddr->setEnabled(state);
-        ui->redirect_listenport->setEnabled(state);
-    });
-
     ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
     ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : 0);
     ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
@@ -802,10 +743,6 @@ void DialogManageRoutes::accept() {
         MessageBoxInfo(tr("Invalid settings"), tr("Routing profile cannot be empty"));
         return;
     }
-    if (!validate_dns_rules(rule_editor->toPlainText())) {
-        MessageBoxInfo(tr("Invalid settings"), tr("DNS Rules are not valid"));
-        return;
-    }
 
     Configs::dataManager->settingsRepo->ruleset_mirror = ui->ruleset_mirror->currentIndex();
     Configs::dataManager->settingsRepo->resolve_domain_strategy = ui->domainStrategyCombo->currentText();
@@ -840,23 +777,6 @@ void DialogManageRoutes::accept() {
 
     Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList);
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
-
-    Configs::dataManager->settingsRepo->enable_dns_server = ui->dnshijack_enable->isChecked();
-    Configs::dataManager->settingsRepo->dns_server_listen_port = ui->dnshijack_listenport->text().trimmed().toInt();
-    Configs::dataManager->settingsRepo->dns_v4_resp = ui->dnshijack_v4resp->text().trimmed();
-    Configs::dataManager->settingsRepo->dns_v6_resp = ui->dnshijack_v6resp->text().trimmed();
-    auto rawRules = rule_editor->toPlainText().split("\n");
-    QStringList dnsRules;
-    for (const auto &rawRule: rawRules) {
-        if (rawRule.trimmed().isEmpty()) continue;
-        dnsRules.append(rawRule.trimmed());
-    }
-    Configs::dataManager->settingsRepo->dns_server_rules = dnsRules;
-
-    Configs::dataManager->settingsRepo->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
-    Configs::dataManager->settingsRepo->enable_redirect = ui->redirect_enable->isChecked();
-    Configs::dataManager->settingsRepo->redirect_listen_address = ui->redirect_listenaddr->text().trimmed();
-    Configs::dataManager->settingsRepo->redirect_listen_port = ui->redirect_listenport->text().trimmed().toInt();
 
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
     Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text().trimmed();

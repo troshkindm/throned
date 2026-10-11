@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QHash>
 #include <QList>
 #include <QMutex>
 #include <QObject>
@@ -39,6 +40,12 @@ public:
 
     void RefreshAll(bool onlyAllowed = false);
 
+    // Runs on every runner poll (UI thread); each group follows its own ResolveAutoUpdate interval.
+    void CheckAutoUpdate();
+
+    // Epoch seconds of the next automatic refresh (<= now: due), -1 when none is scheduled. UI thread only.
+    [[nodiscard]] qint64 NextAutoUpdate() const;
+
     void SubscribeUrl(const QString &url, const Finish &finish = nullptr);
 
     void ImportUrl(const QString &url, const Finish &finish = nullptr);
@@ -46,6 +53,9 @@ public:
     void ImportText(const QString &text, int gid = -1, const Finish &finish = nullptr);
 
     void ImportBatch(const QStringList &payloads, const Finish &finish = nullptr);
+
+    // Copies land in the current group and keep their source's endpoint, which no link carries.
+    void CloneProfiles(const QList<int> &ids, const Finish &finish = nullptr);
 
     void SetUrlTester(UrlTester tester);
 
@@ -68,7 +78,11 @@ private:
     void importDocuments(int gid, QList<QByteArray> documents);
     bool fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body,
                QString &userInfo, const QString &fallbackUrl = {},
-               QList<QPair<QByteArray, QByteArray>> *responseHeaders = nullptr);
+               QList<QPair<QByteArray, QByteArray>> *responseHeaders = nullptr, Configs::SubUserInfo *subMetadata = nullptr);
+    [[nodiscard]] qint64 autoUpdateDue(const Configs::Group &group, qint64 interval) const;
+
+    // UI thread only: in-memory, so a restart retries a failing group once.
+    QHash<int, qint64> autoAttempts;
 
     QMutex mutex;
     QList<Job> queue;
@@ -77,6 +91,18 @@ private:
     bool running = false;
     UrlTester urlTester;
 };
+
+struct AutoUpdatePlan {
+    enum class Source { off,
+                        global,
+                        group,
+                        server };
+    qint64 interval = 0; // seconds; 0 = not auto-updated
+    Source source = Source::off;
+};
+
+// The server's interval when respected and sent, else the group's override, else the global setting.
+AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group);
 
 GroupUpdater *updater();
 } // namespace Subscription

@@ -15,7 +15,8 @@ enum class DataViewItem { Download,
                           SpeedTest,
                           LatencyTest,
                           AutoSelector,
-                          VpnEndpoint };
+                          VpnEndpoint,
+                          Scanner };
 
 class DataViewHtmlGenerator {
 public:
@@ -60,6 +61,13 @@ public:
         QString detail;
     };
 
+    struct ScannerPanelItem {
+        QString name;
+        quint64 tested = 0;
+        quint64 total = 0;
+        int found = 0;
+    };
+
     void setDownloadReport(const DownloadProgressReport &report, bool show);
 
     void seedSpeedTest(int totalProfiles);
@@ -73,6 +81,8 @@ public:
 
     void setVpnEndpointStatus(const QString &summary, const QString &detail, bool problem);
 
+    void setScannerPanel(const QList<ScannerPanelItem> &items);
+
     void clearTestSections();
 
     void addTestProgress(int count = 1);
@@ -82,7 +92,10 @@ public:
 private:
     static QString getProgressBar(long long current, long long total);
 
-    QString itemHtml(DataViewItem item);
+    // Assume mu_ is held.
+    [[nodiscard]] bool itemVisible(DataViewItem item) const;
+
+    QString itemHtml(DataViewItem item, bool shared);
 
     // The core can hand back a result from an earlier run, so the counter is bounded where it is read rather than trusted.
     int cappedProgress(int total) const { return qBound(0, testProgress.load(), total); }
@@ -98,6 +111,8 @@ private:
 
     QString vpnEndpointSectionHtml();
 
+    QString scannerSectionHtml(bool compact);
+
     // Pool threads seed panels while buildHtml reads them.
     mutable QMutex mu_;
 
@@ -106,6 +121,7 @@ private:
     LatencyTestPanelState latencyTest_ = {};
     AutoSelectorPanelState autoSelector_ = {};
     VpnEndpointPanelState vpnEndpoint_ = {};
+    QList<ScannerPanelItem> scanner_;
 
     std::atomic<int> testProgress{0};
 };

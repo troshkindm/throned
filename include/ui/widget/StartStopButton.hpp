@@ -3,6 +3,7 @@
 #include <QToolButton>
 #include <QColor>
 
+class QPainter;
 class QPropertyAnimation;
 
 class StartStopButton : public QToolButton {
@@ -22,11 +23,29 @@ public:
     Q_ENUM(State)
 
     // Mirrors the tray-icon modes computed in MainWindow::refresh_status.
+    enum class Mode { Off,
+                      Core,
+                      SystemProxy,
+                      Tun };
+    Q_ENUM(Mode)
+
+    enum class Lock { Hidden,
+                      Pending,
+                      Blocking,
+                      Passing,
+                      Fault };
+    Q_ENUM(Lock)
 
     explicit StartStopButton(QWidget *parent = nullptr);
 
     void setState(State s);
     State state() const { return m_state; }
+
+    void setMode(Mode m);
+    Mode mode() const { return m_mode; }
+
+    void setLock(Lock l);
+    Lock lock() const { return m_lock; }
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override { return sizeHint(); }
@@ -62,18 +81,26 @@ protected:
     void showEvent(QShowEvent *) override;
     void hideEvent(QHideEvent *) override;
     void changeEvent(QEvent *) override;
+    bool event(QEvent *e) override;
 
 private:
     void applyState(bool animated);
     void animate(QPropertyAnimation *anim, const QVariant &to, int duration);
     void setLoopRunning(QPropertyAnimation *anim, bool running);
     void updateLoops();
+    void updateToolTip();
+    QRectF lockBox(const QRectF &area) const;
+    QColor lockColor() const;
+    qreal lockOpacity() const;
+    void paintLock(QPainter &p, const QRectF &area);
 
     QColor idleRingColor() const;
     QColor glyphColor() const;
     QColor targetRingColor() const;
 
     State m_state = State::Idle; // forced to Disabled in the constructor
+    Mode m_mode = Mode::Off;
+    Lock m_lock = Lock::Hidden;
 
     qreal m_morph = 0.0; // 0 = play triangle, 1 = stop square
     qreal m_spin = 0.0;
@@ -88,4 +115,8 @@ private:
     QPropertyAnimation *m_spinAnim = nullptr;
 
     bool m_shown = false;
+    QPixmap m_lockCache;
+    Lock m_lockKeyLock = Lock::Hidden;
+    qreal m_lockKeySize = 0.0;
+    qreal m_lockKeyDpr = 0.0;
 };

@@ -61,7 +61,6 @@ public:
     bool flag_tray = false;
     bool flag_debug = false;
     bool flag_restart_tun_on = false;
-    bool flag_dns_set = false;
 
     // Persisted settings.
     QString mainWindowGeometry;
@@ -127,9 +126,11 @@ public:
     QStringList log_include_regex = {};
     QStringList log_exclude_keyword = {};
     QStringList log_exclude_regex = {};
-    bool log_auto_scroll = true;
     bool start_minimal = false;
-    int max_log_line = 200;
+    int max_log_line = 500;
+    // Log view font; empty family / 0 size fall back to the built-in monospace list / the app font size.
+    QString log_font_family = "";
+    int log_font_size = 0;
     // On-disk diagnostic log only; log_level is the core's browser verbosity.
     QString log_file_level = "debug";
     QString splitter_state = "";
@@ -156,6 +157,9 @@ public:
     int app_auto_update = 1440;
     qint64 app_auto_update_last = 0;
     bool show_system_dns = false;
+    // Read legacy flags only to explain the removal of Hijack mode.
+    bool enable_dns_server = false;
+    bool enable_redirect = false;
     bool use_custom_icons = false;
     bool follow_status_in_taskbar = true;
     bool skip_delete_confirmation = false;
@@ -179,9 +183,10 @@ public:
     // Configs::subTlsVersion / Configs::subHttpVersion values.
     int sub_tls_version = 0;
     int sub_http_version = 0;
-    // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30); *_last is epoch seconds.
+    // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30).
     int sub_auto_update = -30;
-    qint64 sub_auto_update_last = 0;
+    // Follow a server's profile-update-interval instead of sub_auto_update's minutes.
+    bool sub_respect_server_interval = false;
     bool sub_clear = false;
     bool sub_show_change_popup = true;
     bool sub_send_hwid = false;
@@ -193,6 +198,15 @@ public:
     QString utlsFingerprint = "";
     bool disable_run_admin = false; // windows only
     bool use_mozilla_certs = false;
+    bool kill_switch = false;
+
+    // Remote API
+    bool remote_api_enable = false;
+    bool remote_api_lan = false;
+    int remote_api_port = 9095;
+    QString remote_api_key = "";
+    // CIDRs separated by commas or whitespace; empty allows every LAN address.
+    QString remote_api_allow = "";
 
     // Remember
     bool remember_system_proxy = false;
@@ -259,17 +273,12 @@ public:
     bool fake_dns = false;
     bool fakeip_disable_ipv6 = false;
     bool enable_tun_routing = false;
-#ifdef Q_OS_MACOS
-    QString vpn_implementation = "gvisor";
-    bool vpn_strict_route = false;
-#elif defined(Q_OS_WIN)
-    QString vpn_implementation = WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1507) ? "system" : "gvisor";
+#ifdef Q_OS_WIN
     bool vpn_strict_route = WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1507);
 #else
-    QString vpn_implementation = "system";
     bool vpn_strict_route = false;
 #endif
-    // Linux only: newer kernels need `auto_redirect` for the system/mixed stacks to pass traffic, at the cost of acting as a gateway.
+    // Linux only; while on, the host cannot act as a network gateway.
     bool vpn_auto_redirect = true;
     // Only UDP and ICMP reach the bridge: pre-match aborts at the sniff rule for TCP.
     bool vpn_l3_bridge = false;
@@ -324,26 +333,14 @@ public:
     int warp_masque_http_mode = 0;   // 0 = HTTP/3 with fallback, 1 = HTTP/3 only, 2 = HTTP/2
     QStringList warp_api_hosts = {}; // registration API domains, tried in order; empty = api.cloudflareclient.com
 
-    // Hijack
-    bool enable_dns_server = false;
-    bool dns_server_listen_lan = false;
-    int dns_server_listen_port = 53;
-    QString dns_v4_resp = "127.0.0.1";
-    QString dns_v6_resp = "::1";
-    QStringList dns_server_rules = {};
-    bool enable_redirect = false;
-    QString redirect_listen_address = "127.0.0.1";
-    int redirect_listen_port = 443;
-
-    // System dns
-    bool system_dns_set = false;
-
     // Hotkey
     QString hotkey_mainwindow = "";
     QString hotkey_group = "";
     QString hotkey_route = "";
     QString hotkey_system_proxy_menu = "";
     QString hotkey_toggle_system_proxy = "";
+    QString hotkey_toggle_connection = "";
+    QString hotkey_toggle_tun = "";
 
     // Core
     int core_box_clash_api = -9090;

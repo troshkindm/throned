@@ -1137,6 +1137,23 @@
               </property>
              </widget>
             </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_xray_ech">
+              <property name="text">
+               <string>ECH Config List</string>
+              </property>
+              <property name="buddy">
+               <cstring>xray_ech_config_list</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="xray_ech_config_list">
+              <property name="toolTip">
+               <string>echConfigList: a base64 ECHConfigList, or "domain+https://dns/dns-query" to let Xray fetch it over DoH (e.g. cloudflare-ech.com+https://8.8.8.8/dns-query).</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -1249,7 +1266,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="0">
+                <item row="4" column="0">
                  <widget class="QLabel" name="xray_headers_l">
                   <property name="text">
                    <string>Headers</string>
@@ -1262,13 +1279,13 @@
                 <item row="0" column="1">
                  <widget class="QLineEdit" name="xray_host"/>
                 </item>
-                <item row="0" column="3">
+                <item row="1" column="1">
                  <widget class="QLineEdit" name="xray_path"/>
                 </item>
-                <item row="3" column="1">
+                <item row="4" column="1">
                  <widget class="QLineEdit" name="xray_headers"/>
                 </item>
-                <item row="0" column="2">
+                <item row="1" column="0">
                  <widget class="QLabel" name="xray_path_l">
                   <property name="text">
                    <string>Path</string>
@@ -1278,7 +1295,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="0">
+                <item row="2" column="0">
                  <widget class="QLabel" name="xray_ed_label">
                   <property name="text">
                    <string>EarlyData Length</string>
@@ -1288,10 +1305,10 @@
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1">
+                <item row="2" column="1">
                  <widget class="QLineEdit" name="xray_ed_length"/>
                 </item>
-                <item row="2" column="0">
+                <item row="3" column="0">
                  <widget class="QCheckBox" name="xray_multi_mode">
                   <property name="text">
                    <string>Multi Mode</string>
@@ -1762,6 +1779,19 @@
                </layout>
               </widget>
              </item>
+             <item>
+              <spacer name="verticalSpacer_xray_network">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
             </layout>
            </widget>
           </widget>
@@ -1826,6 +1856,7 @@
   <tabstop>xray_alpn</tabstop>
   <tabstop>xray_pinned_peer_cert_sha256</tabstop>
   <tabstop>xray_verify_peer_cert_by_name</tabstop>
+  <tabstop>xray_ech_config_list</tabstop>
   <tabstop>xray_reality_pbk</tabstop>
   <tabstop>xray_reality_sid</tabstop>
   <tabstop>xray_reality_spiderx</tabstop>

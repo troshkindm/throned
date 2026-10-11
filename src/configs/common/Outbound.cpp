@@ -19,18 +19,22 @@ SecurityInfo outbound::SecurityFromTLS(const QString& transport) {
     info.transport = transport;
     if (HasTLS()) {
         auto tls = GetTLS();
-        if (tls->reality->enabled) {
-            info.label = QObject::tr("Reality");
-            info.level = SecurityLevel::Secure;
-            return info;
-        }
+        // TLS::Build emits nothing while TLS is off, Reality included.
         if (tls->enabled || MustTLS()) {
-            if (tls->insecure) {
+            if (tls->reality->enabled) {
+                info.label = QObject::tr("Reality");
+                info.level = SecurityLevel::Secure;
+            } else if (!tls->certificate_sha256.isEmpty() || !tls->certificate_public_key_sha256.isEmpty()) {
+                // The core checks a pinned certificate or key in place of the CA chain, insecure or not.
+                info.label = QObject::tr("TLS");
+                info.level = SecurityLevel::Secure;
+            } else if (tls->insecure) {
                 info.label = QObject::tr("Insecure TLS");
                 info.level = SecurityLevel::Weak;
             } else {
                 info.label = QObject::tr("TLS");
                 info.level = SecurityLevel::Secure;
+                info.caVerified = true;
             }
             return info;
         }
@@ -38,6 +42,27 @@ SecurityInfo outbound::SecurityFromTLS(const QString& transport) {
     info.label = QObject::tr("Raw");
     info.level = SecurityLevel::None;
     return info;
+}
+
+SecurityInfo WithPrivateServer(SecurityInfo info, const QString& host) {
+    if (info.isDangerous() && IsPrivateHost(host)) {
+        info.label = QObject::tr("Private");
+        info.level = SecurityLevel::Secure;
+        info.compromised = false;
+    }
+    return info;
+}
+
+SecurityInfo outbound::EffectiveSecurity() {
+    auto info = GetSecurity();
+    // Only TLS::Build injects skip_cert: naive builds its own TLS object, and custom JSON passes through untouched.
+    if (info.caVerified && HasTLS() && !LimitedTLS() && Configs::dataManager->settingsRepo->skip_cert) {
+        info.label = QObject::tr("Compromised");
+        info.level = SecurityLevel::Weak;
+        info.compromised = true;
+    }
+    if (!info.isDangerous()) return info;
+    return WithPrivateServer(info, GetAddress());
 }
 
 SecurityInfo outbound::GetSecurity() {
@@ -62,7 +87,7 @@ SecurityInfo outbound::GetSecurity() {
 }
 
 QString outbound::DisplaySecurity() {
-    auto info = GetSecurity();
+    auto info = EffectiveSecurity();
     if (info.label.isEmpty()) return {};
     auto text = info.transport.isEmpty() ? info.label
                                          : QStringLiteral("%1+%2").arg(info.transport, info.label);

@@ -8,6 +8,7 @@
 #include <QElapsedTimer>
 #include <QSet>
 
+#include "include/configs/generate.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/DatabaseManager.h"
@@ -191,7 +192,7 @@ void TrafficLooper::SetChainGroups(const QList<Configs::TrafficChainGroup>& conf
                 p->outbound ? p->outbound->DisplayName() : p->name,
                 groupName,
                 p->type,
-                p->outbound ? p->outbound->DisplayAddress() : QString());
+                Configs::DisplayEffectiveAddress(p));
         }
     }
 }

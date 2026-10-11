@@ -9,6 +9,7 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/ui/mainwindow.h"
+#include "include/ui/stats/dialog_endpoint_details.h"
 
 QString FormatSubInfo(const QString &info) {
     const auto sub = Configs::ParseSubInfo(info);
@@ -27,6 +28,8 @@ GroupItem::GroupItem(QWidget *parent, const std::shared_ptr<Configs::Group> &ent
     this->ent = ent;
     this->item = item;
     if (ent == nullptr) return;
+
+    ui->subinfo->setTextFormat(Qt::PlainText);
 
     connect(this, &GroupItem::edit_clicked, this, &GroupItem::on_edit_clicked);
     connect(Subscription::updater(), &Subscription::GroupUpdater::asyncUpdateCallback, this, [=, this](int gid) { if (gid == this->ent->id) refresh_data(); });
@@ -86,7 +89,7 @@ void GroupItem::on_edit_clicked() {
         if (dialog->result() == QDialog::Accepted) {
             Configs::dataManager->groupsRepo->Save(ent);
             refresh_data();
-            MW_dialog_message(MwMessage::GroupsChanged, {});
+            MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
         }
         dialog->deleteLater();
     });

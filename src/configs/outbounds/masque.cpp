@@ -116,8 +116,8 @@ QString masque::DisplayType() {
 
 SecurityInfo masque::GetSecurity() {
     // The peer key pins the server certificate, which the core enforces even when insecure is set.
-    if (tls->insecure && peer_public_key.isEmpty()) return {QObject::tr("Insecure TLS"), {}, SecurityLevel::Weak};
-    return {QObject::tr("TLS"), {}, SecurityLevel::Secure};
+    if (!peer_public_key.isEmpty()) return {QObject::tr("TLS"), {}, SecurityLevel::Secure};
+    return SecurityFromTLS({});
 }
 
 bool masque::IsEndpoint() {

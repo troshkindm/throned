@@ -10,6 +10,8 @@ class RoutesRepo;
 class GroupsRepo;
 class ProfilesRepo;
 class OtpProfilesRepo;
+class IpListsRepo;
+class IpScansRepo;
 class TrafficStatsRepo;
 class MarkersRepo;
 
@@ -19,6 +21,8 @@ class DatabaseManager {
 private:
     Database db;
     Database statsDb;
+    // Same file as db; transactions are per connection, so scanner writes never interleave with the other repos' BEGIN.
+    Database scanDb;
 
     static void createEntityIdsTable(Database& db);
     static bool entityIdsColumnExists(Database& db, const char* columnName);
@@ -38,6 +42,8 @@ public:
     std::unique_ptr<SettingsRepo> settingsRepo;
     std::unique_ptr<TrafficStatsRepo> trafficStatsRepo;
     std::unique_ptr<MarkersRepo> markersRepo;
+    std::unique_ptr<IpListsRepo> ipListsRepo;
+    std::unique_ptr<IpScansRepo> ipScansRepo;
 
     explicit DatabaseManager(const std::string& dbPath);
     ~DatabaseManager() = default;

@@ -1,4 +1,3 @@
-include(cmake/QHotkey.cmake)
 include(cmake/myproto.cmake)
 
 add_library(throned_sqlite3 STATIC
@@ -66,8 +65,6 @@ target_include_directories(throned_qrcodegen PUBLIC
 )
 
 add_library(throned_qv2ray STATIC
-        3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.cpp
-        3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp
         3rdparty/qv2ray/v2/ui/LogHighlighter.cpp
         3rdparty/qv2ray/v2/ui/LogHighlighter.hpp
         3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.cpp
@@ -89,14 +86,18 @@ target_include_directories(throned_fkyaml INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty"
 )
 
+add_library(throned_monocypher STATIC 3rdparty/monocypher/monocypher.c)
+add_library(Throned::Monocypher ALIAS throned_monocypher)
+target_include_directories(throned_monocypher PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/monocypher")
+
 set(THRONED_DEPENDENCIES
         Throned::FkYAML
         Throned::Protocol
         Throned::QrCodeGen
         Throned::Quirc
+        Throned::Monocypher
         Throned::Qv2ray
         Throned::SQLiteCpp
-        QHotkey::QHotkey
 )
 
 if (WIN32)

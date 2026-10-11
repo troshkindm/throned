@@ -474,7 +474,8 @@ QString openconnect::DisplayType() {
 }
 
 SecurityInfo openconnect::GetSecurity() {
-    if (tls->insecure) return {QObject::tr("Insecure TLS"), {}, SecurityLevel::Weak};
+    // The core still checks a pinned fingerprint when insecure is set.
+    if (tls->insecure && tls->peer_fingerprint.isEmpty()) return {QObject::tr("Insecure TLS"), {}, SecurityLevel::Weak};
     return {QObject::tr("TLS"), {}, SecurityLevel::Secure};
 }
 

@@ -73,6 +73,8 @@ public:
     struct FilterKey {
         QString type;
         QString address;
+        // The host an endpoint source makes the profile dial; empty when it keeps its own.
+        QString effectiveAddress;
         QString name;
         QString country;
         int port = 0;
@@ -92,6 +94,9 @@ public:
     void refreshTable(const QList<int> &ids = {}, bool mayNeedReset = false);
 
     void refreshProfileId(int profileId);
+
+    // Re-resolves the Address column after IP lists or group endpoints change.
+    void invalidateAddresses();
 
     void emplaceProfiles(int row1, int row2);
 
@@ -114,6 +119,8 @@ private:
     mutable QHash<int, std::shared_ptr<Configs::Profile>> m_cache;
     mutable QList<int> m_lruOrder;
     int m_cacheSize = 100;
+    // Resolving an endpoint source can query the IP lists, so it runs once per row, not per paint.
+    mutable QHash<int, QString> m_addressCache;
 
     mutable QHash<int, FilterKey> m_filterKeys;
     bool m_udpColumnVisible = false;

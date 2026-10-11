@@ -14,6 +14,7 @@
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/DeviceDetailsHelper.hpp"
 #include "include/database/entities/Group.h"
+#include "include/scanner/ScanManager.h"
 
 #include <QStyleFactory>
 #include <QFileDialog>
@@ -153,7 +154,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 #endif
 
     ui->max_log_line->setText(QString::number(Configs::dataManager->settingsRepo->max_log_line));
-    D_LOAD_BOOL(log_auto_scroll)
     // A value this list does not carry would silently leave the box on its first
     // item, and saving would then write that back over the real setting.
     ui->log_level->setCurrentText(Configs::SingBox::NormalizeLogLevel(Configs::dataManager->settingsRepo->log_level));
@@ -171,13 +171,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     ui->connection_statistics->setChecked(Configs::dataManager->settingsRepo->enable_stats);
     ui->disable_traffic_aggregation->setChecked(Configs::dataManager->settingsRepo->disable_traffic_aggregation);
-    ui->show_sys_dns->setChecked(Configs::dataManager->settingsRepo->show_system_dns);
-    connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=] {
-        CACHE.updateSystemDns = true;
-    });
-#ifndef Q_OS_WIN
-    ui->show_sys_dns->hide();
-#endif
     D_LOAD_BOOL(start_minimal)
     ui->skip_delete_confirm->setChecked(Configs::dataManager->settingsRepo->skip_delete_confirmation);
     D_LOAD_BOOL(show_config_security)
@@ -207,6 +200,14 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         themeManager()->RefreshRegisteredStyles();
         updateGeometry();
     });
+    ui->log_font_family->setCurrentFont(QFont(ResolveLogFontFamily(Configs::dataManager->settingsRepo->log_font_family)));
+    CACHE.shownLogFontFamily = ui->log_font_family->currentFont().family();
+    for (int i = 7; i <= 26; i++) {
+        ui->log_font_size->addItem(Int2String(i));
+    }
+    const int logFontSize = Configs::dataManager->settingsRepo->log_font_size;
+    ui->log_font_size->setCurrentText(Int2String(logFontSize > 0 ? logFontSize : qApp->font().pointSize()));
+    CACHE.shownLogFontSize = ui->log_font_size->currentText().toInt();
     //
     ui->theme->setIconSize(QSize(64, 22));
     ui->theme->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -277,6 +278,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(sub_send_hwid)
     D_LOAD_STRING(sub_custom_hwid_params)
     D_LOAD_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
+    D_LOAD_BOOL(sub_respect_server_interval)
     D_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
     D_LOAD_INT_ENABLE(app_auto_update, app_auto_update_enable)
     auto details = GetDeviceDetails();
@@ -343,6 +345,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         ui->ntp_outbound->setEnabled(state);
     });
 
+    D_LOAD_BOOL(kill_switch)
     // Build the production settings window from the same structure as
     // tools/ui-demo/SettingsPreview.  The original controls are reparented, so
     // loading, validation and saving continue to use the existing code paths.
@@ -668,8 +671,9 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
             case 1: { // Logging
                 auto *output = makeSection(tr("Log output"), tr("Control verbosity and retained history."));
                 auto *layout = qobject_cast<QVBoxLayout *>(output->layout());
+                addControlRow(layout, ui->label_log_font->text(), ui->log_font_family);
+                addControlRow(layout, ui->label_log_font_size->text(), ui->log_font_size);
                 addControlRow(layout, tr("Max log lines"), ui->max_log_line);
-                addToggleRow(layout, tr("Auto-scroll log"), ui->log_auto_scroll);
                 addControlRow(layout, tr("Sing-box log level"), ui->log_level);
                 addControlRow(layout, tr("Xray log level"), ui->xray_loglevel);
                 pageLayout->addWidget(output);
@@ -710,7 +714,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                 addToggleRow(layout, ui->disable_traffic_aggregation->text(), ui->disable_traffic_aggregation);
                 addToggleRow(layout, ui->show_config_security->text(), ui->show_config_security);
                 addToggleRow(layout, ui->start_minimal->text(), ui->start_minimal);
-                addToggleRow(layout, ui->show_sys_dns->text(), ui->show_sys_dns);
                 addToggleRow(layout, ui->disable_tray->text(), ui->disable_tray);
                 addToggleRow(layout, tr("Delete profiles without confirmation"), ui->skip_delete_confirm);
                 pageLayout->addWidget(window);
@@ -839,6 +842,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                 alwaysStandardUser_ = addToggle(layout, tr("Always Start as Standard User"), settings.disable_run_admin,
                                                 tr("Do not attempt to start as Admin unless explicitly requested"));
 #endif
+                addToggleRow(layout, ui->kill_switch->text(), ui->kill_switch);
                 pageLayout->addWidget(permissions);
 
                 auto *urlScheme = makeSection(tr("URL scheme"), tr("Handler registration for throne:// links and config files."));
@@ -1203,7 +1207,6 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->xray_log_level = ui->xray_loglevel->currentText().trimmed();
     Configs::dataManager->settingsRepo->log_enable_include = ui->enable_log_include->isChecked();
     Configs::dataManager->settingsRepo->log_enable_exclude = ui->enable_log_exclude->isChecked();
-    D_SAVE_BOOL(log_auto_scroll)
     Configs::dataManager->settingsRepo->log_include_keyword = SplitAndTrim(ui->log_include_keyword->toPlainText(), "\n", false);
     Configs::dataManager->settingsRepo->log_exclude_keyword = SplitAndTrim(ui->log_exclude_keyword->toPlainText(), "\n", false);
 
@@ -1231,10 +1234,18 @@ void DialogBasicSettings::accept() {
     bool profileListDisplayChanged =
         Configs::dataManager->settingsRepo->show_config_security != ui->show_config_security->isChecked();
     D_SAVE_BOOL(show_config_security)
-    Configs::dataManager->settingsRepo->show_system_dns = ui->show_sys_dns->isChecked();
+
+    QString logFontFamily = ui->log_font_family->currentFont().family();
+    if (Configs::dataManager->settingsRepo->log_font_family.isEmpty() && logFontFamily == CACHE.shownLogFontFamily) logFontFamily.clear();
+    int logFontSize = ui->log_font_size->currentText().toInt();
+    if (Configs::dataManager->settingsRepo->log_font_size <= 0 && logFontSize == CACHE.shownLogFontSize) logFontSize = 0;
+    const bool logFontChanged = logFontFamily != Configs::dataManager->settingsRepo->log_font_family ||
+                                logFontSize != Configs::dataManager->settingsRepo->log_font_size;
+    Configs::dataManager->settingsRepo->log_font_family = logFontFamily;
+    Configs::dataManager->settingsRepo->log_font_size = logFontSize;
 
     if (Configs::dataManager->settingsRepo->max_log_line <= 0) {
-        Configs::dataManager->settingsRepo->max_log_line = 200;
+        Configs::dataManager->settingsRepo->max_log_line = 500;
     }
 
     // The PeriodicRunner reads these intervals live; no timer needs restarting.
@@ -1250,6 +1261,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(sub_send_hwid)
     D_SAVE_STRING(sub_custom_hwid_params)
     D_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
+    D_SAVE_BOOL(sub_respect_server_interval)
     D_SAVE_INT_ENABLE(route_auto_update, route_auto_update_enable)
     D_SAVE_INT_ENABLE(app_auto_update, app_auto_update_enable)
 
@@ -1279,7 +1291,11 @@ void DialogBasicSettings::accept() {
     if (alwaysStandardUser_ != nullptr && Configs::dataManager->settingsRepo->disable_run_admin != alwaysStandardUser_->isChecked()) {
         CACHE.updateDisableAdmin = true;
     }
+    const bool previousSkipCert = Configs::dataManager->settingsRepo->skip_cert;
+    const bool killSwitchChanged = Configs::dataManager->settingsRepo->kill_switch != ui->kill_switch->isChecked();
+    D_SAVE_BOOL(kill_switch)
     bindings_.save();
+    profileListDisplayChanged |= previousSkipCert != Configs::dataManager->settingsRepo->skip_cert;
 
     // A quick Save can arrive before the preview debounce fires. Flush it while
     // the dialog and its combo still exist instead of silently losing the choice.
@@ -1291,12 +1307,13 @@ void DialogBasicSettings::accept() {
     QStringList changes;
     if (CACHE.needRestart) changes << MwArg::NeedRestart;
     if (CACHE.updateDisableTray) changes << MwArg::DisableTray;
-    if (CACHE.updateSystemDns) changes << MwArg::SystemDns;
     if (CACHE.updateTrayIcon) changes << MwArg::TrayIcon;
     if (CACHE.updateMaxLogLines) changes << MwArg::MaxLogLines;
     if (CACHE.updateDisableAdmin) changes << MwArg::DisableAdmin;
     if (needChoosePort) changes << MwArg::ChoosePort;
     if (profileListDisplayChanged) changes << MwArg::ProfileListDisplay;
+    if (killSwitchChanged) changes << MwArg::KillSwitch;
+    if (logFontChanged) changes << MwArg::LogFont;
     MW_dialog_message(MwMessage::UpdateSettings, changes);
     QDialog::accept();
 }
@@ -1321,6 +1338,7 @@ static Configs::BackupParts BackupPartsFromMeta(quint32 formatVersion, const QJs
         p.routes = po["routes"].toBool() && files.contains("database");
         p.settings = po["settings"].toBool() && files.contains("database");
         p.otp = po["otp"].toBool() && files.contains("database");
+        p.ipLists = po["ipLists"].toBool() && files.contains("database");
         p.icons = po["icons"].toBool() && hasIcons;
     } else {
         p.profiles = p.routes = p.settings = files.contains("database");
@@ -1394,6 +1412,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
     parts.routes = ui->backup_inc_routes->isChecked();
     parts.settings = ui->backup_inc_settings->isChecked();
     parts.otp = ui->backup_inc_otp->isChecked();
+    parts.ipLists = ui->backup_inc_ip_lists->isChecked();
     parts.icons = ui->backup_inc_icons->isChecked();
 
     if (!parts.any()) {
@@ -1468,6 +1487,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
     partsObj["routes"] = parts.routes;
     partsObj["settings"] = parts.settings;
     partsObj["otp"] = parts.otp;
+    partsObj["ipLists"] = parts.ipLists;
     partsObj["icons"] = parts.icons;
 
     QJsonObject meta;
@@ -1485,6 +1505,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
     if (parts.routes) included << tr("Routing profiles");
     if (parts.settings) included << tr("Settings");
     if (parts.otp) included << tr("OTP profiles");
+    if (parts.ipLists) included << tr("IP lists and scans");
     if (parts.icons) included << tr("Custom icons");
 
     QMessageBox::information(this, tr("Backup Created"),
@@ -1557,8 +1578,9 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     auto *cbRoutes = new QCheckBox(tr("Routing profiles"), &dlg);
     auto *cbSettings = new QCheckBox(tr("Settings"), &dlg);
     auto *cbOtp = new QCheckBox(tr("OTP profiles"), &dlg);
+    auto *cbIpLists = new QCheckBox(tr("IP lists and scans"), &dlg);
     auto *cbIcons = new QCheckBox(tr("Custom icons"), &dlg);
-    for (auto *cb: {cbProfiles, cbRoutes, cbSettings, cbOtp, cbIcons}) cb->setChecked(true);
+    for (auto *cb: {cbProfiles, cbRoutes, cbSettings, cbOtp, cbIpLists, cbIcons}) cb->setChecked(true);
     cbProfiles->setEnabled(avail.profiles);
     cbProfiles->setChecked(avail.profiles);
     cbRoutes->setEnabled(avail.routes);
@@ -1567,12 +1589,15 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     cbSettings->setChecked(avail.settings);
     cbOtp->setEnabled(avail.otp);
     cbOtp->setChecked(avail.otp);
+    cbIpLists->setEnabled(avail.ipLists);
+    cbIpLists->setChecked(avail.ipLists);
     cbIcons->setEnabled(avail.icons);
     cbIcons->setChecked(avail.icons);
     layout->addWidget(cbProfiles);
     layout->addWidget(cbRoutes);
     layout->addWidget(cbSettings);
     layout->addWidget(cbOtp);
+    layout->addWidget(cbIpLists);
     layout->addWidget(cbIcons);
 
     auto *warn = new QLabel(
@@ -1595,6 +1620,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     chosen.routes = avail.routes && cbRoutes->isChecked();
     chosen.settings = avail.settings && cbSettings->isChecked();
     chosen.otp = avail.otp && cbOtp->isChecked();
+    chosen.ipLists = avail.ipLists && cbIpLists->isChecked();
     chosen.icons = avail.icons && cbIcons->isChecked();
 
     if (!chosen.any()) {
@@ -1603,6 +1629,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
         return;
     }
 
+    int skippedRules = 0;
     if (chosen.anyDb()) {
         QString tempDbPath = QDir::temp().filePath("Thr_restore_tmp.db");
         QFile::remove(tempDbPath);
@@ -1615,8 +1642,10 @@ void DialogBasicSettings::on_backup_restore_clicked() {
         tempDbFile.write(files["database"]);
         tempDbFile.close();
 
+        // A running scan would otherwise keep writing its progress and results over the restored rows.
+        Scanner::ScanManager::instance()->StopAll(false);
         try {
-            Configs::dataManager->getDatabase().restoreSelective(tempDbPath.toStdString(), chosen);
+            skippedRules = Configs::dataManager->getDatabase().restoreSelective(tempDbPath.toStdString(), chosen);
         } catch (std::exception &e) {
             QFile::remove(tempDbPath);
             QMessageBox::critical(this, tr("Restore Failed"),
@@ -1644,8 +1673,10 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     // The exit path's settingsRepo->Save() would write the stale in-memory values back over the restore.
     if (chosen.settings) Configs::dataManager->settingsRepo->noSave = true;
 
-    QMessageBox::information(this, tr("Restore Complete"),
-                             tr("Backup restored successfully. Throned will now restart for the changes to take effect."));
+    QString done = tr("Backup restored successfully. Throned will now restart for the changes to take effect.");
+    if (skippedRules > 0)
+        done += "\n\n" + tr("Skipped %n routing rule(s) that use conditions this version of Throned does not support.", nullptr, skippedRules);
+    QMessageBox::information(this, tr("Restore Complete"), done);
     MW_dialog_message(MwMessage::RestartProgram, {});
     QDialog::reject();
 }

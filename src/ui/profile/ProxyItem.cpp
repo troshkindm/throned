@@ -3,6 +3,8 @@
 
 #include <QMessageBox>
 
+#include "include/configs/generate.h"
+
 ProxyItem::ProxyItem(QWidget *parent, const std::shared_ptr<Configs::Profile> &ent, QListWidgetItem *item)
     : QWidget(parent), ui(new Ui::ProxyItem) {
     ui->setupUi(this);
@@ -25,7 +27,7 @@ ProxyItem::~ProxyItem() {
 void ProxyItem::refresh_data() {
     ui->type->setText(ent->outbound->DisplayType());
     ui->name->setText(ent->outbound->DisplayName());
-    ui->address->setText(ent->outbound->DisplayAddress());
+    ui->address->setText(Configs::DisplayEffectiveAddress(ent));
     ui->traffic->setText(ent->DisplayTraffic());
     ui->test_result->setText(ent->DisplayTestResult());
 

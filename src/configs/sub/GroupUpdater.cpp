@@ -202,6 +202,42 @@ QString groupLabel(int gid) {
     return group == nullptr ? Int2String(gid) : group->name;
 }
 
+// profile-update-interval is in hours; h/d/s suffixes are tolerated.
+int parseUpdateInterval(const QString &raw) {
+    QString s = raw.trimmed().remove('"').remove('\'').toLower();
+    qint64 unit = 3600;
+    if (s.endsWith('h')) {
+        s.chop(1);
+    } else if (s.endsWith('d')) {
+        s.chop(1);
+        unit = 86400;
+    } else if (s.endsWith('s')) {
+        s.chop(1);
+        unit = 1;
+    }
+    bool ok = false;
+    const qint64 value = s.trimmed().toLongLong(&ok);
+    if (!ok || value <= 0) return 0;
+    constexpr qint64 kMaxHours = 24 * 366;
+    return static_cast<int>(std::clamp<qint64>(std::min(value, kMaxHours * 3600) * unit / 3600, 1, kMaxHours));
+}
+
+// The body's head for the leading `#key: value` scan, decoded first when the body is one base64 blob.
+QByteArray metadataHead(const QByteArray &body) {
+    constexpr std::size_t kHeadChars = 16384;
+    const auto head = scan::trim(scan::view(body)).substr(0, kHeadChars);
+    QByteArray compact;
+    compact.reserve(static_cast<qsizetype>(head.size()));
+    for (const char c: head) {
+        if (!scan::isSpace(c)) compact.append(c);
+    }
+    if (compact.isEmpty() || !scan::looksLikeBase64(scan::view(compact))) {
+        return QByteArray(head.data(), static_cast<qsizetype>(head.size()));
+    }
+    compact.truncate(compact.size() & ~qsizetype(3));
+    return QByteArray::fromBase64(compact);
+}
+
 bool groupNameIsAutomatic(const std::shared_ptr<Configs::Group> &group) {
     return group->name.isEmpty() || group->name == group->url || group->name == QUrl(group->url).host();
 }
@@ -240,9 +276,7 @@ struct ProviderMeta {
         } else if (key == "fallback-url") {
             if (fallbackUrl.isEmpty()) fallbackUrl = sanitizeProviderUrl(value);
         } else if (key == "profile-update-interval" && updateIntervalHours == 0) {
-            bool ok = false;
-            const int hours = value.toInt(&ok);
-            if (ok && hours > 0) updateIntervalHours = qMin(hours, 24 * 30);
+            updateIntervalHours = parseUpdateInterval(value);
         }
     }
 };
@@ -351,7 +385,7 @@ QList<int> removeFlagged(const QList<int> &ids, const Configs::SubscriptionOptio
     }
     if (options.remove_insecure) {
         collect(QObject::tr("Removed %1 insecure profiles:"),
-                [](const std::shared_ptr<Configs::Profile> &ent) { return ent->outbound->GetSecurity().isDangerous(); });
+                [](const std::shared_ptr<Configs::Profile> &ent) { return ent->outbound->EffectiveSecurity().isInsecure(); });
     }
     if (options.remove_invalid) {
         QList<std::shared_ptr<Configs::Profile>> unchecked;
@@ -411,6 +445,24 @@ QList<int> removeUnavailableAndSort(const std::shared_ptr<Configs::Group> &group
     return deleted;
 }
 } // namespace
+
+AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group) {
+    const auto &settings = Configs::dataManager->settingsRepo;
+    if (group.url.isEmpty() || group.archive || group.skip_auto_update || settings->sub_auto_update < 30) return {};
+    const auto &options = group.sub_options;
+    const bool respectServer = options.respect_server_interval.value_or(
+        group.provider.intervalFromProvider || settings->sub_respect_server_interval);
+    const int serverMinutes = group.sub_info.server_interval > 0    ? group.sub_info.server_interval * 60
+                              : group.provider.intervalFromProvider ? group.provider.updateIntervalMinutes
+                                                                    : 0;
+    if (respectServer && serverMinutes > 0)
+        return {static_cast<qint64>(serverMinutes) * 60, AutoUpdatePlan::Source::server};
+    if (options.update_interval > 0)
+        return {static_cast<qint64>(std::max(options.update_interval, 30)) * 60, AutoUpdatePlan::Source::group};
+    if (!group.provider.intervalFromProvider && group.provider.updateIntervalMinutes > 0)
+        return {static_cast<qint64>(group.provider.updateIntervalMinutes) * 60, AutoUpdatePlan::Source::group};
+    return {static_cast<qint64>(settings->sub_auto_update) * 60, AutoUpdatePlan::Source::global};
+}
 
 RequestIdentity ResolveIdentity(const Configs::Group *group) {
     const auto &settings = Configs::dataManager->settingsRepo;
@@ -487,6 +539,37 @@ void GroupUpdater::RefreshAll(bool onlyAllowed) {
     }
 }
 
+qint64 GroupUpdater::autoUpdateDue(const Configs::Group &group, qint64 interval) const {
+    // A failed attempt waits the interval too, so a dead URL is not re-fetched on every poll.
+    const qint64 last = std::max(group.sub_last_update, autoAttempts.value(group.id, 0));
+    return last <= 0 ? 0 : last + interval;
+}
+
+void GroupUpdater::CheckAutoUpdate() {
+    const qint64 now = QDateTime::currentSecsSinceEpoch();
+    for (const int gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+        if (group == nullptr) continue;
+        const auto plan = ResolveAutoUpdate(*group);
+        if (plan.interval <= 0 || autoUpdateDue(*group, plan.interval) > now) continue;
+        autoAttempts[gid] = now;
+        RefreshGroup(gid, nullptr, false);
+    }
+}
+
+qint64 GroupUpdater::NextAutoUpdate() const {
+    qint64 next = -1;
+    for (const int gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+        if (group == nullptr) continue;
+        const auto plan = ResolveAutoUpdate(*group);
+        if (plan.interval <= 0) continue;
+        const qint64 due = autoUpdateDue(*group, plan.interval);
+        if (next < 0 || due < next) next = due;
+    }
+    return next;
+}
+
 void GroupUpdater::SubscribeUrl(const QString &url, const Finish &finish) {
     const auto content = url.trimmed();
     enqueue({-1, false, [=, this] {
@@ -533,6 +616,31 @@ void GroupUpdater::ImportBatch(const QStringList &payloads, const Finish &finish
              }});
 }
 
+void GroupUpdater::CloneProfiles(const QList<int> &ids, const Finish &finish) {
+    QList<QPair<QByteArray, Configs::EndpointSource>> copies;
+    for (const auto &ent: Configs::dataManager->profilesRepo->GetProfileBatch(ids)) {
+        copies.append({ent->outbound->ExportJsonLink().toUtf8(), ent->endpoint});
+    }
+    enqueue({-1, false, [=, this] {
+                 auto &settings = Configs::dataManager->settingsRepo;
+                 settings->imported_count = 0;
+                 ImportSink sink(-1, nullptr);
+                 auto parseSink = sinkFor(sink);
+                 for (const auto &copy: copies) {
+                     parseSink.profile = [&sink, endpoint = copy.second](std::shared_ptr<Configs::Profile> ent) {
+                         ent->endpoint = endpoint;
+                         sink.add(std::move(ent));
+                     };
+                     ParseDocument(copy.first, parseSink);
+                 }
+                 sink.flush();
+                 settings->imported_count = sink.entries.size();
+                 MW_dialog_message(MwMessage::SubscriptionFinished, {});
+                 emit asyncUpdateCallback(-1);
+                 if (finish != nullptr) finish();
+             }});
+}
+
 void GroupUpdater::enqueue(Job job) {
     QMutexLocker locker(&mutex);
     enqueueLocked(std::move(job));
@@ -571,7 +679,7 @@ void GroupUpdater::drain() {
 
 bool GroupUpdater::fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body,
                          QString &userInfo, const QString &fallbackUrl,
-                         QList<QPair<QByteArray, QByteArray>> *responseHeaders) {
+                         QList<QPair<QByteArray, QByteArray>> *responseHeaders, Configs::SubUserInfo *subMetadata) {
     MW_show_log(">>>>>>>> " + QObject::tr("Requesting subscription: %1").arg(name));
     HttpGetOptions options;
     options.maxBytes = kMaxSubscriptionBytes;
@@ -590,8 +698,105 @@ bool GroupUpdater::fetch(const QString &url, const QString &name, const RequestI
     }
     body = std::move(resp.data);
     userInfo = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
+    Configs::SubUserInfo subInfo;
+
+    const QString userInfoHeader = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
+    if (!userInfoHeader.isEmpty()) subInfo = Configs::ParseSubUserInfo(userInfoHeader);
+    bool userInfoSeen = subInfo.valid;
+
+    QString intervalHeader = NetworkRequestHelper::GetHeader(resp.header, "profile-update-interval");
+    if (intervalHeader.isEmpty()) intervalHeader = NetworkRequestHelper::GetHeader(resp.header, "x-profile-update-interval");
+    if (const int hours = parseUpdateInterval(intervalHeader); hours > 0) {
+        subInfo.server_interval = hours;
+        subInfo.valid = true;
+    }
+
+    QString profileTitle = decodeProviderValue(NetworkRequestHelper::GetHeader(resp.header, "Profile-Title"));
+    if (!profileTitle.isEmpty()) {
+        subInfo.title = profileTitle;
+        subInfo.valid = true;
+    }
+
+    QString webPageUrl = NetworkRequestHelper::GetHeader(resp.header, "Profile-Web-Page-Url");
+    if (!webPageUrl.isEmpty()) {
+        subInfo.web_url = webPageUrl;
+        subInfo.valid = true;
+    }
+
+    const QString supportUrl = NetworkRequestHelper::GetHeader(resp.header, "Support-Url");
+    if (!supportUrl.isEmpty()) {
+        subInfo.support_url = supportUrl;
+        subInfo.valid = true;
+    }
+
+    QString announceMsg = decodeProviderValue(NetworkRequestHelper::GetHeader(resp.header, "Announce"));
+    if (!announceMsg.isEmpty()) {
+        subInfo.announce = announceMsg;
+        subInfo.valid = true;
+    }
+
+    const QByteArray head = metadataHead(body);
+    scan::forEachLine(scan::view(head), [&](std::string_view rawLine) -> bool {
+        auto line = scan::trim(rawLine);
+        if (line.empty()) return true;
+        if (!line.starts_with('#') && !line.starts_with("//")) return false;
+
+        std::string_view comment = line.starts_with("//") ? line.substr(2) : line.substr(1);
+        comment = scan::trim(comment);
+
+        const auto colon = comment.find(':');
+        if (colon == std::string_view::npos) return true;
+
+        const auto key = scan::trim(comment.substr(0, colon));
+        const auto val = scan::trim(comment.substr(colon + 1));
+        const QString valStr = QString::fromUtf8(val.data(), static_cast<qsizetype>(val.size()));
+
+        if (!userInfoSeen && scan::startsWithNoCase(key, "subscription-userinfo")) {
+            if (const auto parsed = Configs::ParseSubUserInfo(valStr); parsed.valid) {
+                subInfo.upload = parsed.upload;
+                subInfo.download = parsed.download;
+                subInfo.total = parsed.total;
+                subInfo.expire = parsed.expire;
+                subInfo.has_quota = parsed.has_quota;
+                subInfo.valid = true;
+                userInfoSeen = true;
+            }
+        } else if (subInfo.server_interval == 0 && scan::startsWithNoCase(key, "profile-update-interval")) {
+            int hours = parseUpdateInterval(valStr);
+            if (hours > 0) {
+                subInfo.server_interval = hours;
+                subInfo.valid = true;
+            }
+        } else if (subInfo.title.isEmpty() && scan::startsWithNoCase(key, "profile-title")) {
+            subInfo.title = decodeProviderValue(valStr);
+            if (!subInfo.title.isEmpty()) subInfo.valid = true;
+        } else if (subInfo.web_url.isEmpty() && scan::startsWithNoCase(key, "profile-web-page-url")) {
+            subInfo.web_url = valStr;
+            if (!subInfo.web_url.isEmpty()) subInfo.valid = true;
+        } else if (subInfo.support_url.isEmpty() && scan::startsWithNoCase(key, "support-url")) {
+            subInfo.support_url = valStr;
+            if (!subInfo.support_url.isEmpty()) subInfo.valid = true;
+        } else if (subInfo.announce.isEmpty() && (scan::startsWithNoCase(key, "announce") || scan::startsWithNoCase(key, "notice"))) {
+            subInfo.announce = decodeProviderValue(valStr);
+            if (!subInfo.announce.isEmpty()) subInfo.valid = true;
+        }
+
+        return true;
+    });
+
     if (responseHeaders != nullptr) *responseHeaders = std::move(resp.header);
+    if (userInfo.isEmpty() && (subInfo.has_quota || subInfo.expire > 0)) {
+        userInfo = QStringLiteral("upload=%1; download=%2; total=%3; expire=%4")
+                       .arg(subInfo.upload)
+                       .arg(subInfo.download)
+                       .arg(subInfo.total)
+                       .arg(subInfo.expire);
+    }
+    if (subMetadata != nullptr) *subMetadata = subInfo;
     MW_show_log("<<<<<<<< " + QObject::tr("Subscription request fininshed: %1").arg(name));
+    if (subInfo.server_interval > 0) {
+        MW_show_log(QObject::tr("Subscription server update interval: %1 hour(s)").arg(subInfo.server_interval));
+    }
     return true;
 }
 
@@ -619,11 +824,18 @@ void GroupUpdater::refresh(int gid, bool showDiff) {
     if (group == nullptr || group->archive) return;
     const auto options = group->sub_options;
 
+    const QString url = group->url.trimmed();
     QByteArray body;
     QString userInfo;
+    Configs::SubUserInfo subInfo;
     QList<QPair<QByteArray, QByteArray>> responseHeaders;
-    if (!fetch(group->url.trimmed(), group->name, ResolveIdentity(group.get()), body, userInfo,
-               group->provider.fallbackUrl, &responseHeaders)) return;
+    if (!fetch(url, group->name, ResolveIdentity(group.get()), body, userInfo,
+               group->provider.fallbackUrl, &responseHeaders, &subInfo)) return;
+
+    if (group->url.trimmed() != url) {
+        MW_show_log(QObject::tr("The URL of %1 changed during the update, so the result was discarded.").arg(group->name));
+        return;
+    }
 
     ProviderMeta providerMeta;
     for (const auto &name: {"Profile-Title", "Announce", "Support-Url",
@@ -632,6 +844,11 @@ void GroupUpdater::refresh(int gid, bool showDiff) {
         if (!value.isEmpty()) providerMeta.read(QString::fromLatin1(name).toLower(), value);
     }
     readProviderBody(body, providerMeta);
+    if (providerMeta.title.isEmpty()) providerMeta.title = subInfo.title;
+    if (providerMeta.announce.isEmpty()) providerMeta.announce = subInfo.announce;
+    if (providerMeta.supportUrl.isEmpty()) providerMeta.supportUrl = sanitizeProviderUrl(subInfo.support_url);
+    if (providerMeta.webPageUrl.isEmpty()) providerMeta.webPageUrl = sanitizeProviderUrl(subInfo.web_url);
+    if (providerMeta.updateIntervalHours == 0) providerMeta.updateIntervalHours = subInfo.server_interval;
 
     // Auto selectors are local state, not servers the remote sent: keep them out of the diff.
     const auto selectorIds = profilesRepo->GetProfileIdsByType("autoselector");
@@ -731,6 +948,7 @@ void GroupUpdater::refresh(int gid, bool showDiff) {
 
     group->sub_last_update = QDateTime::currentSecsSinceEpoch();
     group->info = userInfo;
+    group->sub_info = subInfo;
     applyProviderMeta(providerMeta, group);
     groupsRepo->Save(group);
 
@@ -822,6 +1040,10 @@ void GroupUpdater::refresh(int gid, bool showDiff) {
     }
 
     disturbed << removeFlagged(members(), options, change_text);
+
+    // Stamped only once the update went through, so an interrupted one is retried instead of counting as fresh.
+    group->sub_last_update = QDateTime::currentSecsSinceEpoch();
+    groupsRepo->Save(group);
 
     MW_show_log("<<<<<<<< " + QObject::tr("Change of %1:").arg(group->name) + "\n" + change_text);
     if (showDiff && settings->sub_show_change_popup) {

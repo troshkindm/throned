@@ -1,6 +1,7 @@
 #include "include/ui/widget/SubscriptionPopover.hpp"
 
 #include "include/configs/sub/SubInfo.h"
+#include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/GroupsRepo.h"
 #include "include/database/entities/Group.h"
 #include "include/global/Configs.hpp"
@@ -271,13 +272,14 @@ void SubscriptionPopover::fill(const std::shared_ptr<Configs::Group> &group) {
     QStringList footer;
     if (group->sub_last_update > 0)
         footer << tr("Updated %1").arg(shortDate(group->sub_last_update));
-    if (const int minutes = provider.updateIntervalMinutes; minutes > 0) {
+    const auto schedule = Subscription::ResolveAutoUpdate(*group);
+    if (const int minutes = schedule.interval / 60; minutes > 0) {
         const QString cycle = minutes % 60 == 0 ? tr("every %n h", "", minutes / 60)
                                                 : tr("every %n min", "", minutes);
         footer << cycle;
     }
     const QString line = footer.join(QStringLiteral(" · "));
-    m_updated->setToolTip(provider.intervalFromProvider ? tr("The provider sets this cycle.") : QString());
+    m_updated->setToolTip(schedule.source == Subscription::AutoUpdatePlan::Source::server ? tr("The provider sets this cycle.") : QString());
     // Budget from the card, not a constant: a translated cycle is wider than the English one.
     const int budget = kCardWidth - 14 * 2 - m_refresh->sizeHint().width() - 6;
     m_updated->setText(m_updated->fontMetrics().elidedText(line, Qt::ElideRight, budget));

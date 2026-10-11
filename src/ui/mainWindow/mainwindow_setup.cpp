@@ -3,6 +3,8 @@
 
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/api/RPC.h"
+#include "include/api/remote/Router.hpp"
+#include "include/api/remote/Server.hpp"
 // Full definition: MainWindow's destructor lives here and destroys the unique_ptr.
 #include "include/ui/mainWindow/TestRunner.h"
 
@@ -19,8 +21,11 @@
 #include "include/configs/sub/RouteUpdater.hpp"
 #include "include/global/PeriodicRunner.hpp"
 #include "include/global/Logger.hpp"
+#include "include/scanner/IpListUpdater.h"
+#include "include/scanner/ScanManager.h"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/ui/stats/dialog_auto_selector.h"
+#include "include/sys/KillSwitch.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
@@ -555,8 +560,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     commandLayout->addWidget(modeSeparator);
     addToggle(tr("System proxy"), tr("Proxy"), ui->checkBox_SystemProxy);
     ui->checkBox_VPN->setParent(commandBar);
-    ui->system_dns->setParent(commandBar);
-    ui->system_dns->hide();
     ui->toolButton_startstop->setParent(commandBar);
     ui->toolButton_startstop->setFixedSize(40, 40);
     commandLayout->addSpacing(8);
@@ -605,9 +608,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     logMenu->setObjectName(QStringLiteral("logToolsMenu"));
     auto *clearAction = logMenu->addAction(tr("Clear"));
     auto *copyAction = logMenu->addAction(tr("Copy all"));
-    auto *autoScrollAction = logMenu->addAction(tr("Auto-scroll"));
-    autoScrollAction->setCheckable(true);
-    autoScrollAction->setChecked(Configs::dataManager->settingsRepo->log_auto_scroll);
     logMenu->addSeparator();
     auto *levelMenu = logMenu->addMenu(tr("Level"));
     levelMenu->setObjectName(QStringLiteral("logToolsMenu"));
@@ -650,14 +650,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(clearAction, &QAction::triggered, this, [this] { clear_log_view(); });
     connect(copyAction, &QAction::triggered, this, [this] {
         QApplication::clipboard()->setText(ui->masterLogBrowser->toPlainText());
-    });
-    connect(autoScrollAction, &QAction::toggled, this, [autoScrollAction](bool enabled) {
-        Configs::dataManager->settingsRepo->log_auto_scroll = enabled;
-        Configs::dataManager->settingsRepo->Save();
-        const auto colors = themeManager()->Colors();
-        autoScrollAction->setIcon(enabled
-                                      ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17)
-                                      : QIcon());
     });
     connect(logLevelActions, &QActionGroup::triggered, this, [this, levelMenu](QAction *action) {
         Configs::dataManager->settingsRepo->log_level = action->data().toString();
@@ -935,7 +927,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Icons are rasterised, so they have to be repainted whenever the theme
     // changes; otherwise a blue glyph survives into a warm palette.
     const auto retintIcons = [this, navigation, mutedIcons, selectionIcon, clearAction,
-                              copyAction, autoScrollAction, filterAction, clearSelection] {
+                              copyAction, filterAction, clearSelection] {
         const auto colors = themeManager()->Colors();
         for (const auto &[button, glyph]: navigation)
             button->setIcon(MaterialIcon::icon(glyph, colors.textMuted, 19));
@@ -944,9 +936,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         selectionIcon->setPixmap(MaterialIcon::pixmap(MaterialIcon::Glyph::List, colors.accent, 21));
         clearAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Delete, colors.textMuted, 17));
         copyAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Copy, colors.textMuted, 17));
-        autoScrollAction->setIcon(autoScrollAction->isChecked()
-                                      ? MaterialIcon::icon(MaterialIcon::Glyph::Check, colors.success, 17)
-                                      : QIcon());
         filterAction->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, colors.textMuted, 17));
         clearSelection->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Close, colors.textMuted, 14));
         if (statusConnectionTest != nullptr)
@@ -1258,11 +1247,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             ui->splitter->setSizes({total * 3 / 5, total * 2 / 5});
     });
     setLogHighlighter(themeUsesDarkLog(Configs::dataManager->settingsRepo->theme));
-    qvLogDocument->setUndoRedoEnabled(false);
-    qvLogDocument->setMaximumBlockCount(Configs::dataManager->settingsRepo->max_log_line);
-    ui->masterLogBrowser->setUndoRedoEnabled(false);
-    ui->masterLogBrowser->setDocument(qvLogDocument);
-    applyLogBrowserFont();
+    setupLogView();
     updateLogFilterFields();
     if (!uiPreviewMode) {
         runOnThread([=, this] {
@@ -1329,7 +1314,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             MW_dialog_message(MwMessage::CoreStarted, {Int2String(profileId)});
         });
 
-        const auto socketFullName = core_server->fullServerName();
+        Sys::KillSwitch::instance()->apply();
+
+        auto socketFullName = core_server->fullServerName();
         runOnThread(
             [=, this] {
                 QMutexLocker lock(&coreProcessMutex);
@@ -1370,6 +1357,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         else
             profile_start();
     });
+    ui->toolButton_startstop->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->toolButton_startstop, &QWidget::customContextMenuRequested, this, [this] { show_startstop_menu(); });
     connect(ui->tabWidget->tabBar(), &QTabBar::tabMoved, this, [=, this](int from, int to) {
         QList<int> tabOrder;
         for (int i = 0; i < ui->tabWidget->tabBar()->count(); i++) {
@@ -1801,6 +1790,15 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     // table UI: model-backed view with on-demand row data
     profilesTableModel = new ProfilesTableModel(this);
+    // A profile fed by an IP list shows the list's first entry, which any list change can move.
+    const auto refreshEffectiveAddresses = [this] {
+        Configs::InvalidateEndpointDisplayCache();
+        profilesTableModel->invalidateAddresses();
+    };
+    connect(Scanner::IpListUpdater::instance(), &Scanner::IpListUpdater::listsChanged, this, refreshEffectiveAddresses,
+            Qt::QueuedConnection);
+    connect(Scanner::IpListUpdater::instance(), &Scanner::IpListUpdater::listUpdated, this, refreshEffectiveAddresses,
+            Qt::QueuedConnection);
     profilesFilterModel = new ProfilesFilterProxyModel(this);
     profilesFilterModel->setSourceModel(profilesTableModel);
     ui->profilesTableView->setModel(profilesFilterModel);
@@ -1905,6 +1903,13 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         int columnIndex = header->logicalIndexAt(pos);
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
+        // The column-widths action carries its shortcut id as data, so it must never be read as a sort key.
+        auto execWithResetWidths = [&](QMenu &menu) -> QAction * {
+            if (!menu.isEmpty()) menu.addSeparator();
+            menu.addAction(ui->actionRefresh_Column_Widths);
+            auto *chosen = menu.exec(header->mapToGlobal(pos));
+            return chosen == ui->actionRefresh_Column_Widths ? nullptr : chosen;
+        };
 
         const bool comfortable = Configs::dataManager->settingsRepo->profile_rows_comfortable;
         // Offered from every column: it is the only place the row style is reachable.
@@ -1971,7 +1976,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 act->setChecked(group->type_sort_by == opt.value);
             }
 
-            auto *chosen = menu.exec(header->mapToGlobal(pos));
+            auto *chosen = execWithResetWidths(menu);
             if (chosen == nullptr || !chosen->data().isValid()) return;
 
             group->type_sort_by = static_cast<Configs::typeBy>(chosen->data().toInt());
@@ -2052,7 +2057,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 act->setChecked(static_cast<int>(group->test_sort_by) == opt.value);
             }
 
-            auto *chosen = menu.exec(header->mapToGlobal(pos));
+            auto *chosen = execWithResetWidths(menu);
             if (chosen == nullptr || !chosen->data().isValid()) return;
 
             int testSortBy = chosen->data().toInt();
@@ -2103,7 +2108,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             toggleUdp->setCheckable(true);
             toggleUdp->setChecked(Configs::dataManager->settingsRepo->show_udp_column);
 
-            auto *chosen = menu.exec(header->mapToGlobal(pos));
+            auto *chosen = execWithResetWidths(menu);
             if (chosen == nullptr) return;
             if (chosen == toggleUdp) {
                 Configs::dataManager->settingsRepo->show_udp_column = toggleUdp->isChecked();
@@ -2138,7 +2143,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         QMenu menu(this);
         addRowStyleAction(menu);
         addFavoritesButtonAction(menu);
-        menu.exec(header->mapToGlobal(pos));
+        execWithResetWidths(menu);
     });
     // Added last so it sits at the end of the corner strip, past the tools the
     // connections tab appends to it.
@@ -2180,6 +2185,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (!ui->profilesTableView->isVisible()) return;
         refresh_proxy_list_column_size();
     });
+    ui->profilesTableView->viewport()->installEventFilter(this);
 
     auto *filterHeader = static_cast<ProfilesTableFilterHeader *>(ui->profilesTableView->horizontalHeader());
     filterHeader->setLastFilterColumn(Configs::dataManager->settingsRepo->last_filter_column);
@@ -2212,6 +2218,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(filterHeader, &ProfilesTableFilterHeader::focusTableRequested, this,
             [this](bool selectFirst) { focusProfilesTable(selectFirst); });
 
+    connect(Subscription::updater(), &Subscription::GroupUpdater::asyncUpdateCallback, this, [this](int gid) {
+        if (gid >= 0) updateTabToolTip(gid);
+    });
+
     this->refresh_groups();
     setFavoritesView(Configs::dataManager->settingsRepo->profiles_favorites_view);
 
@@ -2221,6 +2231,17 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     trayMenu = new QMenu();
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();
+
+    trayConnectAction = new QAction(tr("Connect"), trayMenu);
+    connect(trayConnectAction, &QAction::triggered, this, [this]() {
+        if (running != nullptr)
+            profile_stop(false, false, true);
+        else
+            profile_start();
+    });
+    trayMenu->addAction(trayConnectAction);
+    trayMenu->addSeparator();
+
     trayMenu->addAction(ui->actionStart_with_system);
     trayMenu->addAction(ui->actionRemember_last_proxy);
     trayMenu->addMenu(startPickMenu);
@@ -2306,17 +2327,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         set_spmode_vpn(false);
     });
     connect(ui->menu_qr, &QAction::triggered, this, [=, this]() { display_qr_link(false); });
-    connect(ui->system_dns, &QCheckBox::clicked, this, [=, this](bool checked) {
-        if (const auto ok = set_system_dns(checked); !ok) {
-            ui->system_dns->setChecked(!checked);
-        } else {
-            refresh_status();
-        }
-    });
-    if (Configs::dataManager->settingsRepo->show_system_dns)
-        ui->system_dns->show();
-    else
-        ui->system_dns->hide();
 
     connect(ui->menu_server, &QMenu::aboutToShow, this, [=, this]() {
         // Everything in the Test submenu acts on the selection, so it follows it as a
@@ -2364,7 +2374,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         connect(dialog, &QDialog::finished, this, [=, this] {
             if (dialog->result() == QDialog::Accepted) {
                 Configs::dataManager->groupsRepo->Save(ent);
-                MW_dialog_message(MwMessage::GroupsChanged, {});
+                MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
             }
             dialog->deleteLater();
         });
@@ -2392,6 +2402,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 
     connect(ui->actionRefresh_Column_Widths, &QAction::triggered, this, [=, this] {
         auto ent = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (ent == nullptr) return;
         ent->column_width.clear();
         Configs::dataManager->groupsRepo->Save(ent);
         show_group(ent->id);
@@ -2452,29 +2463,11 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             action->setData(route->id);
             action->setCheckable(true);
             action->setChecked(Configs::dataManager->settingsRepo->current_route_id == route->id);
-            connect(action, &QAction::triggered, this, [=, this]() {
-                auto routeID = action->data().toInt();
-                if (Configs::dataManager->settingsRepo->current_route_id == routeID) return;
-                Configs::dataManager->settingsRepo->current_route_id = routeID;
-                Configs::dataManager->settingsRepo->Save();
-                if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
-            });
+            connect(action, &QAction::triggered, this, [=, this]() { choose_route(action->data().toInt()); });
             ui->menuRouting_Menu->addAction(action);
         }
     });
-    connect(ui->actionClear_Test_Result, &QAction::triggered, this, [=, this]() {
-        auto entIDs = get_now_selected_list();
-        auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
-        if (ents.empty()) return;
-        for (const auto &ent: ents) {
-            ent->ClearTestResults();
-        }
-        Configs::dataManager->profilesRepo->SaveBatch(ents);
-        if (auto group = Configs::dataManager->groupsRepo->GetGroup(ents.first()->gid); group &&
-                                                                                        group->calculated_column_width.size() > ProfilesTableModel::ColTestResult)
-            group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
-        refresh_proxy_list();
-    });
+    connect(ui->actionClear_Test_Result, &QAction::triggered, this, [=, this]() { clear_test_results(get_now_selected_list()); });
     connect(ui->actionUrl_Test_Selected, &QAction::triggered, this, [=, this]() {
         testRunner->runUrlTests(get_now_selected_list());
     });
@@ -2628,32 +2621,24 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(Stats::autoSelectorMonitor, &Stats::AutoSelectorMonitor::poolExhausted, this, [this](int profileID) { on_auto_selector_exhausted(profileID); }, Qt::QueuedConnection);
     connect(Stats::autoSelectorMonitor, &Stats::AutoSelectorMonitor::updated, this, [this] { refresh_auto_selector_view(); }, Qt::QueuedConnection);
 
+    auto *scanManager = Scanner::ScanManager::instance();
+    connect(scanManager, &Scanner::ScanManager::progressChanged, this, [this](int) { refreshScannerDataView(); }, Qt::QueuedConnection);
+    connect(scanManager, &Scanner::ScanManager::statusChanged, this, [this](int) { refreshScannerDataView(true); }, Qt::QueuedConnection);
+    connect(scanManager, &Scanner::ScanManager::scansChanged, this, [this] {
+        m_scannerNames.clear();
+        refreshScannerDataView(true); }, Qt::QueuedConnection);
+
     {
         auto *runner = Throne::PeriodicRunner::instance();
         // Interval is sign-encoded in settings (negative = disabled); < 30 min counts as off.
         const auto minutesOf = [](int v) { return v >= 30 ? v : 0; };
+        // Every poll while enabled: each group keeps its own schedule, persisted as its sub_last_update.
         runner->Add({
-            tr("subscriptions"),
-            [minutesOf] {
-                const int global = minutesOf(Configs::dataManager->settingsRepo->sub_auto_update);
-                if (global == 0) return 0;
-                // A provider asking for a shorter cycle speeds the sweep up, but the
-                // global switch stays the master: off means off for every group.
-                int tick = global;
-                for (const int gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
-                    const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-                    if (group == nullptr || group->url.isEmpty() || group->archive || group->skip_auto_update) continue;
-                    if (const int own = group->provider.updateIntervalMinutes; own >= 30)
-                        tick = qMin(tick, own);
-                }
-                return tick;
-            },
-            [] { return Configs::dataManager->settingsRepo->sub_auto_update_last; },
-            [](qint64 t) {
-                Configs::dataManager->settingsRepo->sub_auto_update_last = t;
-                Configs::dataManager->settingsRepo->Save();
-            },
-            [] { Subscription::updater()->RefreshAll(true); },
+            {},
+            [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->sub_auto_update) > 0 ? 1 : 0; },
+            nullptr,
+            nullptr,
+            [] { Subscription::updater()->CheckAutoUpdate(); },
         });
         runner->Add({
             tr("routing profiles"),
@@ -2679,6 +2664,13 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 Configs::dataManager->settingsRepo->Save();
             },
             [this] { runOnNewThread([this] { CheckUpdate(true); }); },
+        });
+        runner->Add({
+            {},
+            [] { return 1; },
+            nullptr,
+            nullptr,
+            [] { Scanner::IpListUpdater::instance()->CheckAutoUpdate(); },
         });
     }
 
@@ -2715,7 +2707,19 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     else if (tray->isVisible())
         HideWindow(this);
 
+    // Connected only now: the handler refreshes the tray and views, which do not exist when apply() first runs above.
+    connect(Sys::KillSwitch::instance(), &Sys::KillSwitch::stateChanged, this, [this] { kill_switch_state_changed(); });
+    QTimer::singleShot(0, this, [this] { kill_switch_state_changed(); });
+
     ui->data_view->setStyleSheet("background: transparent; border: none;");
+    const QPointer<RemoteApi::Router> apiRouter = new RemoteApi::Router(this);
+    RemoteApi::Server::instance()->setDispatcher([apiRouter](const RemoteApi::Request &request, const RemoteApi::Responder &respond) {
+        if (apiRouter)
+            apiRouter->dispatch(request, respond);
+        else
+            respond(RemoteApi::Response::Error(503, "exiting", "Throne is shutting down"));
+    });
+    if (!uiPreviewMode) RemoteApi::Server::instance()->apply(RemoteApi::ConfigFromSettings());
 }
 
 MainWindow::~MainWindow() {

@@ -30,14 +30,24 @@ struct SecurityInfo {
     QString label;
     QString transport;
     SecurityLevel level = SecurityLevel::Unknown;
+    // Secure only through the CA check, which the global skip_cert setting turns off.
+    bool caVerified = false;
+    // Weakened by that global setting rather than by the profile itself.
+    bool compromised = false;
 
     bool isDangerous() const {
         return level == SecurityLevel::None || level == SecurityLevel::Weak;
     }
+
+    // What "Remove insecure" acts on: a global setting is no reason to delete a profile.
+    bool isInsecure() const { return isDangerous() && !compromised; }
 };
 
 // Empty for the transports not worth showing (plain tcp / xray raw).
 QString DisplayTransportName(const QString& type);
+
+// Traffic to a private address never crosses the internet, so its protection is moot.
+SecurityInfo WithPrivateServer(SecurityInfo info, const QString& host);
 
 class outbound : public baseConfig {
 public:
@@ -97,7 +107,11 @@ public:
         return QString("[%1] %2").arg(DisplayType(), DisplayName());
     }
 
+    // What the profile's own settings give; consumers want EffectiveSecurity().
     virtual SecurityInfo GetSecurity();
+
+    // GetSecurity() plus what the profile can't see: a private server and the global skip_cert.
+    SecurityInfo EffectiveSecurity();
 
     QString DisplaySecurity();
 

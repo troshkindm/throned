@@ -6,6 +6,9 @@
 namespace Configs {
 inline QStringList xrayFlows = {"xtls-rprx-vision", "xtls-rprx-vision-udp443"};
 
+// Xray loads only "none" or an mlkem768x25519plus key string, which encrypts the payload without transport security.
+inline bool IsVlessEncrypted(const QString& encryption) { return !encryption.isEmpty() && encryption != "none"; }
+
 class xrayVless : public outbound {
 public:
     QString uuid;
@@ -29,6 +32,7 @@ public:
     QString DisplayType() override {
         return "VLESS (Xray)";
     }
+    SecurityInfo GetSecurity() override;
     bool IsXray() override {
         return true;
     }

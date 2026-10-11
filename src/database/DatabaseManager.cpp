@@ -1,4 +1,6 @@
 #include "include/database/GroupsRepo.h"
+#include "include/database/IpListsRepo.h"
+#include "include/database/IpScansRepo.h"
 #include "include/database/MarkersRepo.h"
 #include "include/database/OtpProfilesRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -63,7 +65,7 @@ std::string DatabaseManager::prepareStatsDb(const std::string& path) {
 }
 
 DatabaseManager::DatabaseManager(const std::string& dbPath)
-    : db(dbPath), statsDb(prepareStatsDb(deriveStatsDbPath(dbPath)), true) {
+    : db(dbPath), statsDb(prepareStatsDb(deriveStatsDbPath(dbPath)), true), scanDb(dbPath) {
     // entity_ids must exist before the repos are constructed.
     createEntityIdsTable(db);
 
@@ -87,13 +89,19 @@ void DatabaseManager::createEntityIdsTable(Database& db) {
                 profile_last_id INTEGER NOT NULL DEFAULT 0,
                 group_last_id INTEGER NOT NULL DEFAULT 0,
                 route_profile_last_id INTEGER NOT NULL DEFAULT 0,
-                otp_profile_last_id INTEGER NOT NULL DEFAULT 0
+                otp_profile_last_id INTEGER NOT NULL DEFAULT 0,
+                ip_list_last_id INTEGER NOT NULL DEFAULT 0,
+                ip_scan_last_id INTEGER NOT NULL DEFAULT 0
             )
         )");
 
     // CREATE IF NOT EXISTS skips existing databases, so each added counter needs its own ALTER.
     if (!entityIdsColumnExists(db, "otp_profile_last_id"))
         db.exec("ALTER TABLE entity_ids ADD COLUMN otp_profile_last_id INTEGER NOT NULL DEFAULT 0");
+    if (!entityIdsColumnExists(db, "ip_list_last_id"))
+        db.exec("ALTER TABLE entity_ids ADD COLUMN ip_list_last_id INTEGER NOT NULL DEFAULT 0");
+    if (!entityIdsColumnExists(db, "ip_scan_last_id"))
+        db.exec("ALTER TABLE entity_ids ADD COLUMN ip_scan_last_id INTEGER NOT NULL DEFAULT 0");
 
     auto checkQuery = db.query("SELECT COUNT(*) FROM entity_ids");
     int count = 0;
@@ -125,6 +133,9 @@ void DatabaseManager::initializeRepos() {
     settingsRepo = std::make_unique<SettingsRepo>(db);
     trafficStatsRepo = std::make_unique<TrafficStatsRepo>(statsDb);
     markersRepo = std::make_unique<MarkersRepo>(db);
+    ipListsRepo = std::make_unique<IpListsRepo>(scanDb);
+    ipScansRepo = std::make_unique<IpScansRepo>(scanDb);
+    ipScansRepo->NormalizeInterrupted();
 }
 
 void DatabaseManager::applyMigrations() {

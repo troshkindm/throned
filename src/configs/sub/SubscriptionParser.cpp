@@ -11,9 +11,12 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QSet>
 #include <QUrl>
 #include <QtEndian>
 
+#include <algorithm>
+#include <initializer_list>
 #include <string_view>
 
 namespace Subscription {
@@ -60,7 +63,7 @@ constexpr Protocol kProtocols[] = {
     {"juicity", {"juicity://"}, {"juicity"}, {}},
     {"trusttunnel", {"tt://"}, {"trusttunnel"}, {}},
     {"shadowtls", {"shadowtls://"}, {"shadowtls"}, {}},
-    {"wireguard", {"wg://", "wireguard://"}, {"wireguard"}, {}},
+    {"wireguard", {"awg://", "wg://", "wireguard://"}, {"wireguard"}, {}},
     {"masque", {}, {"masque"}, {"masque"}},
     {"ssh", {"ssh://"}, {"ssh"}, {"ssh"}},
     {"naive", {"naive+https://", "naive+quic://"}, {"naive"}, {}},
@@ -95,6 +98,80 @@ const char *typeForClash(const std::string &type) {
 
 QString toQString(std::string_view s) {
     return QString::fromUtf8(s.data(), static_cast<qsizetype>(s.size())).trimmed();
+}
+
+// Shared by document() and vpnLink() so both agree on what counts as a WireGuard conf.
+bool hasWireGuardSections(std::string_view text) {
+    return text.find("[Interface]") != npos && text.find("[Peer]") != npos;
+}
+
+// Filters dividers and boilerplate headers ("# WireGuard configuration", "# Peer 1") so only a real node name can become a profile name.
+bool looksLikeName(const QString &comment) {
+    static const QRegularExpression separatorRe(R"([\s_\-.:]+)", QRegularExpression::UseUnicodePropertiesOption);
+    static const QSet<QString> generic = {"peer", "server", "wireguard", "configuration",
+                                          "config", "interface", "client", "wg"};
+    if (!std::any_of(comment.begin(), comment.end(), [](QChar c) { return c.isLetterOrNumber(); }))
+        return false;
+    for (auto w: comment.toLower().split(separatorRe, Qt::SkipEmptyParts)) {
+        while (!w.isEmpty() && w.back().isDigit()) w.chop(1);
+        if (w.isEmpty()) continue;
+        if (!generic.contains(w)) return true;
+    }
+    return false;
+}
+
+struct WireGuardNames {
+    QString explicitName;
+    QString peerComment;
+};
+
+// A comment names the peer only when it sits directly above [Peer]; any blank or config line in between drops it, so [Interface] comments cannot leak in.
+WireGuardNames extractWireGuardNames(std::string_view text) {
+    static const QRegularExpression explicitRe(R"(^(?:name|remarks?)\s*[:=]\s*(.+)$)",
+                                               QRegularExpression::CaseInsensitiveOption);
+    static const QRegularExpression markersRe(R"(^[#;\s]+)", QRegularExpression::UseUnicodePropertiesOption);
+    static const QRegularExpression directiveRe(R"(^\w+\s*=)");
+    WireGuardNames out;
+    QString lastComment;
+
+    scan::forEachLine(text, [&](std::string_view raw) {
+        const auto line = scan::trim(raw);
+        const bool isComment = !line.empty() && (line.front() == '#' || line.front() == ';');
+        if (!isComment) {
+            // Assigned on every [Peer]: the name comes from the last peer, the one ParseFromLink keeps for the endpoint.
+            if (!line.empty() && scan::startsWithNoCase(line, "[peer]")) out.peerComment = lastComment;
+            lastComment.clear();
+            return true;
+        }
+
+        QString comment = QString::fromUtf8(line.data(), static_cast<qsizetype>(line.size()));
+        comment.remove(markersRe);
+        comment = comment.trimmed();
+
+        if (out.explicitName.isEmpty()) {
+            if (const auto m = explicitRe.match(comment); m.hasMatch()) {
+                out.explicitName = m.captured(1).trimmed();
+            }
+        }
+
+        // Commented-out options such as "# DNS = 1.1.1.1" are not names.
+        lastComment = (!directiveRe.match(comment).hasMatch() && looksLikeName(comment)) ? comment : QString();
+        return true;
+    });
+
+    return out;
+}
+
+// Candidates are in priority order; a name ParseFromLink already read from a #fragment is never overwritten.
+void setNameIfEmpty(Configs::Profile &ent, std::initializer_list<QString> candidates) {
+    if (!ent.outbound->name.trimmed().isEmpty()) return;
+    for (const auto &c: candidates) {
+        const auto t = c.trimmed();
+        if (!t.isEmpty()) {
+            ent.outbound->name = t;
+            return;
+        }
+    }
 }
 
 SingBoxSubType getSingBoxSubType(const QJsonDocument &doc) {
@@ -164,7 +241,7 @@ QJsonObject normalizeXrayVlessForParse(const QJsonObject &out) {
 ProfilePtr makeProfileForXrayOutbound(const QJsonObject &out) {
     if (out.isEmpty()) return nullptr;
     const auto protocol = out["protocol"].toString();
-    if (protocol == "freedom" || protocol == "blackhole" || protocol == "dns" || protocol == "loopback") return nullptr;
+    if (protocol == "freedom" || protocol == "direct" || protocol == "blackhole" || protocol == "block" || protocol == "dns" || protocol == "loopback") return nullptr;
     if (protocol == "vless") {
         if (const auto normalized = normalizeXrayVlessForParse(out); !normalized.isEmpty()) {
             auto ent = Configs::ProfilesRepo::NewProfile("xrayvless");
@@ -247,7 +324,7 @@ class Parser {
 public:
     explicit Parser(const ParseSink &sink) : sink(sink) {}
 
-    void document(std::string_view raw, bool allowBase64, bool needParse, int depth);
+    void document(std::string_view raw, bool allowBase64, bool needParse, int depth, const QString &overrideName = QString());
     [[nodiscard]] bool ok() const { return !failed; }
 
 private:
@@ -274,22 +351,22 @@ private:
     void xray(const QJsonDocument &doc, XraySubType type);
     void sip008(const QJsonDocument &doc);
     void clash(std::string_view text);
-    void wireguardFile(std::string_view text);
+    void wireguardFile(std::string_view text, const QString &overrideName);
     void openVpnFile(std::string_view text);
     void openConnectProfile(std::string_view text);
-    void link(std::string_view line, int depth);
+    void link(std::string_view line, int depth, const QString &overrideName);
     void jsonLink(const QString &str, bool throneAdd);
     void vpnLink(const QString &str, int depth);
 };
 
-void Parser::document(std::string_view raw, bool allowBase64, bool needParse, int depth) {
+void Parser::document(std::string_view raw, bool allowBase64, bool needParse, int depth, const QString &overrideName) {
     if (depth > kMaxDepth) return;
     const auto text = scan::trim(raw);
     if (text.empty()) return;
 
     if (allowBase64 && scan::looksLikeBase64(text)) {
         if (const auto decoded = scan::decodeBase64(text); !decoded.isEmpty()) {
-            document(scan::view(decoded), false, true, depth + 1);
+            document(scan::view(decoded), false, true, depth + 1, overrideName);
             return;
         }
     }
@@ -308,8 +385,8 @@ void Parser::document(std::string_view raw, bool allowBase64, bool needParse, in
         return;
     }
 
-    if (text.find("[Interface]") != npos && text.find("[Peer]") != npos) {
-        wireguardFile(text);
+    if (hasWireGuardSections(text)) {
+        wireguardFile(text, overrideName);
         return;
     }
 
@@ -324,11 +401,11 @@ void Parser::document(std::string_view raw, bool allowBase64, bool needParse, in
     }
 
     if (needParse && text.find('\n') != npos) {
-        scan::forEachItem(text, [&](std::string_view item) { document(item, true, false, depth + 1); });
+        scan::forEachItem(text, [&](std::string_view item) { document(item, true, false, depth + 1, overrideName); });
         return;
     }
 
-    link(text, depth);
+    link(text, depth, overrideName);
 }
 
 void Parser::json(const QJsonDocument &doc, std::string_view text) {
@@ -464,9 +541,12 @@ void Parser::clash(std::string_view text) {
     }
 }
 
-void Parser::wireguardFile(std::string_view text) {
+void Parser::wireguardFile(std::string_view text, const QString &overrideName) {
     auto ent = Configs::ProfilesRepo::NewProfile("wireguard");
     if (!ent->Wireguard()->ParseFromLink(toQString(text))) return;
+
+    const auto names = extractWireGuardNames(text);
+    setNameIfEmpty(*ent, {overrideName, names.explicitName, names.peerComment});
     produce(ent);
 }
 
@@ -511,7 +591,7 @@ void Parser::openConnectProfile(std::string_view text) {
     produce(ent);
 }
 
-void Parser::link(std::string_view line, int depth) {
+void Parser::link(std::string_view line, int depth, const QString &overrideName) {
     if (line.starts_with("//") || line.starts_with("#") || line.size() < 2) return;
 
     if (line.starts_with("json://")) {
@@ -537,6 +617,9 @@ void Parser::link(std::string_view line, int depth) {
         ent = Configs::ProfilesRepo::NewProfile(profileType);
     }
     if (!ent->outbound->ParseFromLink(str)) return;
+
+    if (std::string_view(profileType) == "wireguard") setNameIfEmpty(*ent, {overrideName});
+
     produce(ent);
 }
 
@@ -567,7 +650,11 @@ void Parser::jsonLink(const QString &str, bool throneAdd) {
 
 void Parser::vpnLink(const QString &str, int depth) {
     auto raw = str.mid(6);
-    if (const auto frag = raw.indexOf('#'); frag != -1) raw = raw.left(frag);
+    QString fragmentName;
+    if (const auto frag = raw.indexOf('#'); frag != -1) {
+        fragmentName = QUrl::fromPercentEncoding(raw.mid(frag + 1).toUtf8()).trimmed();
+        raw = raw.left(frag);
+    }
     raw = QUrl::fromPercentEncoding(raw.toUtf8());
     auto dataBytes = DecodeB64IfValid(raw);
     if (dataBytes.isEmpty()) dataBytes = DecodeB64IfValid(raw, QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
@@ -580,9 +667,24 @@ void Parser::vpnLink(const QString &str, int depth) {
     const int before = produced;
     const auto doc = QJsonDocument::fromJson(dataBytes);
     if (doc.isObject() && doc.object().contains("containers")) {
-        for (const auto &cVal: doc.object()["containers"].toArray()) {
+        const auto root = doc.object();
+        QString jsonName = root["description"].toString().trimmed();
+        if (jsonName.isEmpty()) jsonName = root["name"].toString().trimmed();
+        const QString targetName = !fragmentName.isEmpty() ? fragmentName : jsonName;
+
+        struct ConfigEntry {
+            QByteArray bytes;
+            QString containerType;
+            bool isWireGuard;
+        };
+        QList<ConfigEntry> entries;
+        int wgCount = 0;
+
+        for (const auto &cVal: root["containers"].toArray()) {
             if (!cVal.isObject()) continue;
             const auto cObj = cVal.toObject();
+            const QString containerType = cObj["container"].toString().trimmed();
+
             for (const auto &key: cObj.keys()) {
                 if (!cObj[key].isObject()) continue;
                 const auto protoObj = cObj[key].toObject();
@@ -599,12 +701,24 @@ void Parser::vpnLink(const QString &str, int depth) {
                     conf = protoObj["last_config"].toObject()["config"].toString();
                 }
                 if (conf.isEmpty()) continue;
-                const auto bytes = conf.toUtf8();
-                document(scan::view(bytes), false, true, depth + 1);
+
+                auto bytes = conf.toUtf8();
+                const bool isWg = hasWireGuardSections(scan::view(bytes));
+                wgCount += isWg;
+                entries.push_back(ConfigEntry{std::move(bytes), containerType, isWg});
             }
         }
+
+        for (const auto &e: entries) {
+            // Several WireGuard confs in one export would share a single name, so tag each with its container type.
+            QString name = targetName;
+            if (e.isWireGuard && wgCount > 1 && !name.isEmpty() && !e.containerType.isEmpty()) {
+                name += " (" + e.containerType + ")";
+            }
+            document(scan::view(e.bytes), false, true, depth + 1, name);
+        }
     } else {
-        document(scan::view(dataBytes), false, true, depth + 1);
+        document(scan::view(dataBytes), false, true, depth + 1, fragmentName);
     }
     if (produced == before) log(QObject::tr("No importable profile found in the vpn:// link."));
 }

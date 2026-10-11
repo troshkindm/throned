@@ -1,12 +1,16 @@
 #!/bin/bash
 set -e
 
-TAGS="with_clash_api,with_gvisor,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,badlinkname,tfogo_checklinkname0"
+TAGS="with_clash_api,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,badlinkname,tfogo_checklinkname0"
 
 rm -rf $DEST
 mkdir -p $DEST
 
 [[ "$GOOS" =~ legacy$ ]] && IS_LEGACY=true && GOCMD="$PWD/golang.org/go/bin/go" && GOOS="${GOOS%legacy}" || { IS_LEGACY=false; GOCMD="go"; }
+# a go.mod newer than the patched toolchain must fail the build, not auto-fetch an unpatched official Go
+if $IS_LEGACY; then
+  export GOTOOLCHAIN=local
+fi
 
 if [[ "$GOOS" == "windows" || "$GOOS" == "linux" ]]; then
     EXE_SUFFIX=""
@@ -22,8 +26,8 @@ if [[ "$GOOS" == "windows" || "$GOOS" == "linux" ]]; then
     fi
     # The Linux core job exports Chromium's cross-C compiler.  The updater is
     # pure Go, so isolate it from that CGO toolchain before the core enables CGO.
-    (cd "$UPDATER_DIR" && CGO_ENABLED=0 go build -trimpath -ldflags "$UPDATER_LDFLAGS" -o "$DEST/$UPDATER_NAME" .)
-    (cd "$UPDATER_DIR" && CGO_ENABLED=0 go build -trimpath -ldflags "$UPDATER_LDFLAGS" -o "$DEST/$LEGACY_NAME" ./cmd/legacy-launcher)
+    (cd "$UPDATER_DIR" && CGO_ENABLED=0 $GOCMD build -trimpath -ldflags "$UPDATER_LDFLAGS" -o "$DEST/$UPDATER_NAME" .)
+    (cd "$UPDATER_DIR" && CGO_ENABLED=0 $GOCMD build -trimpath -ldflags "$UPDATER_LDFLAGS" -o "$DEST/$LEGACY_NAME" ./cmd/legacy-launcher)
     [[ "$GOOS" == "linux" ]] && chmod +x "$DEST/$UPDATER_NAME"
     [[ "$GOOS" == "linux" ]] && chmod +x "$DEST/$LEGACY_NAME"
 fi

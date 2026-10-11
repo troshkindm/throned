@@ -2,6 +2,7 @@
 
 #include "include/configs/common/OutboundFactory.h"
 #include "include/configs/common/utils.h"
+#include "include/configs/outbounds/xrayVless.h"
 #include "include/global/Utils.hpp"
 
 #include <QJsonArray>
@@ -20,7 +21,7 @@ SecurityInfo analyzeSingBoxOutbound(const QJsonObject& o) {
     std::shared_ptr<outbound> ob(NewOutboundByType(type));
     if (!ob || ob->invalid) return {};
     ob->ParseFromJson(o);
-    return ob->GetSecurity();
+    return WithPrivateServer(ob->GetSecurity(), ob->GetAddress());
 }
 
 QJsonObject singBoxOutboundIdentity(const QJsonObject& o) {
@@ -60,10 +61,23 @@ QJsonObject resolveSingBoxEgress(const QJsonArray& outbounds, const QString& tag
 }
 
 bool isXrayInfra(const QString& p) {
-    return p == "freedom" || p == "blackhole" || p == "dns" || p == "loopback";
+    // direct and block are Xray's aliases of freedom and blackhole.
+    return p == "freedom" || p == "direct" || p == "blackhole" || p == "block" || p == "dns" || p == "loopback";
 }
 
-SecurityInfo analyzeXrayOutbound(const QJsonObject& o) {
+// Xray lets a top-level address replace vnext/servers, taking the inline user with it.
+QJsonObject xrayPeer(const QJsonObject& settings) {
+    if (settings.contains("address")) return settings;
+    return (settings.contains("vnext") ? settings["vnext"] : settings["servers"]).toArray().first().toObject();
+}
+
+QString xrayVlessEncryption(const QJsonObject& settings) {
+    const auto peer = xrayPeer(settings);
+    const auto user = peer.contains("users") ? peer["users"].toArray().first().toObject() : peer;
+    return user["encryption"].toString();
+}
+
+SecurityInfo xrayOutboundSecurity(const QJsonObject& o) {
     const auto protocol = o["protocol"].toString();
     if (protocol.isEmpty() || isXrayInfra(protocol)) return {};
 
@@ -83,20 +97,24 @@ SecurityInfo analyzeXrayOutbound(const QJsonObject& o) {
         info.level = insecure ? SecurityLevel::Weak : SecurityLevel::Secure;
         return info;
     }
-    // No transport security: shadowsocks still encrypts its payload; vmess is trivially detectable.
-    if (protocol == "shadowsocks") {
+    // Without transport security, shadowsocks, WireGuard and VLESS Encryption still encrypt; VMess counts as insecure.
+    if (protocol == "shadowsocks" || protocol == "wireguard" || (protocol == "vless" && IsVlessEncrypted(xrayVlessEncryption(o["settings"].toObject())))) {
         info.label = QObject::tr("Encrypted");
         info.level = SecurityLevel::Secure;
         return info;
     }
     if (protocol == "vmess") {
-        info.label = QObject::tr("Encrypted");
+        info.label = QObject::tr("Insecure");
         info.level = SecurityLevel::Weak;
         return info;
     }
     info.label = QObject::tr("Raw");
     info.level = SecurityLevel::None;
     return info;
+}
+
+SecurityInfo analyzeXrayOutbound(const QJsonObject& o) {
+    return WithPrivateServer(xrayOutboundSecurity(o), xrayPeer(o["settings"].toObject()).value("address").toString());
 }
 
 QJsonObject xrayOutboundIdentity(const QJsonObject& o) {

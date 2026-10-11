@@ -188,6 +188,7 @@ private slots:
         QCoreApplication::processEvents();
         QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
 
+        markers.Mark(Configs::Markers::HijackDeprecated);
         settings.enable_dns_server = true;
         notice.refresh();
         QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
@@ -198,16 +199,16 @@ private slots:
         settings.enable_dns_server = false;
         notice.refresh();
         QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
-        QVERIFY(!markers.IsMarked(Configs::Markers::HijackDeprecated));
+        QVERIFY(!markers.IsMarked(Configs::Markers::HijackRemoved));
 
         settings.enable_redirect = true;
         notice.refresh();
         status.showReady("Throned-1.4.5-windows64.zip");
         status.dismiss();
-        QVERIFY(!markers.IsMarked(Configs::Markers::HijackDeprecated));
+        QVERIFY(!markers.IsMarked(Configs::Markers::HijackRemoved));
         QCOMPARE(status.activeNoticeId(), QString("hijack-deprecated"));
         status.dismiss();
-        QVERIFY(markers.IsMarked(Configs::Markers::HijackDeprecated));
+        QVERIFY(markers.IsMarked(Configs::Markers::HijackRemoved));
 
         HijackDeprecationNotice reloaded(&status, settings, markers, [] {});
         QCoreApplication::processEvents();

@@ -97,7 +97,7 @@ func (s *server) PreviewRoute(ctx context.Context, in *gen.PreviewRouteRequest) 
 		metadata.Domain = destination.Fqdn
 	}
 	if path := in.GetProcessPath(); path != "" {
-		metadata.ProcessInfo = &adapter.ConnectionOwner{ProcessPath: path}
+		metadata.ProcessInfo = &adapter.ConnectionOwner{ProcessPaths: []string{path}}
 	}
 	preview := probe.PreviewRoute(router.Rules(), &metadata)
 	outboundTag := preview.Outbound

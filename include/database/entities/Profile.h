@@ -30,6 +30,7 @@
 #include "include/configs/outbounds/vmess.h"
 #include "include/configs/outbounds/xrayVless.h"
 
+#include "include/database/entities/EndpointSource.h"
 #include "include/global/CountryHelper.hpp"
 
 namespace Configs {
@@ -50,6 +51,8 @@ public:
     QString ul_speed;
     QString test_country;
     std::shared_ptr<Configs::outbound> outbound;
+    // Inherit, Own or IpList.
+    EndpointSource endpoint;
 
     qint64 traffic_downlink = 0;
     qint64 traffic_uplink = 0;

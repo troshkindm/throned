@@ -107,40 +107,20 @@ Total speed: %5/s↑ %6/s↓</source>
         <translation>流量</translation>
     </message>
     <message>
-        <source>Process: %1
-Active connections: %2
-Total traffic: %3↑ %4↓
-Total speed: %5/s↑ %6/s↓</source>
-        <translation>进程: %1
-活动连接数: %2
-流量合计: %3↑ %4↓
-速度合计: %5/s↑ %6/s↓</translation>
+        <source>Close this connection</source>
+        <translation type="unfinished" />
     </message>
     <message>
-        <source>Destination: %1
-Connections: %2
-Process: %3
-Protocol: %4
-Outbound: %5
-Total traffic: %6↑ %7↓
-Total speed: %8/s↑ %9/s↓</source>
-        <translation>目标: %1
-连接数: %2
-进程: %3
-协议: %4
-出站: %5
-流量合计: %6↑ %7↓
-速度合计: %8/s↑ %9/s↓</translation>
+        <source>Destination (Domain)</source>
+        <translation type="unfinished" />
     </message>
     <message>
-        <source>Destination: %1
-Process: %2
-Protocol: %3
-Outbound: %4</source>
-        <translation>目标: %1
-进程: %2
-协议: %3
-出站: %4</translation>
+        <source>Process</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Click To Disable Sorting</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -247,6 +227,11 @@ Outbound: %4</source>
     <message>
         <source>The core is not running.</source>
         <translation>核心未运行。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/DiagnosticsTab.ui" line="53"/>
+        <source>Include Throne logs</source>
+        <translation>包含 Throne 日志</translation>
     </message>
 </context>
 <context>
@@ -2196,7 +2181,7 @@ Throned will restart to complete the restore.</source>
         <translation>要检查的网站</translation>
     </message>
     <message>
-        <source>One "Name|URL" per line, checked by Site Reachability</source>
+        <source>One &quot;Name|URL&quot; per line, checked by Site Reachability</source>
         <translation>每行一条“名称|网址”，由网站可达性检查使用</translation>
     </message>
     <message>
@@ -2231,7 +2216,6 @@ Throned will restart to complete the restore.</source>
         <source>Uninstall</source>
         <translation>卸载</translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throned to the &quot;Open with&quot; list for JSON and YAML config files, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;将 Throned 添加到 JSON 和 YAML 配置文件的“打开方式”列表，并在安装位置移动后重新注册。&lt;/p&gt;&lt;p&gt;关闭此项不会撤销已有的注册：请使用“卸载”。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
@@ -2277,13 +2261,6 @@ Throned will restart to complete the restore.</source>
         <translation>启动时注册配置文件关联</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
-                                                                + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                            </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks+ HTTP 代理&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fetched &lt;span style=&quot; font-weight:600;&quot;&gt;without&lt;/span&gt; any proxy, so features that must tell a dead internet connection apart from dead servers — such as the auto selector — can check the connection itself, and notice the moment it comes back.&lt;/p&gt;&lt;p&gt;Only put a URL here that is reachable &lt;span style=&quot; font-weight:600;&quot;&gt;directly&lt;/span&gt; on your network. Leave it empty to rely on the operating system&apos;s network state instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;不用&lt;/span&gt;任何代理获取，因此如自动选择器之类需要区分互联网连接中断和服务器故障的功能，可自行检查网络连接，并在恢复时立即察觉。&lt;/p&gt;&lt;p&gt;仅在这里填写可通过网络&lt;span style=&quot; font-weight:600;&quot;&gt;直接&lt;/span&gt;访问到的 URL。留空则改为依赖系统的网络状态。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -2294,18 +2271,6 @@ Throned will restart to complete the restore.</source>
     <message>
         <source>Clash API</source>
         <translation>Clash API</translation>
-    </message>
-    <message>
-        <source>Unsupported backup format version: %1.
-This backup may have been created with a newer version of the application.</source>
-        <translation>不支持的备份格式版本: %1。
-整个备份可能用该应用程序的较新版本创建。</translation>
-    </message>
-    <message>
-        <source>Backup created on %1.
-Select which parts to restore:</source>
-        <translation>备份创建在 %1。
-选择要恢复哪些部分:</translation>
     </message>
     <message>
         <source>Capture</source>
@@ -2322,6 +2287,86 @@ Select which parts to restore:</source>
     <message>
         <source>Config files</source>
         <translation>配置文件</translation>
+    </message>
+    <message>
+        <source>Log Browser Font</source>
+        <translation>日志浏览器字体</translation>
+    </message>
+    <message>
+        <source>Log Browser Font Size</source>
+        <translation>日志浏览器字体大小</translation>
+    </message>
+    <message>
+        <source>Only monospaced fonts are listed. An unavailable family falls back to a built-in monospace list.</source>
+        <translation>仅列出等宽字体。所选字体不可用时，将按内置的等宽字体列表依次回退。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_basic_settings.ui" line="324"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers Throne as the handler for throne:// links, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;注册 Throne 为 throne:// 链接的处理程序，在软件安装移动位置时重新应用该注册。&lt;/p&gt;&lt;p&gt;关闭这个选项不会撤销已有的注册：如需撤销请使用“卸载”。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_basic_settings.ui" line="364"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes the throne:// handler Throne wrote. Entries owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;移除 Throne 写入的 throne:// 处理工具。属于其它应用程序的条目不受影响。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_basic_settings.ui" line="374"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throne to the &quot;Open with&quot; list for config files such as JSON and YAML, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;添加 Throne 到（如 JSON 和 YAML 等）配置文件的“打开方式”列表，当该安装移动时重新应用该注册。&lt;/p&gt;&lt;p&gt;关闭这个选项不会撤销已有注册：如需撤销则使用“卸载”功能。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_basic_settings.ui" line="401"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every config file association Throne wrote, including those added by older versions. Associations owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;移除由 Throne 写入的每个配置文件关联，包括由较旧版本添加的那些。属于其他应用程序的条目会保留不变。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_basic_settings.ui" line="791"/>
+        <source>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</source>
+        <translation>Dock/任务栏中图标跟随连接状态变化。关闭时始终显示 Throne 图标</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_basic_settings.cpp" line="595"/>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_basic_settings.cpp" line="685"/>
+        <source>Throne Backup (*.thrbackup)</source>
+        <translation>Throne 备份 (*.thrbackup)</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_basic_settings.cpp" line="703"/>
+        <source>Not a valid Throne backup file.</source>
+        <translation>不是有效的 Throne 备份文件。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_basic_settings.cpp" line="764"/>
+        <source>Each selected part replaces the current data. This cannot be undone.
+Throne will restart to complete the restore.</source>
+        <translation>每个选中部分会替换当前的数据。 这个操作无法撤销。 Throne 将会重启以完成恢复。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_basic_settings.cpp" line="832"/>
+        <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
+        <translation>备份成功恢复。 Throne 现在将要重启以使得更改生效。</translation>
+    </message>
+    <message>
+        <source>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Use the update interval sent by the server</source>
+        <translation type="unfinished" />
+    </message>
+    <message numerus="yes">
+        <source>Skipped %n routing rule(s) that use conditions this version of Throne does not support.</source>
+        <translation type="unfinished">
+            <numerusform />
+        </translation>
+    </message>
+    <message>
+        <source>To choose custom icons, you need to choose png images with an equal width and height (eg 512*512). Their names should be of&#32;
+(Off.png, Proxy.png, Throned.png, Tun.png, Connecting.png; legacy Throne.png is also accepted) So that each will be used in the appropriate state of the app.&#32;
+You can provide a subset of the said images and only the corresponding states will be using them.
+It is suggested that each image&apos;s size be less than 100KB.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2564,6 +2609,42 @@ Select which parts to restore:</source>
     <message>
         <source>Keep Default (%1)</source>
         <translation>保持默认（%1）</translation>
+    </message>
+    <message>
+        <source>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Update Interval</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Server Interval</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Use</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source> min</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>This server last sent %1 h.</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -3247,10 +3328,8 @@ Select which parts to restore:</source>
         <translation>hKeepAlivePeriod</translation>
     </message>
     <message>
-        <source>JSON: %1
-%2</source>
-        <translation>JSON: %1
-%2</translation>
+        <source>Headers cannot contain &quot;|&quot;.</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -3886,12 +3965,12 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>保存缓存到文件</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core's cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;将缓存的 DNS 应答和 FakeIP 映射写到核心的缓存文件，以便在重启后仍然存在。默认关闭：每个条目都会耗费一次磁盘写入。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Base64 DER of the server's public key. When set, it pins the server certificate.</source>
-        <translation type="unfinished"></translation>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
+        <translation>服务器公钥的 Base64 DER 编码。设置时，它会固定服务器证书。</translation>
     </message>
     <message>
         <source>Failed to generate warp config</source>
@@ -3933,7 +4012,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</source>
         <translation>WireGuard 基于 UDP 运行。MASQUE 通过 HTTP/3 或 HTTP/2 建立隧道，并穿透阻止 WireGuard 的网络。</translation>
     </message>
-
     <message>
         <source>Cloudflare API domains to try, in order, when generating a WARP config</source>
         <translation>生成 WARP 配置时按顺序尝试的 Cloudflare API 域名</translation>
@@ -3947,20 +4025,8 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>WARP 注册域名</translation>
     </message>
     <message>
-        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
-        <translation>服务器公钥的 Base64 DER 编码。设置时，它会固定服务器证书。</translation>
-    </message>
-    <message>
         <source>DNS</source>
         <translation>DNS</translation>
-    </message>
-    <message>
-        <source>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
-If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
-For more information, see the document &quot;Configuration/DNS&quot;.</source>
-        <translation>这个尤其重要，建议使用默认值 &quot;localhost&quot;。
-如果默认值不起作用，请尝试改为 &quot;223.5.5.5&quot;。
-更多信息，请参阅文档 &quot;配置/DNS&quot;。</translation>
     </message>
     <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
@@ -3973,10 +4039,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 </translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;将缓存的 DNS 应答和 FakeIP 映射写到核心的缓存文件，以便在重启后仍然存在。默认关闭：每个条目都会耗费一次磁盘写入。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>
 Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>
@@ -3987,20 +4049,30 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>备注:</translation>
     </message>
     <message>
-        <source>Could not import this routing profile:
-</source>
-        <translation>无法导入这个路由配置档:
-</translation>
-    </message>
-    <message>
-        <source>Updated %1, failed %2:
-%3</source>
-        <translation>更新了 %1, 失败了 %2:
-%3</translation>
-    </message>
-    <message>
         <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
         <translation>劫持功能已弃用，将在下一个版本中移除。Tun 模式可满足相同的用途。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_manage_routes.cpp" line="132"/>
+        <source>One entry per line, hosts-file syntax:
+
+127.0.0.1 localhost
+10.0.0.5 nas.lan files.lan
+::1 localhost6
+
+A domain listed with only one address family is answered NXDOMAIN for the other, so the override cannot be bypassed.</source>
+        <translation>每行一条记录，hosts 文件语法:
+
+127.0.0.1 localhost
+10.0.0.5 nas.lan files.lan
+::1 localhost6
+
+一个仅配置了一个地址族的域名，对于其它的地址族会回答 NXDOMAIN (Non-Existent Domain 不存在域名)，因此无法绕过该覆盖设置。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/dialog_manage_routes.cpp" line="714"/>
+        <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
+        <translation>粘贴一个 Throne 路由链接，一个 remoteRoute 链接，一个 base64 blob 或者一个 JSON 规则数组</translation>
     </message>
 </context>
 <context>
@@ -4864,6 +4936,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Name cannot be empty.</source>
         <translation>名称不能为空。</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/profile/edit_custom.cpp" line="66"/>
+        <source>Xray full config (Throne adds a socks inbound and uses sing-box for tun/routing).</source>
+        <translation>Xray 完整配置 (Throne 添加一个 socks inbound (套接字入站)并把 sing-box 用于 tun / 路由)。</translation>
+    </message>
 </context>
 <context>
     <name>EditDirect</name>
@@ -4913,6 +4990,16 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>No logs</source>
         <translation>无日志</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_extra_core.ui" line="39"/>
+        <source>127.0.0.1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_extra_core.ui" line="56"/>
+        <source>1080</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -5102,8 +5189,8 @@ rendezvous service. Replaces the server address and port.</source>
         <translation>额外标头</translation>
     </message>
     <message>
-        <source>Headers sent to the proxy server, e.g. X-Username="user" X-Password="pass"</source>
-        <translation type="unfinished"></translation>
+        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
+        <translation>发送到代理服务器的标头，如 X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</translation>
     </message>
     <message>
         <source>Insecure Concurrency</source>
@@ -5116,10 +5203,6 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>QUIC</source>
         <translation>QUIC</translation>
-    </message>
-    <message>
-        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
-        <translation>发送到代理服务器的标头，如 X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</translation>
     </message>
 </context>
 <context>
@@ -5144,7 +5227,6 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Tunnel DNS</source>
         <translation>隧道 DNS</translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenConnect protocol flavor. Leave empty to use the core default (anyconnect).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenConnect 协议类型。留空则使用核心的默认类型 (anyconnect)。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
@@ -5308,7 +5390,6 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Tunnel DNS</source>
         <translation>隧道 DNS</translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default transport network. Leave empty to use the core default (udp).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;默认传输层网络(协议)。留空表示使用核心的默认设置 (udp)。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
@@ -5429,6 +5510,11 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Already set</source>
         <translation>已设置</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_openvpn.ui" line="65"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static challenge text shown by the server when it asks for a second authentication response. When a challenge is set and an OTP profile is bound, Throne sends the answer itself and no interactive prompt appears.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;服务器在要求第二次身份验证响应时显示的静态质询文本。当设置了质询文本并绑定了 OTP 配置档时，Throne 将自行发送应答，而不出现交互式提示。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
 </context>
 <context>
     <name>EditSSH</name>
@@ -5521,6 +5607,16 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Username</source>
         <translation>用户名</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_socks.ui" line="57"/>
+        <source>5</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_socks.ui" line="62"/>
+        <source>4</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>EditTailScale</name>
@@ -5602,7 +5698,6 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Congestion Control</source>
         <translation>拥塞控制</translation>
     </message>
-
     <message>
         <source>Client Random</source>
         <translation>Client Random</translation>
@@ -5643,6 +5738,21 @@ rendezvous service. Replaces the server address and port.</source>
         <source>bbr_variant</source>
         <translation>BBR变体</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_trusttunnel.ui" line="104"/>
+        <source>reno</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_trusttunnel.ui" line="114"/>
+        <source>bbr2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_trusttunnel.ui" line="137"/>
+        <source>QUIC</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -5682,6 +5792,21 @@ rendezvous service. Replaces the server address and port.</source>
         <source>native</source>
         <translation>native</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_tuic.ui" line="66"/>
+        <source>UUID</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_tuic.ui" line="87"/>
+        <source>new_reno</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_tuic.ui" line="111"/>
+        <source>quic</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>EditVMess</name>
@@ -5701,12 +5826,22 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Generate UUID</source>
         <translation>生成 UUID</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_vmess.ui" line="106"/>
+        <source>UUID</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>EditVless</name>
     <message>
         <source>Packet Encoding</source>
         <translation>数据包编码</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_vless.ui" line="33"/>
+        <source>UUID</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -5967,6 +6102,11 @@ rendezvous service. Replaces the server address and port.</source>
         <source>MTU</source>
         <translation>MTU</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_wireguard.ui" line="120"/>
+        <source>1420</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>EditXrayVless</name>
@@ -6051,6 +6191,18 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>Don&apos;t show again</source>
         <translation>不再显示</translation>
+    </message>
+    <message>
+        <source>Hijack has been removed. Use Tun mode to route traffic from applications.</source>
+        <translation>Hijack 已移除。请使用 TUN 模式路由应用程序流量。</translation>
+    </message>
+    <message>
+        <source>The System DNS option has also been removed.</source>
+        <translation>系统 DNS 选项也已移除。</translation>
+    </message>
+    <message>
+        <source>Hijack has been removed</source>
+        <translation>Hijack 已移除</translation>
     </message>
 </context>
 <context>
@@ -7430,7 +7582,7 @@ Release note:
     </message>
     <message>
         <source>[VPN] %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>VPN endpoint problem</source>
@@ -7544,7 +7696,6 @@ Release note:
         <source>This installation cannot grant the core privileges by itself.</source>
         <translation>此安装方式无法自行为核心授予权限。</translation>
     </message>
-
     <message numerus="yes">
         <source>%n remote rule-set(s) refreshed</source>
         <translation>
@@ -7638,20 +7789,136 @@ Release note:
         <translation>更新规则集</translation>
     </message>
     <message>
-        <source>Appended to the %1 rules:
-%2</source>
-        <translation>追加到 %1 条规则:
-%2</translation>
-    </message>
-    <message>
-        <source>The link could not be parsed:
-</source>
-        <translation>该链接无法解析:
-</translation>
-    </message>
-    <message>
         <source>Strict routing unavailable</source>
         <translation>严格的路由不可用</translation>
+    </message>
+    <message>
+        <source>Disconnecting</source>
+        <translation>正在断开</translation>
+    </message>
+    <message>
+        <source>Disable Filter</source>
+        <translation>禁用筛选</translation>
+    </message>
+    <message>
+        <source>Filter logs</source>
+        <translation>筛选日志</translation>
+    </message>
+    <message>
+        <source>Match case</source>
+        <translation>区分大小写</translation>
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation>正则表达式</translation>
+    </message>
+    <message>
+        <source>New logs are held while the view is scrolled up</source>
+        <translation>向上滚动查看时，新日志会暂存，不会显示</translation>
+    </message>
+    <message>
+        <source>Jump to latest</source>
+        <translation>回到最新</translation>
+    </message>
+    <message>
+        <source>Jump to latest (%1 new)</source>
+        <translation>回到最新（%1 条新日志）</translation>
+    </message>
+    <message>
+        <source>Clean up</source>
+        <translation>清理</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_profile_lifecycle.cpp" line="162"/>
+        <source>Geo data files were downloaded successfully.
+
+Please try again.</source>
+        <translation>成功下载过 Geo 数据文件。
+
+请再试一次。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_profile_lifecycle.cpp" line="270"/>
+        <source>Windows could not enable strict routing. Open Tun Settings, disable Strict Route, and start the profile again.
+
+Disabling Strict Route may cause DNS leaks.
+
+Error: %1</source>
+        <translation>Windows 无法启用严格路由。打开 Tun 设置，禁用“严格路由”，并再次启动该配置档。
+
+禁用严格路由可能导致 DNS 泄露。
+
+错误: %1</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="77"/>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>劫持 (偏好选项 &gt; 路由设置 &gt; 劫持) 已弃用，并在下个发行版中移除。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="79"/>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>系统 DNS 选项依赖于它，也随之移除。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="81"/>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Tun 模式涵盖了同样的使用场景。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="83"/>
+        <source>Hijack is deprecated</source>
+        <translation>劫持功能已弃用</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="84"/>
+        <source>Don&apos;t show again</source>
+        <translation>不再显示</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="254"/>
+        <source>Please run Throne as admin</source>
+        <translation>请以管理员身份运行 Throne</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Type: Subscription</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Used</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Remaining</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Support</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Portal</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -8717,8 +8984,8 @@ Release note:
         <translation>连接到核心失败。</translation>
     </message>
     <message>
-        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href="%1"&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
-        <translation type="unfinished"></translation>
+        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
+        <translation>生成 WARP 身份识别会用 Cloudflare 注册新设备。&lt;br&gt;&lt;br&gt;你接受&lt;a href=&quot;%1&quot;&gt;Cloudflare WARP 服务条款&lt;/a&gt;吗?</translation>
     </message>
     <message>
         <source>Direct</source>
@@ -8733,20 +9000,6 @@ Release note:
         <translation>Xray 完整配置无法与该组的代理一起使用</translation>
     </message>
     <message>
-        <source>Added %1 profiles:
-%2
-Updated %3 profiles:
-%4
-Deleted %5 Profiles:
-%6</source>
-        <translation>增加了 %1 个配置档：
-%2
-更新了 %3 个配置档：
-%4
-删除了 %5 个配置档：
-%6</translation>
-    </message>
-    <message>
         <source>Still in use, so kept instead of deleted:
 %1</source>
         <translation>仍在使用中，因此保留而不是删除:
@@ -8755,10 +9008,6 @@ Deleted %5 Profiles:
     <message>
         <source>Failed to parse the Clash configuration.</source>
         <translation>解析 Clash 配置失败。</translation>
-    </message>
-    <message>
-        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
-        <translation>生成 WARP 身份识别会用 Cloudflare 注册新设备。&lt;br&gt;&lt;br&gt;你接受&lt;a href=&quot;%1&quot;&gt;Cloudflare WARP 服务条款&lt;/a&gt;吗?</translation>
     </message>
     <message>
         <source>Connect OK</source>
@@ -8771,18 +9020,6 @@ Deleted %5 Profiles:
     <message>
         <source>Auto selector — no working profile out of %1, still checking</source>
         <translation>自动选择器 — 在 %1 个配置档中无可用的配置档，仍在检查中</translation>
-    </message>
-    <message>
-        <source>%1
-How to update?</source>
-        <translation>%1
-如何更新？</translation>
-    </message>
-    <message>
-        <source>Failed to download %1:
-%2</source>
-        <translation>下载 %1 失败:
-%2</translation>
     </message>
     <message>
         <source>Copy</source>
@@ -8870,6 +9107,84 @@ To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&
 
 要解决此问题，请改为从 throned-tun 适配器共享热点，而不是“%1”（设置 &gt; 移动热点 &gt; 从以下位置共享我的 Internet 连接），或在使用 Tun 模式时关闭热点。</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/src/configs/sub/GroupUpdater.cpp" line="508"/>
+        <source>No profiles found in the subscription: %1 was left unchanged.</source>
+        <translation>该订阅中未找到任何配置档: %1 保持不变。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/configs/sub/vpnFileImport.cpp" line="995"/>
+        <source>Configure a proxy through Throne&apos;s chain instead, ignored: %1</source>
+        <translation>改为通过 Throne 的链来配置代理，已忽略： %1</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/main.cpp" line="457"/>
+        <source>[Warn] Throne did not shut down cleanly last time. Diagnostics were saved to: %1</source>
+        <translation>[警告] 上次 Throne 没有正常干净的关闭。诊断信息已被保存到： %1</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/Process.cpp" line="24"/>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throne&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation>IPv4 转发在网络适配器 &quot;%1&quot; 上开启，这通常是因为“移动热点”或“Internet 连接共享”功能共享它。
+
+然后，导致 Windows 忽略旨在阻止 Throne 自身的连接进入 Tun 模式的适配器绑定，从而使流量回环到其本身而导致连接失败。
+
+要修复这个问题，从 throne-tun 适配器而不是 &quot;%1&quot; 中共享热点 (设置&gt; 移动热点 &gt; 共享我的互联网连接来自)，或者在运行 Tun 模式时关闭热点。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/database/TrafficStatsRepo.cpp" line="314"/>
+        <source>The statistics database is unusable (%1). Statistics are paused for this session and the file will be rebuilt when Throne restarts.</source>
+        <translation>统计数据库不可用 (%1)。 本次会话将暂停统计功能，将在 Throne 重启时重建该文件。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/database/TrafficStatsRepo.cpp" line="315"/>
+        <source>Writing statistics keeps failing (%1). Statistics are paused until Throne restarts.</source>
+        <translation>写入统计信息持续失败（%1）。统计功能将暂停，直至 Throne 重启。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/utils/DataViewHtmlGenerator.cpp" line="83"/>
+        <source>Settings</source>
+        <translation>设置</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/utils/DataViewHtmlGenerator.cpp" line="142"/>
+        <source>Settings changed, restart to apply</source>
+        <translation>设置已更改，重启进行应用</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/utils/DataViewHtmlGenerator.cpp" line="152"/>
+        <source>Restart</source>
+        <translation>重启</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/utils/DataViewHtmlGenerator.cpp" line="153"/>
+        <source>Ignore</source>
+        <translation>忽略</translation>
+    </message>
+    <message>
+        <source>Subscription server update interval: %1 hour(s)</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The URL of %1 changed during the update, so the result was discarded.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Announcement from %1: %2</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -8954,6 +9269,15 @@ outbounds and other Throned features may break. For advanced users only.</source
     <message>
         <source>Prevent modifications</source>
         <translation>防止修改</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/RawRouteItem.cpp" line="118"/>
+        <source>Use the route object exactly as written (outbound ids are still resolved to tags).
+Throne will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray
+outbounds and other Throne features may break. For advanced users only.</source>
+        <translation>按原样使用路由对象 (outbounds ids (出站标识符)仍被解析为标记)。
+在 Throne 中「不会」添加它的 DNS-hijack (DNS劫持)或 xray bridge plumbing (桥接)等底层机制，
+所以 DNS、链式/xray 出口和其它 Throne 功能可能会失效。仅限高级用户使用。</translation>
     </message>
 </context>
 <context>
@@ -9219,12 +9543,6 @@ Your local edits are overwritten on each update.</source>
         <translation>端点规则</translation>
     </message>
     <message>
-        <source>Re-fetch this profile from the URL when subscriptions auto-update.
-Your local edits are overwritten on each update.</source>
-        <translation>订阅自动更新时从该 URL 重新获取这个配置档。
-每次更新时都会覆盖您的本地编辑。</translation>
-    </message>
-    <message>
         <source>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile&apos;s rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules. A chain endpoint can hand out one rule per inner OpenVPN / OpenConnect hop too, so traffic can be routed to a hop before the exit.</source>
         <translation>随这个路由配置档同步启动的 OpenVPN / OpenConnect 配置档。它们宣告的网络的流量将通过它们处理；其余的则遵循这个配置档的规则。每个端点都会在「高级」选项卡中得到一条规则，你可以在它们自有的规则中随意移动。链式端点也可以为每个内部 OpenVPN / OpenConnect 跳点分配一条规则，从而使流量可以在到达 Exit (最终出口)前被路由到某个（中间）跳点。</translation>
     </message>
@@ -9235,12 +9553,6 @@ Your local edits are overwritten on each update.</source>
     <message>
         <source>Remove</source>
         <translation>删除</translation>
-    </message>
-    <message>
-        <source>Some rules could not be added:
-</source>
-        <translation>无法添加某些规则：
-</translation>
     </message>
     <message>
         <source>Allow routing to inner hops</source>
@@ -9255,10 +9567,22 @@ Your local edits are overwritten on each update.</source>
         <translation>%1 路由首选</translation>
     </message>
     <message>
-        <source>Some rules could not be added, fix them before saving:
-</source>
-        <translation>某些规则无法添加，请在保存前修复它们：
-</translation>
+        <location filename="Throne-1.3.1/src/ui/setting/RouteItem.cpp" line="998"/>
+        <source>This rule belongs to &quot;%1&quot;, an inner hop of the endpoint &quot;%2&quot;.
+
+Stop routing to that endpoint&apos;s inner hops?</source>
+        <translation>这个规则属于 &quot;%1&quot;，它是端点 &quot;%2&quot; 的内部跳点。
+
+停止路由到该端点的内部跳点吗?</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/setting/RouteItem.cpp" line="1008"/>
+        <source>This rule belongs to the endpoint &quot;%1&quot; and cannot be deleted on its own.
+
+Remove that endpoint from this routing profile as well?</source>
+        <translation>这条规则属于端点“%1”，且无法单独删除。
+
+同时从这个路由配置档中移除该端点吗？</translation>
     </message>
 </context>
 <context>
@@ -10748,6 +11072,11 @@ Deleted %3 Profiles:
         <source>Password</source>
         <translation>密码</translation>
     </message>
+    <message>
+        <location filename="Throne-1.3.1/src/ui/profile/dialog_vpn_auth.cpp" line="102"/>
+        <source>This server requires single sign-on in a browser, which Throne does not support yet. Cancel here and use a profile with direct credentials, or supply an authentication cookie in the profile&apos;s advanced settings.</source>
+        <translation>这个服务器想要在浏览器中进行单点登录，而 Throne 还未支持。可以在这里取消，然后使用带直接凭证的配置档，或者在配置档的高级设置中提高认证的 cookie。</translation>
+    </message>
 </context>
 <context>
     <name>EditHysteriaRealm</name>
@@ -11315,6 +11644,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Already set</source>
         <translation>已设置</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/profile/edit_openconnect_advanced.ui" line="141"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the token the core generates itself. To use a Throne OTP profile, bind it on the main editor instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;这是核心自己生成的令牌。要使用 Throne OTP 配置档，请改为在主编辑器上绑定它。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -11995,12 +12329,12 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>已注册的(enrolled) ECDSA P-256 钥匙的 Base64 DER 编码；它用于签署 TLS 客户端证书。</translation>
     </message>
     <message>
-        <source>Base64 DER of the server's public key. When set, it pins the server certificate, even with Allow insecure.</source>
-        <translation type="unfinished"></translation>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
+        <translation>服务器公钥的 Base64 DER 编码。设置时，即使启用了“允许不安全(连接)”，也会固定服务器证书。</translation>
     </message>
     <message>
-        <source>Comma separated list of the tunnel's own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
-        <translation type="unfinished"></translation>
+        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
+        <translation>隧道自身地址的逗号间隔列表，如 172.16.0.2/32,2606:4700::1/128</translation>
     </message>
     <message>
         <source>Failed to generate WARP identity</source>
@@ -12054,13 +12388,191 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Success!</source>
         <translation>成功!</translation>
     </message>
+</context>
+<context>
+    <name>DialogIntegration</name>
     <message>
-        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
-        <translation>服务器公钥的 Base64 DER 编码。设置时，即使启用了“允许不安全(连接)”，也会固定服务器证书。</translation>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="14"/>
+        <source>Hotkey</source>
+        <translation>热键</translation>
     </message>
     <message>
-        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
-        <translation>隧道自身地址的逗号间隔列表，如 172.16.0.2/32,2606:4700::1/128</translation>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="24"/>
+        <source>Global</source>
+        <translation>全局</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="30"/>
+        <source>Trigger main window</source>
+        <translation>显示/隐藏主窗口</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="43"/>
+        <source>Show groups</source>
+        <translation>显示分组</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="56"/>
+        <source>Show routes</source>
+        <translation>显示路由</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="69"/>
+        <source>Proxy mode</source>
+        <translation>代理模式</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="82"/>
+        <source>Toggle System Proxy</source>
+        <translation>切换系统代理</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="96"/>
+        <source>Shortcuts</source>
+        <translation>快捷键</translation>
+    </message>
+</context>
+<context>
+    <name>QHotkey</name>
+    <message>
+        <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="282"/>
+        <source>Failed to register %1. Error: %2</source>
+        <translation>注册 %1 失败。 错误: %2</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="302"/>
+        <source>Failed to unregister %1. Error: %2</source>
+        <translation>注销注册 %1 失败。错误: %2</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::CoreDiagnostics</name>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="159"/>
+        <source>The core is not running.</source>
+        <translation>核心未在运行。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="229"/>
+        <source>Could not reach the core. See the log for details.</source>
+        <translation>无法访问核心。查看日志了解详情。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="231"/>
+        <source>The core could not capture the profile: %1</source>
+        <translation>核心无法捕获剖析文件: %1</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="233"/>
+        <source>The core returned an empty profile.</source>
+        <translation>该核心返回了一个空剖析文件。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="235"/>
+        <source>Could not save %1: %2</source>
+        <translation>无法保存 %1: %2</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="245"/>
+        <source>Performance profile saved to %1</source>
+        <translation>性能剖析数据已保存到 %1</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="248"/>
+        <source>The performance profile was saved (%1).</source>
+        <translation>性能剖析已保存 (%1)。</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="253"/>
+        <source>Performance profile failed: %1</source>
+        <translation>性能剖析失败: %1</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="262"/>
+        <source>Performance profile</source>
+        <translation>性能剖析</translation>
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/src/sys/CoreDiagnostics.cpp" line="267"/>
+        <source>Show in folder</source>
+        <translation>在文件夹中显示</translation>
+    </message>
+</context>
+<context>
+    <name>SubscriptionInfoCard</name>
+    <message>
+        <source>Portal</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Support</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1m left</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1h left</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1d left</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Announcement - %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Last updated: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Expires: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Interval provided by the server</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Interval set for this group</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Global interval from Settings</source>
+        <translation type="unfinished" />
+    </message>
+    <message numerus="yes">
+        <source>Server suggests every %n hour(s)</source>
+        <translation type="unfinished">
+            <numerusform />
+        </translation>
+    </message>
+    <message>
+        <source>Every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Website / Portal: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Technical Support: %1</source>
+        <translation type="unfinished" />
     </message>
 </context>
 </TS>

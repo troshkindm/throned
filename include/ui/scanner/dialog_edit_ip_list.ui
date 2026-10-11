@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogEditIpList</class>
+ <widget class="QDialog" name="DialogEditIpList">
+  <property name="windowTitle">
+   <string>Edit IP list</string>
+  </property>
+  <layout class="QVBoxLayout" name="layout_main">
+   <item>
+    <layout class="QGridLayout" name="layout_fields">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_name">
+       <property name="text">
+        <string>Name</string>
+       </property>
+       <property name="buddy">
+        <cstring>name</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="name"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_source_kind">
+       <property name="text">
+        <string>Source</string>
+       </property>
+       <property name="buddy">
+        <cstring>source_kind</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="source_kind">
+       <item>
+        <property name="text">
+         <string>Manual</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>URL</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rule-set</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_url">
+       <property name="text">
+        <string>URL</string>
+       </property>
+       <property name="buddy">
+        <cstring>url</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="url">
+       <property name="placeholderText">
+        <string notr="true">https://example.com/ranges.txt</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_rule_set">
+       <property name="text">
+        <string>Rule-set</string>
+       </property>
+       <property name="buddy">
+        <cstring>rule_set</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="rule_set">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="insertPolicy">
+        <enum>QComboBox::InsertPolicy::NoInsert</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_auto_update">
+       <property name="text">
+        <string>Auto update</string>
+       </property>
+       <property name="buddy">
+        <cstring>auto_update</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QWidget" name="auto_update_box" native="true">
+       <layout class="QHBoxLayout" name="layout_auto_update">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QCheckBox" name="auto_update">
+          <property name="text">
+           <string>Enable</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_update_interval">
+          <property name="text">
+           <string>Every</string>
+          </property>
+          <property name="buddy">
+           <cstring>update_interval</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="update_interval">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_update_interval_unit">
+          <property name="text">
+           <string>minutes</string>
+          </property>
+          <property name="buddy">
+           <cstring>update_interval</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacer_auto_update">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="managed_note">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="layout_entries_header">
+     <item>
+      <widget class="QLabel" name="label_entries">
+       <property name="text">
+        <string>Entries</string>
+       </property>
+       <property name="buddy">
+        <cstring>entries</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="spacer_entries_header">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fetch">
+       <property name="text">
+        <string>Fetch now</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="entries">
+     <property name="lineWrapMode">
+      <enum>QPlainTextEdit::LineWrapMode::NoWrap</enum>
+     </property>
+     <property name="placeholderText">
+      <string>One entry per line: 1.2.3.4, 1.2.3.0/24, 1.2.3.4:443, [2606:4700::1]:443, 1.2.3.0/24 443 or 1.2.3.1-1.2.3.9</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="summary">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>name</tabstop>
+  <tabstop>source_kind</tabstop>
+  <tabstop>url</tabstop>
+  <tabstop>rule_set</tabstop>
+  <tabstop>auto_update</tabstop>
+  <tabstop>update_interval</tabstop>
+  <tabstop>fetch</tabstop>
+  <tabstop>entries</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DialogEditIpList</receiver>
+   <slot>accept()</slot>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>DialogEditIpList</receiver>
+   <slot>reject()</slot>
+  </connection>
+ </connections>
+</ui>

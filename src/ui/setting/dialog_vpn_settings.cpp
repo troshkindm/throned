@@ -3,9 +3,6 @@
 #include "include/global/GuiUtils.hpp"
 #include "include/global/Configs.hpp"
 #include "include/ui/mainwindow_interface.h"
-#ifdef Q_OS_WIN
-#include "include/sys/windows/WinVersion.h"
-#endif
 
 #include <QMessageBox>
 #include <QHostAddress>
@@ -44,19 +41,6 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->setupUi(this);
     ADD_ASTERISK(this);
 
-#ifdef Q_OS_WIN
-    if (WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1507)) {
-        ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
-        ui->vpn_implementation->setCurrentText(Configs::dataManager->settingsRepo->vpn_implementation);
-    } else {
-        ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
-        ui->vpn_implementation->setCurrentText("gvisor");
-        ui->vpn_implementation->setEnabled(false);
-    }
-#else
-    ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
-    ui->vpn_implementation->setCurrentText(Configs::dataManager->settingsRepo->vpn_implementation);
-#endif
     ui->vpn_mtu->setCurrentText(Int2String(Configs::dataManager->settingsRepo->vpn_mtu));
     ui->vpn_ipv6->setChecked(Configs::dataManager->settingsRepo->vpn_ipv6);
     ui->strict_route->setChecked(Configs::dataManager->settingsRepo->vpn_strict_route);
@@ -112,7 +96,6 @@ void DialogVPNSettings::accept() {
         privateRanges << range;
     }
 
-    Configs::dataManager->settingsRepo->vpn_implementation = ui->vpn_implementation->currentText().trimmed();
     Configs::dataManager->settingsRepo->vpn_mtu = mtu;
     Configs::dataManager->settingsRepo->vpn_ipv6 = ui->vpn_ipv6->isChecked();
     Configs::dataManager->settingsRepo->vpn_strict_route = ui->strict_route->isChecked();

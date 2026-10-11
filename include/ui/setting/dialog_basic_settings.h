@@ -55,8 +55,10 @@ private:
         bool needRestart = false;
         bool updateDisableTray = false;
         bool updateTrayIcon = false;
-        bool updateSystemDns = false;
         bool updateMaxLogLines = false;
+        // What the log font boxes showed on open; left untouched, an unset family/size keeps following its default.
+        QString shownLogFontFamily;
+        int shownLogFontSize = 0;
         bool updateDisableAdmin = false;
     } CACHE;
 

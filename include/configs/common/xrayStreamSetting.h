@@ -21,6 +21,8 @@ public:
     QString verifyPeerCertByName;
     QStringList alpn;
     QString fingerprint;
+    // Base64 ECHConfigList, or "<query domain>+<DoH url>" for Xray to fetch it itself.
+    QString echConfigList;
 
     bool ParseFromLink(const QString& link) override;
     bool ParseFromJson(const QJsonObject& object) override;
@@ -88,7 +90,7 @@ public:
     // extra/downloadSettings
     QString downloadSettings;
 
-    bool ParseExtraJson(QString str);
+    bool ParseExtraJson(const QString& str);
     bool ParseFromLink(const QString& link) override;
     bool ParseFromJson(const QJsonObject& object) override;
     bool ParseFromClash(const clash::Proxies& object) override;

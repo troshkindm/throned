@@ -63,7 +63,7 @@ Everything Throne does, plus:
 - Favourites across every group, plus optional search across every group.
 - Quick Add accepts subscription and profile links or opens manual group/profile creation.
 - Frameless native window, five core palettes and self-contained custom skins.
-- Log filtered by level, on a hanging timestamp gutter.
+- Log filtered by level and text, with a separate monospace font and a jump-to-latest control.
 - Status strip that no longer reflows as numbers change.
 
 **Operating it**
@@ -72,6 +72,14 @@ Everything Throne does, plus:
 - Update checks and downloads follow the running profile, with in-window progress and explicit restart-to-install.
 - Release notes follow the interface language when the release provides a translation.
 - Control CLI over a local socket.
+
+## Recent upstream updates
+
+- Encrypted remote API compatible with thronectl and the Throne API library.
+- IP scanner and reusable IP lists, with per-profile and per-group endpoint overrides.
+- Experimental kill switch and native global hotkeys, including KDE Wayland.
+
+Legacy Hijack and System DNS settings have been removed. Use TUN mode for application traffic.
 
 <details>
 <summary><b>More screenshots</b></summary>

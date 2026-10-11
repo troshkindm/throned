@@ -265,6 +265,7 @@ bool xrayTLS::ParseFromLink(const QString& link) {
     if (query.hasQueryItem("vcn")) verifyPeerCertByName = query.queryItemValue("vcn", QUrl::FullyDecoded);
     if (query.hasQueryItem("alpn")) alpn = query.queryItemValue("alpn", QUrl::FullyDecoded).split(",");
     if (query.hasQueryItem("fp")) fingerprint = query.queryItemValue("fp");
+    if (query.hasQueryItem("ech")) echConfigList = query.queryItemValue("ech", QUrl::FullyDecoded);
     return true;
 }
 
@@ -275,6 +276,7 @@ bool xrayTLS::ParseFromJson(const QJsonObject& object) {
     if (object.contains("verifyPeerCertByName")) verifyPeerCertByName = object["verifyPeerCertByName"].toString();
     if (object.contains("alpn")) alpn = QJsonArray2QListString(object["alpn"].toArray());
     if (object.contains("fingerprint")) fingerprint = object["fingerprint"].toString();
+    if (object.contains("echConfigList")) echConfigList = object["echConfigList"].toString();
     return true;
 }
 
@@ -300,6 +302,7 @@ QString xrayTLS::ExportToLink() {
     if (!verifyPeerCertByName.isEmpty()) query.addQueryItem("vcn", verifyPeerCertByName);
     if (!alpn.isEmpty()) query.addQueryItem("alpn", alpn.join(","));
     if (!fingerprint.isEmpty()) query.addQueryItem("fp", fingerprint);
+    if (!echConfigList.isEmpty()) query.addQueryItem("ech", echConfigList);
     return query.toString(QUrl::FullyEncoded);
 }
 
@@ -312,6 +315,7 @@ QJsonObject xrayTLS::ExportToJson() {
         object["alpn"] = QListStr2QJsonArray(alpn);
     }
     if (!fingerprint.isEmpty()) object["fingerprint"] = fingerprint;
+    if (!echConfigList.isEmpty()) object["echConfigList"] = echConfigList;
     return object;
 }
 
@@ -385,9 +389,10 @@ BuildResult xrayReality::Build() {
     return {obj, ""};
 }
 
-bool xrayXHTTP::ParseExtraJson(QString str) {
-    str = str.replace('\'', '"').replace("True", "true").replace("False", "false");
+bool xrayXHTTP::ParseExtraJson(const QString& str) {
     auto obj = QString2QJsonObject(str);
+    // Python dict repr ('key': True), rewritten only when strict JSON fails so valid values stay intact.
+    if (obj.isEmpty()) obj = QString2QJsonObject(QString(str).replace('\'', '"').replace("True", "true").replace("False", "false"));
     if (obj.isEmpty()) return false;
     parseXHTTPExtraObject(this, obj);
     return true;
@@ -401,7 +406,9 @@ bool xrayXHTTP::ParseFromLink(const QString& link) {
     if (query.hasQueryItem("host")) host = query.queryItemValue("host");
     if (query.hasQueryItem("path")) path = query.queryItemValue("path", QUrl::FullyDecoded);
     if (query.hasQueryItem("mode")) mode = query.queryItemValue("mode");
-    if (query.hasQueryItem("extra")) ParseExtraJson(query.queryItemValue("extra", QUrl::FullyDecoded));
+    if (query.hasQueryItem("extra") && !ParseExtraJson(query.queryItemValue("extra", QUrl::FullyDecoded))) {
+        ParseExtraJson(formDecodedQueryValue(query, "extra"));
+    }
     if (query.hasQueryItem("headers")) {
         auto raw = query.queryItemValue("headers", QUrl::FullyDecoded);
         headers = raw.split("|");
@@ -771,6 +778,7 @@ bool xrayStreamSetting::ParseFromLink(const QString& link) {
         auto fmRaw = query.queryItemValue(key, QUrl::FullyDecoded);
         QJsonParseError err;
         auto doc = QJsonDocument::fromJson(fmRaw.toUtf8(), &err);
+        if (err.error != QJsonParseError::NoError) doc = QJsonDocument::fromJson(formDecodedQueryValue(query, key).toUtf8(), &err);
         if (err.error == QJsonParseError::NoError && doc.isObject()) {
             finalmask = doc.object();
         } else if (err.error != QJsonParseError::NoError) {
@@ -925,6 +933,8 @@ QJsonObject xrayStreamSetting::ExportIdentity() {
     } else if (security == "tls") {
         if (!TLS->serverName.isEmpty()) object["sni"] = toAceHost(TLS->serverName);
         if (!TLS->fingerprint.isEmpty()) object["fingerprint"] = TLS->fingerprint;
+        if (!TLS->echConfigList.isEmpty())
+            object["ech"] = TLS->echConfigList.contains("://") ? TLS->echConfigList : QStringLiteral("static");
     }
     return object;
 }

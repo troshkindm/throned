@@ -2,6 +2,7 @@
 #include "include/api/RPC.h"
 #include "include/configs/validate.h"
 #include "include/configs/AutoSelectorPlan.h"
+#include "include/configs/common/utils.h"
 #include "include/global/Configs.hpp"
 #include "include/global/OtpPlaceholder.hpp"
 
@@ -14,6 +15,7 @@
 #include <QThreadPool>
 
 #include "include/database/GroupsRepo.h"
+#include "include/database/IpListsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 
@@ -47,13 +49,12 @@ constexpr auto dnsFake = "dns-fake";
 constexpr auto dnsTailscale = "dns-tailscale";
 constexpr auto dnsHosts = "dns-hosts";
 constexpr auto dnsVpnPrefix = "dns-vpn";
+constexpr auto dnsEchPrefix = "dns-ech";
 
 constexpr auto dnsIn = "dns-in";
 constexpr auto mixedIn = "mixed-in";
 constexpr auto serviceIn = "throned-service-in";
 constexpr auto tunIn = "tun-in";
-constexpr auto redirectIn = "hijack";
-constexpr auto dnsServerIn = "hijack-dns";
 constexpr auto xrayFullConfigIn = "throne-bridge";
 
 constexpr auto adblockRuleSet = "throne-adblocksingbox";
@@ -171,7 +172,6 @@ struct RoutingDeps {
 
 struct BuildPrerequisites {
     DNSDeps dns;
-    DomainSelectors hijack;
     TunDeps tun;
     RoutingDeps routing;
 };
@@ -204,12 +204,15 @@ struct BuildContext {
     QMap<QString, QString> vpnEndpointTags;
     QList<QString> vpnGateTags;
     QList<QString> vpnAuxTags;
+    // Names whose HTTPS record a hop's ECH needs to fetch; they must not resolve over the proxy they unlock.
+    QStringList echQueryNames;
     // The main-profile tunnel set to Strict tunnel DNS; its resolvers take every remote query.
     QString vpnStrictTag;
     QList<QString> xrayIngressTags;
     QList<QString> singIngressTags;
     QList<coreBridgeConfig> singToXrayBridges;
     QList<coreBridgeConfig> xrayToSingBridges;
+    QMap<QString, QString> echResolvers;
     std::shared_ptr<BuildConfigResult> result = std::make_shared<BuildConfigResult>();
 };
 
@@ -450,10 +453,97 @@ QString genTunName() {
 // Build-scoped, so a concurrent test build on a worker thread cannot pollute the started profile's set.
 thread_local QSet<int> *buildProfileSink = nullptr;
 
+// Build-scoped like buildProfileSink: scan clones shadow ids without ever reaching the repo.
+thread_local const QHash<int, std::shared_ptr<Profile>> *buildProfileOverrides = nullptr;
+
+struct GenerateEndpointEntry {
+    std::shared_ptr<Profile> live;
+    // nullptr: the live profile is built as it is.
+    std::shared_ptr<Profile> clone;
+};
+
+struct GenerateEndpointCache {
+    QHash<int, EndpointResolution> lists;
+    QHash<int, GenerateEndpointEntry> profiles;
+    QSet<int> loggedLists;
+};
+
+// Build-scoped like buildProfileSink; without one every lookup resolves afresh and logs nothing.
+thread_local GenerateEndpointCache *generateEndpointCache = nullptr;
+
+// Nested builds on one thread share the outermost cache.
+class GenerateEndpointScope {
+public:
+    GenerateEndpointScope() : previous_(generateEndpointCache) {
+        if (previous_ == nullptr) generateEndpointCache = &cache_;
+    }
+
+    ~GenerateEndpointScope() { generateEndpointCache = previous_; }
+
+    GenerateEndpointScope(const GenerateEndpointScope &) = delete;
+    GenerateEndpointScope &operator=(const GenerateEndpointScope &) = delete;
+
+private:
+    GenerateEndpointCache cache_;
+    GenerateEndpointCache *previous_;
+};
+
+enum class GenerateServerless { None,
+                                Missing,
+                                NoServer,
+                                Realm };
+
+GenerateServerless generateServerlessReason(const std::shared_ptr<Profile> &profile) {
+    if (profile == nullptr || profile->outbound == nullptr) return GenerateServerless::Missing;
+    const auto &type = profile->type;
+    if (type == "chain" || type == "custom" || type == "extracore" || type == "tailscale" ||
+        type == "autoselector" || type == "direct" || profile->outbound->IsExtraCore() ||
+        profile->outbound->IsXrayFullConfig())
+        return GenerateServerless::NoServer;
+    if (const auto *hy = profile->Hysteria(); hy != nullptr && hy->RealmActive())
+        return GenerateServerless::Realm;
+    return GenerateServerless::None;
+}
+
+std::shared_ptr<Profile> generateEndpointApply(const std::shared_ptr<Profile> &ent) {
+    auto *cache = generateEndpointCache;
+    if (cache != nullptr) {
+        if (const auto it = cache->profiles.constFind(ent->id); it != cache->profiles.constEnd() && it->live == ent)
+            return it->clone != nullptr ? it->clone : ent;
+    }
+    std::shared_ptr<Profile> clone;
+    if (generateServerlessReason(ent) == GenerateServerless::None) {
+        const auto source = EffectiveEndpointSource(*ent);
+        const auto resolution = ResolveEndpointSource(source);
+        if (!resolution.address.isEmpty()) {
+            clone = CloneProfileWithServer(ent, resolution.address, 0);
+            if (clone != nullptr) clone->id = ent->id;
+        } else if (!resolution.problem.isEmpty() && cache != nullptr && !cache->loggedLists.contains(source.ipListId)) {
+            cache->loggedLists.insert(source.ipListId);
+            MW_show_log(QObject::tr("%1 dials its own address: %2").arg(ent->outbound->DisplayTypeAndName(), resolution.problem));
+        }
+    }
+    if (cache != nullptr) cache->profiles.insert(ent->id, {ent, clone});
+    return clone != nullptr ? clone : ent;
+}
+
+// Profiles a build hands out (traffic credit, selector members) must be the live ones, not their clones.
+std::shared_ptr<Profile> generateEndpointLive(const std::shared_ptr<Profile> &ent) {
+    const auto *cache = generateEndpointCache;
+    if (cache == nullptr || ent == nullptr) return ent;
+    const auto it = cache->profiles.constFind(ent->id);
+    return it != cache->profiles.constEnd() && it->clone == ent ? it->live : ent;
+}
+
 std::shared_ptr<Profile> getProfile(int id) {
+    if (buildProfileOverrides != nullptr) {
+        if (const auto it = buildProfileOverrides->constFind(id); it != buildProfileOverrides->constEnd())
+            return it.value();
+    }
     auto ent = dataManager->profilesRepo->GetProfile(id);
-    if (buildProfileSink != nullptr && ent != nullptr) buildProfileSink->insert(id);
-    return ent;
+    if (ent == nullptr) return nullptr;
+    if (buildProfileSink != nullptr) buildProfileSink->insert(id);
+    return generateEndpointApply(ent);
 }
 
 bool isCustomFullConfig(const std::shared_ptr<Profile> &profile) {
@@ -770,13 +860,6 @@ void calculatePrerequisites(BuildContext &ctx) {
         }
     }
 
-    if (settings.enable_dns_server) {
-        parseSelectorList(settings.dns_server_rules, sinkFor(preReqs.hijack));
-    }
-    for (auto ruleSet: preReqs.hijack.ruleSets) {
-        if (!preReqs.routing.neededRuleSets.contains(ruleSet.toString())) preReqs.routing.neededRuleSets.append(ruleSet.toString());
-    }
-
     parseSelectorList(routeChain->get_direct_ips(), {
                                                         .ruleSets = &preReqs.tun.directIPSets,
                                                         .ipCIDRs = &preReqs.tun.directIPCIDRs,
@@ -839,6 +922,19 @@ QJsonObject directDomainResolver() {
     return {{"server", tags::dnsDirect}, {"strategy", getDirectDomainStrategy()}};
 }
 
+bool dnsNeedsDetour(const BuildContext &ctx, const QString &tag) {
+    for (const auto &value: ctx.outbounds) {
+        auto outbound = value.toObject();
+        if (outbound.value("tag").toString() != tag) continue;
+        if (outbound.value("type").toString() != "direct") return true;
+        outbound.remove("tag");
+        outbound.remove("type");
+        // sing-box rejects an explicit DNS detour through a direct outbound with no dial options.
+        return !outbound.isEmpty();
+    }
+    return true;
+}
+
 QJsonObject buildDnsObj(BuildContext &ctx, QString address) {
     if (address.startsWith("local")) {
         if (ctx.tunEnabled && ctx.isResolvedUsed) {
@@ -858,6 +954,7 @@ QJsonObject buildDnsObj(BuildContext &ctx, QString address) {
     int port = -1;
     QString type = "udp";
     QString path = "";
+    if (address.startsWith("udp://")) addr = addr.mid(6);
     if (address.startsWith("tcp://")) {
         type = "tcp";
         addr = addr.replace("tcp://", "");
@@ -949,7 +1046,6 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
     }
 
     const auto &dns = ctx.prerequisites.dns;
-    const auto &hijack = ctx.prerequisites.hijack;
     bool isTailscale = ctx.ent->type == "tailscale";
     bool independentCache = false;
     QJsonArray servers;
@@ -964,7 +1060,7 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
         }
         remoteDnsObj["tag"] = tags::dnsRemote;
         remoteDnsObj["domain_resolver"] = tags::dnsLocal;
-        remoteDnsObj["detour"] = tags::proxy;
+        if (dnsNeedsDetour(ctx, tags::proxy)) remoteDnsObj["detour"] = tags::proxy;
         servers += remoteDnsObj;
 
         // One remote server per chain a rule aims at, same upstream as
@@ -973,7 +1069,8 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
         for (const auto &chain: dns.chains) {
             auto chainDnsObj = remoteDnsObj;
             chainDnsObj["tag"] = chainDnsTag(chain.outboundTag);
-            chainDnsObj["detour"] = chain.outboundTag;
+            chainDnsObj.remove("detour");
+            if (dnsNeedsDetour(ctx, chain.outboundTag)) chainDnsObj["detour"] = chain.outboundTag;
             servers += chainDnsObj;
         }
 
@@ -1071,6 +1168,15 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
         };
     }
 
+    if (!ctx.forTest && !ctx.echQueryNames.isEmpty()) {
+        headRules += QJsonObject{
+            {"domain", QJsonArray::fromStringList(ctx.echQueryNames)},
+            {"query_type", QJsonArray{"HTTPS"}},
+            {"action", "route"},
+            {"server", tags::dnsDirect},
+        };
+    }
+
     // Strict tunnel DNS takes every query that would otherwise go to dns-remote.
     QString remoteDnsTag = tags::dnsRemote;
     if (!ctx.forTest) {
@@ -1102,37 +1208,6 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
                        tags::dnsDirect, settings.direct_dns_disable_ipv6);
     }
 
-    if (settings.enable_dns_server && !ctx.forTest) {
-        // Own rule per rule_set (AND-vs-OR); the non-empty guards stop a query_type-only rule hijacking everything.
-        auto addHijackRules = [&](const QJsonObject &conditions) {
-            auto v4 = conditions;
-            v4["query_type"] = "A";
-            v4["action"] = "predefined";
-            v4["rcode"] = "NOERROR";
-            v4["answer"] = QString("*. IN A %1").arg(settings.dns_v4_resp);
-            rules += v4;
-
-            if (settings.dns_v6_resp.isEmpty()) return;
-            auto v6 = conditions;
-            v6["query_type"] = "AAAA";
-            v6["action"] = "predefined";
-            v6["rcode"] = "NOERROR";
-            v6["answer"] = QString("*. IN AAAA %1").arg(settings.dns_v6_resp);
-            rules += v6;
-        };
-
-        if (!hijack.ruleSets.isEmpty()) {
-            addHijackRules(QJsonObject{{"rule_set", hijack.ruleSets}});
-        }
-        if (!hijack.domains.isEmpty() || !hijack.suffixes.isEmpty() || !hijack.regexes.isEmpty()) {
-            addHijackRules(QJsonObject{
-                {"domain", hijack.domains},
-                {"domain_suffix", hijack.suffixes},
-                {"domain_regex", hijack.regexes},
-            });
-        }
-    }
-
     if (settings.fake_dns) {
         QJsonObject fakeServer{
             {"tag", tags::dnsFake},
@@ -1140,7 +1215,8 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
             {"inet4_range", "198.18.0.0/15"},
         };
         // No inet6_range makes the transport answer AAAA empty itself; the rule stays on both types.
-        if (!settings.fakeip_disable_ipv6) fakeServer["inet6_range"] = "fc00::/18";
+        // Not fc00::/18: the Tun's fc00::/7 private-range bypass would route fake addresses outside it.
+        if (!settings.fakeip_disable_ipv6) fakeServer["inet6_range"] = "2001:db8::/32";
         servers += fakeServer;
         rules += QJsonObject{
             {"query_type", QJsonArray{
@@ -1186,6 +1262,23 @@ void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
     auto dnsLocalObj = buildDnsObj(ctx, dnsLocalAddress);
     dnsLocalObj["tag"] = tags::dnsLocal;
     servers += dnsLocalObj;
+
+    int echDnsIdx = 0;
+    for (auto it = ctx.echResolvers.cbegin(); it != ctx.echResolvers.cend(); ++it) {
+        const QString tag = hopTag(tags::dnsEchPrefix, echDnsIdx++);
+
+        auto echDnsObj = buildDnsObj(ctx, it.value());
+        echDnsObj["tag"] = tag;
+        echDnsObj["domain_resolver"] = tags::dnsLocal;
+        servers.append(echDnsObj);
+
+        headRules.prepend(QJsonObject{
+            {"domain", QJsonArray{it.key()}},
+            {"query_type", QJsonArray{"HTTPS"}},
+            {"action", "route"},
+            {"server", tag},
+        });
+    }
 
     if (!headRules.isEmpty()) {
         for (const auto &rule: rules) headRules.append(rule);
@@ -1265,7 +1358,6 @@ void buildInboundSection(BuildContext &ctx) {
         inboundObj["interface_name"] = genTunName();
         inboundObj["auto_route"] = true;
         inboundObj["mtu"] = settings.vpn_mtu;
-        inboundObj["stack"] = settings.vpn_implementation;
         inboundObj["strict_route"] = settings.vpn_strict_route;
         if (ctx.os == Linux && settings.vpn_auto_redirect) inboundObj["auto_redirect"] = true;
         const auto tunIPv4CIDR = settings.vpn_tun_ipv4_cidr;
@@ -1288,7 +1380,7 @@ void buildInboundSection(BuildContext &ctx) {
             for (auto item: tun.directIPSets) routeExcludeSets << item;
         }
 
-        // On macOS a bypass covering the Tun subnet black-holes the system DNS and the system stack's replies (#1738).
+        // On macOS a bypass covering the Tun subnet black-holes the system DNS (#1738).
         if (ctx.os == Darwin) {
             excludedRanges = subtractPrefix(excludedRanges, tunIPv4CIDR);
             if (settings.vpn_ipv6) excludedRanges = subtractPrefix(excludedRanges, tunIPv6CIDR);
@@ -1304,23 +1396,6 @@ void buildInboundSection(BuildContext &ctx) {
         {"type", "direct"},
         {"listen", "127.0.0.1"},
         {"listen_port", settings.core_dns_in_port}});
-
-    if (settings.enable_redirect) {
-        inbounds.prepend(QJsonObject{
-            {"tag", tags::redirectIn},
-            {"type", "direct"},
-            {"listen", settings.redirect_listen_address},
-            {"listen_port", settings.redirect_listen_port},
-        });
-    }
-    if (settings.enable_dns_server) {
-        inbounds.prepend(QJsonObject{
-            {"tag", tags::dnsServerIn},
-            {"type", "direct"},
-            {"listen", settings.dns_server_listen_lan ? "0.0.0.0" : "127.1.1.1"},
-            {"listen_port", settings.dns_server_listen_port},
-        });
-    }
 
     QJSONARRAY_ADD(inbounds, QString2QJsonObject(settings.custom_inbound)["inbounds"].toArray())
     ctx.result->coreConfig["inbounds"] = inbounds;
@@ -1445,6 +1520,33 @@ bool resolvesHostnamesViaDnsRules(const Profile &hop) {
     return socksOutbound != nullptr && socksOutbound->version == 4;
 }
 
+// A resolver buildDnsObj cannot express falls back to dns-direct like an unset one.
+bool usableEchResolver(const QString &resolver) {
+    if (resolver.isEmpty()) return false;
+    if (!resolver.contains("://")) return true;
+    static const QStringList schemes = {"udp", "tcp", "tls", "https", "quic", "h3"};
+    return schemes.contains(resolver.section("://", 0, 0).toLower());
+}
+
+// Without a static config the core fetches the ECH list over DNS first; via dns-remote that dials the same hop.
+void collectEchQueryName(BuildContext &ctx, const Profile &hop) {
+    if (!hop.outbound->HasTLS()) return;
+    const auto tls = hop.outbound->GetTLS();
+    if (!tls->enabled || !tls->ech->enabled) return;
+    if (!tls->ech->config.isEmpty() || !tls->ech->config_path.isEmpty()) return;
+    // The core queries query_server_name when set, else the TLS server name, else the dial host.
+    QString name = tls->ech->serverName;
+    if (name.isEmpty()) name = tls->server_name;
+    if (name.isEmpty()) name = hop.outbound->server;
+    name = toAceHost(name.trimmed());
+    if (name.isEmpty() || QHostAddress(name).protocol() != QAbstractSocket::UnknownNetworkLayerProtocol) return;
+    if (usableEchResolver(tls->ech->resolver)) {
+        if (!ctx.echResolvers.contains(name)) ctx.echResolvers.insert(name, tls->ech->resolver);
+    } else if (!ctx.echQueryNames.contains(name)) {
+        ctx.echQueryNames << name;
+    }
+}
+
 void buildSingboxChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> &ents, const hopChainOptions &opts) {
     for (int idx = 0; idx < ents.size(); idx++) {
         auto tag = hopTag(opts.prefix, opts.startSuffix + idx);
@@ -1487,6 +1589,7 @@ void buildSingboxChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> 
             return;
         }
         object["tag"] = tag;
+        collectEchQueryName(ctx, *ent);
         // Realm reads its STUN resolver off this key only; without it the hosts go through DNS rules.
         if (auto hy = ent->Hysteria(); hy != nullptr && hy->RealmActive())
             object["domain_resolver"] = QJsonObject{{"server", tags::dnsDirect}};
@@ -1682,7 +1785,7 @@ QString buildOutboundChain(BuildContext &ctx, const ChainBuildRequest &req) {
 
     if (!ents.isEmpty()) {
         TrafficChainGroup group;
-        group.profiles = ents;
+        for (const auto &ent: ents) group.profiles << generateEndpointLive(ent);
         if (!tailingSingEnts.isEmpty()) {
             group.watchTag = hopTag(req.prefix, tailingStartSuffix);
         } else {
@@ -1772,7 +1875,7 @@ QString buildAutoSelectorGroup(BuildContext &ctx, const std::shared_ptr<Group> &
     const auto invalid = invalidProfileIDs(plan.build);
     for (int id: plan.build) {
         if (invalid.contains(id)) continue;
-        auto member = getProfile(id);
+        auto member = generateEndpointLive(getProfile(id));
         if (member == nullptr) continue;
         QList<int> hopIDs;
         if (group->landing_proxy_id >= 0) hopIDs.append(group->landing_proxy_id);
@@ -1998,9 +2101,11 @@ void buildOutboundsSection(BuildContext &ctx) {
         {"tag", tags::direct}});
 
     if (ctx.l3Bridge) {
+        // The Linux kill switch recognises the bridge tun by this name prefix.
         ctx.outbounds.append(QJsonObject{
             {"type", "bridge"},
-            {"tag", tags::l3Direct}});
+            {"tag", tags::l3Direct},
+            {"bridge_name", "throne-br"}});
     }
 
     ctx.result->coreConfig["endpoints"] = ctx.endpoints;
@@ -2100,7 +2205,6 @@ void buildRouteSection(BuildContext &ctx) {
         QJsonObject resolve;
         QJsonObject dnsHijack;
         QJsonObject dnsInReject;
-        QJsonObject redirectSniff;
     } injected;
 
     if (!ctx.forTest) {
@@ -2153,13 +2257,6 @@ void buildRouteSection(BuildContext &ctx) {
             {"protocol", "dns"},
             {"action", "hijack-dns"},
         };
-        if (settings.enable_redirect && !ctx.forTest) {
-            injected.redirectSniff = QJsonObject{
-                {"inbound", QJsonArray{tags::redirectIn}},
-                {"action", "sniff"},
-                {"override_destination", true},
-            };
-        }
     }
     if (!ctx.forTest) {
         injected.dnsInReject = QJsonObject{
@@ -2261,7 +2358,6 @@ void buildRouteSection(BuildContext &ctx) {
     appendIfSet(injected.resolve);
     appendIfSet(injected.dnsHijack);
     appendIfSet(injected.dnsInReject);
-    appendIfSet(injected.redirectSniff);
     for (const auto &r: profileRules) routeRules.append(r);
     for (const auto &r: vpnAuxRules) routeRules.append(r);
     for (const auto &r: l3BridgeFinalRules) routeRules.append(r);
@@ -2422,6 +2518,82 @@ testCandidateKind classifyTestCandidate(const std::shared_ptr<Profile> &profile)
     return {testCandidate::Build, nullptr};
 }
 
+// ---------------------------------------------------------- scan clones
+
+// Far below every sentinel id (-1, warpProfileID), so a clone never resolves to one.
+constexpr int kScanSyntheticIdBase = -1000000;
+
+bool isVpnEndpointType(const QString &type) {
+    return type == "openvpn" || type == "openconnect";
+}
+
+std::shared_ptr<Profile> scanChainHop(int id) {
+    return id == warpProfileID ? getWarpProfile() : getProfile(id);
+}
+
+QString scanCloneBlocker(const std::shared_ptr<Profile> &profile) {
+    switch (generateServerlessReason(profile)) {
+        case GenerateServerless::Missing:
+            return QObject::tr("The profile no longer exists");
+        case GenerateServerless::NoServer:
+            return QObject::tr("%1 profiles have no single server to scan").arg(profile->type);
+        case GenerateServerless::Realm:
+            return QObject::tr("Hysteria2 realm profiles have no fixed server to scan");
+        case GenerateServerless::None:
+            break;
+    }
+    return {};
+}
+
+// A chain is scanned through the hop it dials directly, the first of its in-to-out list.
+QString scanBaseBlocker(const std::shared_ptr<Profile> &base) {
+    if (base == nullptr || base->outbound == nullptr) return QObject::tr("The profile no longer exists");
+    if (base->type != "chain") return scanCloneBlocker(base);
+    const auto *chain = base->Chain();
+    if (chain == nullptr || chain->list.isEmpty()) return QObject::tr("The chain has no hops");
+    for (const int hopId: chain->list) {
+        const auto hop = scanChainHop(hopId);
+        if (hop == nullptr || hop->outbound == nullptr) return QObject::tr("A hop of the chain no longer exists");
+        if (hop->outbound->IsExtraCore() || hop->outbound->IsXrayFullConfig())
+            return QObject::tr("Chains with an extra-core or Xray full config hop cannot be tested");
+    }
+    return scanCloneBlocker(scanChainHop(chain->list.first()));
+}
+
+std::shared_ptr<Profile> scanDeepClone(const std::shared_ptr<Profile> &base) {
+    if (base == nullptr || base->outbound == nullptr) return nullptr;
+    auto clone = ProfilesRepo::NewProfile(base->type);
+    if (clone->outbound == nullptr || clone->outbound->invalid) return nullptr;
+    if (!clone->outbound->ParseFromJson(base->outbound->ExportToJson())) return nullptr;
+    clone->name = base->name;
+    clone->gid = base->gid;
+    // ResolveVpnCredentials finds the in-memory credential override by the original profile's id.
+    clone->outbound->profile_id = base->id >= 0 ? base->id : base->outbound->profile_id;
+    return clone;
+}
+
+struct TestBuildOptions {
+    QString chainPrefix = tags::testChainPrefix;
+    bool validate = true;
+    bool groupHops = true;
+};
+
+class ScopedProfileOverrides {
+public:
+    explicit ScopedProfileOverrides(const QHash<int, std::shared_ptr<Profile>> *overrides)
+        : previous_(buildProfileOverrides) {
+        buildProfileOverrides = overrides;
+    }
+
+    ~ScopedProfileOverrides() { buildProfileOverrides = previous_; }
+
+    ScopedProfileOverrides(const ScopedProfileOverrides &) = delete;
+    ScopedProfileOverrides &operator=(const ScopedProfileOverrides &) = delete;
+
+private:
+    const QHash<int, std::shared_ptr<Profile>> *previous_;
+};
+
 } // namespace
 
 bool ParsePredefinedDNS(const QStringList &lines, QList<PredefinedDNSEntry> &out, QString *error) {
@@ -2484,6 +2656,7 @@ std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Prof
             if (dataManager->settingsRepo->apply_dns_to_full_config) {
                 BuildContext dnsCtx;
                 dnsCtx.ent = ent;
+                dnsCtx.outbounds = obj.value("outbounds").toArray();
                 // Not calculatePrerequisites: that would add chain servers for outbounds this
                 // config does not have. Only the platform facts the dns servers depend on.
                 dnsCtx.tunEnabled = dataManager->settingsRepo->spmode_vpn;
@@ -2536,6 +2709,7 @@ std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Prof
         }
     }
 
+    const GenerateEndpointScope endpointScope;
     BuildContext ctx;
     ctx.ent = ent;
     ctx.result->involvedProfiles = {ent->id};
@@ -2595,7 +2769,7 @@ std::shared_ptr<BuildConfigResult> BuildBlackholeConfig() {
         {"interface_name", genTunName()},
         {"auto_route", true},
         {"mtu", settings.vpn_mtu},
-        {"stack", settings.vpn_implementation},
+        {"stack", "gvisor"},
         {"strict_route", settings.vpn_strict_route},
     };
     if (getOS() == Linux && settings.vpn_auto_redirect) tun["auto_redirect"] = true;
@@ -2748,13 +2922,24 @@ bool IsValid(const std::shared_ptr<Profile> &ent, bool *coreUnreachable) {
     return false;
 }
 
-std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile>> &profiles) {
+namespace {
+std::shared_ptr<BuildTestConfigResult> buildTestConfigImpl(const QList<std::shared_ptr<Profile>> &profiles,
+                                                           const TestBuildOptions &options) {
     auto res = std::make_shared<BuildTestConfigResult>();
+    const GenerateEndpointScope endpointScope;
     // outbound::Build() cannot see BuildContext::forTest.
     SetBuildingTestConfig(true);
     const auto clearTestBuildFlag = qScopeGuard([] { SetBuildingTestConfig(false); });
     BuildContext ctx;
     ctx.forTest = true;
+
+    for (const auto &item: profiles) {
+        if (item == nullptr) continue;
+        for (int hopId: unwrapChain(item->id)) {
+            if (const auto hop = getProfile(hopId); hop != nullptr) collectEchQueryName(ctx, *hop);
+        }
+    }
+
     buildDNSSection(ctx, false);
     if (!ctx.error.isEmpty()) {
         res->error = ctx.error;
@@ -2782,7 +2967,7 @@ std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_p
             continue;
         }
         if (candidate.kind == testCandidate::XrayFullConfig) {
-            if (!IsValid(item)) {
+            if (options.validate && !IsValid(item)) {
                 MW_show_log("Skipping invalid custom Xray full config: " + item->outbound->name);
                 item->SetLatency(-1);
                 continue;
@@ -2808,7 +2993,7 @@ std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_p
             res->tag2entID.insert(tag, item->id);
             continue;
         }
-        if (!IsValid(item)) {
+        if (options.validate && !IsValid(item)) {
             MW_show_log("Skipping invalid config: " + item->outbound->name);
             item->SetLatency(-1);
             continue;
@@ -2828,13 +3013,15 @@ std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_p
             }
         }
         auto IDs = unwrapChain(item->id);
-        auto group = dataManager->groupsRepo->GetGroup(item->gid);
-        if (group == nullptr) {
-            res->error = "Null group on profile, data is corrupted";
-            return res;
+        if (options.groupHops) {
+            auto group = dataManager->groupsRepo->GetGroup(item->gid);
+            if (group == nullptr) {
+                res->error = "Null group on profile, data is corrupted";
+                return res;
+            }
+            if (group->landing_proxy_id >= 0) IDs.prepend(group->landing_proxy_id);
+            if (group->front_proxy_id >= 0) IDs.append(group->front_proxy_id);
         }
-        if (group->landing_proxy_id >= 0) IDs.prepend(group->landing_proxy_id);
-        if (group->front_proxy_id >= 0) IDs.append(group->front_proxy_id);
         int singToXrayPort = -1;
         int xrayToSingPort = -1;
         if (item->outbound->IsXray()) singToXrayPort = xrayPorts[xrayPortIdx++];
@@ -2844,7 +3031,7 @@ std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_p
         }
         auto tag = buildOutboundChain(ctx, {
                                                .hopIDs = IDs,
-                                               .prefix = hopTag(tags::testChainPrefix, suffix),
+                                               .prefix = hopTag(options.chainPrefix, suffix),
                                                .singToXrayPort = singToXrayPort,
                                                .xrayToSingPort = xrayToSingPort,
                                            });
@@ -2889,5 +3076,233 @@ std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_p
         MW_show_log("Generated test config: " + problem);
 
     return res;
+}
+} // namespace
+
+std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile>> &profiles) {
+    return buildTestConfigImpl(profiles, {});
+}
+
+std::shared_ptr<Profile> CloneProfileWithServer(const std::shared_ptr<Profile> &base, const QString &address, int port) {
+    if (!scanCloneBlocker(base).isEmpty()) return nullptr;
+    auto clone = scanDeepClone(base);
+    if (clone == nullptr) return nullptr;
+    auto *out = clone->outbound.get();
+
+    QString original = base->outbound->GetAddress().trimmed();
+    if (auto *ovpn = clone->OpenVPN(); ovpn != nullptr) {
+        // server/server_port and servers are mutually exclusive; the first remote supplies what the scan keeps.
+        if (!ovpn->servers.isEmpty()) {
+            const auto &first = ovpn->servers.first();
+            if (original.isEmpty()) original = first->server.trimmed();
+            if (first->server_port > 0) ovpn->server_port = first->server_port;
+            if (!first->network.isEmpty()) ovpn->network = first->network;
+        }
+        ovpn->servers.clear();
+        ovpn->remote_random = false;
+    }
+    UnwrapIPV6Host(original);
+
+    if (!original.isEmpty() && !IsIpAddress(original)) {
+        if (out->HasTLS()) {
+            if (auto tls = out->GetTLS(); tls != nullptr && tls->server_name.isEmpty()) tls->server_name = original;
+        }
+        if (out->HasTransport()) {
+            auto transport = out->GetTransport();
+            if (transport != nullptr && transport->host.isEmpty() &&
+                (transport->type == "ws" || transport->type == "httpupgrade" || transport->type == "http"))
+                transport->host = original;
+        }
+        if (out->HasXrayStream()) {
+            if (auto stream = out->GetXrayStream(); stream != nullptr) {
+                if (stream->security == "tls" && stream->TLS->serverName.isEmpty()) stream->TLS->serverName = original;
+                if (stream->security == "reality" && stream->reality->serverName.isEmpty())
+                    stream->reality->serverName = original;
+                if (stream->network == "ws" && stream->ws->host.isEmpty()) stream->ws->host = original;
+                if (stream->network == "httpupgrade" && stream->httpupgrade->host.isEmpty())
+                    stream->httpupgrade->host = original;
+                if (stream->network == "xhttp" && stream->xhttp->host.isEmpty()) stream->xhttp->host = original;
+            }
+        }
+        if (auto *ocon = clone->OpenConnect(); ocon != nullptr && ocon->tls->server_name.isEmpty())
+            ocon->tls->server_name = original;
+    }
+
+    if (port > 0) {
+        if (auto *hy = clone->Hysteria(); hy != nullptr) {
+            hy->server_ports.clear();
+            hy->hop_interval.clear();
+            hy->hop_interval_max.clear();
+        }
+        if (auto *mi = clone->Mieru(); mi != nullptr) mi->server_ports.clear();
+    }
+
+    QString host = address.trimmed();
+    UnwrapIPV6Host(host);
+    out->SetAddress(host);
+    if (port > 0) out->SetPort(port);
+    clone->id = -1;
+    return clone;
+}
+
+EndpointResolution ResolveEndpointSource(const EndpointSource &source) {
+    if (source.mode == EndpointSource::Mode::Address)
+        return {source.address.trimmed(), QObject::tr("the group's fixed address"), {}};
+    if (source.mode != EndpointSource::Mode::IpList) return {};
+
+    auto *cache = generateEndpointCache;
+    if (cache != nullptr) {
+        if (const auto it = cache->lists.constFind(source.ipListId); it != cache->lists.constEnd()) return it.value();
+    }
+    EndpointResolution res;
+    if (const auto list = dataManager->ipListsRepo->GetIpListHeader(source.ipListId); list == nullptr || list->IsHidden()) {
+        res.problem = QObject::tr("The IP list no longer exists");
+    } else {
+        res.origin = QObject::tr("IP list \"%1\"").arg(list->name);
+        if (const auto first = dataManager->ipListsRepo->GetEntries(source.ipListId, 0, 1); !first.isEmpty())
+            res.address = first.first().cidr.section('/', 0, 0);
+        else
+            res.problem = QObject::tr("The IP list \"%1\" is empty").arg(list->name);
+    }
+    if (cache != nullptr) cache->lists.insert(source.ipListId, res);
+    return res;
+}
+
+EndpointSource EffectiveEndpointSource(const Profile &profile) {
+    if (profile.endpoint.mode != EndpointSource::Mode::Inherit) return profile.endpoint;
+    const auto group = dataManager->groupsRepo->GetGroup(profile.gid);
+    return group != nullptr ? group->endpoint : EndpointSource{};
+}
+
+QString EndpointOverrideBlocker(const std::shared_ptr<Profile> &profile) {
+    switch (generateServerlessReason(profile)) {
+        case GenerateServerless::Missing:
+            return QObject::tr("The profile no longer exists");
+        case GenerateServerless::NoServer:
+            return QObject::tr("%1 profiles have no single server address to replace").arg(profile->type);
+        case GenerateServerless::Realm:
+            return QObject::tr("Hysteria2 realm profiles have no fixed server address to replace");
+        case GenerateServerless::None:
+            break;
+    }
+    return {};
+}
+
+namespace {
+QMutex generateDisplayListsMutex;
+QHash<int, QString> generateDisplayListHosts;
+} // namespace
+
+QString EffectiveEndpointHost(const std::shared_ptr<Profile> &profile) {
+    if (generateServerlessReason(profile) != GenerateServerless::None) return {};
+    const auto source = EffectiveEndpointSource(*profile);
+    if (source.mode == EndpointSource::Mode::Address) return source.address.trimmed();
+    if (source.mode != EndpointSource::Mode::IpList) return {};
+    {
+        QMutexLocker locker(&generateDisplayListsMutex);
+        if (const auto it = generateDisplayListHosts.constFind(source.ipListId); it != generateDisplayListHosts.constEnd())
+            return it.value();
+    }
+    const QString host = ResolveEndpointSource(source).address;
+    QMutexLocker locker(&generateDisplayListsMutex);
+    generateDisplayListHosts.insert(source.ipListId, host);
+    return host;
+}
+
+QString DisplayEffectiveAddress(const std::shared_ptr<Profile> &profile) {
+    if (profile == nullptr || profile->outbound == nullptr) return {};
+    if (const auto host = EffectiveEndpointHost(profile); !host.isEmpty()) {
+        if (const auto clone = CloneProfileWithServer(profile, host, 0); clone != nullptr) return clone->outbound->DisplayAddress();
+    }
+    return profile->outbound->DisplayAddress();
+}
+
+void InvalidateEndpointDisplayCache() {
+    QMutexLocker locker(&generateDisplayListsMutex);
+    generateDisplayListHosts.clear();
+}
+
+QString ValidateScanBase(const std::shared_ptr<Profile> &base) {
+    if (auto blocker = scanBaseBlocker(base); !blocker.isEmpty()) return blocker;
+    auto clone = scanDeepClone(base);
+    if (clone == nullptr) return QObject::tr("The profile could not be copied for the scan");
+    clone->id = kScanSyntheticIdBase;
+    const QHash<int, std::shared_ptr<Profile>> overrides{{clone->id, clone}};
+    const ScopedProfileOverrides scoped(&overrides);
+    SetBuildingTestConfig(true);
+    const auto clearTestBuildFlag = qScopeGuard([] { SetBuildingTestConfig(false); });
+    bool coreUnreachable = false;
+    if (IsValid(clone, &coreUnreachable)) return {};
+    if (coreUnreachable) return QObject::tr("The profile could not be checked: core unreachable");
+    return QObject::tr("The profile is not valid; the log has the details");
+}
+
+ScanTestBuild BuildScanTestConfig(const std::shared_ptr<Profile> &base, const QList<ScanTestTarget> &targets) {
+    const GenerateEndpointScope endpointScope;
+    ScanTestBuild out;
+    if (auto blocker = scanBaseBlocker(base); !blocker.isEmpty()) {
+        out.error = blocker;
+        return out;
+    }
+    const auto *chain = base->Chain();
+    std::shared_ptr<Profile> dialedHop;
+    QString exitType = base->type;
+    if (chain != nullptr) {
+        dialedHop = scanChainHop(chain->list.first());
+        const auto exitHop = chain->list.size() == 1 ? dialedHop : scanChainHop(chain->list.last());
+        exitType = exitHop != nullptr ? exitHop->type : QString();
+    }
+
+    QHash<int, std::shared_ptr<Profile>> overrides;
+    QHash<int, int> synth2target;
+    QList<std::shared_ptr<Profile>> items;
+    int nextId = kScanSyntheticIdBase;
+    for (int i = 0; i < targets.size(); ++i) {
+        const auto &target = targets[i];
+        std::shared_ptr<Profile> item;
+        if (chain != nullptr) {
+            if (auto hop = CloneProfileWithServer(dialedHop, target.address, target.port); hop != nullptr) {
+                item = scanDeepClone(base);
+                if (item != nullptr && item->Chain() != nullptr) {
+                    hop->id = nextId--;
+                    overrides.insert(hop->id, hop);
+                    item->Chain()->list[0] = hop->id;
+                } else {
+                    item = nullptr;
+                }
+            }
+        } else {
+            item = CloneProfileWithServer(base, target.address, target.port);
+        }
+        if (item == nullptr) {
+            out.unsupported << i;
+            continue;
+        }
+        item->id = nextId--;
+        overrides.insert(item->id, item);
+        synth2target.insert(item->id, i);
+        items << item;
+    }
+    if (items.isEmpty()) {
+        if (!targets.isEmpty()) out.error = QObject::tr("The profile cannot be pointed at the scanned addresses");
+        return out;
+    }
+
+    {
+        const ScopedProfileOverrides scoped(&overrides);
+        out.build = buildTestConfigImpl(items, {.chainPrefix = QStringLiteral("scan"), .validate = false, .groupHops = false});
+    }
+    if (!out.build->error.isEmpty()) {
+        out.error = out.build->error;
+        return out;
+    }
+    for (auto it = out.build->tag2entID.cbegin(); it != out.build->tag2entID.cend(); ++it)
+        out.tag2target.insert(it.key(), synth2target.value(it.value(), -1));
+    if (isVpnEndpointType(exitType)) out.vpnEndpointTags = out.build->outboundTags;
+    return out;
+}
+
+void SplitWarpEndpoint(const QString &endpoint, int defaultPort, QString &host, int &port) {
+    splitWarpEndpoint(endpoint, defaultPort, host, port);
 }
 } // namespace Configs

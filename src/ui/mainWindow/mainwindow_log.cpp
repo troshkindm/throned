@@ -1,34 +1,62 @@
 #include "include/ui/mainwindow.h"
+#include "include/ui/setting/ThemeManager.hpp"
 
-#include <QAbstractTextDocumentLayout>
 #include <QAction>
 #include <QApplication>
-#include <QFontDatabase>
 #include <QMenu>
 #include <QMutexLocker>
 #include <QScrollBar>
-#include <QTextBlock>
 #include <QTextCursor>
 
 #include <v2/ui/LogHighlighter.hpp>
+#include <algorithm>
+#include "include/ui/widget/MaterialIcon.h"
 
 namespace {
 constexpr qsizetype MAX_PENDING_LOG_CHARS = 2 * 1024 * 1024;
+// Slack so a fractional layout height still counts as scrolled to the bottom.
+constexpr int LOG_BOTTOM_SLACK = 4;
+constexpr int LOG_SEARCH_DEBOUNCE_MS = 150;
 
-inline void FastAppendTextDocument(const QString &message, QTextDocument *doc) {
+int logLineLimit() {
+    const int limit = Configs::dataManager->settingsRepo->max_log_line;
+    return limit > 0 ? limit : 500;
+}
+
+// Every log line must stay exactly one block: the view maps visible m_logLines to blocks by count.
+void appendDocumentLines(QTextDocument *doc, const QString &lines) {
+    if (lines.isEmpty()) return;
     QTextCursor cursor(doc);
     cursor.movePosition(QTextCursor::End);
     cursor.beginEditBlock();
-    cursor.insertBlock();
-    cursor.insertText(message);
+    if (!doc->isEmpty()) cursor.insertBlock();
+    cursor.insertText(lines);
     cursor.endEditBlock();
+}
+
+void removeLeadingBlocks(QTextDocument *doc, int count) {
+    if (count <= 0) return;
+    if (count >= doc->blockCount()) {
+        doc->clear();
+        return;
+    }
+    QTextCursor cursor(doc);
+    cursor.movePosition(QTextCursor::Start);
+    cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, count);
+    cursor.removeSelectedText();
 }
 } // namespace
 
 void MainWindow::applyLogBrowserFont() {
-    QFont logFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    int pt = qApp->font().pointSize();
-    if (pt <= 0) pt = Configs::dataManager->settingsRepo->font_size;
+    const auto &settings = Configs::dataManager->settingsRepo;
+    // The whole list, not just the resolved family, so glyphs missing from the first font still fall back in order.
+    QFont logFont;
+    logFont.setFamilies(LogFontFamilies(settings->log_font_family));
+    logFont.setStyleHint(QFont::Monospace);
+    logFont.setFixedPitch(true);
+    int pt = settings->log_font_size;
+    if (pt <= 0) pt = qApp->font().pointSize();
+    if (pt <= 0) pt = settings->font_size;
     if (pt > 0) logFont.setPointSize(pt);
     ui->masterLogBrowser->setFont(logFont);
 }
@@ -37,6 +65,56 @@ void MainWindow::setLogHighlighter(bool darkMode) {
     // A QSyntaxHighlighter is never evicted by constructing another, so the old one must be deleted.
     delete logHighlighter;
     logHighlighter = new SyntaxHighlighter(darkMode, qvLogDocument);
+    logHighlighter->setSearchPattern(m_logSearch);
+}
+
+void MainWindow::setupLogView() {
+    qvLogDocument->setUndoRedoEnabled(false);
+    ui->masterLogBrowser->setUndoRedoEnabled(false);
+    ui->masterLogBrowser->setDocument(qvLogDocument);
+    applyLogBrowserFont();
+
+    // Follow mode tracks where the user leaves the scrollbar; content changes only snap it back down.
+    auto bar = ui->masterLogBrowser->verticalScrollBar();
+    connect(bar, &QScrollBar::valueChanged, this, [this, bar](int value) {
+        const bool atBottom = value >= bar->maximum() - LOG_BOTTOM_SLACK;
+        if (atBottom == m_logFollow) return;
+        m_logFollow = atBottom;
+        if (m_logFollow && !m_logHeld.empty()) {
+            // Deferred: merging relayouts the document while the scrollbar is still mid-update.
+            QTimer::singleShot(0, this, [this] {
+                if (m_logFollow) releaseHeldLogs();
+            });
+        }
+        updateLogStatus();
+    });
+    // The document lays out lazily, so the range keeps growing after an append.
+    connect(bar, &QScrollBar::rangeChanged, this, [this, bar](int, int max) {
+        if (m_logFollow) bar->setValue(max);
+    });
+
+    // Both sit in the stats tab corner, which setupConnectionFilter() builds.
+    logJumpLatestButton = new QToolButton(this);
+    logJumpLatestButton->setToolTip(tr("New logs are held while the view is scrolled up"));
+    connect(logJumpLatestButton, &QToolButton::clicked, this, [this] { releaseHeldLogs(); });
+    logFilterButton = new QToolButton(this);
+    logFilterButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, themeManager()->Colors().textMuted));
+    connect(themeManager(), &ThemeManager::themeChanged, logFilterButton, [this] {
+        logFilterButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, themeManager()->Colors().textMuted));
+    });
+    logFilterButton->setCheckable(true);
+    connect(logFilterButton, &QToolButton::toggled, this, &MainWindow::setLogFilterVisible);
+    for (auto *w: ui->logToolbar->findChildren<QWidget *>()) w->installEventFilter(this);
+
+    m_logSearchDebounce = new QTimer(this);
+    m_logSearchDebounce->setSingleShot(true);
+    m_logSearchDebounce->setInterval(LOG_SEARCH_DEBOUNCE_MS);
+    connect(m_logSearchDebounce, &QTimer::timeout, this, [this] { applyLogSearch(); });
+    connect(ui->logSearchEdit, &QLineEdit::textChanged, m_logSearchDebounce, qOverload<>(&QTimer::start));
+    connect(ui->logSearchCase, &QToolButton::toggled, this, [this] { applyLogSearch(); });
+    connect(ui->logSearchRegex, &QToolButton::toggled, this, [this] { applyLogSearch(); });
+    setLogFilterVisible(false);
+    updateLogStatus();
 }
 
 void MainWindow::append_log(const QString &log) {
@@ -73,22 +151,24 @@ void MainWindow::log_process_loop() {
 
         QString batchToPrint;
         for (const auto &entry: pending) {
-            for (const auto &logLine: entry.split('\n')) {
-                if (should_print_log(logLine, filter)) {
-                    batchToPrint += logLine;
-                    batchToPrint += '\n';
+            for (auto logLine: entry.split('\n')) {
+                if (logLine.endsWith('\r')) logLine.chop(1);
+                if (!should_print_log(logLine, filter)) continue;
+                // QTextCursor::insertText starts a new block at these; keep each log line a single block.
+                for (QChar &c: logLine) {
+                    if (c == '\r' || c == QChar::ParagraphSeparator || c == QChar(0xfdd0) || c == QChar(0xfdd1)) c = ' ';
                 }
+                if (!batchToPrint.isEmpty()) batchToPrint += '\n';
+                batchToPrint += logLine;
             }
         }
-
-        const QString trimmedBatch = batchToPrint.trimmed();
-        if (trimmedBatch.isEmpty()) continue;
+        if (batchToPrint.isEmpty()) continue;
 
         bool needsPost;
         {
             QMutexLocker pendingLocker(&logPendingMutex);
             if (!logPendingText.isEmpty()) logPendingText += '\n';
-            logPendingText += trimmedBatch;
+            logPendingText += batchToPrint;
             if (logPendingText.size() > MAX_PENDING_LOG_CHARS) {
                 const auto cut = logPendingText.indexOf('\n', logPendingText.size() - MAX_PENDING_LOG_CHARS);
                 logPendingText = cut < 0 ? QString() : logPendingText.mid(cut + 1);
@@ -109,21 +189,116 @@ void MainWindow::flush_log_batch() {
     }
     if (batch.isEmpty()) return;
 
-    auto bar = ui->masterLogBrowser->verticalScrollBar();
-    if (Configs::dataManager->settingsRepo->log_auto_scroll) {
-        FastAppendTextDocument(batch, qvLogDocument);
-        bar->setValue(bar->maximum());
+    // Everything passes through the hold queue; while the user is scrolled up it only accumulates
+    // (keeping the newest max_log_line) and the view stays untouched.
+    auto lines = batch.split('\n', Qt::SkipEmptyParts);
+    for (auto &line: lines) m_logHeld.push_back(std::move(line));
+    const auto limit = static_cast<size_t>(logLineLimit());
+    while (m_logHeld.size() > limit) m_logHeld.pop_front();
+
+    if (m_logFollow) {
+        releaseHeldLogs();
     } else {
-        auto layout = qvLogDocument->documentLayout();
-        // Anchor to the top block, then replay its sub-block offset after the append shifts document-Y.
-        QTextBlock anchorBlock = ui->masterLogBrowser->cursorForPosition(QPoint(0, 0)).block();
-        int viewportOffset = bar->value() - static_cast<int>(layout->blockBoundingRect(anchorBlock).y());
-        FastAppendTextDocument(batch, qvLogDocument);
-        if (anchorBlock.isValid()) {
-            int newY = static_cast<int>(layout->blockBoundingRect(anchorBlock).y());
-            bar->setValue(newY + viewportOffset);
+        updateLogStatus();
+    }
+}
+
+void MainWindow::releaseHeldLogs() {
+    // Set first so the range growth from the append below already snaps to the bottom.
+    m_logFollow = true;
+    if (!m_logHeld.empty()) {
+        const bool filtering = !m_logSearch.pattern().isEmpty();
+        QString shown;
+        for (auto &text: m_logHeld) {
+            const bool visible = !filtering || m_logSearch.match(text).hasMatch();
+            if (visible) {
+                if (!shown.isEmpty()) shown += '\n';
+                shown += text;
+            }
+            m_logLines.push_back({std::move(text), visible});
+        }
+        m_logHeld.clear();
+        appendDocumentLines(qvLogDocument, shown);
+        removeLeadingBlocks(qvLogDocument, trimLogLines());
+    }
+    auto bar = ui->masterLogBrowser->verticalScrollBar();
+    bar->setValue(bar->maximum());
+    updateLogStatus();
+}
+
+int MainWindow::trimLogLines() {
+    const auto limit = static_cast<size_t>(logLineLimit());
+    int droppedVisible = 0;
+    while (m_logLines.size() > limit) {
+        if (m_logLines.front().visible) ++droppedVisible;
+        m_logLines.pop_front();
+    }
+    while (m_logHeld.size() > limit) m_logHeld.pop_front();
+    return droppedVisible;
+}
+
+void MainWindow::rebuildLogView() {
+    const bool filtering = !m_logSearch.pattern().isEmpty();
+    QString shown;
+    for (auto &line: m_logLines) {
+        line.visible = !filtering || m_logSearch.match(line.text).hasMatch();
+        if (line.visible) {
+            if (!shown.isEmpty()) shown += '\n';
+            shown += line.text;
         }
     }
+    m_logFollow = true;
+    qvLogDocument->setPlainText(shown);
+    auto bar = ui->masterLogBrowser->verticalScrollBar();
+    bar->setValue(bar->maximum());
+    updateLogStatus();
+}
+
+void MainWindow::applyLogSearch() {
+    // A hidden bar keeps its text and toggles but stops filtering.
+    const QString text = logFilterButton->isChecked() ? ui->logSearchEdit->text() : QString();
+    QRegularExpression search;
+    if (!text.isEmpty()) {
+        search.setPattern(ui->logSearchRegex->isChecked() ? text : QRegularExpression::escape(text));
+        if (!ui->logSearchCase->isChecked()) search.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
+        if (!search.isValid()) {
+            // Keep the last valid filter rather than blanking the view while a pattern is half-typed.
+            ui->logSearchEdit->setStyleSheet(QStringLiteral("QLineEdit { color: #e05252; }"));
+            ui->logSearchEdit->setToolTip(search.errorString());
+            return;
+        }
+        search.optimize();
+    }
+    ui->logSearchEdit->setStyleSheet({});
+    ui->logSearchEdit->setToolTip({});
+    if (search == m_logSearch) return;
+
+    m_logSearch = search;
+    if (logHighlighter) logHighlighter->setSearchPattern(m_logSearch);
+    // A new filter jumps to the newest results, so fold in whatever was held.
+    for (auto &held: m_logHeld) m_logLines.push_back({std::move(held), true});
+    m_logHeld.clear();
+    trimLogLines();
+    rebuildLogView();
+}
+
+void MainWindow::setLogFilterVisible(bool visible) {
+    ui->logToolbar->setVisible(visible);
+    logFilterButton->setToolTip(visible ? tr("Disable Filter") : tr("Enable Filter"));
+    if (visible) ui->logSearchEdit->setFocus(Qt::OtherFocusReason);
+    m_logSearchDebounce->stop();
+    applyLogSearch();
+}
+
+void MainWindow::updateLogStatus() {
+    if (m_logSearch.pattern().isEmpty()) {
+        ui->logMatchCount->clear();
+    } else {
+        const auto matched = std::count_if(m_logLines.begin(), m_logLines.end(), [](const LogLine &line) { return line.visible; });
+        ui->logMatchCount->setText(QStringLiteral("%1 / %2").arg(matched).arg(m_logLines.size()));
+    }
+    logJumpLatestButton->setVisible(!m_logFollow);
+    logJumpLatestButton->setText(m_logHeld.empty() ? tr("Jump to latest") : tr("Jump to latest (%1 new)").arg(m_logHeld.size()));
 }
 
 void MainWindow::clear_log_view() {
@@ -182,8 +357,11 @@ void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &po
             QMutexLocker pendingLocker(&logPendingMutex);
             logPendingText.clear();
         }
+        m_logLines.clear();
+        m_logHeld.clear();
         qvLogDocument->clear();
-        ui->masterLogBrowser->clear();
+        m_logFollow = true;
+        updateLogStatus();
     });
     menu->addAction(action_clear);
 

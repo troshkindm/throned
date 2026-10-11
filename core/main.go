@@ -15,6 +15,7 @@ import (
 	"github.com/xtls/xray-core/core"
 
 	"ThroneCore/internal/boxmain"
+	"ThroneCore/internal/guard"
 	"ThroneCore/internal/ipc"
 	"ThroneCore/internal/parentcheck"
 	"ThroneCore/internal/rpc"
@@ -91,6 +92,10 @@ func RunCore() {
 	debug := os.Getenv("THRONED_CORE_DEBUG") == "1" || os.Getenv("THRONE_CORE_DEBUG") == "1"
 
 	parentcheck.CheckParentProcess()
+	if err := guard.ApplyIdentity(); err != nil {
+		log.Fatalf("kill switch: cannot adopt the guard group: %v", err)
+	}
+	guard.CleanupStale()
 
 	go func() {
 		parent, err := os.FindProcess(parentcheck.ParentPID)
@@ -133,6 +138,12 @@ func RunCore() {
 }
 
 func main() {
+	// Before anything prints: stdout is the guard's protocol channel.
+	if len(os.Args) > 1 && os.Args[1] == "--guard" {
+		parentcheck.CheckParentProcess()
+		guard.Run(parentcheck.ParentPID)
+	}
+
 	defer func() {
 		if err := recover(); err != nil {
 			// The exit code is all the GUI has to tell a panic from a clean stop.

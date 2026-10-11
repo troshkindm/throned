@@ -44,6 +44,7 @@ type LocalDNSTransport interface {
 // VPN, so it only answers for a network that lists no DNS server.
 type platformTransport struct {
 	dns.TransportAdapter
+	ctx               context.Context
 	logger            log.ContextLogger
 	iif               LocalDNSTransport
 	preferredResolver *local.PreferredDomainResolver
@@ -54,8 +55,9 @@ type platformTransport struct {
 }
 
 type networkServerSet struct {
-	servers    []string
-	transports []adapter.DNSTransport
+	servers     []string
+	transports  []adapter.DNSTransport
+	serverScope *adapter.Scope
 }
 
 // localDNSError is an exchange of the local server that got no answer; Instance.Start looks for it to tell a
@@ -84,6 +86,7 @@ func newPlatformTransport(ctx context.Context, logger log.ContextLogger, iif Loc
 	}
 	return &platformTransport{
 		TransportAdapter:  dns.NewTransportAdapterWithLocalOptions(C.DNSTypeLocal, tag, options),
+		ctx:               ctx,
 		logger:            logger,
 		iif:               iif,
 		preferredResolver: preferredResolver,
@@ -92,15 +95,16 @@ func newPlatformTransport(ctx context.Context, logger log.ContextLogger, iif Loc
 	}, nil
 }
 
-func (p *platformTransport) Start(stage adapter.StartStage) error {
+func (p *platformTransport) Start(stage adapter.StartStage, scope *adapter.Scope) error {
 	p.preferredResolver.Start(stage)
-	return nil
-}
-
-func (p *platformTransport) Close() error {
-	serverSet := p.serverSet.Swap(nil)
-	if serverSet != nil {
-		serverSet.close()
+	if stage == adapter.StartStateInitialize {
+		scope.Add(func() error {
+			serverSet := p.serverSet.Swap(nil)
+			if serverSet != nil {
+				return serverSet.close()
+			}
+			return nil
+		})
 	}
 	return nil
 }
@@ -175,6 +179,7 @@ func (p *platformTransport) networkServers() (*networkServerSet, error) {
 	if serverSet != nil && slices.Equal(serverSet.servers, servers) {
 		return serverSet, nil
 	}
+	serverScope := adapter.NewScope(p.ctx, p.logger)
 	transports := make([]adapter.DNSTransport, 0, len(servers))
 	for _, server := range servers {
 		serverAddr := M.ParseSocksaddrHostPort(server, 53)
@@ -182,21 +187,20 @@ func (p *platformTransport) networkServers() (*networkServerSet, error) {
 			continue
 		}
 		serverTransport := transport.NewUDPRaw(p.logger, dns.NewTransportAdapter(C.DNSTypeUDP, "", nil), p.dialer, serverAddr)
-		err := serverTransport.Start(adapter.StartStateStart)
+		err := serverTransport.Start(adapter.StartStateStart, serverScope)
 		if err != nil {
-			for _, startedTransport := range transports {
-				startedTransport.Close()
-			}
-			return nil, E.Cause(err, "initialize transport for ", serverAddr)
+			return nil, E.Errors(E.Cause(err, "initialize transport for ", serverAddr), serverScope.Close())
 		}
 		transports = append(transports, serverTransport)
 	}
 	if len(transports) == 0 {
+		serverScope.Close()
 		return nil, nil
 	}
 	newServerSet := &networkServerSet{
-		servers:    slices.Clone(servers),
-		transports: transports,
+		servers:     slices.Clone(servers),
+		transports:  transports,
+		serverScope: serverScope,
 	}
 	oldServerSet := p.serverSet.Swap(newServerSet)
 	if oldServerSet != nil {
@@ -234,10 +238,8 @@ func (s *networkServerSet) exchange(ctx context.Context, message *mDNS.Msg) (*mD
 	return response, err
 }
 
-func (s *networkServerSet) close() {
-	for _, serverTransport := range s.transports {
-		serverTransport.Close()
-	}
+func (s *networkServerSet) close() error {
+	return s.serverScope.Close()
 }
 
 // The Kotlin resolver runs on its own goroutine so a stalled platform call cannot hold the DNS

@@ -18,6 +18,7 @@
 
 #ifndef MW_INTERFACE
 
+#include <deque>
 #include <optional>
 #include <QKeyEvent>
 #include "include/ui/widget/TrayIcon.hpp"
@@ -67,14 +68,22 @@ struct Route;
 }
 } // namespace Configs
 
+namespace RemoteApi {
+class Router;
+}
+
+class QMessageBox;
 class TrayProfileSelector;
 class RoutingQuickMenu;
 class TrayOtpCodes;
+class GlobalHotkeys;
 class TestRunner;
 class DialogVpnAuth;
 class UpdateStatusWidget;
 class PendingRestartNotice;
 class HijackDeprecationNotice;
+class DialogScanner;
+class DialogIpLists;
 struct VpnAuthChallenge;
 
 struct VpnEndpointState {
@@ -110,7 +119,7 @@ enum class ExitReason {
     RunUpdater,
     Restart,
     RestartWithTun,
-    RestartWithDns,
+    RestartElevated,
 };
 
 #include "include/ui/stats/diagnostics_window.h"
@@ -119,6 +128,44 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
+    enum class ConnectionState { Idle,
+                                 Connecting,
+                                 Running,
+                                 Stopping };
+
+    enum class StartOutcome {
+        Started,
+        Exiting,
+        NotFound,
+        GroupUnavailable,
+        KillSwitchInactive,
+        Superseded,
+        CoreUnavailable,
+        BuildFailed,
+        Busy,
+        ExtraCoreBlocked,
+        GeoAssetsMissing,
+        StrictRouteUnavailable,
+        TunFailed,
+        StartFailed,
+    };
+
+    struct StartRequest {
+        int profileId = -1;
+        // Unattended callers get every failure through start_finished and the log, never a dialog.
+        bool interactive = true;
+        quint64 serial = 0;
+    };
+
+    struct ModeChange {
+        bool save = true;
+        // Unattended callers get no dialog or elevation prompt, and their restart is an unattended StartRequest carrying restartSerial.
+        bool interactive = true;
+        bool restart = true;
+        quint64 restartSerial = 0;
+        bool elevationConfirmed = false;
+    };
+
     explicit MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow() override;
@@ -172,6 +219,8 @@ public:
 
     class SubscriptionPopover *subscriptionCard();
 
+    void updateTabToolTip(int gid);
+
     void refresh_status(const QString &traffic_update = "");
 
     void update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp);
@@ -203,9 +252,17 @@ public:
     // visible so the panel can be found again.
     void setStatsPanelOpen(bool open, bool save = true);
 
-    void profile_stop(bool crash = false, bool block = false, bool manual = false);
+    void profile_stop(bool crash = false, bool block = false, bool manual = false, bool interactive = true);
+    void profile_start(const StartRequest &request);
 
     int get_profile_to_start();
+
+    // Started, then last running, then remembered profile; unlike get_profile_to_start(), ignores the table selection.
+    int resolve_last_profile();
+
+    ConnectionState connection_state() const;
+
+    quint64 next_start_serial();
 
     void set_spmode_system_proxy(bool enable, bool save = true);
 
@@ -213,11 +270,17 @@ public:
 
     void set_spmode_vpn(bool enable, bool save = true, bool elevationConfirmed = false);
 
-    bool get_elevated_permissions(ExitReason reason = ExitReason::RestartWithTun, bool confirmed = false);
+    bool set_spmode_system_proxy(bool enable, const ModeChange &change);
+    bool set_spmode_vpn(bool enable, const ModeChange &change);
+    bool get_elevated_permissions(ExitReason reason = ExitReason::RestartWithTun, bool confirmed = false, bool interactive = true);
+    bool get_elevated_permissions(bool interactive);
 
     void start_select_mode(QObject *context, const std::function<void(int)> &callback);
 
-    void RegisterHotkey(bool unregister);
+    // Returns a line per global hotkey that could not be registered.
+    QStringList RegisterHotkey(bool unregister);
+
+    bool IsGlobalHotkeySupported() const;
 
     bool StopVPNProcess();
 
@@ -241,9 +304,21 @@ public:
 
     void setDownloadReport(const DownloadProgressReport &report, bool show);
 
+    void showIpListsDialog(int selectListId = -1);
+
+    void showScannerDialog();
+
+    void refreshScannerDataView(bool force = false);
+
 signals:
 
     void profile_selected(int id);
+
+    void connection_state_changed(MainWindow::ConnectionState state);
+
+    void start_finished(quint64 serial, int profileId, MainWindow::StartOutcome outcome, const QString &error);
+
+    void stop_finished(int profileId);
 
 public slots:
 
@@ -269,7 +344,9 @@ private slots:
 
     void on_menu_otp_manager_triggered();
 
-    void on_menu_hotkey_settings_triggered();
+    void on_menu_scanner_triggered();
+
+    void on_menu_integration_settings_triggered();
 
     void on_menu_add_from_input_triggered();
 
@@ -370,6 +447,7 @@ private:
     // Tray "Select Server"/"Select Routing" open this small Qt-drawn popup instead of a
     // submenu, because a tray submenu isn't painted by Qt on Linux (SNI/DBusMenu) or macOS
     // (native NSMenu) and so can't reliably expand a dynamic list. Recreated on each open.
+    QAction *trayConnectAction = nullptr;
     QPointer<TrayProfileSelector> traySelector;
     QPointer<DiagnosticsWindow> diagnosticsWindow;
     void openTraySelector(bool routing);
@@ -408,6 +486,8 @@ private:
     // Single-flight guard for the Xray geo-asset (geoip.dat/geosite.dat) download
     // prompt: a batch test can surface the missing-asset error for many profiles at
     // once, and we only want one prompt/download. Touched on the UI thread only.
+    ConnectionState m_lastConnectionState = ConnectionState::Idle;
+    quint64 m_startSerial = 0;
     bool m_xrayGeoAssetBusy = false;
     bool m_ruleSetUpdateBusy = false;
     QString traffic_update_cache;
@@ -434,6 +514,14 @@ private:
     QIcon connectionCollapseIcon;
     int toolTipID;
     ThroughputChart *speedChartWidget;
+    struct LiveRates {
+        qint64 proxyUp = 0;
+        qint64 proxyDown = 0;
+        qint64 directUp = 0;
+        qint64 directDown = 0;
+    };
+    LiveRates m_liveRates;
+    QElapsedTimer m_liveRatesAt;
     class RuntimeStatsWidget *runtimeStatsWidget = nullptr;
     // Latency over time, beside the throughput chart: a path can carry bytes fine
     // and still have a UDP round trip that wanders, which is what breaks QUIC.
@@ -484,6 +572,7 @@ private:
     DataViewHtmlGenerator dataViewHtmlGenerator_;
 
     QList<QShortcut *> hiddenMenuShortcuts;
+    GlobalHotkeys *globalHotkeys = nullptr;
 
     QString addressFilterString;
     QString nameFilterString;
@@ -518,6 +607,20 @@ private:
     // under logMutex (Qt containers are copy-on-write, so it's O(1)) and then
     // filters without holding the lock, so producers calling append_log() are
     // never blocked on the regex/keyword work.
+    // UI-thread view state. m_logLines is what the view renders (capped at max_log_line);
+    // while the user is scrolled up, arrivals wait in m_logHeld so the view stays frozen.
+    struct LogLine {
+        QString text;
+        bool visible = true;
+    };
+    std::deque<LogLine> m_logLines;
+    std::deque<QString> m_logHeld;
+    bool m_logFollow = true;
+    QRegularExpression m_logSearch;
+    QTimer *m_logSearchDebounce = nullptr;
+    QToolButton *logFilterButton = nullptr;
+    QToolButton *logJumpLatestButton = nullptr;
+
     struct LogFilter {
         bool enableInclude = false;
         bool enableExclude = false;
@@ -533,6 +636,21 @@ private:
     void log_process_loop();
 
     void flush_log_batch();
+
+    void setupLogView();
+
+    void releaseHeldLogs();
+
+    // Caps both queues at max_log_line; returns how many dropped lines were visible (rendered blocks).
+    int trimLogLines();
+
+    void rebuildLogView();
+
+    void applyLogSearch();
+
+    void setLogFilterVisible(bool visible);
+
+    void updateLogStatus();
 
     bool should_print_log(const QString &log, const LogFilter &filter);
 
@@ -551,7 +669,8 @@ private:
 
     QList<int> get_selected_or_group();
 
-    void set_system_proxy(bool enable);
+    // Queued on one worker thread in call order; wait blocks until this change has run.
+    void set_system_proxy(bool enable, bool wait = false);
 
     void saveProfileFocusState();
 
@@ -562,6 +681,12 @@ private:
     void focusProfilesTable(bool selectFirst);
 
     void clearUnavailableProfiles(bool confirm = true, QList<int> profileIDs = {});
+
+    // Returns how many profiles it cleared.
+    int clear_test_results(const QList<int> &profileIds);
+
+    // Returns whether it restarted the profile.
+    bool choose_route(int routeId, bool interactive = true, quint64 restartSerial = 0);
 
     void dialog_message_impl(MwMessage cmd, const QStringList &args);
 
@@ -704,7 +829,15 @@ private:
 
     bool m_adjustingColumns = false;
 
-    void HotkeyEvent(const QString &key);
+    void HotkeyEvent(const QString &id);
+
+    void toggle_connection();
+
+    void toggle_tun();
+
+    void fail_start(const StartRequest &request, StartOutcome outcome, const QString &title, const QString &error);
+
+    void defer_start_to_core(const StartRequest &request);
 
     void RegisterHiddenMenuShortcuts(bool unregister = false);
     // Register a QShortcut for every action in `menu` (recursing into submenus),
@@ -746,12 +879,7 @@ private:
     // Guards the re-entrant profile_start used to rank before building.
     bool auto_selector_ranked = false;
 
-    // If `error` reports missing Xray geo assets (geoip.dat / geosite.dat), prompt
-    // once (guarded by m_xrayGeoAssetBusy) and download the missing .dat files in
-    // the background. Shared by profile start and the test paths. `contextName` is
-    // the profile/config name shown in the prompt. Returns true when the error was
-    // a geo-asset error (and thus handled), false otherwise.
-    bool handleXrayGeoAssetError(const QString &error, const QString &contextName);
+    bool handleXrayGeoAssetError(const QString &error, const QString &contextName, bool prompt = true);
 
     void url_test_current();
     // Jumps the table to the running profile and flashes it: a status bar that
@@ -811,10 +939,40 @@ private:
 
     void clear_vpn_credential_overrides();
 
+    void kill_switch_state_changed();
+
+    void show_kill_switch_problem();
+
+    void show_startstop_menu();
+
+    void confirm_disable_kill_switch();
+
+    void disable_kill_switch();
+
+    // Linux/macOS: a core started before the kill switch was on has not adopted the guard group.
+    bool core_lacks_guard_identity();
+
+    bool guard_core_restart_pending() const;
+
+    // The restarted core starts the request through CoreStarted; a start requested meanwhile replaces it.
+    void restart_core_for_guard(const StartRequest &request);
+
+    QPointer<QMessageBox> m_killSwitchDialog;
+    bool m_killSwitchWasFailed = false;
+    bool m_killSwitchWasArmed = false;
+    StartRequest m_killSwitchDeferredStart;
+    // CoreStarted carries only a profile id, so the rest of the request waits here.
+    StartRequest m_coreStartRequest;
+    QElapsedTimer m_guardCoreRestart;
+
     QTimer *m_vpnChallengeTimer = nullptr;
     std::atomic<bool> m_vpnChallengeBusy{false};
     QSet<QString> m_vpnChallengeSeen;
     QPointer<DialogVpnAuth> m_vpnAuthDialog;
+    QPointer<DialogScanner> m_scannerDialog;
+    QPointer<DialogIpLists> m_ipListsDialog;
+    QHash<int, QString> m_scannerNames;
+    bool m_scannerPanelShown = false;
     QString m_vpnEndpointState;
     QString m_vpnTroubleSummary;
     QString m_vpnTroubleDetail;
@@ -828,8 +986,6 @@ private:
     // Survives the restart the recovery itself triggers, so a rejected retry cannot loop.
     QHash<int, int> m_vpnAuthPrompted;
     int m_vpnAuthRestartID = -1;
-
-    bool set_system_dns(bool set, bool save_set = true);
 
     // `silent` suppresses the "no update", error and unsupported-platform boxes and
     // reports a found release through the tray instead of a modal, so the periodic
@@ -860,7 +1016,13 @@ private:
 
     QString routeRuleAppendBlocker() const;
 
-    bool addRuleToCurrentRoute(const QString &rawRule, Configs::simpleAction action);
+    enum class RuleToggle { Failed,
+                            Added,
+                            Moved,
+                            Removed };
+
+    // Adds rawRule to the action's simple rules of the current profile, or takes it out when it is already there.
+    RuleToggle toggleRuleInCurrentRoute(const QString &rawRule, Configs::simpleAction action);
 
     void setupConnectionFilter();
 
@@ -889,6 +1051,7 @@ private:
     // The window's own component, not an outside caller: it drives the data
     // view, the profile table and the geo-asset prompt while a sweep runs.
     friend class TestRunner;
+    friend class RemoteApi::Router;
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

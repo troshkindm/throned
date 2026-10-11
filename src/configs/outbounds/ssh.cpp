@@ -155,6 +155,8 @@ QString ssh::DisplayType() {
 }
 
 SecurityInfo ssh::GetSecurity() {
+    // Without a host key the core accepts whatever key the server presents.
+    if (host_key.isEmpty()) return {QObject::tr("Unverified Host Key"), {}, SecurityLevel::Weak};
     return {QObject::tr("Encrypted"), {}, SecurityLevel::Secure};
 }
 } // namespace Configs

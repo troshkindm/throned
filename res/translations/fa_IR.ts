@@ -79,6 +79,22 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>Traffic</source>
         <translation>ترافیک</translation>
     </message>
+    <message>
+        <source>Close this connection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Destination (Domain)</source>
+        <translation>مقصد (دامنه)</translation>
+    </message>
+    <message>
+        <source>Process</source>
+        <translation>فرآیند</translation>
+    </message>
+    <message>
+        <source>Click To Disable Sorting</source>
+        <translation>برای غیرفعال کردن مرتب‌سازی کلیک کنید</translation>
+    </message>
 </context>
 <context>
     <name>CoreDiagnostics</name>
@@ -184,6 +200,10 @@ Total speed: %5/s↑ %6/s↓</source>
     <message>
         <source>The core is not running.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Include Throne logs</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -1259,7 +1279,6 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>Register config files at startup</source>
         <translation type="unfinished"></translation>
     </message>
-
     <message>
         <source>Direct test URL</source>
         <translation type="unfinished"></translation>
@@ -1670,7 +1689,7 @@ Total speed: %5/s↑ %6/s↓</source>
         <translation>سایت‌های موردبررسی</translation>
     </message>
     <message>
-        <source>One "Name|URL" per line, checked by Site Reachability</source>
+        <source>One &quot;Name|URL&quot; per line, checked by Site Reachability</source>
         <translation>هر خط یک «نام|نشانی»؛ دسترس‌پذیری سایت‌ها از آن استفاده می‌کند</translation>
     </message>
     <message>
@@ -1733,6 +1752,76 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throned icon</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers Throne as the handler for throne:// links, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes the throne:// handler Throne wrote. Entries owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throne to the &quot;Open with&quot; list for config files such as JSON and YAML, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every config file association Throne wrote, including those added by older versions. Associations owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Use the update interval sent by the server</source>
+        <translation type="unfinished" />
+    </message>
+    <message numerus="yes">
+        <source>Skipped %n routing rule(s) that use conditions this version of Throne does not support.</source>
+        <translation type="unfinished">
+            <numerusform />
+        </translation>
+    </message>
+    <message>
+        <source>Throne Backup (*.thrbackup)</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Not a valid Throne backup file.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Each selected part replaces the current data. This cannot be undone.
+    Throne will restart to complete the restore.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Log Browser Font</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Log Browser Font Size</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Only monospaced fonts are listed. An unavailable family falls back to a built-in monospace list.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>To choose custom icons, you need to choose png images with an equal width and height (eg 512*512). Their names should be of&#32;
+(Off.png, Proxy.png, Throned.png, Tun.png, Connecting.png; legacy Throne.png is also accepted) So that each will be used in the appropriate state of the app.&#32;
+You can provide a subset of the said images and only the corresponding states will be using them.
+It is suggested that each image&apos;s size be less than 100KB.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogManageRoutes</name>
@@ -1748,7 +1837,6 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>WARP Registration Domains</source>
         <translation type="unfinished"></translation>
     </message>
-
     <message>
         <source>Routes</source>
         <translation>مسیرها</translation>
@@ -2031,11 +2119,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core's cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Base64 DER of the server's public key. When set, it pins the server certificate.</source>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2079,20 +2167,16 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -2132,7 +2216,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Tunnel DNS</source>
         <translation type="unfinished"></translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenConnect protocol flavor. Leave empty to use the core default (anyconnect).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
@@ -2252,7 +2335,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Tunnel DNS</source>
         <translation type="unfinished"></translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default transport network. Leave empty to use the core default (udp).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
@@ -2308,6 +2390,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Control Channel Wrap Key</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static challenge text shown by the server when it asks for a second authentication response. When a challenge is set and an OTP profile is bound, Throne sends the answer itself and no interactive prompt appears.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -2471,11 +2557,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Disconnect</source>
-        <translation type="unfinished"></translation>
+        <translation>قطع اتصال</translation>
     </message>
     <message>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>اتصال</translation>
     </message>
     <message>
         <source>TUN</source>
@@ -2585,7 +2671,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>This installation cannot grant the core privileges by itself.</source>
         <translation type="unfinished"></translation>
     </message>
-
     <message>
         <source>UDP targets</source>
         <translation>هدف‌های پایش UDP</translation>
@@ -3470,6 +3555,106 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Profile</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Disconnecting</source>
+        <translation>در حال قطع اتصال</translation>
+    </message>
+    <message>
+        <source>Clean up</source>
+        <translation>پاکسازی</translation>
+    </message>
+    <message>
+        <source>Please run Throne as admin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Type: Subscription</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Used</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Remaining</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Support</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Portal</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Disable Filter</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Filter logs</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Match case</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>New logs are held while the view is scrolled up</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Jump to latest</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Jump to latest (%1 new)</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -4122,7 +4307,7 @@ Release note:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href="%1"&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
+        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4135,10 +4320,6 @@ Release note:
     </message>
     <message>
         <source>Auto selector — no working profile out of %1, still checking</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4189,6 +4370,86 @@ Windows then ignores the adapter binding that keeps Throned&apos;s own connectio
 
 To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Used: %1 Remain: %2 Expire: %3</source>
+        <translation>استفاده‌شده: %1 باقی‌مانده: %2 انقضا: %3</translation>
+    </message>
+    <message>
+        <source>Chain Proxy</source>
+        <translation>پروکسی زنجیره ای</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>پیش فرض</translation>
+    </message>
+    <message>
+        <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subscription server update interval: %1 hour(s)</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The URL of %1 changed during the update, so the result was discarded.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Announcement from %1: %2</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>No profiles found in the subscription: %1 was left unchanged.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+    Windows then ignores the adapter binding that keeps Throne&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+    To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>[Warn] Throne did not shut down cleanly last time. Diagnostics were saved to: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Configure a proxy through Throne&apos;s chain instead, ignored: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The statistics database is unusable (%1). Statistics are paused for this session and the file will be rebuilt when Throne restarts.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Writing statistics keeps failing (%1). Statistics are paused until Throne restarts.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Settings changed, restart to apply</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -4584,6 +4845,10 @@ To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&
         <source>Finalmask</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Headers cannot contain &quot;|&quot;.</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>DialogHotkey</name>
@@ -4922,6 +5187,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Name cannot be empty.</source>
         <translation>نام نمیتواند خالی باشد</translation>
+    </message>
+    <message>
+        <source>Xray full config (Throne adds a socks inbound and uses sing-box for tun/routing).</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -5619,25 +5888,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
 </context>
 <context>
-    <name>QObject</name>
-    <message>
-        <source>Used: %1 Remain: %2 Expire: %3</source>
-        <translation>استفاده‌شده: %1 باقی‌مانده: %2 انقضا: %3</translation>
-    </message>
-    <message>
-        <source>Chain Proxy</source>
-        <translation>پروکسی زنجیره ای</translation>
-    </message>
-    <message>
-        <source>Default</source>
-        <translation>پیش فرض</translation>
-    </message>
-    <message>
-        <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>QPlatformTheme</name>
     <message>
         <source>Cancel</source>
@@ -5834,6 +6084,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile&apos;s rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules. A chain endpoint can hand out one rule per inner OpenVPN / OpenConnect hop too, so traffic can be routed to a hop before the exit.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This rule belongs to &quot;%1&quot;, an inner hop of the endpoint &quot;%2&quot;.
+
+    Stop routing to that endpoint&apos;s inner hops?</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -6698,6 +6954,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Submitting...</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>This server requires single sign-on in a browser, which Throne does not support yet. Cancel here and use a profile with direct credentials, or supply an authentication cookie in the profile&apos;s advanced settings.</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>EditHysteriaRealm</name>
@@ -7199,6 +7459,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>TNCC Machine Certificate</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the token the core generates itself. To use a Throne OTP profile, bind it on the main editor instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -7743,11 +8007,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Base64 DER of the server's public key. When set, it pins the server certificate, even with Allow insecure.</source>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Comma separated list of the tunnel's own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
+        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7802,14 +8066,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Success!</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>EditNaive</name>
@@ -7818,7 +8074,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Headers sent to the proxy server, e.g. X-Username="user" X-Password="pass"</source>
+        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7827,10 +8083,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Parallel tunnel connections to the server, 0 to disable. More connections are easier to detect.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7972,6 +8224,42 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Keep Default (%1)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Update Interval</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Server Interval</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Use</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source> min</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>This server last sent %1 h.</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>HijackDeprecationNotice</name>
@@ -7998,6 +8286,195 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Don&apos;t show again</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hijack has been removed. Use Tun mode to route traffic from applications.</source>
+        <translation>Hijack حذف شده است. برای مسیریابی ترافیک برنامه‌ها از حالت TUN استفاده کنید.</translation>
+    </message>
+    <message>
+        <source>The System DNS option has also been removed.</source>
+        <translation>گزینهٔ DNS سیستم نیز حذف شده است.</translation>
+    </message>
+    <message>
+        <source>Hijack has been removed</source>
+        <translation>Hijack حذف شده است</translation>
+    </message>
+</context>
+<context>
+    <name>DialogIntegration</name>
+    <message>
+        <source>Hotkey</source>
+        <translation>کلید میانبر</translation>
+    </message>
+    <message>
+        <source>Show routes</source>
+        <translation>مسیرها را نمایش بده</translation>
+    </message>
+    <message>
+        <source>Show groups</source>
+        <translation>نمایش گروه ها</translation>
+    </message>
+    <message>
+        <source>Trigger main window</source>
+        <translation>نمایش پنجره اصلی</translation>
+    </message>
+    <message>
+        <source>Proxy mode</source>
+        <translation>حالت پروکسی</translation>
+    </message>
+    <message>
+        <source>Toggle System Proxy</source>
+        <translation>تغییر وضعیت پروکسی سیستم</translation>
+    </message>
+    <message>
+        <source>Global</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shortcuts</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RawRouteItem</name>
+    <message>
+        <source>Use the route object exactly as written (outbound ids are still resolved to tags).
+    Throne will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray
+    outbounds and other Throne features may break. For advanced users only.</source>
+        <translation type="unfinished" />
+    </message>
+</context>
+<context>
+    <name>Sys::CoreDiagnostics</name>
+    <message>
+        <source>The core is not running.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Could not reach the core. See the log for details.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The core could not capture the profile: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The core returned an empty profile.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Could not save %1: %2</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Performance profile saved to %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>The performance profile was saved (%1).</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Performance profile failed: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Performance profile</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Show in folder</source>
+        <translation type="unfinished" />
+    </message>
+</context>
+<context>
+    <name>SubscriptionInfoCard</name>
+    <message>
+        <source>Portal</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Support</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1m left</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1h left</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>%1d left</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Announcement - %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Last updated: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Expires: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Interval provided by the server</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Interval set for this group</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Global interval from Settings</source>
+        <translation type="unfinished" />
+    </message>
+    <message numerus="yes">
+        <source>Server suggests every %n hour(s)</source>
+        <translation type="unfinished">
+            <numerusform />
+        </translation>
+    </message>
+    <message>
+        <source>Every %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Website / Portal: %1</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Technical Support: %1</source>
+        <translation type="unfinished" />
+    </message>
+</context>
+<context>
+    <name>QHotkey</name>
+    <message>
+        <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="282" />
+        <source>Failed to register %1. Error: %2</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="302" />
+        <source>Failed to unregister %1. Error: %2</source>
+        <translation type="unfinished" />
     </message>
 </context>
 </TS>

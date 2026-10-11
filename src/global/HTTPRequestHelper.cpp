@@ -12,6 +12,7 @@
 #include <QStringList>
 
 #include "include/global/Configs.hpp"
+#include "include/global/LocalNetwork.hpp"
 #include "include/ui/mainwindow.h"
 
 namespace Configs_network {
@@ -71,18 +72,19 @@ HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, const HttpGetOpti
     request.setAttribute(QNetworkRequest::Http2AllowedAttribute, options.http2);
     request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                       options.userAgent.isEmpty() ? Configs::dataManager->settingsRepo->GetUserAgent() : options.userAgent);
+    const bool insecure = Configs::dataManager->settingsRepo->net_insecure && !options.strictTls;
     auto ssl = request.sslConfiguration();
     ssl.setProtocol(options.tlsProtocol);
-    if (Configs::dataManager->settingsRepo->net_insecure) ssl.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
+    if (insecure) ssl.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
     request.setSslConfiguration(ssl);
     for (const auto &[name, value]: options.headers) request.setRawHeader(name, value);
     auto _reply = accessManager.get(request);
-    connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {
+    connect(_reply, &QNetworkReply::sslErrors, _reply, [insecure](const QList<QSslError> &errors) {
         QStringList error_str;
         for (const auto &err: errors) {
             error_str << err.errorString();
         }
-        MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataManager->settingsRepo->net_insecure ? "(Ignored)" : ""));
+        MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), insecure ? "(Ignored)" : ""));
     });
     QByteArray body;
     bool tooLarge = false;
@@ -124,7 +126,7 @@ QString NetworkRequestHelper::GetHeader(const QList<QPair<QByteArray, QByteArray
 }
 
 QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool useProxy,
-                                            const DownloadProgressCallback &progress) {
+                                            const DownloadProgressCallback &progress, bool strictTls) {
     QNetworkRequest request;
     QNetworkAccessManager accessManager;
     accessManager.setTransferTimeout(30000);
@@ -134,7 +136,8 @@ QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &f
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                       Configs::dataManager->settingsRepo->GetUserAgent());
-    if (Configs::dataManager->settingsRepo->net_insecure) {
+    const bool insecure = Configs::dataManager->settingsRepo->net_insecure && !strictTls;
+    if (insecure) {
         QSslConfiguration c;
         c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
         request.setSslConfiguration(c);
@@ -160,12 +163,12 @@ QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &f
         }
     };
     connect(_reply, &QIODevice::readyRead, _reply, drainReply);
-    connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {
+    connect(_reply, &QNetworkReply::sslErrors, _reply, [insecure](const QList<QSslError> &errors) {
         QStringList error_str;
         for (const auto &err: errors) {
             error_str << err.errorString();
         }
-        MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataManager->settingsRepo->net_insecure ? "(Ignored)" : ""));
+        MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), insecure ? "(Ignored)" : ""));
     });
     connect(_reply, &QNetworkReply::downloadProgress, _reply, [&](qint64 bytesReceived, qint64 bytesTotal) {
         if (progress) {

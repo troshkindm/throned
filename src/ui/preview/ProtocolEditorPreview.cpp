@@ -1,4 +1,5 @@
 #include "include/ui/preview/MainWindowCapture.h"
+#include "include/ui/preview/UpstreamPreview.h"
 #include "include/ui/preview/GeometryReport.h"
 #include "include/database/GroupsRepo.h"
 #include "include/ui/profile/dialog_edit_profile.h"
@@ -63,13 +64,16 @@ void CaptureProtocolEditors(QWidget *parent, const QString &prefix) {
             }
             mode->setCurrentIndex(1);
             routing->show();
-            QTimer::singleShot(400, routing, [routing, prefix] {
+            QTimer::singleShot(400, routing, [routing, parent, prefix] {
                 auto *masque = routing->findChild<QGroupBox *>(QStringLiteral("warp_masque_box"));
                 auto *wireguard = routing->findChild<QGroupBox *>(QStringLiteral("warp_wg_box"));
                 const bool ok = masque && masque->isVisible() && wireguard && !wireguard->isVisible() &&
                                 capture(routing, prefix + QStringLiteral("-warp.png"));
                 routing->reject();
-                qApp->exit(ok ? 0 : 2);
+                if (ok)
+                    CaptureUpstreamFeatures(parent, prefix);
+                else
+                    qApp->exit(2);
             });
         });
     });

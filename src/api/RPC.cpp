@@ -150,6 +150,10 @@ public:
         connected_.store(true, std::memory_order_release);
     }
 
+    bool IsConnected() const {
+        return connected_.load(std::memory_order_acquire);
+    }
+
     int Call(const QString &methodName, const std::string &req,
              std::vector<uint8_t> &rsp, int timeout_ms = 0) {
         if (!connected_.load(std::memory_order_acquire)) return CallNotConnected;
@@ -245,9 +249,15 @@ void Client::Reconnect(QLocalSocket *socket) {
     channel->Reconnect(socket);
 }
 
-#define NOT_OK      \
-    *rpcOK = false; \
-    MW_show_log(QString("IPC call failed (code %1)\n").arg(status));
+bool Client::IsConnected() const {
+    return channel->IsConnected();
+}
+
+#define NOT_OK                                                                                                \
+    *rpcOK = false;                                                                                           \
+    MW_show_log(status == LocalSocketChannel::CallNotConnected                                                \
+                    ? QString("IPC call %1 failed: the core is not connected\n").arg(QLatin1String(__func__)) \
+                    : QString("IPC call %1 failed (code %2)\n").arg(QLatin1String(__func__)).arg(status));
 
 QString Client::Start(bool *rpcOK, const libcore::LoadConfigReq &request) {
     libcore::ErrorResp reply;
@@ -561,20 +571,6 @@ QString Client::CancelVPNChallenge(bool *rpcOK, const QString &endpointTag, cons
     }
 }
 
-QString Client::SetSystemDNS(bool *rpcOK, const bool clear) const {
-    libcore::SetSystemDNSRequest request{clear};
-    std::vector<uint8_t> resp;
-    auto status = channel->Call("SetSystemDNS", spb::pb::serialize<std::string>(request), resp);
-
-    if (status == LocalSocketChannel::CallOK) {
-        *rpcOK = true;
-        return "";
-    } else {
-        NOT_OK
-        return "IPC error";
-    }
-}
-
 libcore::DiagnoseSiteResponse Client::DiagnoseSite(bool *rpcOK, const libcore::DiagnoseSiteRequest &request, QString *coreError) {
     *rpcOK = false;
     libcore::DiagnoseSiteResponse reply;
@@ -827,6 +823,117 @@ void Client::StopDiagnostics(bool *rpcOK) {
         *rpcOK = true;
     } else {
         NOT_OK
+    }
+}
+
+libcore::ScanProbeResponse Client::ScanProbe(bool *rpcOK, const libcore::ScanProbeRequest &request, QString *coreError, int timeoutMs) {
+    libcore::ScanProbeResponse reply;
+    std::vector<uint8_t> resp;
+    auto status = channel->Call("ScanProbe", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        return reply;
+    } else {
+        if (coreError && !resp.empty())
+            *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        NOT_OK
+        return {};
+    }
+}
+
+libcore::QueryScanResponse Client::QueryScan(bool *rpcOK, const QString &sessionId, qint64 afterSeq) const {
+    libcore::QueryScanRequest request;
+    request.session_id = sessionId.toStdString();
+    request.after_seq = afterSeq;
+    libcore::QueryScanResponse reply;
+    std::vector<uint8_t> resp;
+    auto status = channel->Call("QueryScan", spb::pb::serialize<std::string>(request), resp, 5000);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        return reply;
+    } else {
+        NOT_OK
+        return {};
+    }
+}
+
+void Client::StopScan(bool *rpcOK, const QString &sessionId) const {
+    libcore::StopScanRequest request;
+    request.session_id = sessionId.toStdString();
+    std::vector<uint8_t> resp;
+    auto status = channel->Call("StopScan", spb::pb::serialize<std::string>(request), resp, 5000);
+
+    if (status == LocalSocketChannel::CallOK) {
+        *rpcOK = true;
+    } else {
+        NOT_OK
+    }
+}
+
+libcore::TestResp Client::ScanURLTest(bool *rpcOK, const libcore::ScanURLTestRequest &request, QString *coreError, int timeoutMs) {
+    libcore::TestResp reply;
+    std::vector<uint8_t> resp;
+    auto status = channel->Call("ScanURLTest", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        return reply;
+    } else {
+        if (coreError && !resp.empty())
+            *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        NOT_OK
+        return {};
+    }
+}
+
+bool Client::ScanCheckNetwork(bool *rpcOK, const QStringList &targets, int timeoutMs, QString *error) const {
+    libcore::ScanCheckNetworkRequest request;
+    for (const auto &target: targets) request.targets.push_back(target.toStdString());
+    request.timeout_ms = timeoutMs;
+    libcore::ScanCheckNetworkResponse reply;
+    std::vector<uint8_t> resp;
+    // Must outlast the core's own dial deadline.
+    auto status = channel->Call("ScanCheckNetwork", spb::pb::serialize<std::string>(request), resp, timeoutMs + 5000);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        if (error != nullptr) *error = QString::fromStdString(reply.error.value());
+        return reply.up.value();
+    } else {
+        if (error != nullptr)
+            *error = status == LocalSocketChannel::CallOK || resp.empty()
+                         ? QStringLiteral("IPC error")
+                         : QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        NOT_OK
+        return false;
+    }
+}
+
+QString Client::ParseRuleSet(bool *rpcOK, const QByteArray &content, QStringList *cidrs, int *skippedRules) const {
+    if (cidrs != nullptr) cidrs->clear();
+    if (skippedRules != nullptr) *skippedRules = 0;
+    libcore::ParseRuleSetRequest request;
+    const auto *begin = reinterpret_cast<const std::byte *>(content.constData());
+    request.content = std::vector<std::byte>(begin, begin + content.size());
+    libcore::ParseRuleSetResponse reply;
+    std::vector<uint8_t> resp;
+    auto status = channel->Call("ParseRuleSet", spb::pb::serialize<std::string>(request), resp, 60000);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        if (cidrs != nullptr) {
+            cidrs->reserve(static_cast<qsizetype>(reply.cidrs.size()));
+            for (const auto &cidr: reply.cidrs) cidrs->append(QString::fromStdString(cidr));
+        }
+        if (skippedRules != nullptr) *skippedRules = reply.skipped_rules.value();
+        return QString::fromStdString(reply.error.value());
+    } else {
+        NOT_OK
+        if (status != LocalSocketChannel::CallOK && !resp.empty())
+            return QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        return "IPC error";
     }
 }
 

@@ -178,7 +178,7 @@ func demoteErrorLevel(line string) string {
 func processAnnotation(process trackedProcess) string {
 	name := process.name
 	if name == "" && process.path != "" {
-		name = filepath.Base(process.path)
+		name = filepath.Base(strings.ReplaceAll(process.path, `\`, "/"))
 	}
 	switch {
 	case name != "" && process.pid != 0:
@@ -226,9 +226,11 @@ func resolveTrackedProcess(ctx context.Context, endpoints []string) trackedProce
 			newest = trackedProcess{source: endpoint, matched: true}
 			newestAt = createdAt
 			if connection.Metadata.ProcessInfo != nil {
-				newest.path = connection.Metadata.ProcessInfo.ProcessPath
+				if paths := connection.Metadata.ProcessInfo.ProcessPaths; len(paths) > 0 {
+					newest.path = paths[0]
+				}
 				if newest.path != "" {
-					newest.name = filepath.Base(newest.path)
+					newest.name = filepath.Base(strings.ReplaceAll(newest.path, `\`, "/"))
 				}
 				newest.pid = connection.Metadata.ProcessInfo.ProcessID
 			}

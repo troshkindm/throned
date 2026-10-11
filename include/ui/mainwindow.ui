@@ -287,13 +287,6 @@ QToolButton::menu-indicator {
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="system_dns">
-          <property name="text">
-           <string>System DNS</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="checkBox_SystemProxy">
           <property name="text">
            <string>System Proxy</string>
@@ -382,7 +375,7 @@ QToolButton::menu-indicator {
         <attribute name="title">
          <string/>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_tab1">
          <property name="leftMargin">
           <number>1</number>
          </property>
@@ -398,7 +391,7 @@ QToolButton::menu-indicator {
          <property name="spacing">
           <number>0</number>
          </property>
-         <item row="0" column="0">
+         <item>
           <widget class="ProfilesTableView" name="profilesTableView">
            <property name="contextMenuPolicy">
             <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
@@ -494,7 +487,7 @@ QToolButton::menu-indicator {
               <attribute name="title">
                <string>Logs</string>
               </attribute>
-              <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0">
+              <layout class="QVBoxLayout" name="logsLayout" stretch="0,1">
                <property name="spacing">
                 <number>0</number>
                </property>
@@ -513,6 +506,66 @@ QToolButton::menu-indicator {
                <property name="bottomMargin">
                 <number>0</number>
                </property>
+               <item>
+                <widget class="QWidget" name="logToolbar" native="true">
+                 <layout class="QHBoxLayout" name="logToolbarLayout">
+                  <property name="spacing">
+                   <number>4</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>4</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>4</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>4</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>4</number>
+                  </property>
+                  <item>
+                   <widget class="QLineEdit" name="logSearchEdit">
+                    <property name="placeholderText">
+                     <string>Filter logs</string>
+                    </property>
+                    <property name="clearButtonEnabled">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="logSearchCase">
+                    <property name="toolTip">
+                     <string>Match case</string>
+                    </property>
+                    <property name="text">
+                     <string notr="true">Aa</string>
+                    </property>
+                    <property name="checkable">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QToolButton" name="logSearchRegex">
+                    <property name="toolTip">
+                     <string>Regular expression</string>
+                    </property>
+                    <property name="text">
+                     <string notr="true">.*</string>
+                    </property>
+                    <property name="checkable">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="logMatchCount"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
                <item>
                 <widget class="QTextBrowser" name="masterLogBrowser">
                  <property name="contextMenuPolicy">
@@ -686,7 +739,7 @@ QToolButton::menu-indicator {
     <addaction name="menu_vpn_settings"/>
     <addaction name="menu_preset_settings"/>
     <addaction name="menu_dpi_bypass"/>
-    <addaction name="menu_hotkey_settings"/>
+    <addaction name="menu_integration_settings"/>
     <addaction name="menu_open_config_folder"/>
    </widget>
    <widget class="QMenu" name="menu_server">
@@ -775,6 +828,7 @@ QToolButton::menu-indicator {
     <addaction name="actionSpeedtest_Current"/>
     <addaction name="separator"/>
     <addaction name="menu_otp_manager"/>
+    <addaction name="menu_scanner"/>
     <addaction name="separator"/>
     <addaction name="actionTraffic_Stats"/>
     <addaction name="actionCheck_For_Update"/>
@@ -783,6 +837,15 @@ QToolButton::menu-indicator {
     <property name="title">
      <string>Groups</string>
     </property>
+    <widget class="QMenu" name="menu_clean_up">
+     <property name="title">
+      <string>Clean up</string>
+     </property>
+     <addaction name="menu_delete_repeat"/>
+     <addaction name="menu_remove_unavailable"/>
+     <addaction name="menu_remove_invalid"/>
+     <addaction name="menu_remove_insecure"/>
+    </widget>
     <addaction name="menu_manage_groups"/>
     <addaction name="actionAdd_New_Group"/>
     <addaction name="actionEdit_Group"/>
@@ -796,12 +859,8 @@ QToolButton::menu-indicator {
     <addaction name="separator"/>
     <addaction name="menu_update_subscription"/>
     <addaction name="actionUpdate_All_Subscriptions"/>
-    <addaction name="menu_delete_repeat"/>
-    <addaction name="menu_remove_unavailable"/>
-    <addaction name="menu_remove_invalid"/>
-    <addaction name="menu_remove_insecure"/>
+    <addaction name="menu_clean_up"/>
     <addaction name="separator"/>
-    <addaction name="actionRefresh_Column_Widths"/>
    </widget>
    <addaction name="menu_program"/>
    <addaction name="menu_preferences"/>
@@ -1019,9 +1078,9 @@ QToolButton::menu-indicator {
     <string notr="true">Ctrl+Shift+F</string>
    </property>
   </action>
-  <action name="menu_hotkey_settings">
+  <action name="menu_integration_settings">
    <property name="text">
-    <string>Hotkey Settings</string>
+    <string>Integration Settings</string>
    </property>
   </action>
   <action name="menu_select_all">
@@ -1117,6 +1176,11 @@ QToolButton::menu-indicator {
   <action name="menu_otp_manager">
    <property name="text">
     <string>OTP Manager</string>
+   </property>
+  </action>
+  <action name="menu_scanner">
+   <property name="text">
+    <string>IP Scanner</string>
    </property>
   </action>
   <action name="actionRestart_Program">

@@ -11,9 +11,61 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Advanced Subscription Settings</string>
+   <string>Advanced Group Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="endpoint_box">
+     <property name="title">
+      <string>Server Address</string>
+     </property>
+     <layout class="QVBoxLayout" name="endpoint_layout">
+      <item>
+       <layout class="QHBoxLayout" name="endpoint_row" stretch="0,1,1,0">
+        <item>
+         <widget class="QComboBox" name="endpoint_mode"/>
+        </item>
+        <item>
+         <widget class="MyLineEdit" name="endpoint_address">
+          <property name="placeholderText">
+           <string>Host or IP address</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="endpoint_list"/>
+        </item>
+        <item>
+         <spacer name="endpoint_spacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="endpoint_hint">
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="request_box">
      <property name="title">
@@ -175,6 +227,59 @@
      </property>
      <layout class="QVBoxLayout" name="update_layout">
       <item>
+       <layout class="QGridLayout" name="update_schedule_layout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="update_interval_l">
+          <property name="toolTip">
+           <string>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</string>
+          </property>
+          <property name="text">
+           <string>Update Interval</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="update_interval">
+          <property name="maximum">
+           <number>525600</number>
+          </property>
+          <property name="singleStep">
+           <number>30</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="server_interval_l">
+          <property name="toolTip">
+           <string>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</string>
+          </property>
+          <property name="text">
+           <string>Server Interval</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="server_interval">
+          <item>
+           <property name="text">
+            <string>Keep Default</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Use</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Ignore</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QCheckBox" name="keep_working">
         <property name="toolTip">
          <string>Profiles whose last test succeeded are kept when the subscription no longer lists them.</string>
@@ -276,6 +381,9 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>endpoint_mode</tabstop>
+  <tabstop>endpoint_address</tabstop>
+  <tabstop>endpoint_list</tabstop>
   <tabstop>user_agent</tabstop>
   <tabstop>tls_version</tabstop>
   <tabstop>http_version</tabstop>
@@ -284,6 +392,8 @@
   <tabstop>hwid_os</tabstop>
   <tabstop>hwid_os_version</tabstop>
   <tabstop>hwid_model</tabstop>
+  <tabstop>update_interval</tabstop>
+  <tabstop>server_interval</tabstop>
   <tabstop>keep_working</tabstop>
   <tabstop>remove_duplicates</tabstop>
   <tabstop>remove_insecure</tabstop>

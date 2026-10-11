@@ -115,6 +115,8 @@ void CoreProcess::Start() {
     // later on-demand download lands in this same dir and is picked up on the
     // next profile start with no core restart.
     env.insert("XRAY_LOCATION_ASSET", Configs::GetBasePath());
+    guard_identity = Configs::dataManager->settingsRepo->kill_switch;
+    if (guard_identity) env.insert("THRONE_GUARD", "1");
     setProcessEnvironment(env);
     start(program, {});
 }

@@ -228,7 +228,7 @@ void TestRunner::runUdpProbe(const Target& target) {
     }
 
     if (!rpcOK || result.results.empty()) {
-        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(target.entID));
+        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(target.entID), target.interactive);
         return;
     }
 
@@ -296,7 +296,7 @@ void TestRunner::runUrlProbe(const Target& target) {
 
     if (!rpcOK || result.results.empty()) {
         // A failed Test RPC yields no per-result errors, so inspect it here.
-        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(target.entID));
+        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(target.entID), target.interactive);
         return;
     }
 
@@ -363,7 +363,7 @@ void TestRunner::runIpProbe(const Target& target) {
     }
 
     if (!rpcOK || result.results.empty()) {
-        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(target.entID));
+        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(target.entID), target.interactive);
         return;
     }
 
@@ -382,24 +382,24 @@ void TestRunner::runIpProbe(const Target& target) {
     }
 }
 
-void TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished) {
-    runLatencyGroup(LatencyKind::Url, profileIDs, onFinished);
+bool TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive) {
+    return runLatencyGroup(LatencyKind::Url, profileIDs, onFinished, false, interactive);
 }
 
 void TestRunner::queueUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished) {
     runOnNewThread([=, this] { runLatencyGroup(LatencyKind::Url, profileIDs, onFinished, true); });
 }
 
-void TestRunner::runIpTests(const QList<int>& profileIDs) {
-    runLatencyGroup(LatencyKind::Ip, profileIDs, {});
+bool TestRunner::runIpTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive) {
+    return runLatencyGroup(LatencyKind::Ip, profileIDs, onFinished, false, interactive);
 }
 
 void TestRunner::runUdpTests(const QList<int>& profileIDs) {
     runLatencyGroup(LatencyKind::Udp, profileIDs, {});
 }
 
-void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
-                                 const std::function<void()>& onFinished, bool waitForSession) {
+bool TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
+                                 const std::function<void()>& onFinished, bool waitForSession, bool interactive) {
     const bool isUrl = kind == LatencyKind::Url;
     const bool isUdp = kind == LatencyKind::Udp;
     const auto panelKind = isUrl   ? DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url
@@ -411,25 +411,31 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
     const auto profileIDs = withoutAutoSelectors(requestedIDs);
     if (profileIDs.isEmpty()) {
         finish();
-        return;
+        return false;
     }
     if (waitForSession) {
         session_.lock();
     } else if (!session_.tryLock()) {
-        PostPassiveWarning(software_name, isUrl
-                                              ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
-                                              : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
+        const auto text = isUrl
+                              ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
+                              : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program.");
+        // Auto-selector ranking calls in from a worker thread, where no widget may be created.
+        if (interactive && QThread::currentThread() == mw_->thread())
+            PostPassiveWarning(software_name, text);
+        else
+            MW_show_log(text);
         finish();
-        return;
+        return false;
     }
     sessionGen_.fetch_add(1);
+    // Reset here, not on the worker: a stop() that lands before the worker runs must still count.
+    stopRequested_.store(false);
 
-    runOnNewThread([this, profileIDs, panelKind, isUrl, isUdp, finish]() {
-        stopRequested_.store(false);
+    runOnNewThread([this, profileIDs, panelKind, isUrl, isUdp, finish, interactive]() {
         mw_->dataViewHtmlGenerator_.seedLatencyTest(panelKind, profileIDs.size());
         mw_->UpdateDataView(true);
 
-        auto runBatch = [this, isUrl, isUdp](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
+        auto runBatch = [this, isUrl, isUdp, interactive](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
             // Per batch, not per probe: the probes of one batch run concurrently and
             // drain each other's results from the core's global buffer, so they must
             // share a generation. Outbound tags restart at every batch, so a poll left
@@ -460,6 +466,7 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
 
             for (const auto& entID: buildObject->fullConfigs.keys()) {
                 Target target;
+                target.interactive = interactive;
                 target.coreConfig = buildObject->fullConfigs[entID];
                 target.useDefaultOutbound = true;
                 target.entID = entID;
@@ -467,6 +474,7 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
             }
             if (!buildObject->outboundTags.empty()) {
                 Target target;
+                target.interactive = interactive;
                 target.coreConfig = QJsonObject2QString(buildObject->coreConfig, false);
                 target.xrayConfig = buildObject->isXrayNeeded ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
                 target.xrayFullConfigs = buildObject->xrayFullConfigs;
@@ -512,24 +520,33 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
                     : isUdp ? MainWindow::tr("UDP test finished!")
                             : MainWindow::tr("IP test finished!"));
     });
+    return true;
 }
 
-void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent) {
+bool TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent,
+                               const std::function<void()>& onFinished, bool interactive) {
+    const auto finish = [onFinished] { if (onFinished) onFinished(); };
     // A live-connection test stays valid for a selector: it measures whichever member carries traffic.
     const auto profileIDs = testCurrent ? requestedIDs : withoutAutoSelectors(requestedIDs);
     if (profileIDs.isEmpty() && !testCurrent) {
-        return;
+        finish();
+        return false;
     }
     if (!session_.tryLock()) {
-        PostPassiveWarning(software_name, MainWindow::tr("The last test did not finish completely, please wait. If it persists, please restart the program."));
-        return;
+        const auto text = MainWindow::tr("The last test did not finish completely, please wait. If it persists, please restart the program.");
+        if (interactive)
+            MessageBoxWarning(software_name, text);
+        else
+            MW_show_log(text);
+        finish();
+        return false;
     }
     sessionGen_.fetch_add(1);
+    stopRequested_.store(false);
 
     testingCurrent_.store(testCurrent);
 
-    runOnNewThread([this, profileIDs, testCurrent]() {
-        stopRequested_.store(false);
+    runOnNewThread([this, profileIDs, testCurrent, finish, interactive]() {
         // Fresh per-tag byte baselines for this speed-test session.
         flushTrafficCredits();
         {
@@ -541,7 +558,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
         if (!testCurrent) {
             mw_->dataViewHtmlGenerator_.seedSpeedTest(profileIDs.size());
             mw_->UpdateDataView(true);
-            auto runBatch = [this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
+            auto runBatch = [this, interactive](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
                 if (!buildObject->error.isEmpty()) {
                     MW_show_log(MainWindow::tr("Failed to build batch test config: ") + buildObject->error);
@@ -550,6 +567,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
 
                 for (auto it = buildObject->fullConfigs.cbegin(); it != buildObject->fullConfigs.cend(); ++it) {
                     Target target;
+                    target.interactive = interactive;
                     target.coreConfig = it.value();
                     target.useDefaultOutbound = true;
                     target.entID = it.key();
@@ -558,6 +576,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
 
                 if (!buildObject->outboundTags.empty()) {
                     Target target;
+                    target.interactive = interactive;
                     target.coreConfig = QJsonObject2QString(buildObject->coreConfig, false);
                     target.xrayConfig = buildObject->isXrayNeeded ? QJsonObject2QString(buildObject->xrayConfig, true) : "";
                     target.xrayFullConfigs = buildObject->xrayFullConfigs;
@@ -578,6 +597,7 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
         } else {
             mw_->dataViewHtmlGenerator_.seedSpeedTest(1);
             Target target;
+            target.interactive = interactive;
             target.testCurrent = true;
             runSpeedProbe(target);
             testingCurrent_.store(false);
@@ -587,11 +607,13 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
         mw_->dataViewHtmlGenerator_.clearTestSections();
         mw_->UpdateDataView(true);
         session_.unlock();
+        finish();
         runOnUiThread([=, this] {
             mw_->refresh_proxy_list(profileIDs);
             MW_show_log(MainWindow::tr("Speedtest finished!"));
         });
     });
+    return true;
 }
 
 void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile, const QString& tag, qint64 curUp, qint64 curDown) {
@@ -739,7 +761,7 @@ void TestRunner::runSpeedProbe(const Target& target) {
     flushTrafficCredits();
 
     if (!rpcOK || result.results.empty()) {
-        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(contextID));
+        if (!rpcOK) mw_->handleXrayGeoAssetError(coreError, contextName(contextID), target.interactive);
         return;
     }
 
@@ -892,7 +914,7 @@ void TestRunner::runSiteProbe(const Target& target, const QList<SiteTarget>& sit
     QString coreError;
     const auto result = defaultClient->SiteTest(&rpcOK, req, &coreError);
     if (!rpcOK) {
-        mw_->handleXrayGeoAssetError(coreError, contextName(target.entID));
+        mw_->handleXrayGeoAssetError(coreError, contextName(target.entID), target.interactive);
         if (coreError.isEmpty()) coreError = MainWindow::tr("The core did not return site test results.");
         MW_show_log(MainWindow::tr("Site test failed: %1").arg(coreError));
         const QMutexLocker lock(&reportMutex);

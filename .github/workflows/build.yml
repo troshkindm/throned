@@ -14,7 +14,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        # windowslegacy runs the darwin host toolchain from go.zip; keep it on macOS.
+        # Legacy targets use the MetaCubeX Go 1.26 compatibility toolchain.
         include:
           - cross_os: windows
             cross_arch: amd64
@@ -75,8 +75,8 @@ jobs:
       - name: Install Golang For Legacy OS
         if: steps.cache-common.outputs.cache-hit != 'true' && contains( matrix.cross_os, 'legacy' )
         run: |
-          curl -L -o go.zip https://github.com/throneproj/env_windows_legacy/releases/download/latest/go.zip
-          7z x go.zip
+          mkdir -p golang.org
+          curl -fL "https://github.com/MetaCubeX/go/releases/download/build/go1.26.$(go env GOHOSTOS)-$(go env GOHOSTARCH).tar.gz" | tar -xz -C golang.org
       - name: Install Protoc
         if: steps.cache-common.outputs.cache-hit != 'true'
         uses: arduino/setup-protoc@v3

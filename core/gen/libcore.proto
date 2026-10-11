@@ -14,7 +14,6 @@ service LibcoreService {
   rpc QueryConnections(EmptyReq) returns (QueryConnectionsResp);
   rpc CloseConnections(CloseConnectionsRequest) returns (CloseConnectionsResponse);
   //
-  rpc SetSystemDNS(SetSystemDNSRequest) returns (EmptyResp);
   rpc SetTransitionGuard(SetTransitionGuardRequest) returns (ErrorResp);
   //
   rpc IsPrivileged(EmptyReq) returns (IsPrivilegedResponse);
@@ -51,6 +50,13 @@ service LibcoreService {
   rpc StopDiagnostics(EmptyReq) returns (EmptyResp);
 
   rpc UpdateRuleSets(EmptyReq) returns (UpdateRuleSetsResponse);
+  //
+  rpc ScanProbe(ScanProbeRequest) returns (ScanProbeResponse);
+  rpc QueryScan(QueryScanRequest) returns (QueryScanResponse);
+  rpc StopScan(StopScanRequest) returns (EmptyResp);
+  rpc ScanURLTest(ScanURLTestRequest) returns (TestResp);
+  rpc ScanCheckNetwork(ScanCheckNetworkRequest) returns (ScanCheckNetworkResponse);
+  rpc ParseRuleSet(ParseRuleSetRequest) returns (ParseRuleSetResponse);
 }
 
 message EmptyReq {}
@@ -325,10 +331,6 @@ message CloseConnectionsResponse {
 
 message SetTransitionGuardRequest {
   optional bool enabled = 1 [default = false];
-}
-
-message SetSystemDNSRequest {
-  optional bool clear = 1 [default = false];
 }
 
 message IsPrivilegedResponse {
@@ -634,4 +636,173 @@ message DiagnosticsResponse {
 message UpdateRuleSetsResponse {
   optional int32 updated = 1 [default = 0];
   optional string error = 2 [default = ""];
+}
+
+message ScanEntry {
+  // A prefix or a bare address.
+  optional string cidr = 1 [default = ""];
+  // 0 = each of ScanTargetSpec.default_ports.
+  optional int32 port = 2 [default = 0];
+}
+
+message ScanTargetSpec {
+  repeated ScanEntry entries = 1;
+  // Empty leaves portless entries at port 0: each phase applies its own fallback.
+  repeated int32 default_ports = 2;
+  // 0 = every address; entries wider than 2^32 addresses are always sampled.
+  optional int64 max_hosts_per_entry = 3 [default = 0];
+  optional bool shuffle = 4 [default = true];
+  optional uint64 seed = 5 [default = 0];
+  // "" = the entry's port, else default_ports | ignore = default_ports only | merge = both | list = the entry's port only
+  optional string port_mode = 6 [default = ""];
+}
+
+message ScanIcmpOptions {
+  optional bool enabled = 1 [default = false];
+  optional int32 timeout_ms = 2 [default = 1000];
+  optional int32 count = 3 [default = 1];
+}
+
+message ScanTcpOptions {
+  optional bool enabled = 1 [default = false];
+  optional int32 timeout_ms = 2 [default = 2000];
+  optional int32 attempts = 3 [default = 1];
+  optional int32 fallback_port = 4 [default = 443];
+}
+
+message ScanHttpOptions {
+  optional bool enabled = 1 [default = false];
+  optional bool tls = 2 [default = true];
+  optional string server_name = 3 [default = ""];
+  optional string host = 4 [default = ""];
+  optional string path = 5 [default = "/"];
+  // GET | HEAD | NONE (TLS handshake only)
+  optional string method = 6 [default = "GET"];
+  // 1.1 | 2 | 3
+  optional string http_version = 7 [default = "1.1"];
+  repeated string alpn = 8;
+  optional string min_version = 9 [default = ""];
+  optional string max_version = 10 [default = ""];
+  // Empty = Go TLS; otherwise a uTLS fingerprint.
+  optional string fingerprint = 11 [default = ""];
+  optional bool insecure = 12 [default = false];
+  optional bool disable_sni = 13 [default = false];
+  optional bool fragment = 14 [default = false];
+  optional int32 fragment_fallback_delay_ms = 15 [default = 0];
+  optional bool record_fragment = 16 [default = false];
+  optional bool mixed_case_sni = 17 [default = false];
+  reserved 18, 19, 20;
+  reserved "expected_status", "body_contains", "user_agent";
+  optional int32 timeout_ms = 21 [default = 3000];
+  optional int32 fallback_port = 22 [default = 443];
+}
+
+message ScanProbeRequest {
+  optional string session_id = 1 [default = ""];
+  optional ScanTargetSpec spec = 2;
+  // Position in the spec's order; resume from next_cursor.
+  optional uint64 cursor = 3 [default = 0];
+  // 0 = count only: nothing is probed, total is still reported.
+  optional int32 max_targets = 4 [default = 0];
+  optional ScanIcmpOptions icmp = 5;
+  optional ScanTcpOptions tcp = 6;
+  optional ScanHttpOptions http = 7;
+  optional int32 concurrency = 8 [default = 0];
+  optional int32 spawn_interval_ms = 9 [default = 0];
+}
+
+message ScanProbeResult {
+  optional string address = 1 [default = ""];
+  optional int32 port = 2 [default = 0];
+  optional bool passed = 3 [default = false];
+  // icmp | tcp | tls | http; empty when passed
+  optional string failed_phase = 4 [default = ""];
+  optional string error = 5 [default = ""];
+  optional int32 icmp_ms = 6 [default = 0];
+  optional int32 tcp_ms = 7 [default = 0];
+  optional int32 tls_ms = 8 [default = 0];
+  optional int32 http_ms = 9 [default = 0];
+  optional int32 http_status = 10 [default = 0];
+  // The port TCP/TLS actually used: the phase fallback when port is 0.
+  optional int32 probe_port = 11 [default = 0];
+  // The failure came from this machine (no route or address for the family), not the target.
+  optional bool local_failure = 12 [default = false];
+}
+
+message ScanProbeResponse {
+  optional string error = 1 [default = ""];
+  optional uint64 total = 2 [default = 0];
+  // Every position below it finished; on abort it stops at the first unfinished one.
+  optional uint64 next_cursor = 3 [default = 0];
+  optional bool aborted = 4 [default = false];
+  // Finished targets only, in completion order.
+  repeated ScanProbeResult results = 5;
+  optional int32 sampled_entries = 6 [default = 0];
+  optional int32 invalid_entries = 7 [default = 0];
+}
+
+message ScanEvent {
+  optional int64 seq = 1 [default = 0];
+  // start | ok | fail
+  optional string kind = 2 [default = ""];
+  // icmp | tcp | tls | http | url
+  optional string phase = 3 [default = ""];
+  // Display form; IPv6 is bracketed.
+  optional string target = 4 [default = ""];
+  optional int32 latency_ms = 5 [default = 0];
+  optional string error = 6 [default = ""];
+}
+
+message QueryScanRequest {
+  optional string session_id = 1 [default = ""];
+  optional int64 after_seq = 2 [default = 0];
+}
+
+// Counters are cumulative over the session.
+message QueryScanResponse {
+  // Newest last; only the most recent ones are kept.
+  repeated ScanEvent events = 1;
+  optional int64 last_seq = 2 [default = 0];
+  optional int64 probed = 3 [default = 0];
+  optional int64 probe_passed = 4 [default = 0];
+  optional int64 url_tested = 5 [default = 0];
+  optional int64 url_passed = 6 [default = 0];
+}
+
+// A stopped session refuses every later probe or URL test that names it.
+message StopScanRequest {
+  optional string session_id = 1 [default = ""];
+}
+
+message ScanURLTestRequest {
+  optional string session_id = 1 [default = ""];
+  optional TestReq test = 2;
+  // Aligned with test.outbound_tags; used as the event target.
+  repeated string target_labels = 3;
+  // false = one request per target, so the latency includes the handshake.
+  optional bool warm_latency = 4 [default = true];
+}
+
+message ScanCheckNetworkRequest {
+  // host:port, TCP.
+  repeated string targets = 1;
+  optional int32 timeout_ms = 2 [default = 3000];
+}
+
+message ScanCheckNetworkResponse {
+  optional bool up = 1 [default = false];
+  optional string error = 2 [default = ""];
+}
+
+// Binary (.srs) or JSON source, sniffed from the magic.
+message ParseRuleSetRequest {
+  optional bytes content = 1;
+}
+
+message ParseRuleSetResponse {
+  optional string error = 1 [default = ""];
+  repeated string cidrs = 2;
+  // Inverted and AND rules: they do not describe a set of addresses.
+  optional int32 skipped_rules = 3 [default = 0];
+  optional int32 version = 4 [default = 0];
 }

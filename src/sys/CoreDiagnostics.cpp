@@ -63,7 +63,6 @@ QByteArray clientInfo() {
     info["running_profile_type"] = profileType;
     info["tun"] = settings->spmode_vpn;
     info["system_proxy"] = settings->spmode_system_proxy;
-    info["tun_stack"] = settings->vpn_implementation;
     info["enable_stats"] = settings->enable_stats;
     info["traffic_stats"] = !settings->disable_traffic_stats;
     info["traffic_aggregation"] = !settings->disable_traffic_aggregation;

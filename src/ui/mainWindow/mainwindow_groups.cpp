@@ -3,6 +3,7 @@
 #include <QAbstractItemView>
 #include <QMenu>
 #include <QMessageBox>
+#include <QTextDocument>
 #include <QTimer>
 #include <QHeaderView>
 #include <QStyle>
@@ -23,12 +24,24 @@
 #include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
+#include "include/ui/stats/dialog_endpoint_details.h"
+#include "include/ui/utils/ProfilesTableFilterHeader.h"
+#include "include/global/Utils.hpp"
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
     if (Configs::dataManager->settingsRepo->refreshing_group_list) return;
     const auto gid = tabIndex2GroupId(index);
     if (gid == Configs::dataManager->settingsRepo->current_group) return;
     show_group(gid);
+}
+
+void MainWindow::updateTabToolTip(int gid) {
+    for (int index = 0; index < ui->tabWidget->count(); ++index) {
+        if (ui->tabWidget->tabBar()->tabData(index).toInt() == gid) {
+            applySubscriptionReadout(index, Configs::dataManager->groupsRepo->GetGroup(gid));
+            return;
+        }
+    }
 }
 
 void MainWindow::show_group(int gid) {
@@ -69,6 +82,8 @@ void MainWindow::show_group(int gid) {
     if (announceHost != nullptr) page->layout()->addWidget(announceHost);
     page->layout()->addWidget(ui->profilesTableView);
     refreshAnnounceStrip();
+
+    updateTabToolTip(gid);
 
     refresh_proxy_list({}, true);
 
@@ -182,7 +197,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         connect(dialog, &QDialog::finished, this, [=, this] {
             if (dialog->result() == QDialog::Accepted) {
                 Configs::dataManager->groupsRepo->Save(ent);
-                MW_dialog_message(MwMessage::GroupsChanged, {});
+                MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
             }
             dialog->deleteLater();
         });
@@ -223,6 +238,9 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=, this] {
             testRunner->runSpeedTests(clickedGroup->Profiles());
         });
+        // Clean up acts on the current group; setCurrentIndex above already switched to the clicked one.
+        menu.addSeparator();
+        menu.addMenu(ui->menu_clean_up);
     }
     menu.exec(ui->tabWidget->tabBar()->mapToGlobal(p));
 }

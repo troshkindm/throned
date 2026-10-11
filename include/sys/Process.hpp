@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <QElapsedTimer>
 #include <QProcess>
@@ -24,6 +25,9 @@ public:
     void Restart();
 
     int start_profile_when_core_is_up = -1;
+
+    // A core adopts the kill switch group (Linux/macOS) only at startup; this records whether the running one was asked to.
+    std::atomic<bool> guard_identity = false;
 
 private:
     QString m_socketName;

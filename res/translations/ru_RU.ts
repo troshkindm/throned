@@ -158,6 +158,22 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>Traffic</source>
         <translation>Трафик</translation>
     </message>
+    <message>
+        <source>Close this connection</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Destination (Domain)</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Process</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Click To Disable Sorting</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>CoreDiagnostics</name>
@@ -263,6 +279,10 @@ Total speed: %5/s↑ %6/s↓</source>
     <message>
         <source>The core is not running.</source>
         <translation>Ядро не запущено.</translation>
+    </message>
+    <message>
+        <source>Include Throne logs</source>
+        <translation>Включить логи Throne</translation>
     </message>
 </context>
 <context>
@@ -2583,7 +2603,7 @@ This backup may have been created with a newer version of the application.</sour
         <translation>Проверяемые сайты</translation>
     </message>
     <message>
-        <source>One "Name|URL" per line, checked by Site Reachability</source>
+        <source>One &quot;Name|URL&quot; per line, checked by Site Reachability</source>
         <translation>По одной строке «Имя|URL»; их проверяет «Доступность сайтов»</translation>
     </message>
     <message>
@@ -2630,7 +2650,6 @@ This backup may have been created with a newer version of the application.</sour
         <source>sing-box API / Dashboard</source>
         <translation>sing-box API / Веб-панель</translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throned to the &quot;Open with&quot; list for JSON and YAML config files, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Добавляет Throned в список «Открыть с помощью» для файлов конфигураций JSON и YAML и заново регистрирует его при переносе установки.&lt;/p&gt;&lt;p&gt;Выключение не отменяет уже сделанную регистрацию: для этого нажмите «Удалить».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
@@ -2694,6 +2713,79 @@ This backup may have been created with a newer version of the application.</sour
     <message>
         <source>Config files</source>
         <translation>Файлы конфигураций</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers Throne as the handler for throne:// links, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Регистрирует Throne в качестве обработчика ссылок «throne://», повторно применяя регистрацию при каждом перемещении исполняемых файлов.&lt;/p&gt;&lt;p&gt;Отключение этой функции не отменяет существующую регистрацию: для этого воспользуйтесь командой «Удалить».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes the throne:// handler Throne wrote. Entries owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удаляет обработчик «throne://», записанный Throne. Записи, принадлежащие другим приложениям, остаются без изменений.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throne to the &quot;Open with&quot; list for config files such as JSON and YAML, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Добавляет Throne в список «Открыть с помощью» для файлов конфигурации, таких как JSON и YAML, и повторно применяет регистрацию при каждом перемещении исполняемых файлов.&lt;/p&gt;&lt;p&gt;Отключение этой функции не отменяет существующую регистрацию: для этого воспользуйтесь функцией «Удалить».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every config file association Throne wrote, including those added by older versions. Associations owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удаляет все ассоциации конфигурационных файлов, созданные Throne, включая те, что были добавлены более старыми версиями. Ассоциации, принадлежащие другим приложениям, остаются без изменений.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</source>
+        <translation>Показывать иконку статуса в доке/панели. При отключении отображается иконка Throne</translation>
+    </message>
+    <message>
+        <source>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</source>
+        <translation>Подписки, сервер которых отправляет определенный интервал обновления (profile-update-interval), следуют этому интервалу. Если сервер не отправляет этот параметр, применяется указанный выше интервал.  Группы могут изменить этот параметр в дополнительных настройках.</translation>
+    </message>
+    <message>
+        <source>Use the update interval sent by the server</source>
+        <translation>Использовать интервал обновления, установленный сервером подписки</translation>
+    </message>
+    <message numerus="yes">
+        <source>Skipped %n routing rule(s) that use conditions this version of Throne does not support.</source>
+        <translation>
+            <numerusform>Пропущено %n правило маршрутизации, которое использует условия, не поддерживаемые данной версией Throne.</numerusform>
+            <numerusform>Пропущено %n правила маршрутизации, которые используют условия, не поддерживаемые данной версией Throne.</numerusform>
+            <numerusform>Пропущено %n правил маршрутизации, которые используют условия, не поддерживаемые данной версией Throne.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Throne Backup (*.thrbackup)</source>
+        <translation>Резервная копия Throne (*.thrbackup)</translation>
+    </message>
+    <message>
+        <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
+        <translation>Резервная копия успешно восстановлена. Throne будет перезапущен для применения изменений.</translation>
+    </message>
+    <message>
+        <source>Not a valid Throne backup file.</source>
+        <translation>Это недействительный файл резервной копии Throne.</translation>
+    </message>
+    <message>
+        <source>Each selected part replaces the current data. This cannot be undone.
+Throne will restart to complete the restore.</source>
+        <translation>Каждая выбранная часть заменяет текущие данные. Это невозможно отменить.
+Для завершения восстановления Throne перезапустится.</translation>
+    </message>
+    <message>
+        <source>Log Browser Font</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Log Browser Font Size</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Only monospaced fonts are listed. An unavailable family falls back to a built-in monospace list.</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>To choose custom icons, you need to choose png images with an equal width and height (eg 512*512). Their names should be of&#32;
+(Off.png, Proxy.png, Throned.png, Tun.png, Connecting.png; legacy Throne.png is also accepted) So that each will be used in the appropriate state of the app.&#32;
+You can provide a subset of the said images and only the corresponding states will be using them.
+It is suggested that each image&apos;s size be less than 100KB.</source>
+        <translation>Для своих значков выберите квадратные PNG-файлы (например, 512 × 512). Допустимые имена: Off.png, Proxy.png, Throned.png, Tun.png, Connecting.png; также принимается старое имя Throne.png. Можно заменить только часть значков. Рекомендуемый размер каждого файла — менее 100 КБ.</translation>
     </message>
 </context>
 <context>
@@ -2932,6 +3024,42 @@ This backup may have been created with a newer version of the application.</sour
     <message>
         <source>Keep Default (%1)</source>
         <translation>По умолчанию (%1)</translation>
+    </message>
+    <message>
+        <source>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</source>
+        <translation>Количество минут между автоматическими обновлениями этой подписки. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;, где автоматическое обновление должно быть включено.</translation>
+    </message>
+    <message>
+        <source>Update Interval</source>
+        <translation>Интервал обновления</translation>
+    </message>
+    <message>
+        <source>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</source>
+        <translation>Использовать интервал обновления, установленный на сервере подписки. Если сервер не устанавливает интервал, используется указанный выше. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;.</translation>
+    </message>
+    <message>
+        <source>Server Interval</source>
+        <translation>Интервал сервера</translation>
+    </message>
+    <message>
+        <source>Use</source>
+        <translation>Использовать</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Игнорировать</translation>
+    </message>
+    <message>
+        <source> min</source>
+        <translation> мин.</translation>
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation>%1 мин.</translation>
+    </message>
+    <message>
+        <source>This server last sent %1 h.</source>
+        <translation>В последний раз этот сервер отправил %1 ч.</translation>
     </message>
 </context>
 <context>
@@ -3606,6 +3734,14 @@ This backup may have been created with a newer version of the application.</sour
         <source>Finalmask</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Disabled</source>
+        <translation>Выключено</translation>
+    </message>
+    <message>
+        <source>Headers cannot contain &quot;|&quot;.</source>
+        <translation>Заголовки не могут содержать символ &quot;|&quot;.</translation>
+    </message>
 </context>
 <context>
     <name>DialogHotkey</name>
@@ -4267,11 +4403,11 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>Сохранять кэш в файл</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core's cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Сохранять DNS-ответы и сопоставления FakeIP в файл кэша ядра, чтобы они не терялись при перезапуске. По умолчанию выключено: каждое сохранение требует записи на диск.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Base64 DER of the server's public key. When set, it pins the server certificate.</source>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
         <translation>Открытый ключ сервера в формате DER, закодированный в Base64. Если указан, используется для проверки сертификата сервера.</translation>
     </message>
     <message>
@@ -4314,7 +4450,6 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <source>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</source>
         <translation>WireGuard работает поверх UDP. MASQUE использует HTTP/3 или HTTP/2 и позволяет подключаться в сетях, блокирующих WireGuard.</translation>
     </message>
-
     <message>
         <source>Cloudflare API domains to try, in order, when generating a WARP config</source>
         <translation>Домены Cloudflare API, которые перебираются по порядку при генерации конфигурации WARP</translation>
@@ -4328,20 +4463,16 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>Домены регистрации WARP</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Записывать кэшированные ответы DNS и сопоставления FakeIP в файл кэша ядра, чтобы они пережили перезапуск. По умолчанию выключено: каждая запись стоит обращения к диску.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
-        <translation>Base64 DER открытого ключа сервера. Если задан, закрепляет сертификат сервера.</translation>
-    </message>
-    <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation>По одному домену в строке. Они перебираются по порядку, используется первый, принявший регистрацию. Оставьте пустым, чтобы использовать %1.</translation>
     </message>
     <message>
         <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
         <translation>Перехват устарел и будет удалён в следующем выпуске. Режим TUN решает ту же задачу.</translation>
+    </message>
+    <message>
+        <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
+        <translation>Вставьте ссылку маршрута Throne, ссылку remoteRoute, base64 или массив правил JSON</translation>
     </message>
 </context>
 <context>
@@ -4639,7 +4770,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Address ranges handed straight to the physical NIC instead of being routed through the core, one CIDR per line. Uncheck to let the core hijack private range traffic instead. Loopback and broadcast are always bypassed and cannot be listed here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны адресов, передаваемые напрямую на физический сетевой адаптер вместо маршрутизации через ядро; по одному CIDR в строке. Снимите флажок, чтобы ядро перехватило трафик частного диапазона. Loopback и broadcast всегда обходятся и не могут быть указаны здесь.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны адресов, передаваемые напрямую на физический сетевой адаптер вместо маршрутизации через ядро; по одному CIDR в строке. Снимите флажок, чтобы ядро перехватило(hijack) трафик частного диапазона. Loopback и broadcast всегда обходятся и не могут быть указаны здесь.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Private Range Bypass</source>
@@ -5304,6 +5435,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Name cannot be empty.</source>
         <translation>Название не может быть пустым.</translation>
     </message>
+    <message>
+        <source>Xray full config (Throne adds a socks inbound and uses sing-box for tun/routing).</source>
+        <translation>Полная конфигурация Xray (Throne добавляет socks inbound и использует sing-box для tun / маршрутизации).</translation>
+    </message>
 </context>
 <context>
     <name>EditDirect</name>
@@ -5553,7 +5688,7 @@ rendezvous service. Replaces the server address and port.</source>
         <translation>Дополнительные заголовки</translation>
     </message>
     <message>
-        <source>Headers sent to the proxy server, e.g. X-Username="user" X-Password="pass"</source>
+        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
         <translation>Заголовки, отправляемые прокси-серверу, например X-Username="user" X-Password="pass"</translation>
     </message>
     <message>
@@ -5563,10 +5698,6 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>Parallel tunnel connections to the server, 0 to disable. More connections are easier to detect.</source>
         <translation>Число параллельных соединений туннеля с сервером; 0 — отключить. Чем больше соединений, тем проще их обнаружить.</translation>
-    </message>
-    <message>
-        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
-        <translation>Заголовки, отправляемые прокси-серверу, например X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</translation>
     </message>
 </context>
 <context>
@@ -5587,7 +5718,6 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Tunnel DNS</source>
         <translation>DNS туннеля</translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenConnect protocol flavor. Leave empty to use the core default (anyconnect).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
@@ -5751,7 +5881,6 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Tunnel DNS</source>
         <translation>DNS туннеля</translation>
     </message>
-
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default transport network. Leave empty to use the core default (udp).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
@@ -5891,6 +6020,10 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>None</source>
         <translation>Нет</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static challenge text shown by the server when it asks for a second authentication response. When a challenge is set and an OTP profile is bound, Throne sends the answer itself and no interactive prompt appears.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -6097,7 +6230,6 @@ rendezvous service. Replaces the server address and port.</source>
         <source>QUIC</source>
         <translation>QUIC</translation>
     </message>
-
     <message>
         <source>Client Random</source>
         <translation>Client Random</translation>
@@ -6260,7 +6392,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Workers</source>
-        <translation type="unfinished"></translation>
+        <translation>Workers</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -6529,6 +6661,18 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>Don&apos;t show again</source>
         <translation>Больше не показывать</translation>
+    </message>
+    <message>
+        <source>Hijack has been removed. Use Tun mode to route traffic from applications.</source>
+        <translation>Hijack удалён. Используйте режим TUN для маршрутизации трафика приложений.</translation>
+    </message>
+    <message>
+        <source>The System DNS option has also been removed.</source>
+        <translation>Настройка системного DNS также удалена.</translation>
+    </message>
+    <message>
+        <source>Hijack has been removed</source>
+        <translation>Hijack удалён</translation>
     </message>
 </context>
 <context>
@@ -7561,7 +7705,7 @@ Error: %1</source>
     </message>
     <message>
         <source>You need to enable hijack DNS server first</source>
-        <translation>Сначала необходимо включить перехват DNS-сервера</translation>
+        <translation>Сначала необходимо включить перехват(hijack) DNS-сервера</translation>
     </message>
     <message>
         <source>Failed to set system dns: </source>
@@ -8271,7 +8415,6 @@ Name: %1</source>
         <source>This installation cannot grant the core privileges by itself.</source>
         <translation>Эта установка не может сама выдать ядру права.</translation>
     </message>
-
     <message numerus="yes">
         <source>%n remote rule-set(s) refreshed</source>
         <translation>
@@ -8349,6 +8492,106 @@ Name: %1</source>
     <message>
         <source>Update Rule-Sets</source>
         <translation>Обновить наборы правил</translation>
+    </message>
+    <message>
+        <source>Disconnecting</source>
+        <translation>Отключение</translation>
+    </message>
+    <message>
+        <source>Clean up</source>
+        <translation>Очистка</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation>Провайдер: %1</translation>
+    </message>
+    <message>
+        <source>Type: Subscription</source>
+        <translation>Тип: Подписка</translation>
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation>Последнее обновление</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation>Авто-обновление: каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>Used</source>
+        <translation>Использовано</translation>
+    </message>
+    <message>
+        <source>Remaining</source>
+        <translation>Осталось</translation>
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation>Истекает</translation>
+    </message>
+    <message>
+        <source>Support</source>
+        <translation>Поддержка</translation>
+    </message>
+    <message>
+        <source>Portal</source>
+        <translation>Портал</translation>
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation>Объявление</translation>
+    </message>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>Функция «Hijack»(«Перехват») (Настройки &gt; Настройки маршрутизации &gt; Перехват) больше не поддерживается и будет удалена в следующей версии.</translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>От этого зависит параметр «Системный DNS», который будет удален вместе с ним.</translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Режим Tun предназначен для тех же задач.</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation>Функция «Hijack»(&quot;Перехват&quot;) больше не поддерживается</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>Больше не показывать</translation>
+    </message>
+    <message>
+        <source>Please run Throne as admin</source>
+        <translation>Пожалуйста, запустите Throne от имени администратора</translation>
+    </message>
+    <message>
+        <source>Disable Filter</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Filter logs</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Match case</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>New logs are held while the view is scrolled up</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Jump to latest</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Jump to latest (%1 new)</source>
+        <translation type="unfinished" />
     </message>
 </context>
 <context>
@@ -10055,16 +10298,12 @@ Deleted %5 Profiles:
         <translation>Не удалось связаться с ядром.</translation>
     </message>
     <message>
-        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href="%1"&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
+        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation>При создании учётных данных WARP в Cloudflare регистрируется новое устройство.&lt;br&gt;&lt;br&gt;Вы принимаете &lt;a href="%1"&gt;условия использования Cloudflare WARP&lt;/a&gt;?</translation>
     </message>
     <message>
         <source>Auto selector — no working profile out of %1, still checking</source>
         <translation>Автоселектор — ни одного рабочего профиля из %1, проверка продолжается</translation>
-    </message>
-    <message>
-        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
-        <translation>Создание идентификатора WARP регистрирует новое устройство в Cloudflare.&lt;br&gt;&lt;br&gt;Принимаете ли вы &lt;a href=&quot;%1&quot;&gt;условия обслуживания Cloudflare WARP&lt;/a&gt;?</translation>
     </message>
     <message>
         <source>Removed %1 duplicate profiles:</source>
@@ -10119,6 +10358,84 @@ To fix this, share the hotspot from the throned-tun adapter instead of &quot;%1&
 Тогда Windows игнорирует привязку к адаптеру, которая не пускает собственные соединения Throned в TUN, поэтому они зацикливаются в нём и обрываются.
 
 Чтобы это исправить, раздавайте хот-спот с адаптера throned-tun вместо «%1» (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или выключайте хот-спот, пока используется режим TUN.</translation>
+    </message>
+    <message>
+        <source>Proxy: %1
+Direct: %2</source>
+        <translation>Прокси: %1
+Напрямую: %2</translation>
+    </message>
+    <message>
+        <source>Subscription server update interval: %1 hour(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The URL of %1 changed during the update, so the result was discarded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Announcement from %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No profiles found in the subscription: %1 was left unchanged.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throne&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update found: %1
+Release note:
+%2</source>
+        <translation>Найдено обновление: %1
+Список изменений:
+%2</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished">Нет</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished">Авто-обновление: каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>[Warn] Throne did not shut down cleanly last time. Diagnostics were saved to: %1</source>
+        <translation>[Предупреждение] В прошлый раз Throne не завершил работу корректно. Результаты диагностики сохранены в: %1</translation>
+    </message>
+    <message>
+        <source>Configure a proxy through Throne&apos;s chain instead, ignored: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The statistics database is unusable (%1). Statistics are paused for this session and the file will be rebuilt when Throne restarts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Writing statistics keeps failing (%1). Statistics are paused until Throne restarts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Settings changed, restart to apply</source>
+        <translation type="unfinished">Настройки изменены, перезапустите для применения</translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation type="unfinished">Перезапустить</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation type="unfinished">Игнорировать</translation>
     </message>
 </context>
 <context>
@@ -10187,6 +10504,14 @@ outbounds and other Throned features may break. For advanced users only.</source
     <message>
         <source>Prevent modifications</source>
         <translation>Запретить изменения</translation>
+    </message>
+    <message>
+        <source>Use the route object exactly as written (outbound ids are still resolved to tags).
+Throne will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray
+outbounds and other Throne features may break. For advanced users only.</source>
+        <translation>Использовать raw-профиль маршрутизации точно так, как написано (outbounds идентификаторы по-прежнему преобразуются в теги).
+В Throne не будут добавлены функции DNS-hijack или xray bridge, поэтому могут нарушаться функции DNS, chained/xray
+outbounds и другие функции Throne. Только для опытных пользователей.</translation>
     </message>
 </context>
 <context>
@@ -10590,6 +10915,18 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile&apos;s rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules. A chain endpoint can hand out one rule per inner OpenVPN / OpenConnect hop too, so traffic can be routed to a hop before the exit.</source>
         <translation>Профили OpenVPN / OpenConnect, запускаемые вместе с этим профилем маршрутизации. Трафик для сетей, которые они объявляют, идёт через них; всё остальное следует правилам этого профиля. Каждый endpoint получает правило на вкладке «Дополнительно», которое можно перемещать среди ваших собственных правил. Цепочечный endpoint может выдать по правилу и на каждый внутренний узел OpenVPN / OpenConnect, чтобы трафик можно было направить на узел до выхода.</translation>
+    </message>
+    <message>
+        <source>Some rules could not be added:
+</source>
+        <translation>Некоторые правила не удалось добавить:
+</translation>
+    </message>
+    <message>
+        <source>This rule belongs to &quot;%1&quot;, an inner hop of the endpoint &quot;%2&quot;.
+
+Stop routing to that endpoint&apos;s inner hops?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -11898,6 +12235,10 @@ goes to the default above.</source>
         <source>Submitting...</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>This server requires single sign-on in a browser, which Throne does not support yet. Cancel here and use a profile with direct credentials, or supply an authentication cookie in the profile&apos;s advanced settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditHysteriaRealm</name>
@@ -12463,6 +12804,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>TNCC Machine Certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the token the core generates itself. To use a Throne OTP profile, bind it on the main editor instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -13144,11 +13489,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Зарегистрированный ключ ECDSA P-256 в формате DER, закодированный в Base64. Используется для подписи клиентского сертификата TLS.</translation>
     </message>
     <message>
-        <source>Base64 DER of the server's public key. When set, it pins the server certificate, even with Allow insecure.</source>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
         <translation>Открытый ключ сервера в формате DER, закодированный в Base64. Если указан, сертификат сервера проверяется по этому ключу даже при отключённой проверке TLS.</translation>
     </message>
     <message>
-        <source>Comma separated list of the tunnel's own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
+        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
         <translation>Собственные адреса туннеля через запятую, например 172.16.0.2/32,2606:4700::1/128</translation>
     </message>
     <message>
@@ -13203,13 +13548,193 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Success!</source>
         <translation>Готово!</translation>
     </message>
+</context>
+<context>
+    <name>Sys::CoreDiagnostics</name>
     <message>
-        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
-        <translation>Base64 DER открытого ключа сервера. Если задан, закрепляет сертификат сервера даже при включённом «Разрешить небезопасное».</translation>
+        <source>The core is not running.</source>
+        <translation>Ядро не запущено.</translation>
     </message>
     <message>
-        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
-        <translation>Список собственных адресов туннеля через запятую, например 172.16.0.2/32,2606:4700::1/128</translation>
+        <source>Could not reach the core. See the log for details.</source>
+        <translation>Не удалось установить связь с ядром. Подробности смотрите в логах.</translation>
+    </message>
+    <message>
+        <source>The core could not capture the profile: %1</source>
+        <translation type="unfinished">Ядро не смогло снять профиль: %1</translation>
+    </message>
+    <message>
+        <source>The core returned an empty profile.</source>
+        <translation type="unfinished">Ядро вернуло пустой профиль.</translation>
+    </message>
+    <message>
+        <source>Could not save %1: %2</source>
+        <translation>Не удалось сохранить %1: %2</translation>
+    </message>
+    <message>
+        <source>Performance profile saved to %1</source>
+        <translation>Результат профилирования сохранен в %1</translation>
+    </message>
+    <message>
+        <source>The performance profile was saved (%1).</source>
+        <translation>Результат профилирования сохранен (%1).</translation>
+    </message>
+    <message>
+        <source>Performance profile failed: %1</source>
+        <translation>Ошибка профилирования: %1</translation>
+    </message>
+    <message>
+        <source>Performance profile</source>
+        <translation>Профилирование</translation>
+    </message>
+    <message>
+        <source>Show in folder</source>
+        <translation>Показать в папке</translation>
+    </message>
+</context>
+<context>
+    <name>DialogIntegration</name>
+    <message>
+        <source>Hotkey</source>
+        <translation>Горячие клавиши</translation>
+    </message>
+    <message>
+        <source>Show routes</source>
+        <translation>Показать маршруты</translation>
+    </message>
+    <message>
+        <source>Show groups</source>
+        <translation>Показать группы</translation>
+    </message>
+    <message>
+        <source>Trigger main window</source>
+        <translation>Показать главное окно</translation>
+    </message>
+    <message>
+        <source>Proxy mode</source>
+        <translation>Режим прокси</translation>
+    </message>
+    <message>
+        <source>Toggle System Proxy</source>
+        <translation>Вкл. системный прокси</translation>
+    </message>
+    <message>
+        <source>Global</source>
+        <translation>Глобальные</translation>
+    </message>
+    <message>
+        <source>Shortcuts</source>
+        <translation>Горячие клавиши</translation>
+    </message>
+</context>
+<context>
+    <name>Qv2ray::ui::widgets::AutoCompleteTextEdit</name>
+    <message>
+        <source>You can not input space characters here.</source>
+        <translation>Ввод символа пробела запрещён.</translation>
+    </message>
+</context>
+<context>
+    <name>SpeedWidget</name>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+</context>
+<context>
+    <name>SubscriptionInfoCard</name>
+    <message>
+        <source>Portal</source>
+        <translation>Портал</translation>
+    </message>
+    <message>
+        <source>Support</source>
+        <translation>Поддержка</translation>
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation>Истекла</translation>
+    </message>
+    <message>
+        <source>%1m left</source>
+        <translation>%1 мин.</translation>
+    </message>
+    <message>
+        <source>%1h left</source>
+        <translation>%1 ч.</translation>
+    </message>
+    <message>
+        <source>%1d left</source>
+        <translation>%1 д.</translation>
+    </message>
+    <message>
+        <source>Announcement - %1</source>
+        <translation>Объявление - %1</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation>Авто-обновление: каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation>Провайдер: %1</translation>
+    </message>
+    <message>
+        <source>Last updated: %1</source>
+        <translation>Последнее обновление: %1</translation>
+    </message>
+    <message>
+        <source>Expires: %1</source>
+        <translation>Истекает: %1</translation>
+    </message>
+    <message>
+        <source>Interval provided by the server</source>
+        <translation>Интервал, установленный сервером</translation>
+    </message>
+    <message>
+        <source>Interval set for this group</source>
+        <translation>Установленный интервал для этой группы</translation>
+    </message>
+    <message>
+        <source>Global interval from Settings</source>
+        <translation>Глобальный интервал из настроек</translation>
+    </message>
+    <message numerus="yes">
+        <source>Server suggests every %n hour(s)</source>
+        <translation>
+            <numerusform>Сервер предлагает каждый %n час</numerusform>
+            <numerusform>Сервер предлагает каждые %n часа</numerusform>
+            <numerusform>Сервер предлагает каждые %n часов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Every %1</source>
+        <translation>Каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>Website / Portal: %1</source>
+        <translation>Веб-сайт / Портал: %1</translation>
+    </message>
+    <message>
+        <source>Technical Support: %1</source>
+        <translation>Техническая поддержка: %1</translation>
+    </message>
+</context>
+<context>
+    <name>QHotkey</name>
+    <message>
+        <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="282" />
+        <source>Failed to register %1. Error: %2</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="302" />
+        <source>Failed to unregister %1. Error: %2</source>
+        <translation type="unfinished" />
     </message>
 </context>
 </TS>

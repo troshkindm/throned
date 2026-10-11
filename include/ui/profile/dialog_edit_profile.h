@@ -34,6 +34,8 @@ private:
 
     QWidget *innerWidget{};
     ProfileEditor *innerEditor{};
+    // Stands in for the address field while an endpoint source sets the host; the field keeps the profile's own.
+    QLineEdit *addressEffective{};
     QList<QWidget *> outerTabOrder;
     qsizetype innerTabOrderIndex{-1};
 

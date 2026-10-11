@@ -207,9 +207,9 @@ QString vmess::DisplayType() {
 
 SecurityInfo vmess::GetSecurity() {
     auto info = outbound::GetSecurity();
-    // VMess still encrypts its payload without TLS, unless a no-op cipher.
+    // Encrypted, but VMess without TLS still counts as insecure; a no-op cipher stays Raw.
     if (info.level == SecurityLevel::None && security != "none" && security != "zero") {
-        info.label = QObject::tr("Encrypted");
+        info.label = QObject::tr("Insecure");
         info.level = SecurityLevel::Weak;
     }
     return info;

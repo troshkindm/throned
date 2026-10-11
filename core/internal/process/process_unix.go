@@ -7,9 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"ThroneCore/internal/guard"
 )
 
 func startChild(path string, args []string, noOut bool) (running, error) {
@@ -31,11 +34,20 @@ func applyPrivilegeDrop(cmd *exec.Cmd) error {
 		return errors.New("refusing to start extra process as root: no unprivileged user to drop to")
 	}
 
+	gid := uint32(rgid)
+	groups := supplementaryGroups(ruid, rgid)
+	if guard.IdentityEnabled() {
+		// The kill switch admits the extra core by its primary group; the user's own groups keep its file access.
+		gid = guard.GID
+		if !slices.Contains(groups, uint32(rgid)) {
+			groups = append(groups, uint32(rgid))
+		}
+	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid:    uint32(ruid),
-			Gid:    uint32(rgid),
-			Groups: supplementaryGroups(ruid, rgid),
+			Gid:    gid,
+			Groups: groups,
 		},
 	}
 	cmd.Env = userEnv(cmd.Env, ruid)

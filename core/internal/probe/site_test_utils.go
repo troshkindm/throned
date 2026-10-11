@@ -43,7 +43,10 @@ func BatchSiteTest(ctx context.Context, i *boxbox.Box, outboundTags []string, ta
 
 	results := runBatch(ctx, i, outboundTags, maxConcurrency, batchProbe[SiteTestResult]{
 		run: func(ctx context.Context, tag string, outbound adapter.Outbound) *SiteTestResult {
-			client, closeClient := outboundHTTPClient(ctx, outbound)
+			if err := awaitTunnels(ctx, i, tag); err != nil {
+				return &SiteTestResult{Tag: tag, Error: err}
+			}
+			client, closeClient := outboundHTTPClient(ctx, i, tag, outbound)
 			defer closeClient()
 			client.Timeout = timeout
 			probes := make([]SiteProbe, len(targets))
