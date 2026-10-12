@@ -98,11 +98,20 @@ void MainWindow::setupLogView() {
     logJumpLatestButton->setToolTip(tr("New logs are held while the view is scrolled up"));
     connect(logJumpLatestButton, &QToolButton::clicked, this, [this] { releaseHeldLogs(); });
     logFilterButton = new QToolButton(this);
-    logFilterButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, themeManager()->Colors().textMuted));
-    connect(themeManager(), &ThemeManager::themeChanged, logFilterButton, [this] {
-        logFilterButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Filter, themeManager()->Colors().textMuted));
-    });
+    logFilterButton->setObjectName(QStringLiteral("panelIconButton"));
+    logFilterButton->setCursor(Qt::PointingHandCursor);
+    logFilterButton->setFocusPolicy(Qt::NoFocus);
+    logFilterButton->setFixedSize(28, 28);
+    logFilterButton->setIconSize(QSize(18, 18));
     logFilterButton->setCheckable(true);
+    const auto refreshFilterIcon = [this] {
+        const auto colors = themeManager()->Colors();
+        logFilterButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::Tune,
+                                                    logFilterButton->isChecked() ? colors.accent : colors.textMuted, 18));
+    };
+    refreshFilterIcon();
+    connect(themeManager(), &ThemeManager::themeChanged, logFilterButton, refreshFilterIcon);
+    connect(logFilterButton, &QToolButton::toggled, logFilterButton, refreshFilterIcon);
     connect(logFilterButton, &QToolButton::toggled, this, &MainWindow::setLogFilterVisible);
     for (auto *w: ui->logToolbar->findChildren<QWidget *>()) w->installEventFilter(this);
 
