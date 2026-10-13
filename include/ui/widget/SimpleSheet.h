@@ -114,6 +114,7 @@ private:
     QStandardItemModel *model_;
     QLabel *empty_;
     int shownGroup_ = -1;
+    int serversGroup_ = -1;
 };
 
 enum class SimpleMode { WholeComputer,

@@ -525,10 +525,23 @@ void SimpleServerSheet::setGroups(const QList<QPair<int, QString>> &groups, int 
 }
 
 void SimpleServerSheet::setServers(const QList<SimpleServerEntry> &servers) {
-    model_->clear();
-    QModelIndex current;
-    for (const auto &server: servers) {
-        auto *item = new QStandardItem(server.name);
+    const bool keepBrowsing = isOpen() && serversGroup_ == shownGroup_ && model_->rowCount() > 0;
+    const auto previous = list_->currentIndex();
+    const int previousRow = previous.row();
+    const int previousId = previous.isValid() ? previous.data(kIdRole).toInt() : -1;
+    const auto top = list_->indexAt(QPoint(list_->viewport()->width() / 2, 0));
+    const int topId = top.isValid() ? top.data(kIdRole).toInt() : -1;
+    const int topOffset = top.isValid() ? list_->visualRect(top).top() : 0;
+    const int scroll = list_->verticalScrollBar()->value();
+    bool sameRows = model_->rowCount() == servers.size();
+    for (int row = 0; sameRows && row < servers.size(); ++row)
+        sameRows = model_->index(row, 0).data(kIdRole).toInt() == servers[row].id;
+    if (!sameRows) model_->clear();
+    QModelIndex current, focused, anchor;
+    for (int row = 0; row < servers.size(); ++row) {
+        const auto &server = servers[row];
+        auto *item = sameRows ? model_->item(row) : new QStandardItem;
+        item->setText(server.name);
         item->setData(server.address, kAddressRole);
         item->setData(server.latency, kLatencyRole);
         item->setData(server.latencyText, kLatencyTextRole);
@@ -536,18 +549,38 @@ void SimpleServerSheet::setServers(const QList<SimpleServerEntry> &servers) {
         item->setData(server.id, kIdRole);
         item->setToolTip(server.name.toHtmlEscaped());
         item->setAccessibleText(server.name + QStringLiteral(", ") + server.latencyText);
-        model_->appendRow(item);
+        if (!sameRows) model_->appendRow(item);
         if (server.current) current = item->index();
+        if (server.id == previousId) focused = item->index();
+        if (server.id == topId) anchor = item->index();
     }
+    serversGroup_ = shownGroup_;
     list_->setVisible(!servers.isEmpty());
     empty_->setVisible(servers.isEmpty());
-    if (current.isValid()) {
-        list_->setCurrentIndex(current);
-        list_->scrollTo(current, QAbstractItemView::PositionAtCenter);
-    } else if (model_->rowCount() > 0) {
-        list_->setCurrentIndex(model_->index(0, 0));
-    }
     if (isOpen()) relayout();
+    if (!keepBrowsing) {
+        if (current.isValid()) {
+            list_->setCurrentIndex(current);
+            list_->scrollTo(current, QAbstractItemView::PositionAtCenter);
+        } else if (model_->rowCount() > 0) {
+            list_->setCurrentIndex(model_->index(0, 0));
+        }
+    } else if (!sameRows) {
+        const bool autoScroll = list_->hasAutoScroll();
+        list_->setAutoScroll(false);
+        if (focused.isValid())
+            list_->setCurrentIndex(focused);
+        else if (model_->rowCount() > 0)
+            list_->setCurrentIndex(model_->index(qBound(0, previousRow, model_->rowCount() - 1), 0));
+        list_->setAutoScroll(autoScroll);
+        list_->doItemsLayout();
+        if (anchor.isValid()) {
+            list_->scrollTo(anchor, QAbstractItemView::PositionAtTop);
+            list_->verticalScrollBar()->setValue(list_->verticalScrollBar()->value() - topOffset);
+        } else {
+            list_->verticalScrollBar()->setValue(scroll);
+        }
+    }
 }
 
 void SimpleServerSheet::setAllowance(const QString &text, qreal fraction) {

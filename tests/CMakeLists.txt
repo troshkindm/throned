@@ -172,6 +172,18 @@ throned_add_qt_test(throned_sub_info_tests
 
 throned_add_qt_test(throned_log_level_tests SOURCES test_log_level.cpp)
 
+throned_add_qt_test(throned_simple_server_sheet_tests
+        OFFSCREEN
+        TIMEOUT 30
+        SOURCES
+            test_simple_server_sheet.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleSheet.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/widget/SimpleSheet.h
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/MaterialIcon.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/setting/ThemeManager.hpp
+        LIBRARIES Qt6::Widgets Qt6::Svg
+)
+
 throned_add_qt_test(throned_release_notes_tests
         SOURCES test_release_notes.cpp ${PROJECT_SOURCE_DIR}/src/global/ReleaseNotes.cpp)
 
