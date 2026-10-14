@@ -4,6 +4,7 @@
 #include <QFileIconProvider>
 #include <QFileInfo>
 #include <QPointer>
+#include <QSet>
 #include <QStackedWidget>
 #include <QThreadPool>
 #include <QTimer>
@@ -51,24 +52,36 @@ void MainWindow::setupSimpleRoutes() {
     connect(simpleRoutesPage, &SimpleRoutesPage::retryDownload, this, [this] { downloadSimpleRuleSets(simpleRoutesPage->neededRuleSets(), {}); });
     connect(simpleRoutesPage, &SimpleRoutesPage::applyRequested, this, [this](const QList<Configs::AppRoutes::Route> &routes, int rest) {
         // A profile naming a list that is not on disk would make the core fetch it while connecting, and fail there.
-        downloadSimpleRuleSets(simpleRoutesPage->neededRuleSets(), [this, routes, rest](bool ready) {
-            if (ready) applySimpleRoutes(routes, rest);
+        const int profileId = simpleRoutesProfileId;
+        downloadSimpleRuleSets(simpleRoutesPage->neededRuleSets(), [this, profileId, routes, rest](bool ready) {
+            if (ready) applySimpleRoutes(profileId, routes, rest);
         });
     });
 }
 
-void MainWindow::applySimpleRoutes(const QList<Configs::AppRoutes::Route> &routes, int rest) {
+void MainWindow::applySimpleRoutes(int profileId, const QList<Configs::AppRoutes::Route> &routes, int rest) {
     {
-        auto profile = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
+        auto profile = Configs::dataManager->routesRepo->GetRouteProfile(profileId);
         if (!profile || profile->isRaw) return;
         Configs::AppRoutes::Write(profile->Rules, routes);
         profile->defaultOutboundID = rest;
+        profile->applyProfileRules = true;
         Configs::dataManager->routesRepo->Save(profile);
-        if (!Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview")))
-            applyRoutingChange();
-        else
-            refreshRoutingStatus();
-        reloadSimpleRoutes();
+        const auto applied = std::make_pair(routes, rest);
+        if (simpleRouteDrafts.value(profileId) == applied) simpleRouteDrafts.remove(profileId);
+        if (simpleRoutesProfileId == profileId) {
+            simpleRoutesPage->markApplied(routes, rest);
+            if (simpleRoutesPage->isDirty())
+                simpleRouteDrafts.insert(profileId, {simpleRoutesPage->stagedRoutes(), simpleRoutesPage->stagedDefault()});
+            else
+                simpleRouteDrafts.remove(profileId);
+        }
+        if (Configs::dataManager->settingsRepo->current_route_id == profileId) {
+            if (!Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview")))
+                applyRoutingChange();
+            else
+                refreshRoutingStatus();
+        }
     }
 }
 
@@ -82,8 +95,15 @@ void MainWindow::downloadSimpleRuleSets(const QStringList &names, const std::fun
     }
     if (simpleRuleSetBusy) {
         // One download at a time; the latest request runs once the current one ends.
-        simpleRuleSetNext = names;
-        simpleRuleSetNextThen = then;
+        simpleRuleSetNext += names;
+        simpleRuleSetNext.removeDuplicates();
+        if (then) {
+            const auto previous = simpleRuleSetNextThen;
+            simpleRuleSetNextThen = [previous, then](bool ready) {
+                if (previous) previous(ready);
+                then(ready);
+            };
+        }
         return;
     }
     simpleRuleSetBusy = true;
@@ -131,7 +151,7 @@ void MainWindow::refreshStaleRuleSets() {
 
 void MainWindow::openSimpleRoutes() {
     // Staged edits survive a trip back to the main page; only a clean page follows the saved profile.
-    if (!simpleRoutesPage->isDirty()) reloadSimpleRoutes();
+    if (simpleRoutesProfileId != Configs::dataManager->settingsRepo->current_route_id || !simpleRoutesPage->isDirty()) reloadSimpleRoutes();
     scanSimpleApps();
     downloadSimpleRuleSets(simpleRoutesPage->neededRuleSets(), {});
     refreshStaleRuleSets();
@@ -141,13 +161,20 @@ void MainWindow::openSimpleRoutes() {
 
 void MainWindow::reloadSimpleRoutes() {
     if (simpleRoutesPage == nullptr) return;
-    const auto profile = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
+    const int profileId = Configs::dataManager->settingsRepo->current_route_id;
+    const bool changedProfile = simpleRoutesProfileId != profileId;
+    if (simpleRoutesProfileId >= 0 && simpleRoutesProfileId != profileId && simpleRoutesPage->isDirty())
+        simpleRouteDrafts.insert(simpleRoutesProfileId, {simpleRoutesPage->stagedRoutes(), simpleRoutesPage->stagedDefault()});
+    simpleRoutesProfileId = profileId;
+    const auto profile = Configs::dataManager->routesRepo->GetRouteProfile(profileId);
     if (profile)
         simpleRoutesPage->load(Configs::AppRoutes::Read(profile->Rules), profile->defaultOutboundID,
-                               Configs::AppRoutes::ForeignRuleCount(profile->Rules), !profile->isRaw);
+                               Configs::AppRoutes::ForeignRuleCount(profile->Rules), !profile->isRaw, profile->applyProfileRules, changedProfile);
     else
-        simpleRoutesPage->load({}, Configs::directID, 0, false);
+        simpleRoutesPage->load({}, Configs::directID, 0, false, true, changedProfile);
 
+    if (const auto draft = simpleRouteDrafts.constFind(profileId); draft != simpleRouteDrafts.cend())
+        simpleRoutesPage->setDraft(draft->first, draft->second);
     const auto main = running != nullptr ? running : Configs::dataManager->profilesRepo->GetProfile(simpleProfileId);
     SimpleRouteTarget mainTarget;
     QList<SimpleRouteTarget> others;
@@ -159,6 +186,15 @@ void MainWindow::reloadSimpleRoutes() {
                 others.append({profile->id, profile->outbound->DisplayName(), latencyLabel(profile), profile->latency});
             }
         }
+    }
+    QSet<int> referenced;
+    referenced.insert(simpleRoutesPage->stagedDefault());
+    for (const auto &route: simpleRoutesPage->stagedRoutes()) referenced.insert(route.outbound);
+    for (const auto &target: others) referenced.remove(target.outbound);
+    for (const int id: referenced) {
+        if (id < 0) continue;
+        const auto target = Configs::dataManager->profilesRepo->GetProfile(id);
+        if (target && target->outbound) others.append({id, target->outbound->DisplayName(), latencyLabel(target), target->latency});
     }
     simpleRoutesPage->setTargets(mainTarget, others);
     simpleRoutesPage->setWholeComputer(Configs::dataManager->settingsRepo->spmode_vpn);
@@ -204,7 +240,20 @@ void MainWindow::loadSimpleIcons(QHash<QString, QString> paths) {
 QString MainWindow::simpleRoutesSummary() const {
     const auto profile = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
     if (!profile || profile->isRaw) return RoutingQuickMenu::statusSummary();
+    if (!profile->applyProfileRules) return tr("Profile rules are disabled");
     const int apps = Configs::AppRoutes::Read(profile->Rules).size();
-    const QString rest = profile->defaultOutboundID == Configs::directID ? tr("everything else directly") : tr("everything else through the VPN");
+    QString rest;
+    if (profile->defaultOutboundID == Configs::directID)
+        rest = tr("everything else directly");
+    else if (profile->defaultOutboundID == Configs::proxyID)
+        rest = tr("everything else through the VPN");
+    else if (profile->defaultOutboundID == Configs::blockID)
+        rest = tr("everything else blocked");
+    else if (profile->defaultOutboundID == Configs::warpBypassID)
+        rest = tr("everything else through WARP bypass");
+    else if (const auto target = Configs::dataManager->profilesRepo->GetProfile(profile->defaultOutboundID); target && target->outbound)
+        rest = tr("everything else through %1").arg(target->outbound->DisplayName());
+    else
+        rest = tr("Default server is missing");
     return apps == 0 ? rest.left(1).toUpper() + rest.mid(1) : tr("%n app(s)", nullptr, apps) + QStringLiteral(" · ") + rest;
 }

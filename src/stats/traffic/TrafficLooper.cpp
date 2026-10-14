@@ -155,6 +155,8 @@ void TrafficLooper::PersistTraffic() {
     if (Configs::dataManager && Configs::dataManager->profilesRepo) {
         Configs::dataManager->profilesRepo->SaveTrafficBatch(all);
     }
+    // At the save cadence rather than every tick, so a traffic-sorted list moves at most every few seconds.
+    Configs::RepositionLater(all, Configs::SortInput::Traffic);
 }
 
 void TrafficLooper::SetChainGroups(const QList<Configs::TrafficChainGroup>& configGroups) {

@@ -142,6 +142,7 @@ var handlers = map[string]handlerFn{
 	"QueryCountryTest":    handle(globalServer.QueryCountryTest),
 	"GenWgKeyPair":        handle(globalServer.GenWgKeyPair),
 	"WarpRegister":        handle(globalServer.WarpRegister),
+	"GenQuicSignature":    handle(globalServer.GenQuicSignature),
 	"InstallDashboard":    handle(globalServer.InstallDashboard),
 	"QueryVPNStatus":      handle(globalServer.QueryVPNStatus),
 	"SubmitVPNChallenge":  handle(globalServer.SubmitVPNChallenge),

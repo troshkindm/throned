@@ -12,6 +12,7 @@
 #include <QPainterPath>
 #include <QProgressBar>
 #include <QPropertyAnimation>
+#include <QPointer>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -504,24 +505,33 @@ SimpleServerSheet::SimpleServerSheet(QWidget *host) : SimpleSheet(host) {
 }
 
 void SimpleServerSheet::setGroups(const QList<QPair<int, QString>> &groups, int shownGroup) {
+    const bool changedGroup = shownGroup_ != shownGroup;
+    const bool changedTabs = groups_ != groups;
     shownGroup_ = shownGroup;
-    for (auto *button: tabGroup_->buttons()) {
-        tabGroup_->removeButton(button);
-        button->deleteLater();
+    if (!changedTabs && !changedGroup) return;
+    if (changedTabs) {
+        groups_ = groups;
+        for (auto *button: tabGroup_->buttons()) {
+            tabGroup_->removeButton(button);
+            tabsLayout_->removeWidget(button);
+            button->hide();
+            button->deleteLater();
+        }
+        for (const auto &[id, name]: groups) {
+            auto *tab = new QPushButton(name, tabs_);
+            tab->setObjectName(QStringLiteral("simpleSheetTab"));
+            tab->setCheckable(true);
+            tab->setCursor(Qt::PointingHandCursor);
+            tabGroup_->addButton(tab, id);
+            tabsLayout_->insertWidget(tabsLayout_->count() - 1, tab);
+        }
     }
-    for (const auto &[id, name]: groups) {
-        auto *tab = new QPushButton(name, tabs_);
-        tab->setObjectName(QStringLiteral("simpleSheetTab"));
-        tab->setCheckable(true);
-        tab->setChecked(id == shownGroup);
-        tab->setCursor(Qt::PointingHandCursor);
-        tabGroup_->addButton(tab, id);
-        tabsLayout_->insertWidget(tabsLayout_->count() - 1, tab);
-    }
+    if (auto *checked = tabGroup_->button(shownGroup)) checked->setChecked(true);
     tabsArea_->setVisible(groups.size() > 1);
     tabsArea_->setFixedHeight(tabs_->sizeHint().height());
-    if (auto *checked = tabGroup_->checkedButton())
-        QMetaObject::invokeMethod(this, [this, checked] { tabsArea_->ensureWidgetVisible(checked, 24, 0); }, Qt::QueuedConnection);
+    if (const QPointer<QAbstractButton> checked = tabGroup_->checkedButton())
+        QMetaObject::invokeMethod(this, [this, checked] {
+            if (checked) tabsArea_->ensureWidgetVisible(checked, 24, 0); }, Qt::QueuedConnection);
 }
 
 void SimpleServerSheet::setServers(const QList<SimpleServerEntry> &servers) {

@@ -7920,6 +7920,30 @@ Error: %1</source>
         <source>Announcement</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Stop Sorting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile rules are disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else through WARP bypass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else through %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default server is missing</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -9955,6 +9979,30 @@ Remove that endpoint from this routing profile as well?</source>
             <numerusform>另外 %n 个</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Block</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP bypass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else through %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile rules are disabled. Apply to enable them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SimpleServerSheet</name>
@@ -10834,6 +10882,34 @@ Deleted %3 Profiles:
     <message>
         <source>Max Handshake Attempts</source>
         <translation>最多握手尝试次数</translation>
+    </message>
+    <message>
+        <source>Generate QUIC Signature...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>QUIC Signature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Domain to imitate:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generating...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to reach the core.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to generate QUIC signature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fills the signature packets with the first QUIC packets Chrome would send to the given domain, so the handshake starts like an HTTP/3 connection to it. Generated locally; nothing is sent. Replaces I1-I5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

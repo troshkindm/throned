@@ -3655,6 +3655,30 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Jump to latest (%1 new)</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Stop Sorting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile rules are disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else through WARP bypass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else through %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default server is missing</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -6462,6 +6486,30 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
             <numerusform>%n مورد دیگر</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Block</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP bypass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else through %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile rules are disabled. Apply to enable them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SimpleServerSheet</name>
@@ -6641,6 +6689,34 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Disable Cookies</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generate QUIC Signature...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>QUIC Signature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Domain to imitate:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generating...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to reach the core.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to generate QUIC signature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fills the signature packets with the first QUIC packets Chrome would send to the given domain, so the handshake starts like an HTTP/3 connection to it. Generated locally; nothing is sent. Replaces I1-I5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

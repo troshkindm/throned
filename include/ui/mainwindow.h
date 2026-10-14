@@ -12,6 +12,7 @@
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/database/entities/Profile.h"
 #include "include/database/entities/RouteProfile.h"
+#include "include/database/entities/AppRoutes.h"
 #ifdef Q_OS_LINUX
 #include <QtDBus>
 #endif
@@ -55,6 +56,11 @@
 #include "ui_mainwindow.h"
 
 #endif
+
+class MainWindow;
+namespace UiPreview {
+void VerifyTestProgress(MainWindow *window, const QString &prefix);
+}
 
 namespace Configs_sys {
 class CoreProcess;
@@ -492,7 +498,6 @@ private:
     bool m_ruleSetUpdateBusy = false;
     QString traffic_update_cache;
     qint64 last_test_time = 0;
-    int proxy_last_order = -1;
     bool select_mode = false;
     QMutex mu_starting;
     QMutex mu_stopping;
@@ -709,6 +714,13 @@ private:
 
     void refresh_proxy_list_column_size();
 
+    void refresh_sort_indicator();
+
+    // Keeps the current group sorted by `action` from now on.
+    void sortCurrentGroup(GroupSortAction action);
+
+    void stopSortingCurrentGroup();
+
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);
 
     void refresh_proxy_list_impl_refresh_data(const QList<int> &ids = {}, bool mayNeedReset = false);
@@ -733,6 +745,7 @@ private:
     void hideEvent(QHideEvent *event) override;
 
     void resizeEvent(QResizeEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
     bool event(QEvent *event) override;
 
     // Tell the connection lister whether its tab is actually on screen (stats tab
@@ -777,6 +790,10 @@ private:
     QWidget *simpleModeContent = nullptr;
     QAction *simpleModeAction = nullptr;
     bool simpleModeActive = false;
+    bool simpleModeTransition = false;
+    bool simpleRestorePending = false;
+    void rememberSimpleGeometry();
+    void restoreSimpleGeometry();
     void setupSimpleMode();
     void setSimpleMode(bool simple, bool save = true);
     void refreshSimpleProfiles();
@@ -808,7 +825,9 @@ private:
     void downloadSimpleRuleSets(const QStringList &names, const std::function<void(bool)> &then);
     void refreshStaleRuleSets();
     void loadSimpleIcons(QHash<QString, QString> paths);
-    void applySimpleRoutes(const QList<Configs::AppRoutes::Route> &routes, int rest);
+    void applySimpleRoutes(int profileId, const QList<Configs::AppRoutes::Route> &routes, int rest);
+    int simpleRoutesProfileId = -1;
+    QHash<int, std::pair<QList<Configs::AppRoutes::Route>, int>> simpleRouteDrafts;
     void refreshSimpleModeToggle();
     void selectSimpleProfile(int profileId);
     void openSimpleServerSheet();
@@ -1051,6 +1070,7 @@ private:
     // The window's own component, not an outside caller: it drives the data
     // view, the profile table and the geo-asset prompt while a sweep runs.
     friend class TestRunner;
+    friend void UiPreview::VerifyTestProgress(MainWindow *window, const QString &prefix);
     friend class RemoteApi::Router;
 
 protected:

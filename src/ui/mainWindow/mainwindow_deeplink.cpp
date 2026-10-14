@@ -318,6 +318,13 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
                 if (auto group = Configs::dataManager->groupsRepo->CurrentGroup();
                     group && group->calculated_column_width.size() > ProfilesTableModel::ColType)
                     group->calculated_column_width[ProfilesTableModel::ColType] = 0;
+                // Both settings feed the security a Type sort reads.
+                for (const int gid: Configs::dataManager->groupsRepo->GetAllGroupIds()) {
+                    const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+                    if (group != nullptr && (group->sort.method == GroupSortMethod::ByType || group->sort.method == GroupSortMethod::BySecurity)) {
+                        Configs::ResortLater(gid);
+                    }
+                }
                 refresh_proxy_list({}, true);
             }
             auto suggestRestartProxy = settings->Save();
@@ -381,6 +388,9 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             on_subscription_group_changed(args.value(0).toInt(), disturbed);
             break;
         }
+        case MwMessage::GroupOrderChanged:
+            if (args.contains(Int2String(settings->current_group))) refresh_proxy_list({}, true);
+            break;
         case MwMessage::CoreCrashed:
             profile_stop();
             break;

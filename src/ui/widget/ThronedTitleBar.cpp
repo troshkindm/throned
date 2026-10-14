@@ -194,7 +194,7 @@ void ThronedTitleBar::mousePressEvent(QMouseEvent *event) {
 }
 
 void ThronedTitleBar::mouseDoubleClickEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && !maximize_->isHidden()) {
         window()->isMaximized() ? window()->showNormal() : window()->showMaximized();
         event->accept();
         return;

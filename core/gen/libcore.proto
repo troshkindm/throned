@@ -36,6 +36,7 @@ service LibcoreService {
   //
   rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
   rpc WarpRegister(WarpRegisterRequest) returns (WarpRegisterResponse);
+  rpc GenQuicSignature(GenQuicSignatureRequest) returns (GenQuicSignatureResponse);
 
   rpc InstallDashboard(InstallDashboardRequest) returns (ErrorResp);
   //
@@ -537,6 +538,15 @@ message WarpRegisterResponse {
   optional string peer_public_key = 8 [default = ""]; // wireguard: base64 x25519; masque: base64 SPKI DER (PEM armor stripped)
   optional string endpoint = 9 [default = ""];        // host:port (IPv6 bracketed)
   repeated int32 reserved = 10;                       // wireguard client_id bytes
+}
+
+message GenQuicSignatureRequest {
+  optional string domain = 1 [default = ""];
+}
+
+message GenQuicSignatureResponse {
+  optional string error = 1 [default = ""];
+  repeated string packets = 2; // AmneziaWG I1.. in order, each "<b 0x…>"
 }
 
 // One member of a running auto-selector group. Everything the UI needs to

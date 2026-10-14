@@ -160,16 +160,29 @@ public:
     void flush() {
         if (chunk.isEmpty()) return;
         if (Configs::dataManager->profilesRepo->AddProfileBatch(chunk, gid)) {
-            for (qsizetype i = 0; i < chunk.size(); ++i) entries[entryIndex[i]].id = chunk[i]->id;
+            for (qsizetype i = 0; i < chunk.size(); ++i) {
+                entries[entryIndex[i]].id = chunk[i]->id;
+                added << chunk[i]->id;
+            }
+            destination = chunk.first()->gid;
         }
         chunk.clear();
         entryIndex.clear();
+    }
+
+    // Sorted here rather than queued, so the SubscriptionFinished redraw already shows the order.
+    void finish() {
+        flush();
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(destination);
+        if (group != nullptr && group->Reposition(added)) Configs::dataManager->groupsRepo->Save(group);
     }
 
     QList<NewEntry> entries;
 
 private:
     int gid;
+    int destination = -1;
+    QList<int> added;
     ContentIndex *index;
     QList<std::shared_ptr<Configs::Profile>> chunk;
     QList<qsizetype> entryIndex;
@@ -434,13 +447,8 @@ QList<int> removeUnavailableAndSort(const std::shared_ptr<Configs::Group> &group
         }
     }
     if (options.sort_by_latency) {
-        GroupSortAction sort;
-        sort.method = GroupSortMethod::ByLatency;
-        if (group->SortProfiles(sort)) {
-            Configs::dataManager->groupsRepo->Save(group);
-        } else {
-            MW_show_log(QObject::tr("Skipped sorting %1: another sort is in progress.").arg(group->name));
-        }
+        group->SortProfiles({GroupSortMethod::ByLatency, false});
+        Configs::dataManager->groupsRepo->Save(group);
     }
     return deleted;
 }
@@ -633,7 +641,7 @@ void GroupUpdater::CloneProfiles(const QList<int> &ids, const Finish &finish) {
                      };
                      ParseDocument(copy.first, parseSink);
                  }
-                 sink.flush();
+                 sink.finish();
                  settings->imported_count = sink.entries.size();
                  MW_dialog_message(MwMessage::SubscriptionFinished, {});
                  emit asyncUpdateCallback(-1);
@@ -807,7 +815,7 @@ void GroupUpdater::importDocuments(int gid, QList<QByteArray> documents) {
 
     MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
     for (auto &document: documents) (void) ParseDocument(std::move(document), sinkFor(sink));
-    sink.flush();
+    sink.finish();
     MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
 
     settings->imported_count = sink.entries.size();
@@ -1041,6 +1049,8 @@ void GroupUpdater::refresh(int gid, bool showDiff) {
 
     disturbed << removeFlagged(members(), options, change_text);
 
+    // The subscription's own order replaced the group's above.
+    group->Resort();
     // Stamped only once the update went through, so an interrupted one is retried instead of counting as fresh.
     group->sub_last_update = QDateTime::currentSecsSinceEpoch();
     groupsRepo->Save(group);

@@ -14,6 +14,8 @@
 #include <QScrollBar>
 #include <QTimer>
 #include <QToolButton>
+#include <QStylePainter>
+#include <QStyleOptionToolButton>
 #include <QVBoxLayout>
 
 #include "include/database/entities/RouteRule.h"
@@ -110,6 +112,7 @@ public:
         setFocusPolicy(Qt::StrongFocus);
         setAccessibleName(look_.name);
         setAccessibleDescription(look_.meta);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     }
     QSize sizeHint() const override { return {240, 52}; }
     QSize minimumSizeHint() const override { return {160, 52}; }
@@ -173,6 +176,30 @@ protected:
 
 private:
     Look look_;
+};
+
+class TargetPill : public QToolButton {
+public:
+    explicit TargetPill(QWidget *parent) : QToolButton(parent) { setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed); }
+    QSize sizeHint() const override {
+        QSize size = QToolButton::sizeHint();
+        size.setWidth(qMin(132, size.width() + 12));
+        return size;
+    }
+    QSize minimumSizeHint() const override {
+        QSize size = sizeHint();
+        size.setWidth(qMin(72, size.width()));
+        return size;
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QStyleOptionToolButton option;
+        initStyleOption(&option);
+        option.text = fontMetrics().elidedText(text(), Qt::ElideRight, qMax(1, width() - 28)) + QStringLiteral(" ▾");
+        QStylePainter painter(this);
+        painter.drawComplexControl(QStyle::CC_ToolButton, option);
+    }
 };
 
 class TargetOption : public QAbstractButton {
@@ -363,7 +390,10 @@ SimpleRoutesPage::SimpleRoutesPage(QWidget *parent) : QWidget(parent), catalog_(
     };
     tintSearch();
     connect(themeManager(), &ThemeManager::themeChanged, search_, tintSearch);
-    connect(search_, &QLineEdit::textChanged, this, &SimpleRoutesPage::render);
+    connect(search_, &QLineEdit::textChanged, this, [this] {
+        scroll_->verticalScrollBar()->setValue(0);
+        render();
+    });
     connect(search_, &QLineEdit::returnPressed, this, [this] {
         if (Configs::AppRoutes::Classify(search_->text()).first == Kind::Invalid) return;
         if (addValue(kCustomId, search_->text())) search_->clear();
@@ -423,20 +453,36 @@ SimpleRoutesPage::SimpleRoutesPage(QWidget *parent) : QWidget(parent), catalog_(
     layout->addWidget(footer);
 
     themeManager()->RegisterStyle(this, kRoutesStyle);
-    connect(themeManager(), &ThemeManager::themeChanged, this, &SimpleRoutesPage::render);
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { render(); });
     rest_ = loadedRest_ = Configs::directID;
     render();
 }
 
 QWidget *SimpleRoutesPage::scrollArea() const { return scroll_; }
 
-void SimpleRoutesPage::load(const QList<Route> &routes, int restOutbound, int foreignRules, bool editable) {
+void SimpleRoutesPage::load(const QList<Route> &routes, int restOutbound, int foreignRules, bool editable, bool rulesEnabled, bool resetView) {
+    if (!resetView && !isDirty() && loaded_ == routes && loadedRest_ == restOutbound && foreign_ == foreignRules &&
+        editable_ == editable && rulesEnabled_ == rulesEnabled) return;
     loaded_ = routes_ = routes;
-    loadedRest_ = rest_ = restOutbound == Configs::directID ? Configs::directID : Configs::proxyID;
+    loadedRest_ = rest_ = restOutbound;
     foreign_ = foreignRules;
     editable_ = editable;
+    rulesEnabled_ = rulesEnabled;
     open_.clear();
+    render(false);
+}
+
+void SimpleRoutesPage::setDraft(const QList<Route> &routes, int restOutbound) {
+    routes_ = routes;
+    rest_ = restOutbound;
     render();
+}
+
+void SimpleRoutesPage::markApplied(const QList<Route> &routes, int restOutbound) {
+    loaded_ = routes;
+    loadedRest_ = restOutbound;
+    rulesEnabled_ = true;
+    renderFooter();
 }
 
 void SimpleRoutesPage::setTargets(const SimpleRouteTarget &main, const QList<SimpleRouteTarget> &others) {
@@ -478,7 +524,7 @@ void SimpleRoutesPage::addEntries(const QStringList &lines) {
     for (const QString &line: lines) addValue(kCustomId, line);
 }
 
-bool SimpleRoutesPage::isDirty() const { return routes_ != loaded_ || rest_ != loadedRest_; }
+bool SimpleRoutesPage::isDirty() const { return editable_ && (!rulesEnabled_ || routes_ != loaded_ || rest_ != loadedRest_); }
 
 QStringList SimpleRoutesPage::neededRuleSets() const {
     QStringList names;
@@ -558,6 +604,8 @@ int SimpleRoutesPage::defaultOutbound() const {
 QString SimpleRoutesPage::targetName(int outbound) const {
     if (outbound == Configs::proxyID) return tr("VPN");
     if (outbound == Configs::directID) return tr("Direct");
+    if (outbound == Configs::blockID) return tr("Block");
+    if (outbound == Configs::warpBypassID) return tr("WARP bypass");
     for (const auto &target: others_)
         if (target.outbound == outbound) return target.name;
     return tr("Missing server");
@@ -597,8 +645,9 @@ bool SimpleRoutesPage::addValue(const QString &id, const QString &text) {
     }
     Route *target = route(id);
     if (target == nullptr) return false;
-    QStringList &list = kind == Kind::Process ? target->processes : kind == Kind::Domain ? target->domains
-                                                                                         : target->cidrs;
+    QStringList &list = kind == Kind::Process ? target->processes : kind == Kind::ProcessPath ? target->processPaths
+                                                                : kind == Kind::Domain        ? target->domains
+                                                                                              : target->cidrs;
     if (!list.contains(value, Qt::CaseInsensitive)) list.append(value);
     open_ = id;
     focusAdd_ = id;
@@ -609,9 +658,10 @@ bool SimpleRoutesPage::addValue(const QString &id, const QString &text) {
 void SimpleRoutesPage::removeValue(const QString &id, int kind, const QString &value) {
     Route *target = route(id);
     if (target == nullptr) return;
-    (kind == kRuleSetKind ? target->ruleSets : kind == int(Kind::Process) ? target->processes
-                                           : kind == int(Kind::Domain)    ? target->domains
-                                                                          : target->cidrs)
+    (kind == kRuleSetKind ? target->ruleSets : kind == int(Kind::Process)   ? target->processes
+                                           : kind == int(Kind::ProcessPath) ? target->processPaths
+                                           : kind == int(Kind::Domain)      ? target->domains
+                                                                            : target->cidrs)
         .removeAll(value);
     if (target->isEmpty()) routes_.removeIf([&id](const Route &item) { return item.id == id; });
     render();
@@ -676,7 +726,8 @@ QWidget *SimpleRoutesPage::makeRow(const QString &id) {
     const Route contents = current != nullptr ? *current : defaultsOf(catalogEntry);
     QStringList meta;
     if (isModified(id)) meta << tr("edited");
-    if (!contents.processes.isEmpty()) meta << tr("%n program(s)", nullptr, contents.processes.size());
+    if (!contents.processes.isEmpty() || !contents.processPaths.isEmpty())
+        meta << tr("%n program(s)", nullptr, contents.processes.size() + contents.processPaths.size());
     if (std::any_of(contents.ruleSets.begin(), contents.ruleSets.end(), [](const QString &n) { return n.startsWith(QStringLiteral("geosite-")); }))
         meta << tr("sites list");
     if (std::any_of(contents.ruleSets.begin(), contents.ruleSets.end(), [](const QString &n) { return n.startsWith(QStringLiteral("geoip-")); }))
@@ -765,6 +816,7 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
         return value;
     };
     const QList<std::pair<int, QStringList>> groups{{int(Kind::Process), contents.processes},
+                                                    {int(Kind::ProcessPath), contents.processPaths},
                                                     {kRuleSetKind, contents.ruleSets},
                                                     {int(Kind::Domain), contents.domains},
                                                     {int(Kind::Cidr), contents.cidrs}};
@@ -775,10 +827,14 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
             auto *chipLayout = new QHBoxLayout(chip);
             chipLayout->setContentsMargins(7, 2, 2, 2);
             chipLayout->setSpacing(2);
-            auto *text = new QLabel(label(kind, value), chip);
+            const QString fullText = label(kind, value);
+            auto *text = new QLabel(chip);
             text->setObjectName(QStringLiteral("simpleRouteChipText"));
             text->setTextFormat(Qt::PlainText);
-            if (kind == kRuleSetKind) text->setToolTip(value);
+            text->ensurePolished();
+            text->setText(text->fontMetrics().elidedText(fullText, Qt::ElideMiddle, 160));
+            text->setToolTip(value);
+            text->setAccessibleName(fullText);
             chipLayout->addWidget(text);
             if (current != nullptr) {
                 auto *remove = new QToolButton(chip);
@@ -856,15 +912,20 @@ QWidget *SimpleRoutesPage::makeRestRow() {
     header->setFocusPolicy(Qt::NoFocus);
     header->setCursor(Qt::ArrowCursor);
     line->addWidget(header, 1);
-    auto *pill = new QToolButton(row);
+    auto *pill = new TargetPill(row);
     pill->setObjectName(QStringLiteral("simpleRoutePill"));
     pill->setProperty("route", rest_ == Configs::directID ? QStringLiteral("direct") : QStringLiteral("vpn"));
-    pill->setText(targetName(rest_) + QStringLiteral("  ▾"));
+    pill->setText(targetName(rest_));
+    pill->setToolTip(targetName(rest_));
     pill->setAccessibleName(tr("Everything else: %1").arg(targetName(rest_)));
     pill->setCursor(Qt::PointingHandCursor);
     pill->setPopupMode(QToolButton::InstantPopup);
     auto *menu = new QMenu(pill);
-    for (const auto &[outbound, text]: {std::pair{int(Configs::directID), tr("Directly")}, std::pair{int(Configs::proxyID), tr("Through the VPN")}}) {
+    QList<std::pair<int, QString>> options{{Configs::directID, tr("Directly")}, {Configs::proxyID, tr("Through the VPN")}};
+    for (const auto &target: others_) options.append({target.outbound, tr("Through %1").arg(target.name)});
+    if (std::none_of(options.begin(), options.end(), [this](const auto &option) { return option.first == loadedRest_; }))
+        options.append({loadedRest_, targetName(loadedRest_)});
+    for (const auto &[outbound, text]: options) {
         auto *action = menu->addAction(text);
         action->setCheckable(true);
         action->setChecked(rest_ == outbound);
@@ -876,8 +937,22 @@ QWidget *SimpleRoutesPage::makeRestRow() {
     return section;
 }
 
-void SimpleRoutesPage::render() {
+void SimpleRoutesPage::render(bool keepDrafts) {
+    const quint64 generation = ++renderGeneration_;
     const int keep = scroll_->verticalScrollBar()->value();
+    QHash<QString, QString> drafts;
+    QString focused;
+    int cursor = 0;
+    int selection = 0;
+    for (auto *input: keepDrafts ? scroll_->findChildren<QLineEdit *>(QStringLiteral("simpleRouteAdd")) : QList<QLineEdit *>()) {
+        const QString id = input->property("routeId").toString();
+        drafts.insert(id, input->text());
+        if (input->hasFocus()) {
+            focused = id;
+            cursor = input->selectionStart() >= 0 ? input->selectionStart() : input->cursorPosition();
+            selection = input->selectedText().size();
+        }
+    }
     auto *old = scroll_->takeWidget();
     if (old != nullptr) old->deleteLater();
     content_ = new QWidget;
@@ -912,7 +987,7 @@ void SimpleRoutesPage::render() {
 
     QStringList withPrograms;
     for (const auto &item: routes_)
-        if (!item.processes.isEmpty() && item.outbound != Configs::directID)
+        if ((!item.processes.isEmpty() || !item.processPaths.isEmpty()) && item.outbound != Configs::directID)
             withPrograms << (item.id == kCustomId ? tr("Your programs") : entry(item.id) ? entry(item.id)->name
                                                                                          : item.id);
     if (!wholeComputer_ && !withPrograms.isEmpty() && query.isEmpty()) {
@@ -932,8 +1007,8 @@ void SimpleRoutesPage::render() {
     }
 
     if (const auto [kind, value] = Configs::AppRoutes::Classify(query); kind != Kind::Invalid) {
-        const QString what = kind == Kind::Process ? tr("Add the program %1") : kind == Kind::Domain ? tr("Add the site %1")
-                                                                                                     : tr("Add the addresses %1");
+        const QString what = (kind == Kind::Process || kind == Kind::ProcessPath) ? tr("Add the program %1") : kind == Kind::Domain ? tr("Add the site %1")
+                                                                                                                                    : tr("Add the addresses %1");
         auto *addRow = new QPushButton(what.arg(value) + QStringLiteral("\n") + tr("to My sites and apps"), content_);
         addRow->setObjectName(QStringLiteral("simpleRouteAddRow"));
         addRow->setCursor(Qt::PointingHandCursor);
@@ -990,7 +1065,7 @@ void SimpleRoutesPage::render() {
         }
     }
     const Route *custom = route(kCustomId);
-    if (query.isEmpty() || (custom != nullptr && matches(tr("My sites and apps"), custom->processes + custom->domains + custom->cidrs))) {
+    if (query.isEmpty() || (custom != nullptr && matches(tr("My sites and apps"), custom->processes + custom->processPaths + custom->domains + custom->cidrs))) {
         layout->addWidget(makeSection(tr("Your own"), {}));
         makeRow(kCustomId);
     }
@@ -1000,6 +1075,7 @@ void SimpleRoutesPage::render() {
             auto *other = new QHBoxLayout;
             auto *label = new QLabel(tr("Other rules in this profile: %1").arg(foreign_), content_);
             label->setObjectName(QStringLiteral("simpleRouteNote"));
+            label->setWordWrap(true);
             other->addWidget(label, 1);
             auto *open = new QPushButton(tr("Open"), content_);
             open->setObjectName(QStringLiteral("simpleRouteLink"));
@@ -1020,7 +1096,23 @@ void SimpleRoutesPage::render() {
     scroll_->setWidget(content_);
     scroll_->verticalScrollBar()->setValue(keep);
     // Section positions exist only after the new content is laid out.
-    QTimer::singleShot(0, this, &SimpleRoutesPage::updateSticky);
+    for (auto *input: content_->findChildren<QLineEdit *>(QStringLiteral("simpleRouteAdd"))) {
+        const QString id = input->property("routeId").toString();
+        if (id == focusAdd_) continue;
+        input->setText(drafts.value(id));
+        if (id == focused) {
+            input->setFocus();
+            if (selection > 0)
+                input->setSelection(cursor, selection);
+            else
+                input->setCursorPosition(cursor);
+        }
+    }
+    QTimer::singleShot(0, this, [this, generation, keep] {
+        if (generation != renderGeneration_) return;
+        scroll_->verticalScrollBar()->setValue(keep);
+        updateSticky();
+    });
     if (const QStringList needed = neededRuleSets(); needed != lastNeeded_) {
         lastNeeded_ = needed;
         emit ruleSetsNeeded(needed);
@@ -1049,12 +1141,20 @@ void SimpleRoutesPage::renderFooter() {
         QStringList shown = names.mid(0, 3);
         if (names.size() > 3) shown << tr("%n more", nullptr, int(names.size() - 3));
         const QString where = outbound == Configs::proxyID ? tr("through the VPN") : outbound == Configs::directID ? tr("directly")
+                                                                                 : outbound == Configs::blockID    ? tr("blocked")
                                                                                                                    : tr("through %1").arg(targetName(outbound));
         parts << QStringLiteral("<b>%1</b> %2").arg(shown.join(QStringLiteral(", ")).toHtmlEscaped(), where.toHtmlEscaped());
     }
-    parts << (rest_ == Configs::directID ? tr("everything else directly") : tr("everything else through the VPN")).toHtmlEscaped();
+    parts << (rest_ == Configs::directID  ? tr("everything else directly")
+              : rest_ == Configs::blockID ? tr("everything else blocked")
+              : rest_ == Configs::proxyID ? tr("everything else through the VPN")
+                                          : tr("everything else through %1").arg(targetName(rest_)))
+                 .toHtmlEscaped();
     QString sentence = parts.join(QStringLiteral(" · "));
     if (!sentence.isEmpty() && !sentence.startsWith(QLatin1Char('<'))) sentence[0] = sentence[0].toUpper();
+    if (!rulesEnabled_ && editable_)
+        sentence = tr("Profile rules are disabled. Apply to enable them.").toHtmlEscaped() + QStringLiteral("<br>") + sentence;
+    sentence_->setFixedHeight(sentence_->fontMetrics().lineSpacing() * (!rulesEnabled_ && editable_ ? 3 : 2) + 2);
     sentence_->setText(sentence);
     const bool dirty = isDirty();
     apply_->setEnabled(dirty && editable_ && !downloading_);

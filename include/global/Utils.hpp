@@ -55,6 +55,7 @@ enum class MwMessage {
     SubscriptionNewGroup,
     // args: { group id, then the id of every profile it deleted or replaced in place }
     SubscriptionGroupChanged,
+    GroupOrderChanged, // args: ids of the groups a kept sort reordered
     CoreCrashed,
     CoreStarted, // args: { startedProfileId }
 };

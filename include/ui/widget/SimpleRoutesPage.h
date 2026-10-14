@@ -26,7 +26,11 @@ class SimpleRoutesPage : public QWidget {
 
 public:
     explicit SimpleRoutesPage(QWidget *parent);
-    void load(const QList<Configs::AppRoutes::Route> &routes, int restOutbound, int foreignRules, bool editable);
+    void load(const QList<Configs::AppRoutes::Route> &routes, int restOutbound, int foreignRules, bool editable, bool rulesEnabled = true, bool resetView = false);
+    void setDraft(const QList<Configs::AppRoutes::Route> &routes, int restOutbound);
+    void markApplied(const QList<Configs::AppRoutes::Route> &routes, int restOutbound);
+    [[nodiscard]] const QList<Configs::AppRoutes::Route> &stagedRoutes() const { return routes_; }
+    [[nodiscard]] int stagedDefault() const { return rest_; }
     void setTargets(const SimpleRouteTarget &main, const QList<SimpleRouteTarget> &others);
     void setDetected(const QHash<QString, bool> &runningById);
     void setIcon(const QString &id, const QIcon &icon);
@@ -51,7 +55,7 @@ signals:
     void retryDownload();
 
 private:
-    void render();
+    void render(bool keepDrafts = true);
     void renderFooter();
     QWidget *makeSection(const QString &title, const QString &count);
     QWidget *makeRow(const QString &id);
@@ -76,6 +80,7 @@ private:
     int rest_ = 0;
     int foreign_ = 0;
     bool editable_ = true;
+    bool rulesEnabled_ = true;
     bool wholeComputer_ = true;
     bool connected_ = false;
     QHash<QString, bool> detected_;
@@ -98,6 +103,7 @@ private:
     QStringList lastNeeded_;
     bool downloading_ = false;
     bool renderQueued_ = false;
+    quint64 renderGeneration_ = 0;
     struct Section {
         QWidget *widget;
         QString title;

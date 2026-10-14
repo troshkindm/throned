@@ -41,11 +41,12 @@ QList<CatalogEntry> Catalog();
 struct Route {
     QString id;
     QStringList processes;
+    QStringList processPaths;
     QStringList ruleSets;
     QStringList domains;
     QStringList cidrs;
     int outbound = 0;
-    [[nodiscard]] bool isEmpty() const { return processes.isEmpty() && ruleSets.isEmpty() && domains.isEmpty() && cidrs.isEmpty(); }
+    [[nodiscard]] bool isEmpty() const { return processes.isEmpty() && processPaths.isEmpty() && ruleSets.isEmpty() && domains.isEmpty() && cidrs.isEmpty(); }
     bool operator==(const Route &) const = default;
 };
 
@@ -71,7 +72,8 @@ void Write(QList<std::shared_ptr<RouteRule>> &rules, const QList<Route> &routes)
 enum class Kind { Invalid,
                   Process,
                   Domain,
-                  Cidr };
+                  Cidr,
+                  ProcessPath };
 // One typed entry to what the screen can store; keywords, regexes and rule-sets belong to the full editor.
 [[nodiscard]] std::pair<Kind, QString> Classify(const QString &input);
 

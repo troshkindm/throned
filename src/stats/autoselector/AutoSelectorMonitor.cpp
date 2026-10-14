@@ -2,6 +2,7 @@
 
 #include "include/api/RPC.h"
 #include "include/database/DatabaseManager.h"
+#include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/configs/outbounds/autoselector.h"
 #include "include/database/entities/Profile.h"
@@ -125,6 +126,7 @@ void AutoSelectorMonitor::PersistHealth() {
     }
     if (dirty.isEmpty()) return;
     Configs::dataManager->profilesRepo->SaveBatch(dirty);
+    Configs::RepositionLater(dirty, Configs::SortInput::TestResult);
 }
 
 void AutoSelectorMonitor::Clear() {

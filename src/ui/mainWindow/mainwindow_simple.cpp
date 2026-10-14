@@ -9,8 +9,10 @@
 #include <QLineEdit>
 #include <QLocale>
 #include <QSignalBlocker>
+#include <QScopedValueRollback>
 #include <QStackedWidget>
 #include <QTimer>
+#include <QTextBrowser>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -91,8 +93,9 @@ void MainWindow::setupSimpleMode() {
     while (root->count() > 1) {
         auto *item = root->takeAt(1);
         auto *widget = item->widget();
-        full->addWidget(widget, widget->objectName() == QStringLiteral("body") ? 1 : 0);
+        // Delete the old item first so Qt registers the new item for size-cache invalidation.
         delete item;
+        full->addWidget(widget, widget->objectName() == QStringLiteral("body") ? 1 : 0);
     }
     root->addWidget(fullModeContent, 1);
     simpleModeContent = new QWidget(centralWidget());
@@ -266,6 +269,8 @@ void MainWindow::setupSimpleMode() {
             [this](SimpleMode mode, bool confirmed) { chooseSimpleMode(static_cast<int>(mode), confirmed); });
 
     root->addWidget(simpleModeContent, 1);
+    full->removeWidget(ui->data_view);
+    root->addWidget(ui->data_view);
     simpleModeContent->hide();
     themeManager()->RegisterStyle(simpleModeContent, QStringLiteral(R"(
 QWidget#simpleMode { background: transparent; }
@@ -306,22 +311,28 @@ void MainWindow::refreshSimpleModeToggle() {
         simpleModeToggle->setToolTip(text);
         simpleModeToggle->setAccessibleName(text);
     }
+    if (auto *maximize = findChild<QToolButton *>(QStringLiteral("titleMaximize")))
+        maximize->setVisible(!simpleModeActive);
     simpleModeNotice->refresh();
 }
 
 void MainWindow::setSimpleMode(bool simple, bool save) {
     if (simpleModeContent == nullptr || simpleModeActive == simple) return;
+    const QScopedValueRollback transition(simpleModeTransition, true);
     if (subscriptionPopover != nullptr) subscriptionPopover->hide();
     simpleServerSheet->dismiss();
     simpleModeSheet->dismiss();
     simplePages->setCurrentIndex(0);
     auto *settings = Configs::dataManager->settingsRepo.get();
     const int selectedProfile = get_profile_to_start();
-    const QString geometry = saveGeometry().toBase64();
-    if (simpleModeActive)
-        settings->simple_window_geometry = geometry;
-    else
-        settings->mainWindowGeometry = geometry;
+    if (simpleModeActive) {
+        if (!simpleRestorePending && !isMinimized() && !isMaximized())
+            settings->simple_window_geometry = saveGeometry().toBase64();
+    } else {
+        settings->mainWindowGeometry = saveGeometry().toBase64();
+    }
+    const QString target = simple ? settings->simple_window_geometry : settings->mainWindowGeometry;
+    simpleRestorePending = false;
     simpleModeActive = simple;
     settings->simple_mode = simple;
     const QSignalBlocker blocker(simpleModeAction);
@@ -339,13 +350,15 @@ void MainWindow::setSimpleMode(bool simple, bool save) {
     const bool footerVisible = updateStatusWidget->state() != UpdateStatusWidget::State::Hidden;
     updateStatusWidget->setCompact(simple);
     updateStatusWidget->setVisible(footerVisible);
+    setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
     setMinimumSize(simple ? QSize(360, 560) : designMinimumSize);
+    if (simple) setMaximumWidth(qMax(560, minimumWidth()));
     centralWidget()->layout()->invalidate();
     if (isMaximized()) showNormal();
-    const QString target = simple ? settings->simple_window_geometry : settings->mainWindowGeometry;
     if (target.isEmpty() || !restoreGeometry(QByteArray::fromBase64(target.toUtf8())))
         resize(simple ? QSize(380, 680) : QSize(1180, 780));
     if (simple) {
+        if (isMaximized()) showNormal();
         simpleProfileId = selectedProfile;
         refreshSimpleProfiles();
         updateSimpleDensity();
@@ -355,8 +368,28 @@ void MainWindow::setSimpleMode(bool simple, bool save) {
         refresh_proxy_list_column_size();
     }
     FitWindowToScreen(this);
+    if (simple) settings->simple_window_geometry = saveGeometry().toBase64();
+    simpleRestorePending = false;
     if (save) settings->Save();
     refreshSimpleModeToggle();
+}
+
+void MainWindow::rememberSimpleGeometry() {
+    if (simpleModeActive && !simpleModeTransition && !simpleRestorePending && isVisible() &&
+        !isMinimized() && !isMaximized())
+        Configs::dataManager->settingsRepo->simple_window_geometry = saveGeometry().toBase64();
+}
+
+void MainWindow::restoreSimpleGeometry() {
+    if (!simpleModeActive || simpleModeTransition) return;
+    const QScopedValueRollback transition(simpleModeTransition, true);
+    const QString geometry = Configs::dataManager->settingsRepo->simple_window_geometry;
+    if (isMaximized()) showNormal();
+    if (!geometry.isEmpty()) restoreGeometry(QByteArray::fromBase64(geometry.toUtf8()));
+    if (isMaximized()) showNormal();
+    FitWindowToScreen(this);
+    simpleRestorePending = false;
+    Configs::dataManager->settingsRepo->simple_window_geometry = saveGeometry().toBase64();
 }
 
 void MainWindow::updateSimpleDensity() {

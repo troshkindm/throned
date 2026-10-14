@@ -49,7 +49,7 @@ bool verifyDatabaseMigration() {
         profile->favorite = true;
         profile->traffic_downlink = 12345;
         if (!profiles.Save(profile)) return false;
-        for (const auto *column: {"endpoint_json", "sub_options_json", "sub_metadata_json"})
+        for (const auto *column: {"endpoint_json", "sub_options_json", "sub_metadata_json", "sort_method", "sort_descending"})
             db.execThrow(std::string("ALTER TABLE groups DROP COLUMN ") + column);
         db.execThrow("ALTER TABLE profiles DROP COLUMN endpoint_json");
     }
@@ -63,6 +63,8 @@ bool verifyDatabaseMigration() {
         if (!group || !profile || !profile->favorite || profile->traffic_downlink != 12345 ||
             group->provider.announceSeen != "dismissed" || group->provider.notifyExpiry ||
             !group->sub_info.valid || group->sub_info.used() != 300) return false;
+        if (group->sort != GroupSortAction{}) return false;
+        group->sort = {GroupSortMethod::ByLatency, true};
         group->endpoint = endpoint;
         group->sub_options.update_interval = 90;
         group->sub_options.respect_server_interval = false;
@@ -93,7 +95,8 @@ bool verifyDatabaseMigration() {
     const auto profile = profiles.GetProfile(71);
     if (!group || !profile || !profile->favorite || profile->endpoint != endpoint ||
         group->endpoint != endpoint || group->provider.updateIntervalMinutes != 180 ||
-        group->sub_options.update_interval != 90 || group->sub_info.server_interval != 4) return false;
+        group->sub_options.update_interval != 90 || group->sub_info.server_interval != 4 ||
+        group->sort != GroupSortAction{GroupSortMethod::ByLatency, true}) return false;
     auto &settings = *Configs::dataManager->settingsRepo;
     const auto previous = settings.sub_auto_update;
     settings.sub_auto_update = 0;
@@ -106,7 +109,7 @@ bool verifyDatabaseMigration() {
     return disabled && overridden && fromServer;
 }
 
-bool capture(QWidget *widget, const QString &path) {
+bool captureUpstream(QWidget *widget, const QString &path) {
     SaveGeometryReport(widget, path);
     return widget->grab().save(path, "PNG");
 }
@@ -143,7 +146,7 @@ void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
     auto *scanner = new DialogScanner(parent);
     scanner->show();
     QTimer::singleShot(300, scanner, [scanner, parent, prefix] {
-        const bool ok = capture(scanner, prefix + "-scanner.png");
+        const bool ok = captureUpstream(scanner, prefix + "-scanner.png");
         scanner->close();
         if (!ok) {
             qApp->exit(2);
@@ -152,7 +155,7 @@ void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
         auto *newScan = new DialogNewScan(parent);
         newScan->show();
         QTimer::singleShot(300, newScan, [newScan, parent, prefix] {
-            const bool ok = capture(newScan, prefix + "-new-scan.png");
+            const bool ok = captureUpstream(newScan, prefix + "-new-scan.png");
             newScan->accept();
             if (!ok || newScan->CreatedScanId() < 0) {
                 qApp->exit(2);
@@ -167,7 +170,7 @@ void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
                 return;
             }
             QTimer::singleShot(300, scanWindow, [scanWindow, parent, prefix] {
-                if (!capture(scanWindow, prefix + "-scan-editor.png")) {
+                if (!captureUpstream(scanWindow, prefix + "-scan-editor.png")) {
                     qApp->exit(2);
                     return;
                 }
@@ -177,7 +180,7 @@ void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
                 if (tabs) tabs->setCurrentIndex(tabs->count() - 1);
                 integration->show();
                 QTimer::singleShot(300, integration, [integration, prefix] {
-                    const bool ok = capture(integration, prefix + "-integration.png");
+                    const bool ok = captureUpstream(integration, prefix + "-integration.png");
                     integration->hide();
                     integration->deleteLater();
                     qApp->exit(ok ? 0 : 2);

@@ -85,6 +85,8 @@ public:
     libcore::WarpRegisterResponse WarpRegister(bool *rpcOK, const QString &tunnelType, const QString &proxy,
                                                const QStringList &apiHosts);
 
+    libcore::GenQuicSignatureResponse GenQuicSignature(bool *rpcOK, const QString &domain);
+
     QString InstallDashboard(bool *rpcOK, const QString &archivePath, const QString &targetDir) const;
 
     // Empty name = the OS has no default route.

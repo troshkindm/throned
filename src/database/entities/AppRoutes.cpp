@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrl>
+#include <QSet>
 
 #include <algorithm>
 #include <iterator>
@@ -16,6 +17,29 @@
 namespace Configs::AppRoutes {
 namespace {
 constexpr auto ProcessSuffix = ":process";
+constexpr auto ProcessPathSuffix = ":process-path";
+
+QString routeId(const RouteRule &rule) {
+    QString id = rule.name.mid(QLatin1String(RulePrefix).size());
+    if (id.endsWith(QLatin1String(ProcessSuffix))) id.chop(QLatin1String(ProcessSuffix).size());
+    if (id.endsWith(QLatin1String(ProcessPathSuffix))) id.chop(QLatin1String(ProcessPathSuffix).size());
+    return id;
+}
+
+QSet<QString> editableIds(const QList<std::shared_ptr<RouteRule>> &rules) {
+    QHash<QString, int> targets;
+    QSet<QString> ambiguous;
+    for (const auto &rule: rules) {
+        if (!rule || !IsOwned(*rule)) continue;
+        const QString id = routeId(*rule);
+        if (targets.contains(id) && targets[id] != rule->outboundID) ambiguous.insert(id);
+        targets.insert(id, rule->outboundID);
+    }
+    QSet<QString> ids;
+    for (auto it = targets.cbegin(); it != targets.cend(); ++it)
+        if (!ambiguous.contains(it.key())) ids.insert(it.key());
+    return ids;
+}
 
 QStringList strings(const QJsonValue &value) {
     QStringList result;
@@ -131,16 +155,31 @@ QHash<QString, QString> IconPaths(const QList<CatalogEntry> &catalog, const QLis
 }
 
 bool IsOwned(const RouteRule &rule) {
-    return rule.type == custom && rule.name.startsWith(QLatin1String(RulePrefix));
+    if (rule.type != custom || rule.action != QStringLiteral("route") || !rule.name.startsWith(QLatin1String(RulePrefix))) return false;
+    RouteRule copy(rule);
+    copy.type = custom;
+    copy.outboundID = directID;
+    const auto json = copy.get_rule_json(true);
+    QSet<QString> allowed{QStringLiteral("action"), QStringLiteral("outbound")};
+    if (rule.name.endsWith(QLatin1String(ProcessSuffix)))
+        allowed.insert(QStringLiteral("process_name"));
+    else if (rule.name.endsWith(QLatin1String(ProcessPathSuffix)))
+        allowed.insert(QStringLiteral("process_path"));
+    else
+        allowed.unite({QStringLiteral("domain_suffix"), QStringLiteral("rule_set"), QStringLiteral("ip_cidr")});
+    for (auto it = json.begin(); it != json.end(); ++it)
+        if (!allowed.contains(it.key())) return false;
+    return true;
 }
 
 QList<Route> Read(const QList<std::shared_ptr<RouteRule>> &rules) {
     QList<Route> routes;
+    const auto ids = editableIds(rules);
     for (const auto &rule: rules) {
-        if (rule == nullptr || !IsOwned(*rule)) continue;
-        QString id = rule->name.mid(QLatin1String(RulePrefix).size());
-        const bool processRule = id.endsWith(QLatin1String(ProcessSuffix));
-        if (processRule) id.chop(QLatin1String(ProcessSuffix).size());
+        if (rule == nullptr || !IsOwned(*rule) || !ids.contains(routeId(*rule))) continue;
+        const QString id = routeId(*rule);
+        const bool processRule = rule->name.endsWith(QLatin1String(ProcessSuffix));
+        const bool pathRule = rule->name.endsWith(QLatin1String(ProcessPathSuffix));
         auto it = std::find_if(routes.begin(), routes.end(), [&id](const Route &route) { return route.id == id; });
         if (it == routes.end()) {
             routes.append({.id = id, .outbound = rule->outboundID});
@@ -148,6 +187,8 @@ QList<Route> Read(const QList<std::shared_ptr<RouteRule>> &rules) {
         }
         if (processRule) {
             it->processes += rule->process_name;
+        } else if (pathRule) {
+            it->processPaths += rule->process_path;
         } else {
             it->ruleSets += rule->rule_set;
             it->domains += rule->domain_suffix;
@@ -158,9 +199,10 @@ QList<Route> Read(const QList<std::shared_ptr<RouteRule>> &rules) {
 }
 
 void Write(QList<std::shared_ptr<RouteRule>> &rules, const QList<Route> &routes) {
+    const auto ids = editableIds(rules);
     int insertAt = -1;
     for (int i = 0; i < rules.size();) {
-        if (rules.at(i) != nullptr && IsOwned(*rules.at(i))) {
+        if (rules.at(i) != nullptr && IsOwned(*rules.at(i)) && ids.contains(routeId(*rules.at(i)))) {
             if (insertAt < 0) insertAt = i;
             rules.removeAt(i);
         } else {
@@ -185,14 +227,20 @@ void Write(QList<std::shared_ptr<RouteRule>> &rules, const QList<Route> &routes)
             rule->process_name = route.processes;
             owned.append(rule);
         }
+        if (!route.processPaths.isEmpty()) {
+            auto rule = makeRule(QLatin1String(RulePrefix) + route.id + QLatin1String(ProcessPathSuffix), route.outbound);
+            rule->process_path = route.processPaths;
+            owned.append(rule);
+        }
     }
     for (int i = 0; i < owned.size(); ++i) rules.insert(insertAt + i, owned.at(i));
 }
 
 int ForeignRuleCount(const QList<std::shared_ptr<RouteRule>> &rules) {
+    const auto ids = editableIds(rules);
     int count = 0;
     for (const auto &rule: rules) {
-        if (rule == nullptr || IsOwned(*rule) || rule->type == endpointPreferredBy) continue;
+        if (rule == nullptr || (IsOwned(*rule) && ids.contains(routeId(*rule))) || rule->type == endpointPreferredBy) continue;
         if (rule->name == QLatin1String(LocalProxyRuleName)) continue;
         ++count;
     }
@@ -205,7 +253,7 @@ std::pair<Kind, QString> Classify(const QString &input) {
     const auto [kind, value] = SplitRuleLine(NormalizeRuleLine(text));
     if (value.isEmpty()) return {Kind::Invalid, {}};
     if (kind == QStringLiteral("processName")) return {Kind::Process, value};
-    if (kind == QStringLiteral("processPath")) return {Kind::Process, value.section(QRegularExpression(QStringLiteral("[\\\\/]")), -1)};
+    if (kind == QStringLiteral("processPath")) return {Kind::ProcessPath, value};
     if (kind == QStringLiteral("domain") || kind == QStringLiteral("suffix")) {
         QString domain = value.toLower();
         if (domain.startsWith(QStringLiteral("*."))) domain = domain.mid(2);

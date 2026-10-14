@@ -311,6 +311,8 @@ void SubscriptionPopover::popupFor(const std::shared_ptr<Configs::Group> &group,
     // A click promotes a hovered card into a real popup: it stops closing itself and
     // takes focus, so Escape and click-away work the way they do everywhere else.
     m_hoverCard = false;
+    m_armed = false;
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     if (m_hoverClose != nullptr) m_hoverClose->stop();
     setAttribute(Qt::WA_ShowWithoutActivating, false);
     place(group, globalPos);
@@ -320,11 +322,13 @@ void SubscriptionPopover::popupFor(const std::shared_ptr<Configs::Group> &group,
     activateWindow();
 
     m_armed = false;
-    QTimer::singleShot(150, this, [this] { m_armed = true; });
+    QTimer::singleShot(150, this, [this] { m_armed = !m_hoverCard && isVisible(); });
 }
 
 void SubscriptionPopover::popupHovered(const std::shared_ptr<Configs::Group> &group, const QPoint &globalPos) {
     m_hoverCard = true;
+    m_armed = false;
+    setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
     // Shown without activating: taking focus every time the pointer crosses a tab
     // would pull it off whatever the user was typing in.
     setAttribute(Qt::WA_ShowWithoutActivating, true);

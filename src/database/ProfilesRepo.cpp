@@ -216,15 +216,16 @@ bool ProfilesRepo::AddProfile(std::shared_ptr<Profile>& profile, int gid) {
     profile->id = newId;
     if (profile->outbound) profile->outbound->profile_id = newId;
     profile->gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
-    QMutexLocker locker(&mutex);
-    identityMap[newId] = std::weak_ptr<Profile>(profile);
-    saveToDatabase(profile.get(), profile->id);
-    if (auto group = dataManager->groupsRepo->GetGroup(profile->gid)) {
-        group->AddProfile(profile->id);
-        dataManager->groupsRepo->Save(group);
-    } else {
-        return false;
+    {
+        QMutexLocker locker(&mutex);
+        identityMap[newId] = std::weak_ptr<Profile>(profile);
+        saveToDatabase(profile.get(), profile->id);
     }
+    auto group = dataManager->groupsRepo->GetGroup(profile->gid);
+    if (group == nullptr) return false;
+    group->AddProfile(profile->id);
+    dataManager->groupsRepo->Save(group);
+    RepositionLater(QList<std::shared_ptr<Profile>>{profile}, SortInput::Membership);
     return true;
 }
 

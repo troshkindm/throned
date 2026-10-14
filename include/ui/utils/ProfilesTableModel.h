@@ -6,6 +6,8 @@
 #include <QColor>
 #include <memory>
 
+#include "include/ui/group/GroupSort.hpp"
+
 namespace Configs {
 class Profile;
 }
@@ -106,6 +108,12 @@ public:
 
     // Null if the profile could not be loaded; valid until the next model change.
     const FilterKey *filterKeyAt(int row) const;
+
+    // -1 for a method no column shows.
+    int columnOfSort(GroupSortMethod::GroupSortMethod method) const;
+
+    // Raw for a column that does not sort.
+    GroupSortMethod::GroupSortMethod sortOfColumn(int column) const;
 
 private:
     RowVisual buildRowVisual(const std::shared_ptr<Configs::Profile> &profile, bool isRunning) const;

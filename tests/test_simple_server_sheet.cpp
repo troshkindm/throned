@@ -3,10 +3,13 @@
 #include "include/ui/utils/ProfileRowDelegate.h"
 
 #include <QListView>
+#include <QPushButton>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QSignalSpy>
 #include <QTest>
 #include <QWheelEvent>
+#include <algorithm>
 
 ThemeManager *themeManager() {
     static ThemeManager manager;
@@ -141,6 +144,41 @@ private slots:
         QCoreApplication::processEvents();
         QCOMPARE(fixture.sheet.profileAt(list->currentIndex().row()), 2080);
         QVERIFY(list->viewport()->rect().intersects(list->visualRect(list->currentIndex())));
+    }
+
+    void backgroundRefreshKeepsTheGroupTabsPosition() {
+        SheetFixture fixture;
+        QList<QPair<int, QString>> groups;
+        for (int id = 1; id < 30; ++id) groups.append({id, QStringLiteral("Example group %1").arg(id)});
+        fixture.sheet.setGroups(groups, 1);
+        QTRY_COMPARE(fixture.sheet.progress(), 1.0);
+        auto *area = fixture.sheet.findChild<QScrollArea *>();
+        QVERIFY(area);
+        QTRY_VERIFY(area->horizontalScrollBar()->maximum() > 500);
+        area->horizontalScrollBar()->setValue(400);
+        const auto buttons = fixture.sheet.findChildren<QPushButton *>(QStringLiteral("simpleSheetTab"));
+        fixture.sheet.setGroups(groups, 1);
+        QCoreApplication::processEvents();
+        QCOMPARE(area->horizontalScrollBar()->value(), 400);
+        QCOMPARE(fixture.sheet.findChildren<QPushButton *>(QStringLiteral("simpleSheetTab")), buttons);
+    }
+
+    void sortingKeepsTheVisibleServerAndSelection() {
+        SheetFixture fixture;
+        auto *list = fixture.sheet.list();
+        QTRY_COMPARE(fixture.sheet.progress(), 1.0);
+        list->setCurrentIndex(list->model()->index(60, 0));
+        list->verticalScrollBar()->setValue(2107);
+        const auto top = list->indexAt(QPoint(list->viewport()->width() / 2, 0));
+        const int id = fixture.sheet.profileAt(top.row());
+        const int offset = list->visualRect(top).top();
+        std::reverse(fixture.entries.begin(), fixture.entries.end());
+        fixture.sheet.setServers(fixture.entries);
+        QCoreApplication::processEvents();
+        const auto restored = list->indexAt(QPoint(list->viewport()->width() / 2, 0));
+        QCOMPARE(fixture.sheet.profileAt(restored.row()), id);
+        QCOMPARE(list->visualRect(restored).top(), offset);
+        QCOMPARE(fixture.sheet.profileAt(list->currentIndex().row()), 1060);
     }
 
     void reopeningUsesTheSelectedServer() {

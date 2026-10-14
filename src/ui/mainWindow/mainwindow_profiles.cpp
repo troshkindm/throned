@@ -205,6 +205,7 @@ void MainWindow::on_menu_reset_traffic_triggered() {
                                                                                     group->calculated_column_width.size() > ProfilesTableModel::ColTraffic)
         group->calculated_column_width[ProfilesTableModel::ColTraffic] = 0;
     refresh_proxy_list(entIDs);
+    Configs::RepositionLater(ents, Configs::SortInput::Traffic);
 }
 
 void MainWindow::on_menu_copy_links_triggered() {
@@ -521,6 +522,7 @@ void MainWindow::on_menu_resolve_selected_triggered() {
             refresh_proxy_list({profile->id});
             if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
             mw_sub_updating = false;
+            Configs::RepositionLater(ents, Configs::SortInput::Config);
         });
     }
 }
@@ -548,6 +550,7 @@ void MainWindow::on_menu_resolve_domain_triggered() {
             refresh_proxy_list({profile->id});
             if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
             mw_sub_updating = false;
+            Configs::RepositionLater(QHash<int, QList<int>>{{currGroup->id, profiles}}, Configs::SortInput::Config);
         });
     }
 }

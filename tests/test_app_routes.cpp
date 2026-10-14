@@ -140,11 +140,48 @@ private slots:
         QCOMPARE(ForeignRuleCount(rules), 1);
     }
 
+    void pathsAreNotBroadenedToEveryMatchingExecutable() {
+        const QList<Route> routes{{.id = "custom", .processes = {"other.exe"}, .processPaths = {R"(C:\Games\Example\game.exe)"}, .domains = {"example.org"}, .outbound = proxyID}};
+        QList<std::shared_ptr<RouteRule>> rules;
+        Write(rules, routes);
+        QCOMPARE(rules.size(), 3);
+        QCOMPARE(rules[2]->process_path, routes.first().processPaths);
+        QVERIFY(rules[2]->process_name.isEmpty());
+        QCOMPARE(Read(rules), routes);
+    }
+
+    void advancedEditsSurviveCompactApply() {
+        QList<std::shared_ptr<RouteRule>> rules;
+        Write(rules, {{.id = "custom", .domains = {"example.org"}, .outbound = proxyID}});
+        auto advanced = rules.first();
+        advanced->port = {"443"};
+        advanced->invert = true;
+        const auto before = advanced->get_rule_json(true);
+        QVERIFY(!IsOwned(*advanced));
+        QVERIFY(Read(rules).isEmpty());
+        QCOMPARE(ForeignRuleCount(rules), 1);
+        Write(rules, {{.id = "custom", .domains = {"new.example"}, .outbound = directID}});
+        QVERIFY(rules.contains(advanced));
+        QCOMPARE(advanced->get_rule_json(true), before);
+        QCOMPARE(rules.size(), 2);
+    }
+
+    void splitTargetsStayInTheAdvancedEditor() {
+        QList<std::shared_ptr<RouteRule>> rules;
+        Write(rules, {{.id = "custom", .processes = {"game.exe"}, .domains = {"example.org"}, .outbound = proxyID}});
+        rules[1]->outboundID = directID;
+        const auto original = rules;
+        QVERIFY(Read(rules).isEmpty());
+        QCOMPARE(ForeignRuleCount(rules), 2);
+        Write(rules, {});
+        QCOMPARE(rules, original);
+    }
+
     void classifiesWhatTheScreenCanStore() {
         QCOMPARE(Classify("https://www.Example.com/path?q=1"), std::pair(Kind::Domain, QString("example.com")));
         QCOMPARE(Classify("notion.so"), std::pair(Kind::Domain, QString("notion.so")));
         QCOMPARE(Classify("Game.exe"), std::pair(Kind::Process, QString("Game.exe")));
-        QCOMPARE(Classify(R"(C:\Games\Some Game\game.exe)"), std::pair(Kind::Process, QString("game.exe")));
+        QCOMPARE(Classify(R"(C:\Games\Some Game\game.exe)"), std::pair(Kind::ProcessPath, QString(R"(C:\Games\Some Game\game.exe)")));
         QCOMPARE(Classify("192.0.2.7"), std::pair(Kind::Cidr, QString("192.0.2.7/32")));
         QCOMPARE(Classify("198.51.100.0/24"), std::pair(Kind::Cidr, QString("198.51.100.0/24")));
         QCOMPARE(Classify("keyword:ads").first, Kind::Invalid);

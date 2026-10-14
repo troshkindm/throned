@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include <QMouseEvent>
+#include <QEvent>
 #include <QResizeEvent>
 #include <QPainter>
 #include <QStylePainter>
@@ -13,6 +14,21 @@
 #include <QWheelEvent>
 
 namespace {
+class DetachedGroupFrame : public QObject {
+public:
+    explicit DetachedGroupFrame(QTabWidget *tabs) : QObject(tabs), tabs_(tabs) { tabs->installEventFilter(this); }
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override {
+        // Qt paints native bases behind document-mode corner widgets even with drawBase disabled.
+        if (event->type() == QEvent::Paint && tabs_->documentMode()) return true;
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    QTabWidget *tabs_;
+};
+
 constexpr int kLineHeight = 2;
 // The group is now a detached pill. Keep the meter inside that pill rather
 // than letting it fall into the gap above the profile table.
@@ -225,6 +241,7 @@ void GroupTabBar::reportOverflow() {
 
 GroupTabWidget::GroupTabWidget(QWidget *parent) : QTabWidget(parent) {
     setTabBar(new GroupTabBar(this));
+    new DetachedGroupFrame(this);
 }
 
 GroupTabBar *GroupTabWidget::groupTabBar() const {

@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QMimeData>
 #include <QResizeEvent>
+#include <QMoveEvent>
 #include <QTimer>
 
 #include "include/ui/widget/TrayOtpCodes.hpp"
@@ -83,6 +84,12 @@ void MainWindow::changeEvent(QEvent *event) {
         refreshConnectionIcons();
     }
     if (type == QEvent::WindowStateChange) {
+        if (simpleModeActive && !simpleModeTransition) {
+            if (isMinimized())
+                simpleRestorePending = true;
+            else if (simpleRestorePending || isMaximized())
+                QTimer::singleShot(0, this, &MainWindow::restoreSimpleGeometry);
+        }
         syncConnectionViewState();
     }
     if (type == QEvent::ActivationChange) {
@@ -97,11 +104,16 @@ void MainWindow::changeEvent(QEvent *event) {
 
 void MainWindow::showEvent(QShowEvent *event) {
     QMainWindow::showEvent(event);
+    if (simpleModeActive && !simpleModeTransition) {
+        simpleRestorePending = true;
+        QTimer::singleShot(0, this, &MainWindow::restoreSimpleGeometry);
+    }
     syncConnectionViewState();
     scheduleProxyListRefresh();
 }
 
 void MainWindow::hideEvent(QHideEvent *event) {
+    if (simpleModeActive) simpleRestorePending = true;
     QMainWindow::hideEvent(event);
     syncConnectionViewState();
 }
@@ -116,6 +128,12 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     if (simpleModeActive) updateSimpleDensity();
     updateNarrowLayout();
     scheduleProxyListRefresh();
+    rememberSimpleGeometry();
+}
+
+void MainWindow::moveEvent(QMoveEvent *event) {
+    QMainWindow::moveEvent(event);
+    rememberSimpleGeometry();
 }
 
 bool MainWindow::event(QEvent *event) {
@@ -182,7 +200,7 @@ void MainWindow::openTraySelector(bool routing) {
 void MainWindow::refreshRoutingStatus() {
     if (auto *label = findChild<QLabel *>(QStringLiteral("routingStatus")))
         setStatusText(label, RoutingQuickMenu::statusSummary());
-    if (simpleRoutesPage != nullptr && !simpleRoutesPage->isDirty()) reloadSimpleRoutes();
+    if (simpleRoutesPage != nullptr && (simpleRoutesProfileId != Configs::dataManager->settingsRepo->current_route_id || !simpleRoutesPage->isDirty())) reloadSimpleRoutes();
     refreshSimpleStatus();
 }
 

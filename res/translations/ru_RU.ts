@@ -6577,6 +6577,34 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Disable Cookies</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Generate QUIC Signature...</source>
+        <translation>Сгенерировать сигнатуру QUIC…</translation>
+    </message>
+    <message>
+        <source>QUIC Signature</source>
+        <translation>Сигнатура QUIC</translation>
+    </message>
+    <message>
+        <source>Domain to imitate:</source>
+        <translation>Домен для имитации:</translation>
+    </message>
+    <message>
+        <source>Generating...</source>
+        <translation>Генерация…</translation>
+    </message>
+    <message>
+        <source>Failed to reach the core.</source>
+        <translation>Не удалось связаться с ядром.</translation>
+    </message>
+    <message>
+        <source>Failed to generate QUIC signature</source>
+        <translation>Не удалось сгенерировать сигнатуру QUIC</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fills the signature packets with the first QUIC packets Chrome would send to the given domain, so the handshake starts like an HTTP/3 connection to it. Generated locally; nothing is sent. Replaces I1-I5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Заполняет I1–I5 первыми пакетами QUIC, которые Chrome отправил бы указанному домену, имитируя начало соединения HTTP/3. Генерируется локально без отправки пакетов. Заменяет I1–I5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
 </context>
 <context>
     <name>EditXrayVless</name>
@@ -8593,6 +8621,30 @@ Name: %1</source>
         <source>Jump to latest (%1 new)</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Stop Sorting</source>
+        <translation>Отключить сортировку</translation>
+    </message>
+    <message>
+        <source>Profile rules are disabled</source>
+        <translation>Правила профиля отключены</translation>
+    </message>
+    <message>
+        <source>everything else blocked</source>
+        <translation>остальное заблокировано</translation>
+    </message>
+    <message>
+        <source>everything else through WARP bypass</source>
+        <translation>остальное через обход WARP</translation>
+    </message>
+    <message>
+        <source>everything else through %1</source>
+        <translation>остальное через %1</translation>
+    </message>
+    <message>
+        <source>Default server is missing</source>
+        <translation>Сервер по умолчанию не найден</translation>
+    </message>
 </context>
 <context>
     <name>SimpleModeNotice</name>
@@ -8973,6 +9025,30 @@ Name: %1</source>
             <numerusform>ещё %n</numerusform>
             <numerusform>ещё %n</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>Блокировать</translation>
+    </message>
+    <message>
+        <source>WARP bypass</source>
+        <translation>Обход WARP</translation>
+    </message>
+    <message>
+        <source>everything else through %1</source>
+        <translation>остальное через %1</translation>
+    </message>
+    <message>
+        <source>Profile rules are disabled. Apply to enable them.</source>
+        <translation>Правила профиля отключены. Нажмите «Применить», чтобы включить их.</translation>
+    </message>
+    <message>
+        <source>blocked</source>
+        <translation>заблокировано</translation>
+    </message>
+    <message>
+        <source>everything else blocked</source>
+        <translation>остальное заблокировано</translation>
     </message>
 </context>
 <context>

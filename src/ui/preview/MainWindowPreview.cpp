@@ -380,6 +380,14 @@ void RunMainWindow(const QString &prefix) {
     // refresh_proxy_list() completes its model reset on the UI queue. Wait
     // for that reset before treating rowCount as the search baseline.
     QTimer::singleShot(350, window, [window, prefix, arguments, emptyPreview] {
+        if (arguments.contains(QStringLiteral("-ui-preview-test-progress"))) {
+            VerifyTestProgress(window, prefix);
+            return;
+        }
+        if (arguments.contains(QStringLiteral("-ui-preview-compact-ux"))) {
+            VerifyCompactUx(window, prefix);
+            return;
+        }
         if (arguments.contains(QStringLiteral("-ui-preview-simple"))) {
             if (arguments.contains(QStringLiteral("-ui-preview-simple-light"))) {
                 themeManager()->system_palette = QPalette(QColor(QStringLiteral("#efefef")));

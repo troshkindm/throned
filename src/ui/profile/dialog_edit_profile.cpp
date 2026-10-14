@@ -31,6 +31,7 @@
 #include "include/ui/profile/edit_wireguard.h"
 #include "include/ui/profile/edit_xrayvless.h"
 
+#include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/global/GuiUtils.hpp"
 #include "include/global/RunningProfiles.hpp"
@@ -364,6 +365,7 @@ void DialogEditProfile::accept() {
                (Configs::dataManager->settingsRepo->started_id == ent->id || Configs::RunningUsesProfile(ent->id))) {
         args << MwArg::RestartProxy;
     }
+    if (!newEnt) Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{ent}, Configs::SortInput::Config);
 
     MW_dialog_message(MwMessage::ProfileChanged, args);
     QDialog::accept();

@@ -187,6 +187,24 @@ throned_add_qt_test(throned_simple_server_sheet_tests
 throned_add_qt_test(throned_release_notes_tests
         SOURCES test_release_notes.cpp ${PROJECT_SOURCE_DIR}/src/global/ReleaseNotes.cpp)
 
+throned_add_qt_test(throned_simple_routes_page_tests
+        OFFSCREEN TIMEOUT 30
+        SOURCES test_simple_routes_page.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleRoutesPage.cpp
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/ThronedToggle.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/widget/SimpleRoutesPage.h
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleSheet.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/widget/SimpleSheet.h
+            ${PROJECT_SOURCE_DIR}/src/ui/widget/MaterialIcon.cpp
+            ${PROJECT_SOURCE_DIR}/include/ui/setting/ThemeManager.hpp
+            ${PROJECT_SOURCE_DIR}/src/database/entities/AppRoutes.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
+        LIBRARIES Qt6::Widgets Qt6::Network Qt6::Svg Throned::FkYAML Throned::SQLiteCpp)
+qt_add_resources(throned_simple_routes_page_tests "simple_test_catalog"
+        PREFIX "/routing" BASE "${PROJECT_SOURCE_DIR}/res/routing"
+        FILES "${PROJECT_SOURCE_DIR}/res/routing/apps.json")
+
 add_test(NAME throned_protocol_editors
     COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/protocol-editors
         -ui-preview-protocols -theme "Throned Graphite")
@@ -217,3 +235,21 @@ foreach (language en ru fa zh)
             ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     endif ()
 endforeach ()
+
+add_test(NAME throned_compact_ux
+    COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/compact-ux
+        -ui-preview-compact-ux -theme "Throned Graphite" -lang en)
+set_tests_properties(throned_compact_ux PROPERTIES TIMEOUT 30
+    ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
+if (UNIX AND NOT APPLE)
+    set_property(TEST throned_compact_ux APPEND PROPERTY ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif ()
+
+add_test(NAME throned_test_progress
+    COMMAND Throned -ui-preview ${PROJECT_BINARY_DIR}/test-progress
+        -ui-preview-test-progress -theme "Throned Graphite" -lang en)
+set_tests_properties(throned_test_progress PROPERTIES TIMEOUT 30
+    ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
+if (UNIX AND NOT APPLE)
+    set_property(TEST throned_test_progress APPEND PROPERTY ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif ()

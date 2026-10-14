@@ -5,7 +5,9 @@
 #include <memory>
 #include <mutex>
 #include <map>
+#include <QHash>
 #include <QJsonObject>
+#include <QList>
 
 namespace Configs {
 class GroupsRepo {
@@ -52,4 +54,16 @@ public:
     // No-op unless id >= 0.
     bool Save(const std::shared_ptr<Group>& group);
 };
+
+class Profile;
+
+// Keep sorted groups sorted from a background queue, one sort at a time; callable from any thread.
+// The main window gets GroupOrderChanged for each group whose order moved.
+
+// For changes that can move any row.
+void ResortLater(int gid);
+
+// For a few changed rows; only groups whose sort reads `input` are queued.
+void RepositionLater(const QHash<int, QList<int>>& changedByGroup, SortInput input);
+void RepositionLater(const QList<std::shared_ptr<Profile>>& profiles, SortInput input);
 } // namespace Configs

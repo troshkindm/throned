@@ -783,6 +783,22 @@ libcore::WarpRegisterResponse Client::WarpRegister(bool *rpcOK, const QString &t
     }
 }
 
+libcore::GenQuicSignatureResponse Client::GenQuicSignature(bool *rpcOK, const QString &domain) {
+    libcore::GenQuicSignatureRequest request;
+    request.domain = domain.toStdString();
+    libcore::GenQuicSignatureResponse reply;
+    std::vector<uint8_t> resp;
+    auto status = channel->Call("GenQuicSignature", spb::pb::serialize<std::string>(request), resp);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        return reply;
+    } else {
+        NOT_OK
+        return {};
+    }
+}
+
 QString Client::InstallDashboard(bool *rpcOK, const QString &archivePath, const QString &targetDir) const {
     libcore::InstallDashboardRequest request;
     request.archive_path = archivePath.toStdString();

@@ -51,6 +51,8 @@ public slots:
     void accept() override;
 
 private:
+    void generateSignature();
+
     Ui::EditWireguardAmnezia *ui;
     WireguardAmneziaOptions *options;
 };

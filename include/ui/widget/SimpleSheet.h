@@ -113,6 +113,7 @@ private:
     QListView *list_;
     QStandardItemModel *model_;
     QLabel *empty_;
+    QList<QPair<int, QString>> groups_;
     int shownGroup_ = -1;
     int serversGroup_ = -1;
 };

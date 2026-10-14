@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"ThroneCore/gen"
+	"ThroneCore/internal/amnezia"
 	"ThroneCore/internal/warp"
 )
 
 const (
 	warpRegisterTimeout     = 10 * time.Second
 	warpRegisterHostTimeout = 10 * time.Second
+	quicSignatureTimeout    = 5 * time.Second
 )
 
 func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) (*gen.WarpRegisterResponse, error) {
@@ -39,6 +41,16 @@ func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) 
 		Endpoint:      To(identity.Endpoint),
 		Reserved:      reserved,
 	}, nil
+}
+
+func (s *server) GenQuicSignature(ctx context.Context, in *gen.GenQuicSignatureRequest) (*gen.GenQuicSignatureResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, quicSignatureTimeout)
+	defer cancel()
+	packets, err := amnezia.QUICSignature(ctx, in.GetDomain())
+	if err != nil {
+		return &gen.GenQuicSignatureResponse{Error: To(err.Error())}, nil
+	}
+	return &gen.GenQuicSignatureResponse{Packets: packets}, nil
 }
 
 func (s *server) GenWgKeyPair(ctx context.Context, _ *gen.EmptyReq) (out *gen.GenWgKeyPairResponse, _ error) {

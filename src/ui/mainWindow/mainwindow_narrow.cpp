@@ -65,6 +65,7 @@ void MainWindow::applyTopBarMetrics() {
 void MainWindow::applyWindowMinimum() {
     if (simpleModeActive) {
         const QSize minimum = minimumSizeHint().expandedTo(QSize(360, 560));
+        setMaximumWidth(qMax(560, minimum.width()));
         if (minimumSize() != minimum) setMinimumSize(minimum);
         return;
     }

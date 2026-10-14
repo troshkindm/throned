@@ -1,6 +1,7 @@
 #pragma once
 
 namespace GroupSortMethod {
+// Persisted as ints: append only.
 enum GroupSortMethod {
     Raw,
     ByType,
@@ -13,9 +14,11 @@ enum GroupSortMethod {
     // ByTestResult pinned to latency, whatever the group's test_sort_by.
     ByLatency,
 };
-}
+} // namespace GroupSortMethod
 
 struct GroupSortAction {
     GroupSortMethod::GroupSortMethod method = GroupSortMethod::Raw;
     bool descending = false;
+
+    bool operator==(const GroupSortAction &) const = default;
 };

@@ -138,7 +138,7 @@ void MainWindow::on_commitDataRequest() {
     auto *settings = Configs::dataManager->settingsRepo.get();
 
     if (simpleModeActive)
-        settings->simple_window_geometry = saveGeometry().toBase64();
+        rememberSimpleGeometry();
     else
         settings->mainWindowGeometry = saveGeometry().toBase64();
     if (!simpleModeActive && !isMaximized()) {

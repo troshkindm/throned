@@ -493,6 +493,7 @@ bool TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         };
 
         std::shared_ptr<Configs::Group> currentGroup;
+        QHash<int, QList<int>> tested;
         for (int i = 0; i < profileIDs.length(); i += kTestBatchSize) {
             if (stopRequested_.load()) break;
             const auto profileIDsSlice = profileIDs.mid(i, kTestBatchSize);
@@ -500,8 +501,11 @@ bool TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
             if (isUrl && !currentGroup && !profiles.isEmpty()) {
                 currentGroup = Configs::dataManager->groupsRepo->GetGroup(profiles[0]->gid);
             }
+            for (const auto& profile: profiles) tested[profile->gid] << profile->id;
             runBatch(profiles, profileIDsSlice);
         }
+        // Once the run is over, so rows do not jump while results stream in.
+        Configs::RepositionLater(tested, Configs::SortInput::TestResult);
 
         mw_->dataViewHtmlGenerator_.clearTestSections();
         mw_->UpdateDataView(true);
@@ -549,6 +553,7 @@ bool TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent,
     runOnNewThread([this, profileIDs, testCurrent, finish, interactive]() {
         // Fresh per-tag byte baselines for this speed-test session.
         flushTrafficCredits();
+        QHash<int, QList<int>> tested;
         {
             QMutexLocker lk(&creditMu_);
             credited_.clear();
@@ -592,6 +597,7 @@ bool TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent,
                 if (stopRequested_.load()) break;
                 const auto profileIDsSlice = profileIDs.mid(i, stepSize);
                 auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDsSlice);
+                for (const auto& profile: profiles) tested[profile->gid] << profile->id;
                 runBatch(profiles);
             }
         } else {
@@ -601,9 +607,13 @@ bool TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent,
             target.testCurrent = true;
             runSpeedProbe(target);
             testingCurrent_.store(false);
+            if (const auto running = mw_->running) tested[running->gid] << running->id;
         }
         // A short or cancelled test may finish before the periodic flush.
         flushTrafficCredits();
+        // A speed test also credits the traffic it moved.
+        Configs::RepositionLater(tested, Configs::SortInput::TestResult);
+        Configs::RepositionLater(tested, Configs::SortInput::Traffic);
         mw_->dataViewHtmlGenerator_.clearTestSections();
         mw_->UpdateDataView(true);
         session_.unlock();

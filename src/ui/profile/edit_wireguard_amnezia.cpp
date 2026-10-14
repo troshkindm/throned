@@ -1,10 +1,13 @@
 #include "include/ui/profile/edit_wireguard_amnezia.h"
 
 #include <QGuiApplication>
+#include <QInputDialog>
 #include <QLayout>
+#include <QPointer>
 #include <QScreen>
 #include <QScrollBar>
 
+#include "include/api/RPC.h"
 #include "include/global/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
 
@@ -35,6 +38,10 @@ void WireguardAmneziaOptions::load(const Configs::wireguard *outbound) {
     maxHandshakeAttempts = outbound->max_handshake_attempts;
     randomTrailers = outbound->random_trailers;
     disableCookies = outbound->disable_cookies;
+}
+
+namespace {
+QString lastSignatureDomain;
 }
 
 void WireguardAmneziaOptions::apply(Configs::wireguard *outbound) const {
@@ -98,6 +105,7 @@ EditWireguardAmnezia::EditWireguardAmnezia(QWidget *parent, WireguardAmneziaOpti
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(ui->generate_signature, &QPushButton::clicked, this, [this] { generateSignature(); });
 
     ADD_ASTERISK(this)
 
@@ -117,6 +125,41 @@ EditWireguardAmnezia::EditWireguardAmnezia(QWidget *parent, WireguardAmneziaOpti
 
 EditWireguardAmnezia::~EditWireguardAmnezia() {
     delete ui;
+}
+
+void EditWireguardAmnezia::generateSignature() {
+    bool ok = false;
+    const auto domain = QInputDialog::getText(this, tr("QUIC Signature"), tr("Domain to imitate:"), QLineEdit::Normal,
+                                              lastSignatureDomain, &ok)
+                            .trimmed();
+    if (!ok || domain.isEmpty()) return;
+    lastSignatureDomain = domain;
+
+    const auto originalText = ui->generate_signature->text();
+    ui->generate_signature->setEnabled(false);
+    ui->generate_signature->setText(tr("Generating..."));
+
+    QPointer<EditWireguardAmnezia> self(this);
+    runOnNewThread([self, domain, originalText] {
+        bool rpcOK = false;
+        const auto reply = API::defaultClient->GenQuicSignature(&rpcOK, domain);
+        runOnUiThread([self, originalText, rpcOK, reply] {
+            if (self == nullptr) return;
+            self->ui->generate_signature->setText(originalText);
+            self->ui->generate_signature->setEnabled(true);
+            const auto error = rpcOK ? QString::fromStdString(reply.error.value_or("")) : tr("Failed to reach the core.");
+            if (!error.isEmpty() || reply.packets.empty()) {
+                MessageBoxWarning(tr("Failed to generate QUIC signature"), error);
+                return;
+            }
+            const QList<QLineEdit *> fields = {self->ui->i1, self->ui->i2, self->ui->i3, self->ui->i4, self->ui->i5};
+            for (qsizetype i = 0; i < fields.size(); ++i) {
+                fields[i]->setText(i < static_cast<qsizetype>(reply.packets.size())
+                                       ? QString::fromStdString(reply.packets[i])
+                                       : QString());
+            }
+        });
+    });
 }
 
 void EditWireguardAmnezia::accept() {

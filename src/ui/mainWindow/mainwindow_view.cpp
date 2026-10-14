@@ -53,7 +53,10 @@ void MainWindow::UpdateDataView(bool force) {
         const bool hasTransientStatus = !html.trimmed().isEmpty();
         ui->data_view->setFixedHeight(hasTransientStatus ? 72 : 0);
         ui->data_view->setVisible(hasTransientStatus);
-        const bool hasBatchSelection = ui->profilesTableView->selectionModel() && ui->profilesTableView->selectionModel()->selectedRows().size() > 1;
+        const int selectionCount = ui->profilesTableView->selectionModel() ? ui->profilesTableView->selectionModel()->selectedRows().size() : 0;
+        const bool hasBatchSelection = selectionCount > 1;
+        if (auto *text = findChild<QLabel *>(QStringLiteral("selectionText")))
+            text->setText(tr("%n profiles selected", nullptr, selectionCount));
         if (auto *connectedStatus = findChild<QFrame *>(QStringLiteral("statusCard"))) {
             connectedStatus->setVisible(!hasTransientStatus && !hasBatchSelection);
         }
@@ -465,7 +468,33 @@ void MainWindow::refresh_proxy_list_impl(const QList<int> &ids, bool mayNeedRese
         return;
     }
     refresh_proxy_list_impl_refresh_data(ids, mayNeedReset);
+    refresh_sort_indicator();
     refresh_proxy_list_column_size();
+}
+
+void MainWindow::refresh_sort_indicator() {
+    const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    const int column = group == nullptr ? -1 : profilesTableModel->columnOfSort(group->sort.method);
+    const auto order = group != nullptr && group->sort.descending ? Qt::DescendingOrder : Qt::AscendingOrder;
+    // Section -1 hides the indicator.
+    profilesTableModel->setSortIndicator(column, order == Qt::DescendingOrder);
+}
+
+void MainWindow::sortCurrentGroup(GroupSortAction action) {
+    const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    if (group == nullptr) return;
+    group->SetSort(action);
+    Configs::dataManager->groupsRepo->Save(group);
+    refresh_sort_indicator();
+    Configs::ResortLater(group->id);
+}
+
+void MainWindow::stopSortingCurrentGroup() {
+    const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    if (group == nullptr) return;
+    group->SetSort({});
+    Configs::dataManager->groupsRepo->Save(group);
+    refresh_sort_indicator();
 }
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int> &ids, bool mayNeedReset) {
