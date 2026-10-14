@@ -20,6 +20,8 @@ function(throned_add_qt_test TARGET_NAME)
     set_target_properties(${TARGET_NAME} PROPERTIES
             AUTOMOC ON
             UNITY_BUILD OFF
+            # CTest needs a console executable to capture Qt Test output on Windows.
+            WIN32_EXECUTABLE FALSE
     )
     target_include_directories(${TARGET_NAME} PRIVATE
             "${PROJECT_SOURCE_DIR}"
