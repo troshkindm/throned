@@ -9,6 +9,8 @@ function(throned_test_needs_url_scheme TARGET_NAME)
     endif ()
 endfunction()
 
+add_custom_target(throned-unit-tests)
+
 function(throned_add_qt_test TARGET_NAME)
     set(options OFFSCREEN)
     set(one_value_args TIMEOUT)
@@ -17,6 +19,7 @@ function(throned_add_qt_test TARGET_NAME)
             "${options}" "${one_value_args}" "${multi_value_args}")
 
     qt_add_executable(${TARGET_NAME} ${TEST_SOURCES})
+    add_dependencies(throned-unit-tests ${TARGET_NAME})
     set_target_properties(${TARGET_NAME} PROPERTIES
             AUTOMOC ON
             UNITY_BUILD OFF

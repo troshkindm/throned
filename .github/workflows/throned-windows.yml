@@ -232,8 +232,10 @@ jobs:
           cd build
           curl -fLso srslist.h https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h
           cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTHRONED_PRECOMPILE_HEADERS=OFF -DTHRONED_UNITY_BUILD=OFF $LAUNCHER_ARGS ..
+          ninja throned-unit-tests
+          ctest --output-on-failure --no-tests=error -R '_tests$'
           ninja
-          ctest --output-on-failure --no-tests=ignore
+          ctest --output-on-failure --no-tests=ignore -E '_tests$'
           cd ..
           ./script/deploy_windows.sh
       # A screenshot is a function of the Qt build, the font files and the DPI of
