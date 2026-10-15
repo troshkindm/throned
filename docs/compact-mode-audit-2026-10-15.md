@@ -74,3 +74,20 @@ Final verification passed on Linux with Qt 6.8.2:
   Ninja header-dependency tracking.
 
 Windows and macOS native runtime behavior is not verified on this Linux host.
+
+## Follow-up: compact routing in CI
+
+The Windows routing-page test exposed another width constraint: the catalog
+button used its entire caption as its minimum width. This is reproducible on
+Linux with Qt's minimal platform plugin and its fallback font metrics. Long
+search-action captions had the same constraint.
+
+Both buttons now shrink to the available width and elide each text line, keeping
+their complete captions as tooltips and their original text for accessibility.
+The routing test applies the real page stylesheet and also checks a large catalog
+button font and adding a long domain through the search action.
+
+Qt Test executables use the console subsystem and explicitly request stderr
+logging, so Windows CTest failures are visible in CI. Windows runs the unit-test
+group before compiling the full GUI, retaining all remaining preview tests after
+the application build.

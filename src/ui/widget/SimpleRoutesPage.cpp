@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QStylePainter>
+#include <QStyleOptionButton>
 #include <QStyleOptionToolButton>
 #include <QVBoxLayout>
 
@@ -176,6 +177,31 @@ protected:
 
 private:
     Look look_;
+};
+
+class RouteActionButton : public QPushButton {
+public:
+    RouteActionButton(const QString &text, QWidget *parent) : QPushButton(text, parent) {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        setToolTip(text);
+    }
+    QSize minimumSizeHint() const override {
+        QSize size = QPushButton::minimumSizeHint();
+        size.setWidth(qMin(80, size.width()));
+        return size;
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QStyleOptionButton option;
+        initStyleOption(&option);
+        const int width = style()->subElementRect(QStyle::SE_PushButtonContents, &option, this).width();
+        QStringList lines = option.text.split(QLatin1Char('\n'));
+        for (QString &line: lines) line = fontMetrics().elidedText(line, Qt::ElideRight, qMax(1, width));
+        option.text = lines.join(QLatin1Char('\n'));
+        QStylePainter painter(this);
+        painter.drawControl(QStyle::CE_PushButton, option);
+    }
 };
 
 class TargetPill : public QToolButton {
@@ -1009,7 +1035,7 @@ void SimpleRoutesPage::render(bool keepDrafts) {
     if (const auto [kind, value] = Configs::AppRoutes::Classify(query); kind != Kind::Invalid) {
         const QString what = (kind == Kind::Process || kind == Kind::ProcessPath) ? tr("Add the program %1") : kind == Kind::Domain ? tr("Add the site %1")
                                                                                                                                     : tr("Add the addresses %1");
-        auto *addRow = new QPushButton(what.arg(value) + QStringLiteral("\n") + tr("to My sites and apps"), content_);
+        auto *addRow = new RouteActionButton(what.arg(value) + QStringLiteral("\n") + tr("to My sites and apps"), content_);
         addRow->setObjectName(QStringLiteral("simpleRouteAddRow"));
         addRow->setCursor(Qt::PointingHandCursor);
         connect(addRow, &QPushButton::clicked, this, [this] {
@@ -1052,7 +1078,7 @@ void SimpleRoutesPage::render(bool keepDrafts) {
     if (query.isEmpty()) {
         const int hidden = rest.size() - shownRest.size();
         if (showMore_ || hidden > 0) {
-            auto *more = new QPushButton(showMore_ ? tr("Hide the catalog") : tr("%n more app(s) and site(s)", nullptr, hidden), content_);
+            auto *more = new RouteActionButton(showMore_ ? tr("Hide the catalog") : tr("%n more app(s) and site(s)", nullptr, hidden), content_);
             more->setObjectName(QStringLiteral("simpleRouteMore"));
             more->setCursor(Qt::PointingHandCursor);
             connect(more, &QPushButton::clicked, this, [this] {

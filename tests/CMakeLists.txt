@@ -38,6 +38,7 @@ function(throned_add_qt_test TARGET_NAME)
     else ()
         add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
     endif ()
+    set_tests_properties(${TARGET_NAME} PROPERTIES ENVIRONMENT "QT_FORCE_STDERR_LOGGING=1")
 
     if (TEST_TIMEOUT)
         set_tests_properties(${TARGET_NAME} PROPERTIES TIMEOUT ${TEST_TIMEOUT})

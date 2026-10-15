@@ -16,7 +16,7 @@ ThemeManager *themeManager() {
 }
 ThronedThemeColors ThemeManager::Colors(const QString &) const { return {}; }
 const ThronedSkin *ThemeManager::Skin(const QString &) const { return nullptr; }
-void ThemeManager::RegisterStyle(QWidget *, const QString &) const {}
+void ThemeManager::RegisterStyle(QWidget *widget, const QString &style) const { widget->setStyleSheet(style); }
 QColor ProfileRowDelegate::latencyColor(int, const ThronedThemeColors &) { return Qt::gray; }
 namespace Configs {
 std::shared_ptr<Profile> ProfilesRepo::GetProfile(int) const { return nullptr; }
@@ -140,8 +140,34 @@ private slots:
         page.show();
         auto *area = qobject_cast<QScrollArea *>(page.scrollArea());
         QTRY_VERIFY(area->widget()->width() <= area->viewport()->width());
+        auto *more = area->widget()->findChild<QPushButton *>(QStringLiteral("simpleRouteMore"));
+        QVERIFY(more);
+        QFont largeFont = more->font();
+        largeFont.setPixelSize(24);
+        more->setFont(largeFont);
+        QCoreApplication::processEvents();
+        QTRY_VERIFY(area->widget()->width() <= area->viewport()->width());
         page.addEntries({QStringLiteral("processPath:/opt/example/a-very-long-application-directory/another-directory/client")});
         QTRY_VERIFY(area->widget()->width() <= area->viewport()->width());
+    }
+
+    void longSearchActionsFitTheCompactViewport() {
+        SimpleRoutesPage page(nullptr);
+        page.resize(340, 600);
+        page.load({}, Configs::directID, 0, true);
+        page.show();
+        auto *search = page.findChild<QLineEdit *>(QStringLiteral("simpleRoutesSearch"));
+        const QString domain = QStringLiteral("a-very-long-domain-name.another-long-subdomain.example.org");
+        search->setText(domain);
+        auto *area = qobject_cast<QScrollArea *>(page.scrollArea());
+        QTRY_VERIFY(area->widget()->width() <= area->viewport()->width());
+        auto *add = area->widget()->findChild<QPushButton *>(QStringLiteral("simpleRouteAddRow"));
+        QVERIFY(add);
+        QVERIFY(add->text().contains(domain));
+        QCOMPARE(add->toolTip(), add->text());
+        add->click();
+        QTRY_COMPARE(page.stagedRoutes().size(), 1);
+        QCOMPARE(page.stagedRoutes().first().domains, QStringList{domain});
     }
 
     void readOnlyProfilesCannotBeApplied() {
