@@ -2178,6 +2178,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditAutoSelector</name>
@@ -8551,6 +8555,41 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="302" />
         <source>Failed to unregister %1. Error: %2</source>
         <translation type="unfinished" />
+    </message>
+</context>
+<context>
+    <name>TestProgressWidget</name>
+    <message>
+        <source>Stop testing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stopping tests…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UDP latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Country test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speed test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 / %2 · %3%</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -1,6 +1,5 @@
 #include "include/ui/widget/UpdateStatusWidget.h"
 #include "include/ui/setting/ThemeManager.hpp"
-#include "include/ui/widget/WindowNotices.h"
 #include "include/ui/widget/PendingRestartNotice.h"
 #include "include/ui/widget/HijackDeprecationNotice.h"
 #include "include/ui/widget/SimpleModeNotice.h"
@@ -16,7 +15,6 @@
 #include <QTest>
 #include <QTemporaryDir>
 
-static bool micaAvailable = true;
 void Logging::Write(Level, const QString &, const char *, int) {}
 void PostPassiveWarning(const QString &, const QString &) {}
 
@@ -25,10 +23,8 @@ ThemeManager *themeManager() {
     return &manager;
 }
 ThronedThemeColors ThemeManager::Colors(const QString &) const { return {}; }
-const ThronedSkin *ThemeManager::Skin(const QString &theme) const {
-    static const ThronedSkin mica{.name = "Mica (Windows 11)"};
-    return micaAvailable && (theme.isEmpty() ? current_theme : theme) == mica.name ? &mica : nullptr;
-}
+const ThronedSkin *ThemeManager::Skin(const QString &) const { return nullptr; }
+
 void ThemeManager::ApplyTheme(const QString &theme, bool) {
     current_theme = theme;
     emit themeChanged(theme);
@@ -142,40 +138,6 @@ private slots:
         QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
     }
 
-    void tipPersistsDismissalAndEnableAcrossSettingsReload() {
-        QTemporaryDir dir;
-        QVERIFY(dir.isValid());
-        Configs::Database db((dir.path() + "/settings.db").toStdString());
-        Configs::SettingsRepo settings(db);
-        themeManager()->ApplyTheme("Throned Midnight");
-        {
-            UpdateStatusWidget status;
-            InstallWindowNotices(&status, settings);
-            QTRY_COMPARE(status.activeNoticeId(), QString("windows11-mica-v1"));
-            status.dismiss();
-        }
-        Configs::SettingsRepo reloaded(db);
-        QVERIFY(reloaded.dismissed_notices.contains("windows11-mica-v1"));
-        {
-            UpdateStatusWidget status;
-            InstallWindowNotices(&status, reloaded);
-            QCoreApplication::processEvents();
-            QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
-        }
-        reloaded.dismissed_notices.clear();
-        {
-            UpdateStatusWidget status;
-            InstallWindowNotices(&status, reloaded);
-            QTRY_COMPARE(status.state(), UpdateStatusWidget::State::Notice);
-            status.findChild<QPushButton *>("updatePrimaryButton")->click();
-            QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
-            QCOMPARE(themeManager()->current_theme, QString("Mica (Windows 11)"));
-        }
-        Configs::SettingsRepo enabled(db);
-        QCOMPARE(enabled.theme, QString("Mica (Windows 11)"));
-        QVERIFY(enabled.dismissed_notices.contains("windows11-mica-v1"));
-    }
-
     void hijackNoticeFollowsSettingsAndRemembersDismissal() {
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
@@ -215,21 +177,22 @@ private slots:
         QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
     }
 
-    void unavailableSkinDoesNotOfferTip() {
-        QTemporaryDir dir;
-        QVERIFY(dir.isValid());
-        Configs::Database db((dir.path() + "/settings.db").toStdString());
-        Configs::SettingsRepo settings(db);
-        micaAvailable = false;
+    void themeChangesKeepTheFooterQuietAndPreserveUpdates() {
         UpdateStatusWidget status;
-        InstallWindowNotices(&status, settings);
+        themeManager()->ApplyTheme("Mica (Windows 11)");
         QCoreApplication::processEvents();
         QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
-        micaAvailable = true;
+        status.showReady("Throned.zip");
+        themeManager()->ApplyTheme("Throned Graphite");
+        QCoreApplication::processEvents();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Ready);
+        status.dismiss();
+        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
     }
+
     void updateKeepsSlotAndActionsUntilDismissed() {
         UpdateStatusWidget status;
-        status.postNotice({"mica", "Try Mica", "Windows 11", "Enable"});
+        status.postNotice({"tip", "Feature tip", "Details", "Enable"});
         status.showDownloading("Throned-1.4.3-windows64.zip", 50, 100);
         status.postNotice({"warning", "Warning", "Details", {}, {}, UpdateStatusWidget::Severity::Warning});
         QCOMPARE(status.state(), UpdateStatusWidget::State::Downloading);
@@ -245,7 +208,7 @@ private slots:
         QCOMPARE(status.activeNoticeId(), QString("warning"));
         QVERIFY(status.findChild<QPushButton *>("updatePrimaryButton")->isHidden());
         status.dismiss();
-        QCOMPARE(status.activeNoticeId(), QString("mica"));
+        QCOMPARE(status.activeNoticeId(), QString("tip"));
     }
 
     void replacementDismissalAndReentrantAction() {
@@ -280,23 +243,6 @@ private slots:
         QCOMPARE(retry.size(), 1);
         status.dismiss();
         QVERIFY(status.isHidden());
-    }
-
-    void manualMicaSelectionRetiresTheTip() {
-        QTemporaryDir dir;
-        QVERIFY(dir.isValid());
-        Configs::Database db((dir.path() + "/settings.db").toStdString());
-        Configs::SettingsRepo settings(db);
-        themeManager()->ApplyTheme("Throned Midnight");
-        UpdateStatusWidget status;
-        InstallWindowNotices(&status, settings);
-        QTRY_COMPARE(status.state(), UpdateStatusWidget::State::Notice);
-        themeManager()->ApplyTheme("Mica (Windows 11)");
-        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
-        themeManager()->ApplyTheme("Throned Graphite");
-        QCOMPARE(status.state(), UpdateStatusWidget::State::Hidden);
-        Configs::SettingsRepo reloaded(db);
-        QVERIFY(reloaded.dismissed_notices.contains("windows11-mica-v1"));
     }
 };
 

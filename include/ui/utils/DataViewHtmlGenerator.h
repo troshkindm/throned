@@ -12,14 +12,30 @@ enum class DataViewPriority { Critical,
                               Medium,
                               Low };
 enum class DataViewItem { Download,
-                          SpeedTest,
-                          LatencyTest,
                           AutoSelector,
                           VpnEndpoint,
                           Scanner };
 
 class DataViewHtmlGenerator {
 public:
+    struct TestPanelState {
+        enum class Kind { Url,
+                          Ip,
+                          Udp,
+                          Speed,
+                          Country };
+        bool visible = false;
+        Kind kind = Kind::Url;
+        int completed = 0;
+        int total = 0;
+        QString profileName;
+        QString dlSpeed;
+        QString ulSpeed;
+        QString server;
+    };
+
+    [[nodiscard]] TestPanelState testPanelState() const;
+
     struct DownloadPanelState {
         bool visible = false;
         DownloadProgressReport report;
@@ -102,10 +118,6 @@ private:
 
     // The *SectionHtml helpers assume buildHtml already holds mu_.
     QString downloadSectionHtml();
-
-    QString speedtestSectionHtml();
-
-    QString latencyTestSectionHtml();
 
     QString autoSelectorSectionHtml();
 

@@ -14,25 +14,7 @@
 #include "include/global/Utils.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/MaterialIcon.h"
-
-namespace {
-class ElidedStatusLabel : public QLabel {
-public:
-    using QLabel::QLabel;
-
-    QSize minimumSizeHint() const override {
-        return {0, QLabel::minimumSizeHint().height()};
-    }
-
-protected:
-    void paintEvent(QPaintEvent *) override {
-        QPainter painter(this);
-        const QRect rect = contentsRect();
-        const QString shown = fontMetrics().elidedText(text(), Qt::ElideRight, rect.width());
-        style()->drawItemText(&painter, rect, alignment(), palette(), isEnabled(), shown, foregroundRole());
-    }
-};
-} // namespace
+#include "include/ui/widget/ElidedLabel.h"
 
 UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
     setObjectName(QStringLiteral("updateStatus"));
@@ -52,13 +34,13 @@ UpdateStatusWidget::UpdateStatusWidget(QWidget *parent) : QFrame(parent) {
     icon_->setFixedSize(20, 20);
     row->addWidget(icon_);
 
-    title_ = new ElidedStatusLabel(this);
+    title_ = new ElidedLabel(this);
     title_->setObjectName(QStringLiteral("updateStatusTitle"));
     title_->setTextFormat(Qt::PlainText);
     title_->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     row->addWidget(title_);
 
-    detail_ = new ElidedStatusLabel(this);
+    detail_ = new ElidedLabel(this);
     detail_->setObjectName(QStringLiteral("updateStatusDetail"));
     detail_->setTextFormat(Qt::PlainText);
     detail_->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);

@@ -300,16 +300,17 @@ or restarting the connection retires the notice. Its Restart action restarts the
 connection, while an update occupying the slot keeps its own application restart
 action. Dismissal is not stored in settings.
 
-`WindowNotices.cpp` offers Mica once when its skin is available and not already
-selected. Enabling, dismissing, or manually selecting Mica records the versioned
-notice ID in `SettingsRepo::dismissed_notices`. Adding a future tip needs its own
-ID, eligibility rule, translated text and action. No release-number comparison or
-network call is needed: the feature first appears when users install its release.
+Mica remains available in the theme selector, without a promotional footer notice.
+Feature-specific producers such as `SimpleModeNotice` own their eligibility,
+translated text and persistence. Ordinary snapshots suppress tip eligibility;
+`-ui-preview-notices` enables eligible notices in isolated interactive previews.
 
-For interactive inspection add `-ui-preview-notices` to a backdrop preview launched
-with `-theme "Throned Midnight"`. Add `-ui-preview-update-ready` to put a synthetic
-ready update above the queued tip; click Later to reveal it. Restart and retry
-actions do nothing in preview mode. Ordinary snapshots suppress real tip eligibility.
+`TestProgressWidget` uses the transient test slot in both window modes. It reads
+a locked snapshot from `DataViewHtmlGenerator`: batches show completed profiles,
+while a single probe shows activity because the core exposes no within-probe
+percentage. Stopping uses the existing Stop Testing action and retains the card
+until the session ends. The update/notice slot remains independent. Run
+`-ui-preview-test-progress` to verify both layouts and cancellation without a core.
 
 ### What a screenshot cannot answer
 

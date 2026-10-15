@@ -326,9 +326,10 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->tabWidget->setTabIcon(1, MaterialIcon::icon(MaterialIcon::Glyph::Shield, navIconColor, 18));
     ui->tabWidget->setTabIcon(2, MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, navIconColor, 18));
     ui->tabWidget->setTabIcon(3, MaterialIcon::icon(MaterialIcon::Glyph::Public, navIconColor, 18));
-    ui->tabWidget->setTabIcon(4, MaterialIcon::icon(MaterialIcon::Glyph::Routes, navIconColor, 18));
-    ui->tabWidget->setTabText(4, tr("Profiles"));
-    ui->tabWidget->setCurrentIndex(4);
+    const int profilesPage = ui->tabWidget->indexOf(ui->tab_2);
+    ui->tabWidget->setTabIcon(profilesPage, MaterialIcon::icon(MaterialIcon::Glyph::Routes, navIconColor, 18));
+    ui->tabWidget->setTabText(profilesPage, tr("Profiles"));
+    ui->tabWidget->setCurrentIndex(profilesPage);
 
     // SettingsPreview uses a real horizontal page stack with a separate left
     // navigation rail.  Reusing the QTabBar as a west rail while forcing a
@@ -363,10 +364,10 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         {0, MaterialIcon::Glyph::Settings},
         {1, MaterialIcon::Glyph::Shield},
         {2, MaterialIcon::Glyph::SwapVertical},
-        {3, MaterialIcon::Glyph::Public},
-        {4, MaterialIcon::Glyph::Routes},
+        {profilesPage, MaterialIcon::Glyph::Routes},
     };
-    const QList<int> navOrder{4, 0, 1, 2, 3};
+    const QList<int> navOrder{profilesPage, ui->tabWidget->indexOf(ui->tab),
+                              ui->tabWidget->indexOf(ui->tab_5), ui->tabWidget->indexOf(ui->tab_3)};
     for (const int pageIndex: navOrder) {
         auto *button = new QPushButton(ui->tabWidget->tabText(pageIndex), sidebar);
         button->setObjectName(QStringLiteral("routeSettingsNav"));
@@ -585,9 +586,10 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     currentRoute = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
     if (currentRoute == nullptr) currentRoute = chainList[0];
 
-    // Both strategy pickers must stay on one shared item order.
-    ui->default_domain_strategy->addItems(Configs::DomainStrategy::DomainStrategy);
-    ui->domainStrategyCombo->addItems(Configs::DomainStrategy::DomainStrategy);
+    for (auto *picker: {ui->default_domain_strategy, ui->domainStrategyCombo}) {
+        for (const auto &strategy: Configs::DomainStrategy::DomainStrategy)
+            picker->addItem(strategy.isEmpty() ? tr("Default") : strategy, strategy);
+    }
     ui->local_override->setText(Configs::dataManager->settingsRepo->core_box_underlying_dns);
     ui->enable_fakeip->setChecked(Configs::dataManager->settingsRepo->fake_dns);
     ui->fakeip_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->fakeip_disable_ipv6);
@@ -616,8 +618,8 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     });
     ui->use_dns_object->stateChanged(Qt::Unchecked);
     ui->ruleset_mirror->setCurrentIndex(Configs::dataManager->settingsRepo->ruleset_mirror);
-    ui->default_domain_strategy->setCurrentText(Configs::dataManager->settingsRepo->default_domain_strategy);
-    ui->domainStrategyCombo->setCurrentText(Configs::dataManager->settingsRepo->resolve_domain_strategy);
+    ui->default_domain_strategy->setCurrentIndex(ui->default_domain_strategy->findData(Configs::dataManager->settingsRepo->default_domain_strategy));
+    ui->domainStrategyCombo->setCurrentIndex(ui->domainStrategyCombo->findData(Configs::dataManager->settingsRepo->resolve_domain_strategy));
     ui->use_dns_object->setChecked(Configs::dataManager->settingsRepo->use_dns_object);
     ui->apply_dns_to_full_config->setChecked(Configs::dataManager->settingsRepo->apply_dns_to_full_config);
     ui->remote_dns->setCurrentText(Configs::dataManager->settingsRepo->remote_dns);
@@ -745,8 +747,8 @@ void DialogManageRoutes::accept() {
     }
 
     Configs::dataManager->settingsRepo->ruleset_mirror = ui->ruleset_mirror->currentIndex();
-    Configs::dataManager->settingsRepo->resolve_domain_strategy = ui->domainStrategyCombo->currentText();
-    Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentText();
+    Configs::dataManager->settingsRepo->resolve_domain_strategy = ui->domainStrategyCombo->currentData().toString();
+    Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentData().toString();
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
     Configs::dataManager->settingsRepo->apply_dns_to_full_config = ui->apply_dns_to_full_config->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;

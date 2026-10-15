@@ -14,8 +14,6 @@ struct ItemPriority {
 
 // Within one level, panels render in this order.
 constexpr std::array kItemPriorities = {
-    ItemPriority{DataViewItem::SpeedTest, DataViewPriority::Critical},
-    ItemPriority{DataViewItem::LatencyTest, DataViewPriority::Critical},
     ItemPriority{DataViewItem::Scanner, DataViewPriority::Medium},
     ItemPriority{DataViewItem::VpnEndpoint, DataViewPriority::Medium},
     ItemPriority{DataViewItem::AutoSelector, DataViewPriority::Medium},
@@ -122,10 +120,6 @@ bool DataViewHtmlGenerator::itemVisible(DataViewItem item) const {
     switch (item) {
         case DataViewItem::Download:
             return download_.visible;
-        case DataViewItem::SpeedTest:
-            return speedtest_.visible;
-        case DataViewItem::LatencyTest:
-            return latencyTest_.visible;
         case DataViewItem::AutoSelector:
             return autoSelector_.visible;
         case DataViewItem::VpnEndpoint:
@@ -141,10 +135,6 @@ QString DataViewHtmlGenerator::itemHtml(DataViewItem item, bool shared) {
     switch (item) {
         case DataViewItem::Download:
             return downloadSectionHtml();
-        case DataViewItem::SpeedTest:
-            return speedtestSectionHtml();
-        case DataViewItem::LatencyTest:
-            return latencyTestSectionHtml();
         case DataViewItem::AutoSelector:
             return autoSelectorSectionHtml();
         case DataViewItem::VpnEndpoint:
@@ -223,48 +213,27 @@ QString DataViewHtmlGenerator::downloadSectionHtml() {
         .arg(download_.report.fileName, stat, progressText);
 }
 
-QString DataViewHtmlGenerator::speedtestSectionHtml() {
-    if (speedtest_.kind == SpeedtestPanelState::Kind::Speed) {
-        auto firstLine = QStringLiteral("Running Speedtest: %1").arg(speedtest_.profileName);
-        if (speedtest_.totalProfiles > 1) {
-            firstLine += QString(" (%1 / %2)").arg(Int2String(cappedProgress(speedtest_.totalProfiles)), Int2String(speedtest_.totalProfiles));
+DataViewHtmlGenerator::TestPanelState DataViewHtmlGenerator::testPanelState() const {
+    QMutexLocker lock(&mu_);
+    TestPanelState state;
+    state.visible = speedtest_.visible || latencyTest_.visible;
+    if (speedtest_.visible) {
+        state.kind = speedtest_.kind == SpeedtestPanelState::Kind::Country ? TestPanelState::Kind::Country : TestPanelState::Kind::Speed;
+        state.total = qMax(0, speedtest_.totalProfiles);
+        state.profileName = speedtest_.profileName;
+        state.dlSpeed = speedtest_.dlSpeed;
+        state.ulSpeed = speedtest_.ulSpeed;
+        state.server = speedtest_.serverCountry;
+        if (!speedtest_.serverName.isEmpty()) {
+            if (!state.server.isEmpty()) state.server += QStringLiteral(" · ");
+            state.server += speedtest_.serverName;
         }
-        if (speedtest_.serverName.isEmpty()) return QString("<p style='text-align:center;margin:0;'>%1</p>").arg(firstLine);
-        return QString(
-                   "<p style='text-align:center;margin:0;'>%1</p>"
-                   "<div style='text-align: center;'>"
-                   "<span style='color: %7;'>Dl↓ %2</span>  "
-                   "<span style='color: %8;'>Ul↑ %3</span>"
-                   "</div>"
-                   "<p style='text-align:center;margin:0;'>Server: %4%5, %6</p>")
-            .arg(firstLine, speedtest_.dlSpeed, speedtest_.ulSpeed, speedtest_.serverCountryFlag, speedtest_.serverCountry,
-                 speedtest_.serverName, themeManager()->Colors().accent.name(), themeManager()->Colors().success.name());
     } else {
-        QString res;
-        auto content = QString("Running Country Test");
-        if (speedtest_.totalProfiles > 1) {
-            auto progress = getProgressBar(cappedProgress(speedtest_.totalProfiles), speedtest_.totalProfiles);
-            progress += QString(" ") + Int2String(100 * cappedProgress(speedtest_.totalProfiles) / speedtest_.totalProfiles) + "%";
-            res = QString("<p style='text-align:center;margin:0;'>%1</p>").arg(progress);
-            content += QString(" (%1 / %2)").arg(Int2String(cappedProgress(speedtest_.totalProfiles)), Int2String(speedtest_.totalProfiles));
-        }
-        res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content);
-        return res;
+        state.kind = latencyTest_.kind == LatencyTestPanelState::Kind::Url   ? TestPanelState::Kind::Url
+                     : latencyTest_.kind == LatencyTestPanelState::Kind::Udp ? TestPanelState::Kind::Udp
+                                                                             : TestPanelState::Kind::Ip;
+        state.total = qMax(0, latencyTest_.totalProfiles);
     }
-}
-
-QString DataViewHtmlGenerator::latencyTestSectionHtml() {
-    QString res;
-    auto content =
-        latencyTest_.kind == LatencyTestPanelState::Kind::Url   ? QString("Running URL test")
-        : latencyTest_.kind == LatencyTestPanelState::Kind::Udp ? QString("Running UDP test")
-                                                                : QString("Running IP test");
-    if (latencyTest_.totalProfiles > 1) {
-        auto progress = getProgressBar(cappedProgress(latencyTest_.totalProfiles), latencyTest_.totalProfiles);
-        progress += QString(" ") + Int2String(100 * cappedProgress(latencyTest_.totalProfiles) / latencyTest_.totalProfiles) + "%";
-        res = QString("<p style='text-align:center;margin:0;'>%1</p>").arg(progress);
-        content += QString(" (%1 / %2)").arg(Int2String(cappedProgress(latencyTest_.totalProfiles)), Int2String(latencyTest_.totalProfiles));
-    }
-    res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content);
-    return res;
+    state.completed = cappedProgress(state.total);
+    return state;
 }

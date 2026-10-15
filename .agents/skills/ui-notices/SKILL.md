@@ -18,7 +18,7 @@ changing an existing caller's delivery is a separate behavior decision.
 ## Extend the shared footer
 
 Read [Footer notices](../../../docs/development.md#footer-notices) for the queue
-contract, then follow `src/ui/widget/WindowNotices.cpp` for a feature tip.
+contract, then follow `src/ui/widget/SimpleModeNotice.cpp` for a feature tip.
 Keep eligibility, action and persistence in the producer; the widget presents
 notices and arbitrates the slot. Add a feature-specific producer when the policy
 does not belong with the existing one.
@@ -27,8 +27,7 @@ does not belong with the existing one.
   on every release or wording change: that would undo the user's dismissal.
 - Define when it becomes eligible and when it stops being useful. Recheck on
   relevant state changes and remove obsolete notices, including when the user
-  completes the suggested action elsewhere. Mica uses the available skin
-  catalogue as its platform check.
+  completes the suggested action elsewhere.
 - Decide what dismissal means. `dismissed_notices` persists handled feature
   tips; a recurring fault may need a different lifetime. Never remember a tip
   as dismissed merely because an update temporarily occupies its slot.

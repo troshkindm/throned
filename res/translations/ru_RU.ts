@@ -4474,6 +4474,10 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
         <translation>Вставьте ссылку маршрута Throne, ссылку remoteRoute, base64 или массив правил JSON</translation>
     </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
 </context>
 <context>
     <name>DialogDpiBypass</name>
@@ -13811,6 +13815,41 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <location filename="Throne-1.3.1/3rdparty/QHotkey/qhotkey.cpp" line="302" />
         <source>Failed to unregister %1. Error: %2</source>
         <translation type="unfinished" />
+    </message>
+</context>
+<context>
+    <name>TestProgressWidget</name>
+    <message>
+        <source>Stop testing</source>
+        <translation>Остановить проверку</translation>
+    </message>
+    <message>
+        <source>Stopping tests…</source>
+        <translation>Остановка проверки…</translation>
+    </message>
+    <message>
+        <source>TCP latency</source>
+        <translation>Задержка TCP</translation>
+    </message>
+    <message>
+        <source>UDP latency</source>
+        <translation>Задержка UDP</translation>
+    </message>
+    <message>
+        <source>IP check</source>
+        <translation>Проверка IP</translation>
+    </message>
+    <message>
+        <source>Country test</source>
+        <translation>Проверка страны</translation>
+    </message>
+    <message>
+        <source>Speed test</source>
+        <translation>Проверка скорости</translation>
+    </message>
+    <message>
+        <source>%1 / %2 · %3%</source>
+        <translation>%1 / %2 · %3%</translation>
     </message>
 </context>
 </TS>

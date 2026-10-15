@@ -86,6 +86,7 @@ class GlobalHotkeys;
 class TestRunner;
 class DialogVpnAuth;
 class UpdateStatusWidget;
+class TestProgressWidget;
 class PendingRestartNotice;
 class HijackDeprecationNotice;
 class DialogScanner;
@@ -537,6 +538,7 @@ private:
     QTimer *pingMonitorTimer = nullptr;
     std::atomic<bool> pingProbeInFlight_{false};
     UpdateStatusWidget *updateStatusWidget = nullptr;
+    TestProgressWidget *testProgressWidget = nullptr;
     PendingRestartNotice *pendingRestartNotice = nullptr;
     HijackDeprecationNotice *hijackDeprecationNotice = nullptr;
     QString pendingUpdateAssetName;

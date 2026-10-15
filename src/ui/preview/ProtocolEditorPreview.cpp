@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QPixmap>
 #include <QPushButton>
+#include <QSet>
 #include <QTabWidget>
 #include <QTimer>
 
@@ -55,9 +56,39 @@ void CaptureProtocolEditors(QWidget *parent, const QString &prefix) {
             auto *routing = new DialogManageRoutes(parent);
             auto *tabs = routing->findChild<QTabWidget *>(QStringLiteral("routeSettingsPages"));
             auto *mode = routing->findChild<QComboBox *>(QStringLiteral("warp_mode"));
-            if (!tabs || !mode) {
+            const auto navigation = routing->findChildren<QPushButton *>(QStringLiteral("routeSettingsNav"));
+            auto *strategy = routing->findChild<QComboBox *>(QStringLiteral("domainStrategyCombo"));
+            auto *defaultStrategy = routing->findChild<QComboBox *>(QStringLiteral("default_domain_strategy"));
+            if (!tabs || !mode || navigation.size() != tabs->count() || !strategy || !defaultStrategy ||
+                tabs->currentWidget()->objectName() != QStringLiteral("tab_2")) {
+                qWarning("Routing settings: navigation must match the real pages and open on profiles");
                 qApp->exit(2);
                 return;
+            }
+            for (auto *button: navigation) {
+                if (button->text().trimmed().isEmpty()) {
+                    qWarning("Routing settings: a navigation label is empty");
+                    qApp->exit(2);
+                    return;
+                }
+            }
+            QSet<int> visited;
+            for (auto *button: navigation) {
+                button->click();
+                visited.insert(tabs->currentIndex());
+            }
+            if (visited.size() != tabs->count()) {
+                qWarning("Routing settings: navigation buttons must open distinct pages");
+                qApp->exit(2);
+                return;
+            }
+            for (auto *picker: {strategy, defaultStrategy}) {
+                const int inherited = picker->findData(QString());
+                if (inherited < 0 || picker->itemText(inherited).trimmed().isEmpty()) {
+                    qWarning("Routing settings: the default strategy needs a label and an empty stored value");
+                    qApp->exit(2);
+                    return;
+                }
             }
             for (int i = 0; i < tabs->count(); ++i) {
                 if (tabs->widget(i)->isAncestorOf(mode)) tabs->setCurrentIndex(i);
@@ -69,7 +100,26 @@ void CaptureProtocolEditors(QWidget *parent, const QString &prefix) {
                 auto *wireguard = routing->findChild<QGroupBox *>(QStringLiteral("warp_wg_box"));
                 const bool ok = masque && masque->isVisible() && wireguard && !wireguard->isVisible() &&
                                 capture(routing, prefix + QStringLiteral("-warp.png"));
-                routing->reject();
+                auto *settings = Configs::dataManager->settingsRepo.get();
+                const auto originalResolve = settings->resolve_domain_strategy;
+                const auto originalDefault = settings->default_domain_strategy;
+                auto *resolve = routing->findChild<QComboBox *>(QStringLiteral("domainStrategyCombo"));
+                auto *defaultDomain = routing->findChild<QComboBox *>(QStringLiteral("default_domain_strategy"));
+                resolve->setCurrentIndex(resolve->findData(QStringLiteral("prefer_ipv6")));
+                defaultDomain->setCurrentIndex(defaultDomain->findData(QString()));
+                routing->accept();
+                settings->Save();
+                const Configs::SettingsRepo reloaded(Configs::dataManager->getDatabase());
+                const bool strategiesSaved = reloaded.resolve_domain_strategy == QStringLiteral("prefer_ipv6") &&
+                                             reloaded.default_domain_strategy.isEmpty();
+                settings->resolve_domain_strategy = originalResolve;
+                settings->default_domain_strategy = originalDefault;
+                settings->Save();
+                if (!strategiesSaved) {
+                    qWarning("Routing settings: translated labels must not become stored strategy values");
+                    qApp->exit(2);
+                    return;
+                }
                 if (ok)
                     CaptureUpstreamFeatures(parent, prefix);
                 else

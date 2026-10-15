@@ -41,7 +41,7 @@
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedTitleBar.h"
 #include "include/ui/widget/UpdateStatusWidget.h"
-#include "include/ui/widget/WindowNotices.h"
+#include "include/ui/widget/TestProgressWidget.h"
 #include "include/ui/widget/PendingRestartNotice.h"
 #include "include/ui/widget/HijackDeprecationNotice.h"
 #include "include/database/MarkersRepo.h"
@@ -896,7 +896,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     selectionLayout->addWidget(clearSelection);
     selectionCard->hide();
     updateStatusWidget = new UpdateStatusWidget(redesignedCentral);
-    InstallWindowNotices(updateStatusWidget, *Configs::dataManager->settingsRepo);
     pendingRestartNotice = new PendingRestartNotice(updateStatusWidget, [this, uiPreviewMode] {
         if (uiPreviewMode) return;
         const int startedID = Configs::dataManager->settingsRepo->started_id;
@@ -921,7 +920,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         startUpdateDownload(pendingUpdateDownloadUrl, pendingUpdateAssetName);
     });
     rootLayout->addWidget(body, 1);
+    testProgressWidget = new TestProgressWidget(redesignedCentral);
+    connect(testProgressWidget, &TestProgressWidget::stopRequested, this, [this, uiPreviewMode] {
+        if (!uiPreviewMode) ui->menu_stop_testing->trigger();
+    });
     rootLayout->addWidget(ui->data_view);
+    rootLayout->addWidget(testProgressWidget);
     rootLayout->addWidget(selectionCard);
     rootLayout->addWidget(updateStatusWidget);
     rootLayout->addWidget(statusCard);
@@ -1811,7 +1815,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 auto *connected = findChild<QFrame *>(QStringLiteral("statusCard"));
                 auto *selection = findChild<QFrame *>(QStringLiteral("selectionCard"));
                 auto *selectionText = findChild<QLabel *>(QStringLiteral("selectionText"));
-                if (!connected || !selection || !selectionText || ui->data_view->isVisible()) return;
+                if (!connected || !selection || !selectionText || ui->data_view->isVisible() || testProgressWidget->isVisible()) return;
                 selectionText->setText(tr("%n profiles selected", nullptr, selected));
                 selection->setVisible(selected > 1);
                 connected->setVisible(selected <= 1);

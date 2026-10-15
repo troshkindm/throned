@@ -4074,6 +4074,10 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
         <translation>粘贴一个 Throne 路由链接，一个 remoteRoute 链接，一个 base64 blob 或者一个 JSON 规则数组</translation>
     </message>
+    <message>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogRuntimeStats</name>
@@ -12649,6 +12653,41 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Technical Support: %1</source>
         <translation type="unfinished" />
+    </message>
+</context>
+<context>
+    <name>TestProgressWidget</name>
+    <message>
+        <source>Stop testing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stopping tests…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UDP latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Country test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speed test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 / %2 · %3%</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

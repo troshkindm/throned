@@ -33,6 +33,7 @@
 #include "include/ui/widget/ThronedTitleBar.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
 #include "include/ui/widget/UpdateStatusWidget.h"
+#include "include/ui/widget/TestProgressWidget.h"
 
 namespace {
 struct Allowance {
@@ -271,6 +272,8 @@ void MainWindow::setupSimpleMode() {
     root->addWidget(simpleModeContent, 1);
     full->removeWidget(ui->data_view);
     root->addWidget(ui->data_view);
+    full->removeWidget(testProgressWidget);
+    root->addWidget(testProgressWidget);
     simpleModeContent->hide();
     themeManager()->RegisterStyle(simpleModeContent, QStringLiteral(R"(
 QWidget#simpleMode { background: transparent; }

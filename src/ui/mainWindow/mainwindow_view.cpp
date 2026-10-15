@@ -41,18 +41,22 @@
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/StartStopButton.hpp"
+#include "include/ui/widget/TestProgressWidget.h"
 
 void MainWindow::UpdateDataView(bool force) {
     const auto now = QDateTime::currentMSecsSinceEpoch();
     if (!force && now - lastUpdatedMs.load() < 100) {
         return;
     }
-    auto html = dataViewHtmlGenerator_.buildHtml();
+    const auto testState = dataViewHtmlGenerator_.testPanelState();
+    const auto html = testState.visible ? QString() : dataViewHtmlGenerator_.buildHtml();
     runOnUiThread([=, this] {
+        testProgressWidget->setSnapshot(testState);
         ui->data_view->setHtml(html);
-        const bool hasTransientStatus = !html.trimmed().isEmpty();
-        ui->data_view->setFixedHeight(hasTransientStatus ? 72 : 0);
-        ui->data_view->setVisible(hasTransientStatus);
+        const bool hasLegacyStatus = !html.trimmed().isEmpty();
+        const bool hasTransientStatus = testState.visible || hasLegacyStatus;
+        ui->data_view->setFixedHeight(hasLegacyStatus ? 72 : 0);
+        ui->data_view->setVisible(hasLegacyStatus);
         const int selectionCount = ui->profilesTableView->selectionModel() ? ui->profilesTableView->selectionModel()->selectedRows().size() : 0;
         const bool hasBatchSelection = selectionCount > 1;
         if (auto *text = findChild<QLabel *>(QStringLiteral("selectionText")))

@@ -50,7 +50,6 @@ throned_add_qt_test(throned_window_notices_tests
         TIMEOUT 30
         SOURCES
             test_window_notices.cpp
-            ${PROJECT_SOURCE_DIR}/src/ui/widget/WindowNotices.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/PendingRestartNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/HijackDeprecationNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleModeNotice.cpp

@@ -851,7 +851,7 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
             auto *chip = new QFrame(chips);
             chip->setObjectName(QStringLiteral("simpleRouteChip"));
             auto *chipLayout = new QHBoxLayout(chip);
-            chipLayout->setContentsMargins(7, 2, 2, 2);
+            chipLayout->setContentsMargins(7, 2, 7, 2);
             chipLayout->setSpacing(2);
             const QString fullText = label(kind, value);
             auto *text = new QLabel(chip);
