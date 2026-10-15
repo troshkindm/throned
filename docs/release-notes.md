@@ -1,5 +1,8 @@
 # Localized release notes
 
+Write each release's body in the root `release.md` before tagging. The tag
+workflow publishes that file directly.
+
 GitHub keeps one release body, while Throned can show only the section that
 matches the interface language. Wrap each translation in invisible HTML
 comments; keep English first and put additional translations in ordinary
