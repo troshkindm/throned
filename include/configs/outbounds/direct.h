@@ -7,6 +7,8 @@ class direct : public outbound {
 public:
     QString DisplayType() override { return QObject::tr("Direct"); }
 
+    bool HasServerEndpoint() override { return false; }
+
     // Not a tunneling protocol, so a security verdict would only mislead.
     SecurityInfo GetSecurity() override { return {}; }
 

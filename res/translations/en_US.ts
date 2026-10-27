@@ -1184,4 +1184,99 @@
         <translation>Test error: %1</translation>
     </message>
 </context>
+<context>
+    <name>DialogManageRoutes</name>
+    <message numerus="yes">
+        <source>%n profile(s) were updated with warnings; see the details.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>DialogOtpManager</name>
+    <message numerus="yes">
+        <source>…and %n more</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>EditAutoSelector</name>
+    <message numerus="yes">
+        <source>%n tracked group(s) no longer exist and are ignored; saving removes them.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>EditChain</name>
+    <message numerus="yes">
+        <source>%n hop(s) no longer exist or cannot be hops, so they were left out; saving removes them.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>RawRouteItem</name>
+    <message numerus="yes">
+        <source>The route has %n schema problem(s), and the core will likely refuse to start with it. Save anyway?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>Validation</name>
+    <message numerus="yes">
+        <source>…and %n more</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) could not be saved to the database.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Imported %n profile(s).</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n could not be imported.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n imported with warnings.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>The link lists %n more server address(es); only the first one was imported.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
 </TS>

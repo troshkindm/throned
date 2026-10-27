@@ -65,7 +65,7 @@ int RunAdvancedRouteEditorPreview(QApplication &app) {
     profile->Rules += rule(QStringLiteral("Simple Address Proxy"), QJsonObject{
                                                                        {"domain", QJsonArray{"assistant.example", "gateway.example", "voice.example"}},
                                                                        {"domain_suffix", QJsonArray{"example.org", "example.net", "apis.example.com"}},
-                                                                       {"rule_set", QJsonArray{"geosite-example-ai", "geosite-example-chat", "geosite-example-code"}},
+                                                                       {"rule_set", QJsonArray{"geosite-anthropic", "geosite-google-gemini", "geosite-github-copilot"}},
                                                                        {"outbound", QStringLiteral("proxy")},
                                                                    });
     profile->Rules += rule(QStringLiteral("Simple Process Name Proxy"), QJsonObject{

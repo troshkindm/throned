@@ -3,9 +3,11 @@
 #include "Database.h"
 #include "include/database/entities/RouteProfile.h"
 #include <SQLiteCpp.h>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <map>
+#include <optional>
 #include <QString>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -18,6 +20,7 @@ private:
     Database& db;
     mutable std::mutex mutex;
     mutable std::map<int, std::weak_ptr<RouteProfile>> identityMap;
+    std::atomic<quint64> revision{0};
 
     QJsonObject routeRuleToJson(const RouteRule* rule) const;
 
@@ -61,6 +64,9 @@ public:
 
     std::shared_ptr<RouteProfile> GetRouteProfile(int id) const;
 
+    // Without loading the rules; nullopt when the profile follows the global DNS settings or does not exist.
+    std::optional<RouteDns> GetCustomDns(int id) const;
+
     void DeleteRouteProfile(int id);
 
     // Replaces the whole set.
@@ -72,5 +78,8 @@ public:
 
     // No-op unless id >= 0.
     bool Save(const std::shared_ptr<RouteProfile>& routeProfile);
+
+    // Any thread; moves with every write.
+    quint64 Revision() const { return revision.load(); }
 };
 } // namespace Configs

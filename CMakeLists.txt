@@ -130,6 +130,15 @@ qt_add_executable(Throned
         ${PROJECT_SOURCES}
 )
 
+option(THRONE_ENGINE_LINT "Check the engine/UI boundary on every build" ON)
+if (THRONE_ENGINE_LINT)
+    add_custom_target(engine_boundary
+            COMMAND ${CMAKE_COMMAND} -DROOT=${CMAKE_SOURCE_DIR} -P ${CMAKE_SOURCE_DIR}/cmake/EngineBoundary.cmake
+            COMMENT "Checking the engine/UI boundary"
+            VERBATIM)
+    add_dependencies(Throned engine_boundary)
+endif ()
+
 if (MSVC)
     target_compile_options(Throned PRIVATE /W3 /wd4996)
 endif ()
@@ -165,6 +174,9 @@ set(TS_FILES
 set(LUPDATE_OPTIONS
         -locations none -no-obsolete
 )
+# lupdate sees only the target's include paths; without the repo root it cannot resolve EngineTr.h, and files the
+# MainWindowTr::tr strings under a MainWindowTr context instead of MainWindow.
+target_include_directories(Throned PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 qt_add_lupdate(Throned TS_FILES ${TS_FILES} OPTIONS ${LUPDATE_OPTIONS})
 qt_add_lrelease(Throned TS_FILES ${TS_FILES} QM_FILES_OUTPUT_VARIABLE QM_FILES)
 

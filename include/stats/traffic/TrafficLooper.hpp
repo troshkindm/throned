@@ -3,11 +3,14 @@
 #include <QString>
 #include <QList>
 #include <QMutex>
+#include <QVector>
 
+#include <deque>
 #include <string>
 
 #include "include/database/entities/Profile.h"
 #include "include/configs/generate.h"
+#include "include/stats/traffic/TrafficLine.hpp"
 
 namespace Stats {
 struct TrafficLooperEntry {
@@ -40,9 +43,7 @@ struct TrafficLooperGroup {
     // watchTag as the core's stats-map key
     std::string watchTagKey;
     QList<std::shared_ptr<Configs::Profile>> profiles;
-    long long last_update = 0;
-    double uplink_rate = 0;
-    double downlink_rate = 0;
+    int line = 0;
     // Set when the group credited a non-zero delta since the last persist.
     bool dirty = false;
 };
@@ -56,6 +57,7 @@ public:
     std::shared_ptr<TrafficLooperEntry> proxy;
     std::shared_ptr<TrafficLooperEntry> direct;
 
+    // Caller holds loop_mutex.
     void UpdateAll();
 
     void Loop();
@@ -66,8 +68,19 @@ public:
     void SetChainGroups(const QList<Configs::TrafficChainGroup> &configGroups);
 
 private:
+    struct RateProbe {
+        qint64 durationMs = 0;
+        // [down, up] per line, the layout of TrafficSample::values.
+        QVector<qint64> bytes;
+    };
+
+    QVector<double> WindowRates() const;
+
     QList<TrafficLooperGroup> groups;
-    long long direct_last_update = 0;
+    QList<TrafficLine> lines;
+    QList<int> creditedIds;
+    std::deque<RateProbe> rateWindow;
+    qint64 lastProbeMs = 0;
 };
 
 extern TrafficLooper *trafficLooper;

@@ -10,6 +10,8 @@
 #include <utility>
 #include <type_traits>
 
+#include <QStringList>
+
 #include "include/global/Utils.hpp"
 
 namespace Configs {
@@ -69,6 +71,10 @@ DbError DescribeDbError(const std::exception& e);
 // Read-only, corrupt or not a database: the file itself is unusable and retrying cannot help.
 bool IsFatalDbError(const DbError& err);
 
+// An existing database file (or its -wal/-shm) this user cannot read and write: Unix access() fails with EACCES/EPERM;
+// Windows the read-only attribute or, with Qt >= 6.6, the NTFS ACL. A missing file is not denied.
+bool DbFilesDenied(const QString& dbFile);
+
 // Logs (rate-limited per query) and shows one passive notice per query per window; never blocks the caller.
 void NotifyError(const std::string& query, const DbError& err);
 
@@ -110,7 +116,7 @@ public:
 
     [[nodiscard]] const std::string& Path() const { return path_; }
 
-    // Transactions span the connection: hold this to write, or to read rows a writer may be replacing.
+    // Transactions span the connection: hold this to write, or to read rows a writer may be replacing. Take it after repo locks.
     std::recursive_mutex& WriteMutex() { return writeMutex_; }
 
 private:
@@ -243,7 +249,7 @@ public:
         }
     }
 
-    // BEGIN IMMEDIATE .. COMMIT; body returning false rolls back quietly, a throw rolls back and is reported as op.
+    // BEGIN IMMEDIATE .. COMMIT under WriteMutex(); body returning false rolls back quietly, a throw rolls back and is reported as op.
     bool transaction(const std::string& op, const std::function<bool()>& body);
 
     template<typename... Args>
@@ -270,6 +276,9 @@ public:
             NotifyError("execDeleteByIdIn for " + table, e);
         }
     }
+
+    // Throws instead of swallowing, so a caller's explicit transaction aborts as one unit.
+    void execDeleteByIdInThrow(const std::string& table, const std::string& idColumn, const std::vector<int>& ids);
 
     void execBatchSettingsReplace(const std::vector<std::pair<std::string, std::string>>& keyValues) {
         try {
@@ -310,10 +319,12 @@ public:
     void restoreFrom(const std::string& srcPath);
 
     // entity_ids is always retained so restored IDs stay consistent; caller must delete destPath first. Throws on failure.
-    void backupSelective(const std::string& destPath, const BackupParts& parts);
+    // excludedSettingKeys (DB key names) are left out of a settings backup.
+    void backupSelective(const std::string& destPath, const BackupParts& parts, const QStringList& excludedSettingKeys = {});
 
     // Only columns present in both schemas are copied, so cross-version backups still restore; a route rule with data
     // in a column this schema lacks is skipped instead. Returns the number of skipped route rules. Throws on failure.
-    int restoreSelective(const std::string& srcPath, const BackupParts& parts);
+    // preservedSettingKeys (DB key names) keep this database's values when settings are restored.
+    int restoreSelective(const std::string& srcPath, const BackupParts& parts, const QStringList& preservedSettingKeys = {});
 };
 } // namespace Configs

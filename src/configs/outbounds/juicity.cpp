@@ -32,6 +32,13 @@ bool juicity::ParseFromJson(const QJsonObject& object) {
     return true;
 }
 
+void juicity::Validate(Validation::Issues& issues) {
+    outbound::Validate(issues);
+    if (const auto message = Validation::Uuid(uuid); !message.isEmpty()) {
+        issues << Validation::Issue{Validation::Severity::Error, "uuid", message, {}};
+    }
+}
+
 QString juicity::ExportToLink() {
     QUrl url;
     QUrlQuery query;
@@ -62,10 +69,16 @@ QJsonObject juicity::ExportToJson() {
 BuildResult juicity::Build() {
     QJsonObject object;
     object["type"] = "juicity";
-    mergeJsonObjects(object, outbound::Build().object);
+    const auto base = outbound::Build();
+    if (!base.error.isEmpty()) return {{}, base.error};
+    mergeJsonObjects(object, base.object);
     if (!uuid.isEmpty()) object["uuid"] = uuid;
     if (!password.isEmpty()) object["password"] = password;
-    if (tls->enabled) object["tls"] = tls->Build().object;
+    if (tls->enabled) {
+        const auto tlsResult = tls->Build();
+        if (!tlsResult.error.isEmpty()) return {{}, tlsResult.error};
+        object["tls"] = tlsResult.object;
+    }
     return {object, ""};
 }
 

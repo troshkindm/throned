@@ -242,7 +242,7 @@ void JsonCodeEdit::paintGutter(QPaintEvent* event) {
 }
 
 void JsonCodeEdit::keyPressEvent(QKeyEvent* event) {
-    if (handleAutoEdit(event)) return;
+    if (!isReadOnly() && handleAutoEdit(event)) return;
     QPlainTextEdit::keyPressEvent(event);
 }
 

@@ -1,13 +1,25 @@
 #include "include/database/Database.h"
+#include "include/global/Const.hpp"
 #include "include/global/Logger.hpp"
+#include "include/global/Notice.hpp"
 #include <Backup.h>
 #include <sqlite3.h>
 #include <QDateTime>
+#include <QFile>
+#include <QFileInfo>
 #include <QObject>
 #include <algorithm>
+#include <chrono>
 #include <mutex>
+#include <optional>
 #include <set>
+#include <thread>
 #include <unordered_map>
+
+#ifdef Q_OS_UNIX
+#include <cerrno>
+#include <unistd.h>
+#endif
 
 namespace Configs {
 namespace {
@@ -24,6 +36,26 @@ struct DbErrorTally {
 
 std::mutex g_dbErrorMu;
 std::unordered_map<std::string, DbErrorTally> g_dbErrorTallies;
+
+constexpr auto DB_SNAPSHOT_BUSY_DEADLINE = std::chrono::seconds(10);
+
+// The step answers BUSY at once, skipping the busy handler, while the source connection is inside a write transaction.
+void databaseSnapshotStep(SQLite::Backup& backup, std::recursive_mutex& writeMutex) {
+    const auto deadline = std::chrono::steady_clock::now() + DB_SNAPSHOT_BUSY_DEADLINE;
+    for (int attempt = 0;; ++attempt) {
+        int rc;
+        {
+            std::lock_guard lock(writeMutex);
+            rc = backup.executeStep(-1);
+        }
+        if (rc == SQLITE_DONE) return;
+        if ((rc == SQLITE_BUSY || rc == SQLITE_LOCKED) && std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(std::min(20 + 10 * attempt, 50)));
+            continue;
+        }
+        throw SQLite::Exception(sqlite3_errstr(rc), rc);
+    }
+}
 } // namespace
 
 DbError DescribeDbError(const std::exception& e) {
@@ -41,6 +73,25 @@ bool IsFatalDbError(const DbError& err) {
     if (code < 0) return false;
     const int primary = code & 0xff;
     return primary == SQLITE_READONLY || primary == SQLITE_CORRUPT || primary == SQLITE_NOTADB;
+}
+
+// SQLite reports a file this user may neither read nor write as CANTOPEN; other causes (EMFILE, a late mount) can pass.
+bool DbFilesDenied(const QString& dbFile) {
+    if (!QFileInfo::exists(dbFile)) return false;
+    for (const QString& path: {dbFile, dbFile + QStringLiteral("-wal"), dbFile + QStringLiteral("-shm")}) {
+        if (!QFileInfo::exists(path)) continue;
+#ifdef Q_OS_UNIX
+        if (::access(QFile::encodeName(path).constData(), R_OK | W_OK) != 0 && (errno == EACCES || errno == EPERM)) return true;
+#else
+#if defined(Q_OS_WIN) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+        // Without it Qt reports only the read-only attribute, never the ACL.
+        const QNtfsPermissionCheckGuard ntfsCheck;
+#endif
+        const QFileInfo info(path);
+        if (!info.isReadable() || !info.isWritable()) return true;
+#endif
+    }
+    return false;
 }
 
 std::string DbRebuildMarkerPath(const std::string& dbPath) {
@@ -81,8 +132,8 @@ void NotifyError(const std::string& query, const DbError& err) {
         LOG_ERROR(line);
     }
     if (noticeIt) {
-        PostPassiveWarning(QObject::tr("Database error"),
-                           QObject::tr("%1 failed: %2. Details are in the log file.").arg(QString::fromStdString(key), detail));
+        PostNotice({NoticeLevel::Error, QObject::tr("Database error"),
+                    QObject::tr("%1 failed: %2. Details are in the log file.").arg(QString::fromStdString(key), detail)});
     }
 }
 
@@ -131,6 +182,7 @@ void Database::maybeVacuum() {
 }
 
 bool Database::transaction(const std::string& op, const std::function<bool()>& body) {
+    std::lock_guard lock(writeMutex_);
     try {
         db.exec("BEGIN IMMEDIATE");
     } catch (std::exception& e) {
@@ -173,6 +225,20 @@ void Database::execDeleteByIdInChunk(const std::string& table, const std::string
         maybeCheckpoint(static_cast<int>(ids.size()));
     } catch (std::exception& e) {
         NotifyError("execDeleteByIdIn for " + table, e);
+    }
+}
+
+void Database::execDeleteByIdInThrow(const std::string& table, const std::string& idColumn, const std::vector<int>& ids) {
+    for (size_t off = 0; off < ids.size(); off += BATCH_LIMIT_WRITE) {
+        const size_t end = std::min(off + BATCH_LIMIT_WRITE, ids.size());
+        std::string sql = "DELETE FROM " + table + " WHERE " + idColumn + " IN (";
+        for (size_t i = off; i < end; ++i) {
+            if (i > off) sql += ",";
+            sql += std::to_string(ids[i]);
+        }
+        sql += ")";
+        db.exec(sql);
+        maybeCheckpoint(static_cast<int>(end - off));
     }
 }
 
@@ -290,7 +356,7 @@ void Database::execBatchReplaceProfilesChunk(const std::vector<ProfileInsertRow>
 void Database::backupTo(const std::string& destPath) {
     SQLite::Database destDb(destPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     SQLite::Backup backup(destDb, db);
-    backup.executeStep(-1);
+    databaseSnapshotStep(backup, writeMutex_);
 }
 
 void Database::restoreFrom(const std::string& srcPath) {
@@ -340,7 +406,8 @@ std::string quoteIdent(const std::string& name) {
 
 // A route_rules row holding a value in a column this schema lacks (another app's condition) is skipped whole:
 // copied without it, the rule would match more. Returns the number of skipped rows.
-int copyTable(SQLite::Database& d, const std::string& table) {
+// Rows whose "key" column is one of keepKeys keep main's version on both sides of the copy.
+int copyTable(SQLite::Database& d, const std::string& table, const QStringList& keepKeys = {}) {
     if (!tableExists(d, "main", table) || !tableExists(d, "bak", table)) return 0;
 
     const auto mainCols = tableColumns(d, "main", table);
@@ -376,28 +443,68 @@ int copyTable(SQLite::Database& d, const std::string& table) {
     }
     if (colList.empty()) return 0;
 
-    d.exec("DELETE FROM main." + table);
-    d.exec("INSERT INTO main." + table + " (" + colList + ") SELECT " + selectList + " FROM bak." + table +
-           (keepRow.empty() ? "" : " WHERE " + keepRow));
+    std::string keepFilter;
+    for (qsizetype i = 0; i < keepKeys.size(); ++i) keepFilter += i == 0 ? "?" : ",?";
+    if (!keepFilter.empty()) keepFilter = "\"key\" NOT IN (" + keepFilter + ")";
+    const auto bindKeepKeys = [&keepKeys](SQLite::Statement& statement) {
+        for (qsizetype i = 0; i < keepKeys.size(); ++i) statement.bind(static_cast<int>(i + 1), keepKeys[i].toStdString());
+    };
+    std::string where = keepRow;
+    if (!keepFilter.empty()) where = where.empty() ? keepFilter : "(" + where + ") AND " + keepFilter;
+
+    SQLite::Statement wipe(d, "DELETE FROM main." + table + (keepFilter.empty() ? "" : " WHERE " + keepFilter));
+    bindKeepKeys(wipe);
+    wipe.exec();
+    SQLite::Statement copy(d, "INSERT INTO main." + table + " (" + colList + ") SELECT " + selectList + " FROM bak." +
+                                  table + (where.empty() ? "" : " WHERE " + where));
+    bindKeepKeys(copy);
+    copy.exec();
     return skipped;
+}
+
+// The id a main.settings row holds, read as SettingsRepo reads it; nullopt when the row is missing.
+std::optional<int> databaseSettingId(SQLite::Database& d, const char* key) {
+    SQLite::Statement q(d, "SELECT value FROM main.settings WHERE key = ?");
+    q.bind(1, key);
+    if (!q.executeStep()) return std::nullopt;
+    return QString::fromStdString(q.getColumn(0).getText()).toInt();
+}
+
+void databaseSetSettingId(SQLite::Database& d, const char* key, int id) {
+    SQLite::Statement q(d, "INSERT OR REPLACE INTO main.settings (key, value) VALUES (?, ?)");
+    q.bind(1, key);
+    q.bind(2, std::to_string(id));
+    q.exec();
+}
+
+bool databaseIdExists(SQLite::Database& d, const std::string& table, int id) {
+    SQLite::Statement q(d, "SELECT 1 FROM main." + table + " WHERE id = ?");
+    q.bind(1, id);
+    return q.executeStep();
+}
+
+std::optional<int> databaseFirstId(SQLite::Database& d, const std::string& sql) {
+    SQLite::Statement q(d, sql);
+    if (!q.executeStep() || q.getColumn(0).isNull()) return std::nullopt;
+    return q.getColumn(0).getInt();
 }
 } // namespace
 
-void Database::backupSelective(const std::string& destPath, const BackupParts& parts) {
+void Database::backupSelective(const std::string& destPath, const BackupParts& parts, const QStringList& excludedSettingKeys) {
     // Full snapshot first (WAL-safe, unlike a file copy), then strip the unselected categories.
     {
         SQLite::Database destDb(destPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
         SQLite::Backup backup(destDb, db);
-        backup.executeStep(-1);
+        databaseSnapshotStep(backup, writeMutex_);
     }
 
     SQLite::Database dest(destPath, SQLite::OPEN_READWRITE);
+    // Freed pages are zeroed, so a part left out is not shipped in free pages even when the VACUUM below fails.
+    dest.exec("PRAGMA secure_delete = ON");
+    // A failed wipe throws: the archive must never carry a part that was meant to be left out.
     auto wipe = [&](const std::vector<std::string>& tables) {
         for (const auto& t: tables) {
-            try {
-                if (tableExists(dest, "main", t)) dest.exec("DELETE FROM " + t);
-            } catch (...) {
-            }
+            if (tableExists(dest, "main", t)) dest.exec("DELETE FROM " + t);
         }
     };
     if (!parts.profiles) wipe(kProfileTables);
@@ -405,15 +512,23 @@ void Database::backupSelective(const std::string& destPath, const BackupParts& p
     if (!parts.settings) wipe(kSettingsTables);
     if (!parts.otp) wipe(kOtpTables);
     if (!parts.ipLists) wipe(kIpListTables);
+    if (parts.settings && !excludedSettingKeys.isEmpty() && tableExists(dest, "main", "settings")) {
+        std::string placeholders;
+        for (qsizetype i = 0; i < excludedSettingKeys.size(); ++i) placeholders += i == 0 ? "?" : ",?";
+        SQLite::Statement strip(dest, "DELETE FROM settings WHERE \"key\" IN (" + placeholders + ")");
+        for (qsizetype i = 0; i < excludedSettingKeys.size(); ++i) strip.bind(static_cast<int>(i + 1), excludedSettingKeys[i].toStdString());
+        strip.exec();
+    }
     try {
         dest.exec("VACUUM");
     } catch (...) {
     }
 }
 
-int Database::restoreSelective(const std::string& srcPath, const BackupParts& parts) {
+int Database::restoreSelective(const std::string& srcPath, const BackupParts& parts, const QStringList& preservedSettingKeys) {
     if (!parts.anyDb()) return 0;
 
+    std::unique_lock writeLock(writeMutex_);
     {
         SQLite::Statement attach(db, "ATTACH DATABASE ? AS bak");
         attach.bind(1, srcPath);
@@ -421,17 +536,37 @@ int Database::restoreSelective(const std::string& srcPath, const BackupParts& pa
     }
 
     int skippedRules = 0;
+    bool begun = false;
     try {
         // foreign_keys must be toggled outside a transaction to take effect.
         db.exec("PRAGMA foreign_keys = OFF");
         db.exec("BEGIN IMMEDIATE");
+        begun = true;
+
+        // copyTable leaves a table alone when either side lacks it.
+        const auto replaces = [&](bool part, const std::string& table) {
+            return part && tableExists(db, "main", table) && tableExists(db, "bak", table);
+        };
+        const bool profilesReplaced = replaces(parts.profiles, "profiles");
+        const bool groupsReplaced = replaces(parts.profiles, "groups");
+        const bool routesReplaced = replaces(parts.routes, "route_profiles");
+        const bool settingsReplaced = replaces(parts.settings, "settings");
+
+        // An id whose table stays this host's keeps this host's value: the backup's would name an unrelated row.
+        QStringList settingKeepKeys = preservedSettingKeys;
+        const auto keepHostId = [&settingKeepKeys](bool tableReplaced, const QString& key) {
+            if (!tableReplaced && !settingKeepKeys.contains(key)) settingKeepKeys << key;
+        };
+        keepHostId(profilesReplaced, QStringLiteral("remember_id"));
+        keepHostId(groupsReplaced, QStringLiteral("current_group"));
+        keepHostId(routesReplaced, QStringLiteral("current_route_id"));
 
         if (parts.profiles)
             for (const auto& t: kProfileTables) copyTable(db, t);
         if (parts.routes)
             for (const auto& t: kRouteTables) skippedRules += copyTable(db, t);
         if (parts.settings) {
-            for (const auto& t: kSettingsTables) copyTable(db, t);
+            for (const auto& t: kSettingsTables) copyTable(db, t, t == "settings" ? settingKeepKeys : QStringList{});
             // Settings saved before the markers table existed have been through no migration yet.
             if (!tableExists(db, "bak", "markers") && tableExists(db, "main", "markers"))
                 db.exec("DELETE FROM main.markers");
@@ -440,6 +575,33 @@ int Database::restoreSelective(const std::string& srcPath, const BackupParts& pa
             for (const auto& t: kOtpTables) copyTable(db, t);
         if (parts.ipLists)
             for (const auto& t: kIpListTables) copyTable(db, t);
+
+        // A settings id must resolve; one that did not come with its replaced table names an unrelated row.
+        if (tableExists(db, "main", "settings")) {
+            const auto keptHere = [&](const QString& key) {
+                return !settingsReplaced || settingKeepKeys.contains(key);
+            };
+            if (const auto rememberId = databaseSettingId(db, "remember_id"); rememberId && *rememberId >= 0) {
+                if ((profilesReplaced && keptHere("remember_id")) || !databaseIdExists(db, "profiles", *rememberId))
+                    databaseSetSettingId(db, "remember_id", NoProfileId);
+            }
+            // Missing rows are written too: SettingsRepo would load hard defaults that need not resolve.
+            const auto currentGroup = databaseSettingId(db, "current_group");
+            const bool groupStale = groupsReplaced && keptHere("current_group");
+            if (!currentGroup || groupStale || !databaseIdExists(db, "groups", *currentGroup)) {
+                auto first = databaseFirstId(db,
+                                             "SELECT o.group_id FROM main.groups_order o "
+                                             "JOIN main.groups g ON g.id = o.group_id ORDER BY o.display_order LIMIT 1");
+                if (!first) first = databaseFirstId(db, "SELECT MIN(id) FROM main.groups");
+                if (first && first != currentGroup) databaseSetSettingId(db, "current_group", *first);
+            }
+            const auto currentRoute = databaseSettingId(db, "current_route_id");
+            const bool routeStale = routesReplaced && keptHere("current_route_id");
+            if (!currentRoute || routeStale || !databaseIdExists(db, "route_profiles", *currentRoute)) {
+                const auto lowest = databaseFirstId(db, "SELECT MIN(id) FROM main.route_profiles");
+                if (lowest && lowest != currentRoute) databaseSetSettingId(db, "current_route_id", *lowest);
+            }
+        }
 
         // Keep the ID counters ahead of restored data so newly created IDs never collide.
         if (parts.profiles || parts.routes) {
@@ -482,9 +644,11 @@ int Database::restoreSelective(const std::string& srcPath, const BackupParts& pa
 
         db.exec("COMMIT");
     } catch (...) {
-        try {
-            db.exec("ROLLBACK");
-        } catch (...) {
+        if (begun) {
+            try {
+                db.exec("ROLLBACK");
+            } catch (...) {
+            }
         }
         try {
             db.exec("PRAGMA foreign_keys = ON");
@@ -499,6 +663,7 @@ int Database::restoreSelective(const std::string& srcPath, const BackupParts& pa
 
     db.exec("PRAGMA foreign_keys = ON");
     db.exec("DETACH DATABASE bak");
+    writeLock.unlock();
     checkpointWal();
     return skippedRules;
 }

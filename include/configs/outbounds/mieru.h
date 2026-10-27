@@ -5,6 +5,14 @@ namespace Configs {
 inline QStringList mieruTransports = {"TCP", "UDP"};
 inline QStringList mieruMultiplexing = {"", "MULTIPLEXING_OFF", "MULTIPLEXING_LOW", "MULTIPLEXING_MIDDLE", "MULTIPLEXING_HIGH"};
 
+namespace Checks {
+// The core reads each range with Sscanf("%d-%d"), so a single port must be written n-n.
+QString MieruServerPorts(const QString& ports);
+
+// The core decodes it as padded standard base64.
+QString MieruTrafficPattern(const QString& pattern);
+} // namespace Checks
+
 class mieru : public outbound {
 public:
     QString transport = "TCP";
@@ -24,5 +32,8 @@ public:
 
     QString DisplayType() override;
     SecurityInfo GetSecurity() override;
+
+    bool ServerPortOptional() override;
+    void Validate(Validation::Issues& issues) override;
 };
 } // namespace Configs

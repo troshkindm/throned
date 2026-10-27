@@ -10,13 +10,13 @@
 namespace {
 constexpr int kNameColumn = 0;
 
-QString cellText(const TestRunner::SiteVerdict &verdict) {
+QString cellText(const Engine::TestRunner::SiteVerdict &verdict) {
     if (verdict.served()) return SiteReachabilityDialog::tr("%1 ms").arg(verdict.latencyMs);
     if (verdict.reached()) return QString::number(verdict.status);
     return QStringLiteral("—");
 }
 
-QColor cellColor(const TestRunner::SiteVerdict &verdict) {
+QColor cellColor(const Engine::TestRunner::SiteVerdict &verdict) {
     const auto colors = themeManager()->Colors();
     if (verdict.served()) return colors.success;
     // Answered but refused: reached the service, and the service said no.
@@ -24,7 +24,7 @@ QColor cellColor(const TestRunner::SiteVerdict &verdict) {
     return colors.textSubtle;
 }
 
-QString cellTip(const TestRunner::SiteVerdict &verdict) {
+QString cellTip(const Engine::TestRunner::SiteVerdict &verdict) {
     if (verdict.served()) return SiteReachabilityDialog::tr("Answered %1 in %2 ms")
         .arg(verdict.status)
         .arg(verdict.latencyMs);
@@ -100,7 +100,7 @@ void SiteReachabilityDialog::beginRun(const QList<QPair<int, QString>> &profiles
     m_status->setText(tr("Checking %n profile(s)…", "", profiles.size()));
 }
 
-void SiteReachabilityDialog::applyReport(const TestRunner::SiteReport &report) {
+void SiteReachabilityDialog::applyReport(const Engine::TestRunner::SiteReport &report) {
     int reported = 0;
     int failed = 0;
     int skipped = 0;
@@ -147,7 +147,7 @@ void SiteReachabilityDialog::applyReport(const TestRunner::SiteReport &report) {
     resize(qMax(width(), resultWidth + 180 + 2 * m_table->frameWidth() + layout()->contentsMargins().left() + layout()->contentsMargins().right()), height());
 }
 
-void SiteReachabilityDialog::fillRow(int row, const QList<TestRunner::SiteVerdict> &verdicts) {
+void SiteReachabilityDialog::fillRow(int row, const QList<Engine::TestRunner::SiteVerdict> &verdicts) {
     for (int i = 0; i < verdicts.size() && i + 1 < m_table->columnCount(); i++) {
         auto *cell = m_table->item(row, i + 1);
         if (cell == nullptr) continue;

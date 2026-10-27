@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 #include "profile_editor.h"
 #include "include/ui/profile/edit_wireguard_amnezia.h"
@@ -23,8 +24,11 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditWireguard *ui;
     std::shared_ptr<Configs::Profile> ent;
     WireguardAmneziaOptions amneziaOptions;
+    QPointer<Validation::Form> form;
 };

@@ -264,7 +264,16 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     RefreshRegisteredStyles();
     const ThronedSkin *skin = Skin();
     ThronedChrome::setBackdrop(skin != nullptr ? skin->backdrop : QString());
+    standardIcons.clear();
+    // Loaded with the restyle, so the next dialog's validation marks don't pay for them.
+    for (const auto pixmap: {QStyle::SP_MessageBoxCritical, QStyle::SP_MessageBoxWarning}) standardIcon(pixmap);
     emit themeChanged(theme);
+}
+
+QIcon ThemeManager::standardIcon(QStyle::StandardPixmap pixmap) {
+    auto it = standardIcons.constFind(pixmap);
+    if (it == standardIcons.constEnd()) it = standardIcons.insert(pixmap, QApplication::style()->standardIcon(pixmap));
+    return *it;
 }
 
 void ThemeManager::LoadSkins() {

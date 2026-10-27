@@ -13,6 +13,8 @@
 namespace Configs {
 std::shared_ptr<Profile> ProfilesRepo::GetProfile(int) const { return nullptr; }
 } // namespace Configs
+// The missing-outbound path logs; nothing here reaches it.
+void MW_show_log(const QString &) {}
 
 using namespace Configs;
 using namespace Configs::AppRoutes;

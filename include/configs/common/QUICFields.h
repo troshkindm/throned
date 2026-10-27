@@ -1,7 +1,13 @@
 #pragma once
 #include "include/configs/baseConfig.h"
+#include "include/global/Validation.hpp"
 
 namespace Configs {
+namespace Checks {
+// quic-go silently clamps any other size into 1200..1452.
+QString QuicInitialPacketSize(const QString& text);
+} // namespace Checks
+
 // Built flat into the hysteria/tuic outbounds, not as a nested object; empty / 0 means "no override".
 class QUICFields : public baseConfig {
 public:
@@ -30,5 +36,7 @@ public:
     QString ExportToLink() override;
     QJsonObject ExportToJson() override;
     BuildResult Build() override;
+
+    void Validate(Validation::Issues& issues);
 };
 } // namespace Configs

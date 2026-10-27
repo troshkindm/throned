@@ -273,11 +273,11 @@ QString Client::Start(bool *rpcOK, const libcore::LoadConfigReq &request) {
     }
 }
 
-QString Client::Stop(bool *rpcOK) {
+QString Client::Stop(bool *rpcOK, int timeoutMs) {
     libcore::EmptyReq request;
     libcore::ErrorResp reply;
     std::vector<uint8_t> resp;
-    auto status = channel->Call("Stop", spb::pb::serialize<std::string>(request), resp);
+    auto status = channel->Call("Stop", spb::pb::serialize<std::string>(request), resp, timeoutMs);
 
     if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
         *rpcOK = true;
@@ -686,18 +686,28 @@ QString Client::CheckConfig(bool *rpcOK, const QString &config, bool isXray) con
     }
 }
 
-bool Client::IsPrivileged(bool *rpcOK) const {
+bool Client::IsPrivileged(bool *rpcOK, int timeoutMs) const {
+    return Privileges(rpcOK, timeoutMs).privileged;
+}
+
+PrivilegeInfo Client::Privileges(bool *rpcOK, int timeoutMs) const {
     libcore::EmptyReq request;
     libcore::IsPrivilegedResponse reply;
     std::vector<uint8_t> resp;
-    auto status = channel->Call("IsPrivileged", spb::pb::serialize<std::string>(request), resp);
+    auto status = channel->Call("IsPrivileged", spb::pb::serialize<std::string>(request), resp, timeoutMs);
 
     if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
         *rpcOK = true;
-        return reply.has_privilege.value();
+        PrivilegeInfo info;
+        info.privileged = reply.has_privilege.value_or(false);
+        info.tunDevice = reply.tun_device;
+        info.netAdmin = reply.net_admin;
+        info.killSwitch = reply.kill_switch_privilege;
+        if (reply.detail) info.detail = QString::fromStdString(*reply.detail);
+        return info;
     } else {
         NOT_OK
-        return false;
+        return {};
     }
 }
 
@@ -950,6 +960,28 @@ QString Client::ParseRuleSet(bool *rpcOK, const QByteArray &content, QStringList
         if (status != LocalSocketChannel::CallOK && !resp.empty())
             return QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
         return "IPC error";
+    }
+}
+
+libcore::ResolveDomainsResponse Client::ResolveDomains(bool *rpcOK, const QStringList &domains, const QString &config,
+                                                       QString *coreError) const {
+    libcore::ResolveDomainsRequest request;
+    for (const auto &domain: domains) request.domains.push_back(domain.toStdString());
+    request.config = config.toStdString();
+    libcore::ResolveDomainsResponse reply;
+    std::vector<uint8_t> resp;
+    // The core may start a probe box first, then runs 16 lookups at a time with 5 s each.
+    const int timeoutMs = 30000 + static_cast<int>((domains.size() + 15) / 16) * 5000;
+    auto status = channel->Call("ResolveDomains", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+    if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+        *rpcOK = true;
+        return reply;
+    } else {
+        if (coreError && !resp.empty())
+            *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+        NOT_OK
+        return {};
     }
 }
 

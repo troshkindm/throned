@@ -2,7 +2,7 @@
 
 #include <QDialog>
 
-#include "include/ui/mainWindow/TestRunner.h"
+#include "include/engine/tests/TestRunner.h"
 
 class QLabel;
 class QTableWidget;
@@ -18,10 +18,10 @@ public:
     // Rows appear as soon as the test starts so the dialog is never an empty box.
     void beginRun(const QList<QPair<int, QString>> &profiles, const QStringList &sites);
 
-    void applyReport(const TestRunner::SiteReport &report);
+    void applyReport(const Engine::TestRunner::SiteReport &report);
 
 private:
-    void fillRow(int row, const QList<TestRunner::SiteVerdict> &verdicts);
+    void fillRow(int row, const QList<Engine::TestRunner::SiteVerdict> &verdicts);
 
     QTableWidget *m_table = nullptr;
     QLabel *m_status = nullptr;

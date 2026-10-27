@@ -25,6 +25,8 @@ public:
         return tls;
     }
 
+    void Validate(Validation::Issues& issues) override;
+
     bool ParseFromLink(const QString& link) override;
     bool ParseFromJson(const QJsonObject& object) override;
     QString ExportToLink() override;

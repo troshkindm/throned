@@ -38,20 +38,46 @@ Read the upstream diff itself before merging it. Several upstream changes are
 alternative solutions to problems this fork already solved differently, and
 taking one silently reverts work here.
 
+When a batch contains a structural commit — one that moves code into new
+directories — merge in steps: up to its parent, then that commit alone, then the
+rest. Each merge commit then resolves one kind of conflict, and a trial merge in
+a scratch `git worktree` measures each step before you commit to it.
+
 ## The conflicts this repository always produces
 
 **Formatting.** Every first-party file was reformatted in one commit, and
-upstream still carries the old layout. Git will report conflicts that carry no
-meaning at all. Suppress them, then re-apply the project style:
+upstream still carries the old layout. `-X ignore-all-space` alone is not
+enough: the reformat also moved braces and rewrapped lines, which a
+whitespace-blind diff still sees as edits. Run base, ours and theirs through the
+project's clang-format *before* the three-way merge — `-X renormalize` with a
+clean filter that exists only for this one command:
 
 ```sh
-git merge -X ignore-all-space upstream/dev
-./script/format_cpp.sh
+cf=$(command -v clang-format)    # must be the version CI pins
+attrs=$(mktemp)
+printf '%s filter=cf\n' '*.c' '*.cc' '*.cpp' '*.h' '*.hpp' > "$attrs"
+printf '%s -filter\n' '3rdparty/**' 'core/gen/**' >> "$attrs"
+git -c core.attributesFile="$attrs" \
+    -c filter.cf.clean="$cf --style=file:$PWD/.clang-format --assume-filename=%f" \
+    merge -X renormalize -X ignore-all-space upstream/dev
 ```
 
-`-X ignore-all-space` removes most of it, not all: a hunk where upstream changed
-code *and* indentation still conflicts, and there the whitespace is noise around
-a real change. Resolve on the code.
+On the October 2026 merge this halved the job: 174 conflicted files became 82,
+507 hunks became 266.
+
+- The clang-format version must be the one `throned-windows.yml` pins
+  (`pip install clang-format==<that version>` into a venv). With another major
+  the filter reports committed files as modified and the merge refuses to start.
+- The filter lives on that command only, so resolving and `git add` afterwards
+  see plain files. Run `./script/format_cpp.sh` once everything is resolved:
+  files only upstream added are not renormalized.
+- What still conflicts is a real overlap, sometimes with whitespace noise around
+  it. Resolve on the code.
+
+**Moved files.** When upstream deletes or moves a file this fork edited, git
+reports modify/delete and keeps our copy where it was. The fork's edits have to
+be ported by hand into wherever upstream put that code; diff the file
+`$base..HEAD -w` to see exactly what they were.
 
 **Theming.** This fork's theming (`ThronedPalette.hpp`, its own `ThemeManager`
 with `Colors()`, `RegisterStyle()`, `RefreshRegisteredStyles()`) and upstream's
@@ -78,6 +104,39 @@ dynamic-property swaps in `GroupItem.ui` and `ProxyItem.ui` are **not**: the
 property is inert without their stylesheet, so taking it silently removes
 colour. Also watch for two `setCornerWidget` calls fighting over
 `stats_widget`'s top-right corner.
+
+**Standing decisions.** Where upstream and this fork solved the same problem,
+these sides were chosen on the October 2026 catch-up; keep them unless the user
+says otherwise.
+
+- Startup is upstream's `Bootstrap`/`GuiStartup`/`InstanceServer`. The fork adds
+  the preview modes, `--cli` (`src/control/ControlClient.cpp`) and JSON control
+  lines on a user-only instance socket (`GuiStartup::HandleLaunchLine`).
+- The fork's updater, `ThroughputChart`, header sort arrows, settings dialog
+  `.ui` and routing editor stay. Upstream features inside them are ported by
+  hand: new settings widgets are copied into the fork's `.ui`, the routing editor
+  took the rule on/off switch, the DNS tab and the shared outbound model.
+  `dialog_update`, `CHANGELOG.md` and `LiveChart` are not taken.
+- "Simple" belongs to the fork's simple mode (`simple_mode`, `setSimpleMode`);
+  upstream's hide-advanced mode is `simple_interface`/`setSimpleInterface` here.
+- A server routing target (`SimpleTarget` with `serverID`) is stored in the
+  fork's via-profile bucket, which the Basic tab edits.
+- Packaging is the fork's: upstream's headless units, `thronectl`, AUR, Docker
+  and Android CI are not shipped. `engine_boundary` has no E4, because sources
+  are globbed here.
+- Strings upstream adds say `Throned`, binaries `ThronedCore`; the legacy
+  `Throne/config` path and links to upstream keep the old name.
+- When both sides add table columns, recount every `getColumn(N)` in the
+  repositories' row readers; the merge keeps both and the indexes go stale
+  silently.
+
+**Translations.** Merge `.ts` files message by message, never as text: keep our
+file as the skeleton, take upstream's translation only where ours still equals
+the base, add messages that are new upstream. Do not keep `lupdate`'s rewrite.
+Instead run it once on a scratch copy over the merged code, and once over the
+pre-merge code. Drop merged-in messages the code no longer uses. Add strings new
+to the code to `ru_RU`, `zh_CN` and `fa_IR` as unfinished. Then
+`./script/check_translations.sh` decides what else needs filling.
 
 ## Verify
 

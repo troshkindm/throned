@@ -26,7 +26,7 @@ private slots:
     void coreFailureEndsWaiting() {
         SiteReachabilityDialog dialog;
         dialog.beginRun({{1, "Profile"}}, {"Google"});
-        TestRunner::SiteReport report;
+        Engine::TestRunner::SiteReport report;
         report.errors.insert(1, "unknown method: SiteTest");
         dialog.applyReport(report);
         const auto *table = dialog.findChild<QTableWidget *>();
@@ -37,7 +37,7 @@ private slots:
     void missingResultsAndSelectorsEndWaiting() {
         SiteReachabilityDialog dialog;
         dialog.beginRun({{1, "Missing"}, {2, "Auto"}}, {"Google"});
-        TestRunner::SiteReport report;
+        Engine::TestRunner::SiteReport report;
         report.skipped << 2;
         dialog.applyReport(report);
         const auto *table = dialog.findChild<QTableWidget *>();
@@ -48,7 +48,7 @@ private slots:
     void httpFailuresRemainDistinctFromTestFailures() {
         SiteReachabilityDialog dialog;
         dialog.beginRun({{1, "Profile"}}, {"Available", "Denied", "Silent"});
-        TestRunner::SiteReport report;
+        Engine::TestRunner::SiteReport report;
         report.rows.insert(1, {{204, 12, {}}, {403, 15, {}}, {0, 0, "timeout"}});
         dialog.applyReport(report);
         const auto *table = dialog.findChild<QTableWidget *>();
@@ -61,7 +61,7 @@ private slots:
     void cancellationExplainsMissingRows() {
         SiteReachabilityDialog dialog;
         dialog.beginRun({{1, "Profile"}}, {"Google"});
-        TestRunner::SiteReport report;
+        Engine::TestRunner::SiteReport report;
         report.error = "Test cancelled.";
         dialog.applyReport(report);
         const auto *table = dialog.findChild<QTableWidget *>();

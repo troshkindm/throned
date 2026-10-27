@@ -8,6 +8,11 @@ inline QStringList snellObfsModes = {"", "none", "http", "tls"};
 inline QStringList snellV6Modes = {"", "default", "unshaped", "unsafe-raw"};
 inline QStringList snellNetworks = {"", "tcp", "udp"};
 
+namespace Checks {
+// The core counts the user key in UTF-8 bytes.
+QString SnellUserKey(const QString& userkey);
+} // namespace Checks
+
 class snell : public outbound {
 public:
     int version = 4;
@@ -30,5 +35,7 @@ public:
 
     QString DisplayType() override;
     SecurityInfo GetSecurity() override;
+
+    void Validate(Validation::Issues& issues) override;
 };
 } // namespace Configs

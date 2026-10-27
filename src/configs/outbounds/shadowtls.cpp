@@ -1,19 +1,39 @@
 #include "include/configs/outbounds/shadowtls.h"
 
+#include <QCoreApplication>
 #include <QUrlQuery>
 #include <include/global/Utils.hpp>
 
+#include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/utils.h"
 
 namespace Configs {
+namespace {
+QString shadowTlsVersionMessage() {
+    return QCoreApplication::translate("Validation", "The version must be 1, 2 or 3.");
+}
+} // namespace
+
+namespace Checks {
+QString ShadowTlsPassword(int version, const QString& password) {
+    if (version < 2 || !password.isEmpty()) return {};
+    return QCoreApplication::translate("Validation", "ShadowTLS v2 and v3 need the password set on the server.");
+}
+} // namespace Checks
+
 bool shadowtls::ParseFromLink(const QString& link) {
     auto url = QUrl(link);
     if (!url.isValid()) return false;
     auto query = QUrlQuery(url.query());
 
     outbound::ParseFromLink(link);
-    if (query.hasQueryItem("version")) {
-        version = query.queryItemValue("version").toInt();
+    if (const auto raw = query.queryItemValue("version").trimmed(); !raw.isEmpty()) {
+        const auto parsed = Validation::ToInt(raw);
+        if (!parsed || *parsed < 0 || *parsed > 3) {
+            ParseDiag::Error("version", shadowTlsVersionMessage(), raw);
+            return false;
+        }
+        version = int(*parsed);
     }
     password = url.password();
 
@@ -28,7 +48,7 @@ bool shadowtls::ParseFromLink(const QString& link) {
 bool shadowtls::ParseFromJson(const QJsonObject& object) {
     if (object.isEmpty() || object["type"].toString() != "shadowtls") return false;
     outbound::ParseFromJson(object);
-    if (object.contains("version")) version = object["version"].toInt();
+    if (object.contains("version")) version = object["version"].toVariant().toInt();
     if (object.contains("password")) password = object["password"].toString();
     if (object.contains("tls")) tls->ParseFromJson(object["tls"].toObject());
     return true;
@@ -71,14 +91,30 @@ QJsonObject shadowtls::ExportIdentity() {
 BuildResult shadowtls::Build() {
     QJsonObject object;
     object["type"] = "shadowtls";
-    mergeJsonObjects(object, outbound::Build().object);
+    const auto base = outbound::Build();
+    if (!base.error.isEmpty()) return {{}, base.error};
+    mergeJsonObjects(object, base.object);
     object["version"] = version;
     if (version > 1 && !password.isEmpty()) object["password"] = password;
-    if (tls->enabled) object["tls"] = tls->Build().object;
+    if (tls->enabled) {
+        const auto tlsResult = tls->Build();
+        if (!tlsResult.error.isEmpty()) return {{}, tlsResult.error};
+        object["tls"] = tlsResult.object;
+    }
     return {object, ""};
 }
 
 QString shadowtls::DisplayType() {
     return "ShadowTLS";
+}
+
+void shadowtls::Validate(Validation::Issues& issues) {
+    outbound::Validate(issues);
+    using Validation::Severity;
+    if (version < 0 || version > 3) {
+        issues.append({Severity::Error, "version", shadowTlsVersionMessage(), QString::number(version)});
+    } else if (auto message = Checks::ShadowTlsPassword(version, password); !message.isEmpty()) {
+        issues.append({Severity::Error, "password", message});
+    }
 }
 } // namespace Configs

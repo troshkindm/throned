@@ -5,6 +5,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/RouteProfileSimpleEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/FlowLayout.h"
@@ -26,6 +27,7 @@
 #include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QListView>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPlainTextEdit>
@@ -34,6 +36,7 @@
 #include <QSet>
 #include <QSizePolicy>
 #include <QStackedWidget>
+#include <QStandardItemModel>
 #include <QGridLayout>
 #include <QFrame>
 #include <QJsonDocument>
@@ -152,16 +155,26 @@ QString actionFilterTitle(int action) {
 
 } // namespace
 
+static bool routeItemIsEndpointRule(const std::shared_ptr<Configs::RouteRule> &rule);
+
+static void routeItemShowDisabled(QListWidgetItem *row, bool disabled) {
+    // Cleared rather than set to an empty brush, which the delegate would paint the text with.
+    row->setData(Qt::ForegroundRole, disabled ? QVariant(QBrush(themeManager()->Colors().textMuted)) : QVariant());
+    row->setToolTip(disabled ? RouteItem::tr("Disabled: kept in the profile but left out of the generated config.") : QString());
+}
+
 void adjustComboBoxWidth(const QComboBox *comboBox) {
     int maxWidth = 0;
+    const QFontMetrics fontMetrics(comboBox->font());
 
     for (int i = 0; i < comboBox->count(); ++i) {
-        QFontMetrics fontMetrics(comboBox->font());
         int itemWidth = fontMetrics.horizontalAdvance(comboBox->itemText(i));
         maxWidth = qMax(maxWidth, itemWidth);
     }
 
     maxWidth += 30;
+    if (const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen())
+        maxWidth = qMin(maxWidth, scr->availableGeometry().width() * 2 / 3);
     comboBox->view()->setMinimumWidth(maxWidth);
 }
 
@@ -228,6 +241,12 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
             outbounds << QString("[" + group->name + "] ") + idToName[profileID];
         }
     }
+    outboundsModel = new QStandardItemModel(this);
+    for (int i = 0; i < outbounds.size(); ++i) {
+        auto *item = new QStandardItem(outbounds[i]);
+        item->setData(outboundMap[i], Qt::UserRole);
+        outboundsModel->appendRow(item);
+    }
 
     for (const auto &item: ruleSetList) {
         geo_items.append(QString::fromUtf8(item.first.data(), item.first.size()));
@@ -236,6 +255,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->route_name->setText(chain->name);
     ui->rule_preview->setReadOnly(true);
     ui->rule_attr_tabs->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    // macOS styles prefer no scroll arrows, so many attribute tabs would otherwise widen the dialog.
+    ui->rule_attr_tabs->setUsesScrollButtons(true);
+    ui->rule_attr_tabs->tabBar()->setExpanding(false);
     ui->rule_attr_tabs->setTabsClosable(true);
     connect(ui->rule_attr_tabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
         if (currentIndex < 0) return;
@@ -247,11 +269,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     connect(ui->rule_attr_tabs, &QTabWidget::currentChanged, this, [this](int index) {
         if (currentIndex >= 0 && !currentRuleIsEndpoint() && index >= 0 && index < ui->rule_attr_tabs->count())
             chain->Rules[currentIndex]->uiActiveAttributeTabLabel = ui->rule_attr_tabs->tabText(index);
-        if (QWidget *w = ui->rule_attr_tabs->currentWidget()) {
-            w->updateGeometry();
-            w->adjustSize();
-        }
-        ui->rule_attr_tabs->updateGeometry();
     });
 
     ensurePlusTabBuiltOnce();
@@ -483,9 +500,10 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     modeTabs->addTab(tr("Simple"));
     modeTabs->addTab(tr("Advanced"));
     modeTabs->addTab(tr("Endpoints"));
+    modeTabs->addTab(tr("DNS"));
     modeTabs->setUsesScrollButtons(false);
     modeTabs->setExpanding(true);
-    modeTabs->setFixedSize(318, 38);
+    modeTabs->setFixedSize(424, 38);
     ui->tabWidget->tabBar()->hide();
     connect(modeTabs, &QTabBar::currentChanged, ui->tabWidget, &QTabWidget::setCurrentIndex);
     connect(ui->tabWidget, &QTabWidget::currentChanged, modeTabs, &QTabBar::setCurrentIndex);
@@ -641,6 +659,17 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         ui->rule_name->setCursorPosition(ruleNameCursorPosition);
     });
 
+    // Restyled in place: rebuilding the list here would delete the item the view is still handling the click for.
+    connect(ui->route_items, &QListWidget::itemChanged, this, [this](QListWidgetItem *item) {
+        const int row = ui->route_items->row(item);
+        if (row < 0 || row >= chain->Rules.size() || !(item->flags() & Qt::ItemIsUserCheckable)) return;
+        const bool disabled = item->checkState() != Qt::Checked;
+        if (chain->Rules[row]->disabled == disabled) return;
+        chain->Rules[row]->disabled = disabled;
+        const QSignalBlocker blocker(ui->route_items);
+        routeItemShowDisabled(item, disabled);
+    });
+
     connect(ui->route_items, &QListWidget::currentRowChanged, this, [=, this](const int idx) {
         if (idx == -1) {
             if (currentIndex >= 0)
@@ -672,6 +701,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     connect(deleteShortcut, &QShortcut::activated, this, [=, this] {
         // The shortcut is dialog-wide, so on the Endpoints page it must not reach the rule list.
+        if (ui->tabWidget->currentWidget() == dnsEditor) return;
         if (ui->tabWidget->currentWidget() == ui->endpointsTab) {
             const int row = ui->endpointList->currentRow();
             if (row >= 0) removeEndpointRow(ui->endpointList->item(row)->data(Qt::UserRole).toInt());
@@ -684,6 +714,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     setupEndpointsSection();
     const int endpointsIndex = ui->tabWidget->indexOf(ui->endpointsTab);
     modeTabs->setTabVisible(2, endpointsIndex >= 0 && ui->tabWidget->isTabVisible(endpointsIndex));
+
+    dnsEditor = new RouteDnsEditor(*chain, ui->tabWidget);
+    ui->tabWidget->addTab(dnsEditor, tr("DNS"));
 
     updateRuleSection();
 }
@@ -832,9 +865,20 @@ void RouteItem::rebuildAdvancedSummary() {
         priority->setAlignment(Qt::AlignCenter);
         priority->setFixedSize(32, 28);
         cardLayout->addWidget(priority);
-        auto *active = new ThronedToggle(true, card);
-        active->setToolTip(tr("This rule is active"));
-        active->setAttribute(Qt::WA_TransparentForMouseEvents);
+        auto *active = new ThronedToggle(!rule->disabled, card);
+        const auto activeTip = [](bool disabled) {
+            return disabled ? tr("Disabled: kept in the profile but left out of the generated config.") : tr("This rule is active");
+        };
+        active->setToolTip(activeTip(rule->disabled));
+        // Endpoint rules follow the Endpoints tab, so they are not switched off here.
+        if (routeItemIsEndpointRule(rule)) {
+            active->setAttribute(Qt::WA_TransparentForMouseEvents);
+        } else {
+            connect(active, &QAbstractButton::toggled, this, [rule, active, activeTip](bool on) {
+                rule->disabled = !on;
+                active->setToolTip(activeTip(rule->disabled));
+            });
+        }
         cardLayout->addWidget(active);
 
         auto *body = new QVBoxLayout;
@@ -1350,6 +1394,15 @@ void RouteItem::accept() {
 
     chain->defaultOutboundID = Configs::stringToOutboundID(ui->def_out->currentText());
 
+    dnsEditor->applyTo(*chain);
+    if (const auto dns = chain->ActiveDns(); dns.has_value()) {
+        if (const auto problem = dns->Problem(); !problem.isEmpty()) {
+            ui->tabWidget->setCurrentWidget(dnsEditor);
+            MessageBoxWarning(tr("DNS"), problem);
+            return;
+        }
+    }
+
     if (missingEndpoints > 0) {
         MessageBoxInfo(tr("Endpoints"),
                        tr("%1 endpoint profile(s) no longer exist and were removed from this routing profile.")
@@ -1394,8 +1447,13 @@ void RouteItem::updateRouteItemsView() {
 
     for (const auto &item: chain->Rules) {
         ui->route_items->addItem(item->name);
-        if (!routeItemIsEndpointRule(item)) continue;
         auto *row = ui->route_items->item(ui->route_items->count() - 1);
+        if (!routeItemIsEndpointRule(item)) {
+            row->setFlags(row->flags() | Qt::ItemIsUserCheckable);
+            row->setCheckState(item->disabled ? Qt::Unchecked : Qt::Checked);
+            routeItemShowDisabled(row, item->disabled);
+            continue;
+        }
         QFont font = row->font();
         font.setItalic(true);
         row->setFont(font);
@@ -1447,14 +1505,29 @@ QWidget *RouteItem::makeAttributeEditorPage(const QString &attr) {
             auto *cb = new QComboBox(container);
             if (attr == QStringLiteral("outbound")) {
                 cb->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-                cb->addItems(outbounds);
-                cb->setCurrentText(get_outbound_name(rule->outboundID));
-                connect(cb, &QComboBox::currentTextChanged, this, [this, cb] {
-                    if (currentIndex < 0) return;
+                if (auto *lv = qobject_cast<QListView *>(cb->view())) lv->setUniformItemSizes(true);
+                cb->setModel(outboundsModel);
+                const int selected = cb->findData(rule->outboundID);
+                if (selected >= 0) {
+                    cb->setCurrentIndex(selected);
+                } else {
+                    // A deleted profile stays visible instead of reading as the first item, and the shared model stays untouched.
+                    cb->setPlaceholderText(rule->outboundID < 0 ? Configs::outboundIDToString(rule->outboundID)
+                                                                : tr("Missing profile (id %1)").arg(rule->outboundID));
+                    cb->setCurrentIndex(-1);
+                }
+                connect(cb, &QComboBox::currentIndexChanged, this, [this, cb](const int index) {
+                    if (currentIndex < 0 || index < 0) return;
                     chain->Rules[currentIndex]->set_field_value(QStringLiteral("outbound"),
-                                                                {QString::number(outboundMap[cb->currentIndex()])});
+                                                                {QString::number(cb->itemData(index).toInt())});
                     updateRulePreview();
                 });
+                if (outboundsPopupWidth < 0) {
+                    adjustComboBoxWidth(cb);
+                    outboundsPopupWidth = cb->view()->minimumWidth();
+                } else {
+                    cb->view()->setMinimumWidth(outboundsPopupWidth);
+                }
             } else {
                 cb->addItems(Configs::RouteRule::get_values_for_field(attr));
                 const auto cur = rule->get_current_value_string(attr);
@@ -1464,9 +1537,9 @@ QWidget *RouteItem::makeAttributeEditorPage(const QString &attr) {
                     chain->Rules[currentIndex]->set_field_value(attr, {t});
                     updateRulePreview();
                 });
+                adjustComboBoxWidth(cb);
             }
             addDisabled(cb);
-            adjustComboBoxWidth(cb);
             lay->addWidget(cb);
             break;
         }
@@ -1512,7 +1585,8 @@ void RouteItem::ensurePlusTabBuiltOnce() {
     lay->setContentsMargins(8, 8, 8, 8);
 
     auto *hint = new QLabel(tr("Check attributes to show as tabs; unchecking clears their values."), container);
-    hint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    hint->setWordWrap(true);
+    hint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     ruleAttrPlusList = new QListWidget(container);
     ruleAttrPlusList->setMinimumHeight(100);
     ruleAttrPlusList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1626,6 +1700,7 @@ bool RouteItem::eventFilter(QObject *watched, QEvent *event) {
 void RouteItem::rebuildRuleAttributeTabs() {
     ensurePlusTabBuiltOnce();
 
+    ui->rule_attr_tabs->setUpdatesEnabled(false);
     ui->rule_attr_tabs->blockSignals(true);
     removeAllAttributeTabsExceptPlus();
 
@@ -1633,6 +1708,7 @@ void RouteItem::rebuildRuleAttributeTabs() {
         syncPlusListCheckStatesFromRule();
         applyStoredRuleAttrTabSelection();
         ui->rule_attr_tabs->blockSignals(false);
+        ui->rule_attr_tabs->setUpdatesEnabled(true);
         return;
     }
 
@@ -1649,6 +1725,7 @@ void RouteItem::rebuildRuleAttributeTabs() {
     applyStoredRuleAttrTabSelection();
 
     ui->rule_attr_tabs->blockSignals(false);
+    ui->rule_attr_tabs->setUpdatesEnabled(true);
 }
 
 void RouteItem::updateRuleSection() {

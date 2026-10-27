@@ -1,6 +1,7 @@
 #include "include/ui/mainwindow.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
-#include "include/ui/mainWindow/TestRunner.h"
+#include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/tests/TestRunner.h"
 
 #include <QDateTime>
 #include <QHBoxLayout>
@@ -153,7 +154,7 @@ void MainWindow::setupSimpleMode() {
     layout->addWidget(hero, 1);
     connect(power, &QToolButton::clicked, this, [this] {
         if (Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview"))) return;
-        if (running != nullptr)
+        if (runningSnapshot() != nullptr)
             ui->menu_stop->trigger();
         else if (simpleProfileId >= 0)
             profile_start(simpleProfileId);
@@ -240,7 +241,7 @@ void MainWindow::setupSimpleMode() {
         simplePingRunning = true;
         simpleServerSheet->setTesting(true, true);
         const QPointer<MainWindow> guard(this);
-        testRunner->runUrlTests(ids, [guard] {
+        tests()->runUrlTests(ids, [guard] {
             if (!guard) return;
             QMetaObject::invokeMethod(guard.data(), [guard] {
                 if (!guard) return;
@@ -413,8 +414,8 @@ void MainWindow::selectSimpleProfile(int profileId) {
     simpleProfileId = profileId;
     const int proxyRow = profilesFilterModel->toProxyRow(profilesTableModel->indexOfProfile(profileId));
     if (proxyRow >= 0) selectProfileRows({proxyRow});
-    if (running != nullptr && running->id != profileId &&
-        !Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview")))
+    if (const auto running = runningSnapshot(); running != nullptr && running->id != profileId &&
+                                                !Configs::dataManager->settingsRepo->argv.contains(QStringLiteral("-ui-preview")))
         profile_start(profileId);
     refreshSimpleStatus();
 }
@@ -424,6 +425,7 @@ void MainWindow::refreshSimpleProfiles() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     const QList<int> ids = group ? group->Profiles() : QList<int>();
     if (!ids.contains(simpleProfileId)) {
+        const auto running = runningSnapshot();
         const int fallback = running != nullptr && ids.contains(running->id) ? running->id : ids.value(0, -1);
         simpleProfileId = fallback;
     }
@@ -479,16 +481,19 @@ void MainWindow::openSimpleModeSheet() {
 void MainWindow::chooseSimpleMode(int mode, bool elevationConfirmed) {
     auto *settings = Configs::dataManager->settingsRepo.get();
     if (static_cast<SimpleMode>(mode) == SimpleMode::WholeComputer) {
-        set_spmode_vpn(true, true, elevationConfirmed);
+        // The sheet explained the restart before asking, so the elevation prompt does not ask twice.
+        elevationPreconfirmed = elevationConfirmed;
+        connection()->setTun(true);
+        elevationPreconfirmed = false;
         // Declined, or restarting elevated: the proxy stays until TUN is really on.
         if (!settings->spmode_vpn) {
             refreshSimpleStatus();
             return;
         }
-        if (settings->spmode_system_proxy) set_spmode_system_proxy(false);
+        if (settings->spmode_system_proxy) connection()->setSystemProxy(false);
     } else {
-        if (settings->spmode_vpn) set_spmode_vpn(false);
-        if (!settings->spmode_system_proxy) set_spmode_system_proxy(true);
+        if (settings->spmode_vpn) connection()->setTun(false);
+        if (!settings->spmode_system_proxy) connection()->setSystemProxy(true);
     }
     simpleModeSheet->dismiss();
     refresh_status();
@@ -514,6 +519,7 @@ void MainWindow::refreshSimpleStatus() {
         clock->stop();
     }
 
+    const auto running = runningSnapshot();
     const auto shown = running != nullptr ? running : selected;
     QString status, detail;
     switch (state) {
@@ -584,6 +590,6 @@ void MainWindow::refreshSimpleStatus() {
 }
 
 void MainWindow::refreshSimpleTraffic(int down, int up) {
-    if (simpleModeContent == nullptr || running == nullptr) return;
+    if (simpleModeContent == nullptr || runningSnapshot() == nullptr) return;
     simpleModeContent->findChild<SimpleTrafficLine *>(QStringLiteral("simpleTraffic"))->addSample(down, up);
 }

@@ -31,6 +31,7 @@ void background(QObject *receiver, Work work, Done done) {
 DiagnosticsWindow::LocalState MainWindow::diagnosticsLocalState() {
     DiagnosticsWindow::LocalState state;
     const auto &settings = *Configs::dataManager->settingsRepo;
+    const auto running = runningSnapshot();
     state.coreRunning = running != nullptr;
     // The core prints its own version into the log on start; nothing else reports it.
     static const QRegularExpression coreLine(QStringLiteral(R"(sing-box:\s*(\S+))"));

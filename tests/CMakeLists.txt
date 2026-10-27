@@ -54,8 +54,10 @@ throned_add_qt_test(throned_window_notices_tests
             ${PROJECT_SOURCE_DIR}/src/ui/widget/HijackDeprecationNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleModeNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
             ${PROJECT_SOURCE_DIR}/src/database/MarkersRepo.cpp
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Notice.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/UpdateStatusWidget.cpp
             ${PROJECT_SOURCE_DIR}/include/ui/widget/UpdateStatusWidget.h
             ${PROJECT_SOURCE_DIR}/src/ui/widget/MaterialIcon.cpp
@@ -103,6 +105,7 @@ throned_add_qt_test(throned_traffic_stats_tests
             ${PROJECT_SOURCE_DIR}/src/database/TrafficStatsRepo.cpp
             ${PROJECT_SOURCE_DIR}/include/database/TrafficStatsRepo.h
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Notice.cpp
         LIBRARIES Qt6::Widgets Throned::SQLiteCpp
 )
 
@@ -148,6 +151,7 @@ throned_add_qt_test(throned_outbound_tests
             ${PROJECT_SOURCE_DIR}/src/configs/outbounds/naive.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/outbounds/trusttunnel.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/outbounds/http.cpp
+            ${PROJECT_SOURCE_DIR}/src/configs/outbounds/juicity.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/Outbound.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/DialFields.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/TLS.cpp
@@ -157,8 +161,11 @@ throned_add_qt_test(throned_outbound_tests
             ${PROJECT_SOURCE_DIR}/src/configs/common/xrayStreamSetting.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/xrayMultiplex.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/utils.cpp
+            ${PROJECT_SOURCE_DIR}/src/configs/ParseDiagnostics.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
             ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Notice.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Utils.cpp
             ${PROJECT_SOURCE_DIR}/src/global/ReleaseNotes.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Qt6::Svg

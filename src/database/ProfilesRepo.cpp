@@ -6,7 +6,9 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/configs/common/OutboundFactory.h"
-#include "include/ui/mainwindow.h"
+#include "include/engine/Lifecycle.h"
+#include "include/global/Configs.hpp"
+#include "include/global/Logger.hpp"
 
 namespace Configs {
 ProfilesRepo::ProfilesRepo(Database& database) : db(database) {
@@ -218,8 +220,11 @@ bool ProfilesRepo::AddProfile(std::shared_ptr<Profile>& profile, int gid) {
     profile->gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
     {
         QMutexLocker locker(&mutex);
+        // DeleteGroup holds this lock while it deletes, so a group found here outlives the insert.
+        if (dataManager->groupsRepo->GetGroup(profile->gid) == nullptr) return false;
         identityMap[newId] = std::weak_ptr<Profile>(profile);
         saveToDatabase(profile.get(), profile->id);
+        ++revision;
     }
     auto group = dataManager->groupsRepo->GetGroup(profile->gid);
     if (group == nullptr) return false;
@@ -244,6 +249,7 @@ bool ProfilesRepo::AddProfileBatch(QList<std::shared_ptr<Profile>>& profiles, in
     int firstId = NewProfileIDRange(n);
 
     QMutexLocker locker(&mutex);
+    if (dataManager->groupsRepo->GetGroup(gid) == nullptr) return false;
     for (int i = 0; i < n; ++i) {
         int id = firstId + i;
         toAdd[i]->id = id;
@@ -258,6 +264,7 @@ bool ProfilesRepo::AddProfileBatch(QList<std::shared_ptr<Profile>>& profiles, in
         rows.push_back(profileToInsertRow(toAdd[i].get(), toAdd[i]->id, toAdd[i]->gid));
     }
     db.execBatchInsertProfiles(rows);
+    ++revision;
 
     QList<int> profileIDs;
     for (const auto& profile: toAdd) {
@@ -408,33 +415,53 @@ QStringList ProfilesRepo::GetAllProfileNames() {
     return names;
 }
 
-bool ProfilesRepo::BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile) {
+bool ProfilesRepo::BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile, bool interactive) {
     QSet<int> groupIDs;
     if (ids.contains(dataManager->settingsRepo->started_id)) {
         if (stopRunningProfile)
-            GetMainWindow()->profile_stop(false, true, false);
+            Engine::Lifecycle::StopRunningProfile(false, true, false, interactive);
         else
             ids.removeAll(dataManager->settingsRepo->started_id);
     }
+    if (ids.isEmpty()) return true;
     auto profiles = GetProfileBatch(ids);
+    QList<int> existing;
     for (const auto& ent: profiles) {
         groupIDs.insert(ent->gid);
+        existing << ent->id;
     }
+    const std::vector<int> idVec(ids.begin(), ids.end());
+    const bool deleted = DeleteAndForget([&](QList<int>& deletedIds) {
+        const bool ok = db.transaction("ProfilesRepo::BatchDeleteProfiles", [&] {
+            db.execDeleteByIdInThrow("profiles", "id", idVec);
+            return true;
+        });
+        if (ok) deletedIds = existing;
+        return ok;
+    });
+    // Listings change only once the rows are gone, so a failed delete leaves no unlisted rows behind.
+    if (!deleted) return false;
     for (auto groupID: groupIDs) {
         auto group = dataManager->groupsRepo->GetGroup(groupID);
         if (!group) {
-            MW_show_log("Could not find group with id " + Int2String(groupID));
-            return false;
+            MW_show_log("Could not find group with id " + Int2String(groupID) + "; its profiles were deleted anyway");
+            continue;
         }
         group->RemoveProfileBatch(ids);
         dataManager->groupsRepo->Save(group);
     }
+    return true;
+}
+
+bool ProfilesRepo::DeleteAndForget(const std::function<bool(QList<int>& deletedIds)>& deleteRows) {
     QMutexLocker locker(&mutex);
-    for (int id: ids) identityMap.erase(id);
-    if (!ids.isEmpty()) {
-        std::vector<int> idVec(ids.begin(), ids.end());
-        db.execDeleteByIdIn("profiles", "id", idVec);
+    QList<int> deletedIds;
+    if (!deleteRows(deletedIds)) return false;
+    for (const int id: deletedIds) {
+        identityMap.erase(id);
+        tombstones.insert(id);
     }
+    ++revision;
     return true;
 }
 
@@ -495,11 +522,17 @@ bool ProfilesRepo::Save(const std::shared_ptr<Profile>& profile) {
         return false;
     }
 
-    QMutexLocker locker(&mutex);
-    saveToDatabase(profile.get(), profile->id);
-    identityMap[profile->id] = std::weak_ptr<Profile>(profile);
-
-    return true;
+    {
+        QMutexLocker locker(&mutex);
+        if (!tombstones.contains(profile->id)) {
+            saveToDatabase(profile.get(), profile->id);
+            identityMap[profile->id] = std::weak_ptr<Profile>(profile);
+            ++revision;
+            return true;
+        }
+    }
+    LOG_DEBUG(QString("Profile %1 was deleted; not saving it").arg(profile->id));
+    return false;
 }
 
 bool ProfilesRepo::SaveTraffic(const std::shared_ptr<Profile>& profile) {
@@ -522,22 +555,15 @@ void ProfilesRepo::SaveTrafficBatch(const QList<std::shared_ptr<Profile>>& profi
     }
     if (valid.isEmpty()) return;
     QMutexLocker locker(&mutex);
-    try {
-        db.execThrow("BEGIN IMMEDIATE");
+    db.transaction("SaveTrafficBatch", [&] {
         for (const auto& p: valid) {
             db.execThrow("UPDATE profiles SET traffic_dl = ?, traffic_up = ? WHERE id = ?",
                          static_cast<long long>(p->traffic_downlink),
                          static_cast<long long>(p->traffic_uplink),
                          p->id);
         }
-        db.execThrow("COMMIT");
-    } catch (std::exception& e) {
-        try {
-            db.execThrow("ROLLBACK");
-        } catch (...) {
-        }
-        NotifyError("SaveTrafficBatch", e);
-    }
+        return true;
+    });
 }
 
 void ProfilesRepo::SaveBatch(const QList<std::shared_ptr<Profile>>& profiles) {
@@ -553,10 +579,14 @@ void ProfilesRepo::SaveBatch(const QList<std::shared_ptr<Profile>>& profiles) {
             rows.push_back(profileToInsertRow(p.get(), p->id, p->gid));
         }
         QMutexLocker locker(&mutex);
+        const auto skipped = std::erase_if(rows, [this](const ProfileInsertRow& row) { return tombstones.contains(row.id); });
         db.execBatchReplaceProfiles(rows);
         for (const auto& p: valid) {
-            identityMap[p->id] = std::weak_ptr<Profile>(p);
+            if (!tombstones.contains(p->id)) identityMap[p->id] = std::weak_ptr<Profile>(p);
         }
+        if (!rows.empty()) ++revision;
+        locker.unlock();
+        if (skipped > 0) LOG_DEBUG(QString("SaveBatch skipped %1 deleted profiles").arg(skipped));
     });
 }
 } // namespace Configs

@@ -5,6 +5,8 @@
 namespace Configs {
 class Custom : public outbound {
 public:
+    bool HasServerEndpoint() override { return false; }
+
     static constexpr auto CustomOutbound = "outbound";
     static constexpr auto CustomFullConfig = "fullconfig";
     static constexpr auto CustomXrayOutbound = "xrayoutbound";
@@ -21,7 +23,7 @@ public:
     bool ParseFromJson(const QJsonObject &object) override {
         if (object.isEmpty()) return false;
         if (object.contains("name")) name = object["name"].toString();
-        if (object.contains("subtype")) type = object["subtype"].toString();
+        if (object.contains("subtype")) type = object["subtype"].toString().trimmed();
         if (object.contains("config")) config = object["config"].toString();
         return true;
     }
@@ -35,35 +37,9 @@ public:
         return object;
     }
 
-    QString GetAddress() override {
-        if (type == CustomOutbound) {
-            auto obj = QString2QJsonObject(config);
-            return obj["server"].toString();
-        }
-        if (type == CustomXrayOutbound) {
-            auto settings = QString2QJsonObject(config)["settings"].toObject();
-            if (settings.contains("vnext")) return settings["vnext"].toArray().first().toObject()["address"].toString();
-            if (settings.contains("servers")) return settings["servers"].toArray().first().toObject()["address"].toString();
-        }
-        return {};
-    }
+    QString GetAddress() override;
 
-    QString DisplayAddress() override {
-        if (type == CustomOutbound) {
-            auto obj = QString2QJsonObject(config);
-            return ::DisplayAddress(obj["server"].toString(), obj["server_port"].toInt());
-        }
-        if (type == CustomXrayOutbound) {
-            auto settings = QString2QJsonObject(config)["settings"].toObject();
-            QJsonObject server;
-            if (settings.contains("vnext"))
-                server = settings["vnext"].toArray().first().toObject();
-            else if (settings.contains("servers"))
-                server = settings["servers"].toArray().first().toObject();
-            if (!server.isEmpty()) return ::DisplayAddress(server["address"].toString(), server["port"].toInt());
-        }
-        return {};
-    }
+    QString DisplayAddress() override;
 
     QString DisplayType() override {
         if (type == CustomOutbound) {
@@ -85,6 +61,10 @@ public:
     SecurityInfo GetSecurity() override;
 
     QJsonObject ExportIdentity() override;
+
+    void StripForeignState(Validation::Issues &issues) override;
+
+    void Validate(Validation::Issues &issues) override;
 
     bool IsEndpoint() override {
         // Only raw sing-box outbound JSON can describe an endpoint.
@@ -150,4 +130,12 @@ public:
         return {};
     }
 };
+
+namespace Checks {
+// Valid JSON (line and column on a syntax error) with what the subtype needs: a type, a protocol or an outbounds list.
+QString CustomConfig(const QString &subtype, const QString &text);
+} // namespace Checks
+
+// Removes every spelling of masterKeyLog from an Xray stream's TLS and REALITY settings and its XHTTP download legs; true when any went.
+bool StripXrayStreamKeyLog(QJsonObject &stream, const QString &at, Validation::Issues &issues);
 } // namespace Configs

@@ -6,6 +6,7 @@
 #include <QUuid>
 
 #include "include/global/Utils.hpp"
+#include "include/global/Validation.hpp"
 
 namespace Configs {
 SettingsRepo::SettingsRepo(Database& database) : db(database) {
@@ -27,6 +28,7 @@ void SettingsRepo::initMaps() {
         {"disable_tray", &disable_tray},
         {"random_inbound_port", &random_inbound_port},
         {"mux_padding", &mux_padding},
+        {"mux_brutal", &mux_brutal},
         {"mux_default_on", &mux_default_on},
         {"fragment_default_on", &fragment_default_on},
         {"tls_tricks_default_on", &tls_tricks_default_on},
@@ -61,6 +63,7 @@ void SettingsRepo::initMaps() {
         {"kill_switch", &kill_switch},
         {"remote_api_enable", &remote_api_enable},
         {"remote_api_lan", &remote_api_lan},
+        {"remote_api_admin_lan", &remote_api_admin_lan},
         {"allow_beta_update", &allow_beta_update},
         {"adblock_enable", &adblock_enable},
         {"show_system_dns", &show_system_dns},
@@ -82,9 +85,11 @@ void SettingsRepo::initMaps() {
         {"use_custom_icons", &use_custom_icons},
         {"follow_status_in_taskbar", &follow_status_in_taskbar},
         {"xray_mux_default_on", &xray_mux_default_on},
+        {"xray_use_system_ca", &xray_use_system_ca},
         {"use_dns_object", &use_dns_object},
         {"skip_delete_confirmation", &skip_delete_confirmation},
         {"show_config_security", &show_config_security},
+        {"simple_interface", &simple_interface},
         {"log_enable_include", &log_enable_include},
         {"log_enable_exclude", &log_enable_exclude},
         {"enable_warp", &enable_warp},
@@ -107,6 +112,8 @@ void SettingsRepo::initMaps() {
         {"dns_use_hosts", &dns_use_hosts},
         {"dns_predefined_enable", &dns_predefined_enable},
         {"connection_sort_asc", &connection_sort_asc},
+        {"exit_country_lookup", &exit_country_lookup},
+        {"webdav_use_proxy", &webdav_use_proxy},
     };
 
     intMap = {
@@ -114,6 +121,10 @@ void SettingsRepo::initMaps() {
         {"last_filter_column", &last_filter_column},
         {"inbound_socks_port", &inbound_socks_port},
         {"mux_concurrency", &mux_concurrency},
+        {"mux_max_connections", &mux_max_connections},
+        {"mux_min_streams", &mux_min_streams},
+        {"mux_brutal_up_mbps", &mux_brutal_up_mbps},
+        {"mux_brutal_down_mbps", &mux_brutal_down_mbps},
         {"test_concurrent", &test_concurrent},
         {"remember_id", &remember_id},
         {"start_pick", &start_pick},
@@ -140,6 +151,8 @@ void SettingsRepo::initMaps() {
         {"url_test_timeout_ms", &url_test_timeout_ms},
         {"site_test_timeout_ms", &site_test_timeout_ms},
         {"xray_mux_concurrency", &xray_mux_concurrency},
+        {"xray_mux_max_connections", &xray_mux_max_connections},
+        {"xray_mux_xudp_concurrency", &xray_mux_xudp_concurrency},
         {"current_route_id", &current_route_id},
         {"ruleset_mirror", &ruleset_mirror},
         {"core_dns_in_port", &core_dns_in_port},
@@ -153,10 +166,13 @@ void SettingsRepo::initMaps() {
         {"user_agent2", &user_agent},
         {"test_url", &test_latency_url},
         {"direct_test_url", &direct_test_url},
+        {"exit_lookup_provider", &exit_lookup_provider},
         {"inbound_address", &inbound_address},
         {"log_level", &log_level},
         {"log_file_level", &log_file_level},
         {"mux_protocol", &mux_protocol},
+        {"mux_mode", &mux_mode},
+        {"xray_mux_xudp_proxy_udp443", &xray_mux_xudp_proxy_udp443},
         {"fragment_implementation", &fragment_implementation},
         {"fragment_size", &fragment_size},
         {"fragment_sleep", &fragment_sleep},
@@ -180,6 +196,12 @@ void SettingsRepo::initMaps() {
         {"hk_tun", &hotkey_toggle_tun},
         {"remote_api_key", &remote_api_key},
         {"remote_api_allow", &remote_api_allow},
+        {"webdav_server", &webdav_server},
+        {"webdav_user", &webdav_user},
+        {"webdav_pass", &webdav_pass},
+        {"webdav_path", &webdav_path},
+        {"device_id", &device_id},
+        {"device_name", &device_name},
         {"active_routing", &active_routing},
         {"mw_size", &mw_size},
         {"vpn_tun_ipv4_cidr", &vpn_tun_ipv4_cidr},
@@ -230,6 +252,8 @@ void SettingsRepo::initMaps() {
     stringListMap = {
         {"dismissed_notices", &dismissed_notices},
         {"dns_predefined_rules", &dns_predefined_rules},
+        {"remote_dns_history", &remote_dns_history},
+        {"direct_dns_history", &direct_dns_history},
         {"extra_core_paths", &extraCorePaths},
         {"log_include_keyword", &log_include_keyword},
         {"log_include_regex", &log_include_regex},
@@ -327,6 +351,14 @@ void SettingsRepo::loadAllSettings() {
             continue;
         }
     }
+    // Builds before 1.2.1 saved the translated interval label ("5 мин.", "۱۰ دقیقه"), which the core rejects.
+    if (!Validation::Duration(ntp_interval).isEmpty()) {
+        QString minutes;
+        for (const QChar c: ntp_interval) {
+            if (c.digitValue() >= 0) minutes += QChar(u'0' + c.digitValue());
+        }
+        ntp_interval = minutes.isEmpty() ? QStringLiteral("30m") : minutes + u'm';
+    }
     // Retired keys nothing writes back; the DNS ones would otherwise keep overriding the migrated flags on every load.
     db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll')");
 }
@@ -397,6 +429,7 @@ QString SettingsRepo::GetUserAgent(bool isDefault) const {
 
 bool SettingsRepo::Save() {
     saveAllSettings();
+    ++revision;
     return true;
 }
 

@@ -3,6 +3,14 @@
 #include "include/configs/common/TLS.h"
 
 namespace Configs {
+inline QStringList naiveCongestionControls = {"bbr", "bbr2", "cubic", "reno"};
+
+namespace Checks {
+// Name="value" pairs as the editor writes them; parseHeaderPairs() drops every header when one is unpaired.
+QString NaiveExtraHeaders(const QString &text);
+QString NaiveExtraHeaderNames(const QStringList &pairs);
+} // namespace Checks
+
 class naive : public outbound {
 public:
     QString username;
@@ -35,8 +43,10 @@ public:
         return tls;
     }
 
-    bool ParseFromLink(const QString& link) override;
-    bool ParseFromJson(const QJsonObject& object) override;
+    void Validate(Validation::Issues &issues) override;
+
+    bool ParseFromLink(const QString &link) override;
+    bool ParseFromJson(const QJsonObject &object) override;
     QString ExportToLink() override;
     QJsonObject ExportToJson() override;
     BuildResult Build() override;

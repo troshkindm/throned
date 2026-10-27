@@ -9,6 +9,8 @@
 namespace Configs {
 std::shared_ptr<Profile> ProfilesRepo::GetProfile(int) const { return nullptr; }
 } // namespace Configs
+// The missing-outbound path logs; nothing here reaches it.
+void MW_show_log(const QString &) {}
 
 using Configs::RouteRule;
 
@@ -18,7 +20,7 @@ class TestRouteRule : public QObject {
 private slots:
     void rejectUsesTheCoresMethodKey();
     void spoofNeedsItsSNI();
-    void spoofRidesOnRouteOptionsOnly();
+    void routeCarriesRouteOptions();
     void onlyOneFragmentModeIsEmitted();
     void fallbackDelayFollowsFragment();
 };
@@ -45,13 +47,21 @@ void TestRouteRule::spoofNeedsItsSNI() {
     QCOMPARE(json.value("tls_spoof_method").toString(), QStringLiteral("wrong-ack"));
 }
 
-void TestRouteRule::spoofRidesOnRouteOptionsOnly() {
+void TestRouteRule::routeCarriesRouteOptions() {
     RouteRule rule;
     rule.action = "route";
     rule.outboundID = Configs::directID;
     rule.tls_spoof = "api-maps.yandex.ru";
     rule.tls_fragment = true;
-    const auto json = rule.get_rule_json();
+    rule.tls_record_fragment = true;
+    auto json = rule.get_rule_json();
+    QCOMPARE(json.value("tls_spoof").toString(), QStringLiteral("api-maps.yandex.ru"));
+    QVERIFY(json.value("tls_fragment").toBool());
+    // Only a route-options rule refuses both fragment kinds at once.
+    QVERIFY(json.value("tls_record_fragment").toBool());
+
+    rule.action = "reject";
+    json = rule.get_rule_json();
     QVERIFY(!json.contains("tls_spoof"));
     QVERIFY(!json.contains("tls_fragment"));
 }

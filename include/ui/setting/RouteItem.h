@@ -11,6 +11,8 @@
 #include "include/database/entities/RouteProfile.h"
 
 class QListWidget;
+class QStandardItemModel;
+class RouteDnsEditor;
 class QAbstractButton;
 class QFrame;
 class QLabel;
@@ -42,6 +44,13 @@ private:
     QStringList outbounds;
 
     std::map<int, int> outboundMap;
+
+    // Shared by every rule's outbound combo: refilling and re-measuring thousands of profiles froze each rule switch.
+    QStandardItemModel* outboundsModel = nullptr;
+
+    int outboundsPopupWidth = -1;
+
+    RouteDnsEditor* dnsEditor = nullptr;
 
     AutoCompleteTextEdit* simpleDirect;
 

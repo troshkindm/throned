@@ -5,7 +5,7 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/entities/AppRoutes.h"
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/ui/mainwindow.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/SimpleModeControls.h"

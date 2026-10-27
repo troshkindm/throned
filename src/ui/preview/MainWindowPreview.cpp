@@ -35,7 +35,7 @@
 #include "include/global/Configs.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/ui/group/dialog_edit_group.h"
-#include "include/ui/mainwindow_interface.h"
+#include "include/ui/mainwindow.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/dialog_basic_settings.h"
 #include "include/ui/setting/DiagnosticsTab.h"
@@ -231,6 +231,7 @@ void RunMainWindow(const QString &prefix) {
         conn.process = QString::fromLatin1(sample.process);
         conn.processPath = QString::fromLatin1(sample.processPath);
         conn.outbound = QString::fromLatin1(sample.outbound);
+        conn.outboundName = conn.outbound;
         conn.network = QString::fromLatin1(sample.network);
         conn.protocol = QString::fromLatin1(sample.protocol);
         conn.upload = sample.up;
@@ -676,11 +677,11 @@ void RunMainWindow(const QString &prefix) {
                     c.outbound = kind == 2 ? "direct" : "demo-proxy";
                     // A real geosite rule, not a one-liner: the detail card has to
                     // hold the routes people actually write.
-                    c.matched_rule = kind == 2 ? "network=udp => route(direct)"
-                                               : "domain=[*.demo.example gateway.example.org cdn.example.org] "
-                                                 "domain_suffix=[example.org example.net example.com] "
-                                                 "rule_set=[geosite-demo geosite-demo-chat geosite-demo-cdn geoip-demo geosite-demo-media "
-                                                 "geosite-demo-updates geosite-demo-auth] => route(demo-proxy)";
+                    c.rule = kind == 2 ? "network=udp => route(direct)"
+                                       : "domain=[*.demo.example gateway.example.org cdn.example.org] "
+                                         "domain_suffix=[example.org example.net example.com] "
+                                         "rule_set=[geosite-demo geosite-demo-chat geosite-demo-cdn geoip-demo geosite-demo-media "
+                                         "geosite-demo-updates geosite-demo-auth] => route(demo-proxy)";
                     c.upload = 8192;
                     c.download = kind == 2 ? 0 : 47104;
                     c.source = "127.0.0.1:5510";
@@ -840,7 +841,7 @@ void RunMainWindow(const QString &prefix) {
                 profiles.append({id, profile == nullptr ? QStringLiteral("Unknown") : profile->name});
             }
             dialog->beginRun(profiles, sites);
-            TestRunner::SiteReport report;
+            Engine::TestRunner::SiteReport report;
             report.sites = sites;
             const QList<QList<int>> sample{
                 {204, 200, 200, 200, 200, 200},
@@ -849,9 +850,9 @@ void RunMainWindow(const QString &prefix) {
                 {0, 0, 0, 0, 0, 0},
             };
             for (int row = 0; row < ids.size(); row++) {
-                QList<TestRunner::SiteVerdict> verdicts;
+                QList<Engine::TestRunner::SiteVerdict> verdicts;
                 for (const int status: sample.at(row % sample.size())) {
-                    verdicts << TestRunner::SiteVerdict{
+                    verdicts << Engine::TestRunner::SiteVerdict{
                         status, status > 0 ? 40 + (row * 17 + verdicts.size() * 9) % 180 : 0,
                         status > 0 ? QString() : QStringLiteral("context deadline exceeded")};
                 }

@@ -9,6 +9,10 @@ namespace Ui {
 class EditAdvanced;
 }
 
+namespace Validation {
+class Form;
+}
+
 class EditAdvanced : public QDialog {
     Q_OBJECT
 
@@ -53,7 +57,10 @@ private:
 
     void editCachedList(QPushButton *button, const QString &title, QStringList &target);
 
+    void bindValidation();
+
     Ui::EditAdvanced *ui;
+    Validation::Form *form{};
     std::shared_ptr<Configs::Profile> ent;
 
     QStringList m_systemInterfaces;

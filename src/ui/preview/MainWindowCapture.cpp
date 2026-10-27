@@ -19,7 +19,7 @@
 #include <QTimer>
 #include <QToolButton>
 
-#include "include/ui/mainwindow_interface.h"
+#include "include/ui/mainwindow.h"
 #include "include/ui/stats/MiniChartWidget.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/UpdateStatusWidget.h"
@@ -138,7 +138,7 @@ void CaptureGraphPreview(MainWindow *window, QTabWidget *statsTabs, const QStrin
         const int proxyUp = 90000 + (i % 8) * 23000;
         const int directDown = 24000 + (i % 11) * 6500;
         const int directUp = 7000 + (i % 6) * 2400;
-        window->update_traffic_graph(proxyDown, proxyUp, directDown, directUp);
+        window->add_traffic_point(0, true, {}, proxyDown, proxyUp, directDown, directUp);
     }
     if (auto *pingWidget = window->findChild<QWidget *>(QStringLiteral("pingChart"))) {
         auto *ping = static_cast<MiniChartWidget *>(pingWidget);

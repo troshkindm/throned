@@ -175,6 +175,7 @@ void MainWindow::reloadSimpleRoutes() {
 
     if (const auto draft = simpleRouteDrafts.constFind(profileId); draft != simpleRouteDrafts.cend())
         simpleRoutesPage->setDraft(draft->first, draft->second);
+    const auto running = runningSnapshot();
     const auto main = running != nullptr ? running : Configs::dataManager->profilesRepo->GetProfile(simpleProfileId);
     SimpleRouteTarget mainTarget;
     QList<SimpleRouteTarget> others;

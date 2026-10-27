@@ -17,6 +17,12 @@
 #include "include/configs/sub/RouteUpdater.hpp"
 #include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
+#include "include/engine/EngineEvents.h"
+#include "include/engine/EngineHost.h"
+#include "include/engine/ThreadCheck.h"
+#include "include/engine/app/ExitController.h"
+#include "include/engine/connection/ConnectionManager.h"
+#include "include/global/Logger.hpp"
 #include "include/global/PeriodicRunner.hpp"
 #include "include/global/ShareLinkB64.hpp"
 #include "include/sys/AutoRun.hpp"
@@ -172,9 +178,10 @@ void MainWindow::handle_import_route(const QString &url) {
 
     auto prompt = tr("Add this routing profile?\n\nName: %1").arg(profile->name);
     if (!warnings.isEmpty()) prompt += "\n\n" + tr("Note:") + "\n" + warnings.trimmed();
-    if (QMessageBox::question(GetMessageBoxParent(), tr("Import routing profile"), prompt) != QMessageBox::StandardButton::Yes) {
-        return;
-    }
+    QMessageBox box(QMessageBox::Question, tr("Import routing profile"), prompt, QMessageBox::Yes | QMessageBox::No, GetMessageBoxParent());
+    // The name and the notes come from the link: AutoText would render a tag-like one as HTML.
+    box.setTextFormat(Qt::PlainText);
+    if (box.exec() != QMessageBox::Yes) return;
 
     Configs::dataManager->routesRepo->AddRouteProfile(profile);
 }
@@ -244,8 +251,8 @@ void MainWindow::handle_addsub(const QString &url, const QString &name) {
     group->url = url;
     group->skip_auto_update = !autoUpdate;
     Configs::dataManager->groupsRepo->AddGroup(group);
-    refresh_groups();
-    Subscription::updater()->RefreshGroup(group->id);
+    Engine::EngineEvents::SubscriptionNewGroup(group->id);
+    Subscription::updater()->RefreshGroup(group->id, nullptr, Subscription::GroupUpdater::Surface::Report);
 }
 
 void MainWindow::import_or_handle_deeplink(const QString &text) {
@@ -283,6 +290,7 @@ void MainWindow::import_text(const QString &text) {
 }
 
 void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
+    ENGINE_CHECK_MAIN_THREAD();
     const auto changed = [&](const QString &flag) { return args.contains(flag); };
     auto &settings = Configs::dataManager->settingsRepo;
 
@@ -301,18 +309,11 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             if (changed(MwArg::LogFont)) {
                 applyLogBrowserFont();
             }
+            if (changed(MwArg::UiMode)) {
+                applyUiMode();
+            }
             if (changed(MwArg::DisableTray)) {
                 tray->setVisible(!settings->disable_tray);
-            }
-            if (changed(MwArg::ChoosePort)) {
-                settings->inbound_socks_port = MkPort(settings->inbound_address);
-                if (settings->spmode_system_proxy) {
-                    set_spmode_system_proxy(false);
-                    set_spmode_system_proxy(true);
-                }
-            }
-            if (changed(MwArg::DisableAdmin)) {
-                AutoRun_FixTaskIfNeeded();
             }
             if (changed(MwArg::ProfileListDisplay)) {
                 if (auto group = Configs::dataManager->groupsRepo->CurrentGroup();
@@ -327,35 +328,12 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
                 }
                 refresh_proxy_list({}, true);
             }
-            auto suggestRestartProxy = settings->Save();
-            Throne::PeriodicRunner::instance()->CheckNow();
-            if (changed(MwArg::KillSwitch) || changed(MwArg::Vpn)) Sys::KillSwitch::instance()->apply();
-            if (changed(MwArg::RemoteApi)) RemoteApi::Server::instance()->apply(RemoteApi::ConfigFromSettings());
-            if (changed(MwArg::Route)) {
-                settings->Save();
-                suggestRestartProxy = true;
-                if (hijackDeprecationNotice != nullptr) hijackDeprecationNotice->refresh();
-            }
-            if (changed(MwArg::NeedRestart)) {
-                suggestRestartProxy = false;
-            }
-            if (changed(MwArg::Vpn) && settings->spmode_vpn) {
-                MessageBoxWarning(tr("Tun Settings changed"), tr("Restart Tun to take effect."));
-            }
-            if (changed(MwArg::ChoosePort) || suggestRestartProxy) {
-                noteRestartNeeded(changed(MwArg::Route) ? tr("Routing") : tr("Settings"));
-            }
-            refresh_status();
-            if (changed(MwArg::NeedRestart) &&
-                QMessageBox::warning(GetMessageBoxParent(), tr("Settings changed"), tr("Restart the program to take effect."), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-                this->exit_reason = ExitReason::Restart;
-                on_menu_exit_triggered();
-            }
+            Engine::host()->applySettingsChange(args, true);
+            if (changed(MwArg::Route) && hijackDeprecationNotice != nullptr) hijackDeprecationNotice->refresh();
             break;
         }
         case MwMessage::RestartProgram:
-            this->exit_reason = ExitReason::Restart;
-            on_menu_exit_triggered();
+            exitController()->requestExit(ExitReason::Restart, false);
             break;
         case MwMessage::Raise:
             ActivateWindow(this);
@@ -365,56 +343,12 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             break;
         case MwMessage::ProfileChanged:
             refresh_proxy_list({}, true);
-            if (changed(MwArg::RestartProxy)) noteRestartNeeded(tr("Profile"));
+            if (changed(MwArg::RestartProxy)) connection()->noteRestartNeeded(Engine::RestartReason::Profile);
             break;
         case MwMessage::GroupsChanged:
             refresh_groups();
             profilesTableModel->invalidateAddresses();
-            if (changed(MwArg::RestartProxy)) noteRestartNeeded(tr("Group"));
-            break;
-        case MwMessage::SubscriptionFinished:
-            refresh_proxy_list({}, true);
-            refreshSubscriptionReadouts();
-            if (!changed(MwArg::Quiet)) {
-                MW_show_log(tr("Imported %1 profile(s)").arg(settings->imported_count));
-            }
-            break;
-        case MwMessage::SubscriptionNewGroup:
-            refresh_groups();
-            break;
-        case MwMessage::SubscriptionGroupChanged: {
-            QList<int> disturbed;
-            for (int i = 1; i < args.size(); i++) disturbed << args[i].toInt();
-            on_subscription_group_changed(args.value(0).toInt(), disturbed);
-            break;
-        }
-        case MwMessage::GroupOrderChanged:
-            if (args.contains(Int2String(settings->current_group))) refresh_proxy_list({}, true);
-            break;
-        case MwMessage::CoreCrashed:
-            profile_stop();
-            break;
-        case MwMessage::CoreStarted:
-            m_guardCoreRestart.invalidate();
-            Configs::IsAdmin(true);
-            // The core may just have been given root, which the guard needs too.
-            if (Sys::KillSwitch::instance()->failedForPrivileges()) Sys::KillSwitch::instance()->apply();
-            if (settings->remember_enable && settings->remember_system_proxy) {
-                set_spmode_system_proxy(true, false);
-            }
-            if ((settings->remember_enable && settings->remember_tun) || settings->flag_restart_tun_on) {
-                set_spmode_vpn(true, settings->flag_restart_tun_on);
-                settings->flag_restart_tun_on = false;
-            }
-            {
-                const int id = args.value(0).toInt();
-                const auto request = std::exchange(m_coreStartRequest, StartRequest{});
-                if (request.profileId >= 0 && request.profileId != id) {
-                    emit start_finished(request.serial, request.profileId, StartOutcome::Superseded, {});
-                }
-                if (id >= 0) profile_start(request.profileId == id ? request : StartRequest{id});
-            }
-            refresh_status();
+            if (changed(MwArg::RestartProxy)) connection()->noteRestartNeeded(Engine::RestartReason::Group);
             break;
     }
 }

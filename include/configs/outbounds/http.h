@@ -4,6 +4,11 @@
 #include "include/configs/common/TLS.h"
 
 namespace Configs {
+namespace Checks {
+// The core sends Proxy-Authorization only when a user name is set.
+QString HttpAuth(const QString& username, const QString& password);
+} // namespace Checks
+
 class http : public outbound {
 public:
     QString username;
@@ -28,5 +33,7 @@ public:
     BuildResult Build() override;
 
     QString DisplayType() override;
+
+    void Validate(Validation::Issues& issues) override;
 };
 } // namespace Configs

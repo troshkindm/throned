@@ -58,6 +58,7 @@ service LibcoreService {
   rpc ScanURLTest(ScanURLTestRequest) returns (TestResp);
   rpc ScanCheckNetwork(ScanCheckNetworkRequest) returns (ScanCheckNetworkResponse);
   rpc ParseRuleSet(ParseRuleSetRequest) returns (ParseRuleSetResponse);
+  rpc ResolveDomains(ResolveDomainsRequest) returns (ResolveDomainsResponse);
 }
 
 message EmptyReq {}
@@ -243,8 +244,9 @@ message ConnectionMetaData {
   repeated string chain = 12;                        // outbound chain, for later use
   optional int64 closed_at = 13 [default = 0];       // 0 while live
   optional string source = 14 [default = ""];        // client address "ip:port", empty when unknown
-  optional string matched_rule = 15 [default = ""];
-  optional uint32 process_id = 16 [default = 0];    // 0 when the core did not attribute it
+  optional string rule = 15 [default = ""];          // matched route rule as sing-box prints it, empty when routed by final
+  optional string rule_item = 16 [default = ""];     // the rule's entries that matched, e.g. "domain_suffix=github.com"; empty when unknown
+  optional uint32 process_id = 17 [default = 0];    // 0 when the core did not attribute it
 }
 
 // A fresh request through a running outbound, not a replay of an application's traffic.
@@ -336,6 +338,14 @@ message SetTransitionGuardRequest {
 
 message IsPrivilegedResponse {
   optional bool has_privilege = 1 [default = false];
+  // Linux: /dev/net/tun opened read-write. Unset elsewhere.
+  optional bool tun_device = 2;
+  // Linux: CAP_NET_ADMIN in the effective set. Unset elsewhere.
+  optional bool net_admin = 3;
+  // Linux: euid 0 and CAP_NET_ADMIN; macOS: euid 0. Unset on Windows.
+  optional bool kill_switch_privilege = 4;
+  // The first failing reason, plain English; empty when nothing failed.
+  optional string detail = 5;
 }
 
 message GetDefaultInterfaceResponse {
@@ -815,4 +825,22 @@ message ParseRuleSetResponse {
   // Inverted and AND rules: they do not describe a set of addresses.
   optional int32 skipped_rules = 3 [default = 0];
   optional int32 version = 4 [default = 0];
+}
+
+// Looked up through dns-direct, the resolver the core dials servers with, never the OS resolver.
+message ResolveDomainsRequest {
+  repeated string domains = 1;
+  // A probe box config, started only when the running profile has no dns-direct (or none runs).
+  optional string config = 2 [default = ""];
+}
+
+message ResolveDomainsResponse {
+  // In request order.
+  repeated ResolvedDomain results = 1;
+}
+
+message ResolvedDomain {
+  optional string domain = 1 [default = ""];
+  repeated string addresses = 2;
+  optional string error = 3 [default = ""];
 }

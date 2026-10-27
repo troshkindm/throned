@@ -1,8 +1,11 @@
 #include "include/ui/stats/RuntimeStatsWidget.h"
 
-#include "include/ui/mainwindow.h"
 #include "include/ui/stats/dialog_endpoint_details.h"
 #include "include/api/RPC.h"
+#include "include/engine/EngineHost.h"
+#include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/supervisor/CoreSupervisor.h"
+#include "include/engine/vpn/VpnEndpoints.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/database/DatabaseManager.h"
@@ -11,6 +14,7 @@
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/CountryHelper.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/global/ExitLookup.hpp"
 
 #include <QBrush>
 #include <QColor>
@@ -20,8 +24,6 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QItemSelectionModel>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QPointer>
 #include <QStringList>
 #include <QPushButton>
@@ -32,12 +34,26 @@
 #include <algorithm>
 
 namespace {
+QString runningConfigName() {
+    auto* engine = Engine::host();
+    const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
+    if (running == nullptr || running->outbound == nullptr) return {};
+    return running->outbound->DisplayTypeAndName();
+}
+
 QString formatCpu(const Sys::ProcessMetrics::Sample& s) {
     return s.ok ? QString::number(s.cpuPercent, 'f', 1) + QStringLiteral("%") : QStringLiteral("—");
 }
 
 QString formatRam(const Sys::ProcessMetrics::Sample& s) {
     return s.ok ? ReadableSize(s.rssBytes) : QStringLiteral("—");
+}
+
+// The provider the exit lookup asks, or empty while the lookup is off.
+QString runtimeExitLookupProvider() {
+    const auto* settings = Configs::dataManager->settingsRepo.get();
+    if (!settings->exit_country_lookup) return {};
+    return settings->exit_lookup_provider.isEmpty() ? Configs_network::ExitLookupAutoId : settings->exit_lookup_provider;
 }
 } // namespace
 
@@ -88,6 +104,9 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
     };
     connect(themeManager(), &ThemeManager::themeChanged, this, applyTheme);
     applyTheme();
+    // A lookup service's answer: as AutoText a tag in it would render as HTML.
+    ui->vOutIp->setTextFormat(Qt::PlainText);
+    ui->vCountry->setTextFormat(Qt::PlainText);
 
     ui->groupEndpoints->setVisible(false);
     ui->runtimeEndpoints->hide();
@@ -176,13 +195,13 @@ void RuntimeStatsWidget::hideEvent(QHideEvent* event) {
 
 void RuntimeStatsWidget::refreshLive() {
     if (!panelActive()) return;
-    auto* mw = GetMainWindow();
+    auto* engine = Engine::host();
 
     const auto selfSample = metrics_.sample(QCoreApplication::applicationPid());
     ui->vThroneRam->setText(formatRam(selfSample));
     ui->vThroneCpu->setText(formatCpu(selfSample));
 
-    const qint64 corePid = mw ? mw->GetCorePid() : 0;
+    const qint64 corePid = engine != nullptr ? engine->supervisor()->corePid() : 0;
     const auto coreSample = corePid > 0 ? metrics_.sample(corePid) : Sys::ProcessMetrics::Sample{};
     ui->vCoreRam->setText(formatRam(coreSample));
     ui->vCoreCpu->setText(formatCpu(coreSample));
@@ -231,7 +250,16 @@ void RuntimeStatsWidget::refreshLive() {
     const qint64 up = appStartEpoch > 0 ? QDateTime::currentSecsSinceEpoch() - appStartEpoch : 0;
     ui->vUptime->setText(Stats::HumanizeDuration(up));
 
-    const QString cfgName = mw ? mw->GetRunningConfigName() : QString();
+    if (const QString lookup = runtimeExitLookupProvider(); lookup != egressLookup_) {
+        egressLookup_ = lookup;
+        egressSnapshotDone_ = false;
+        lastProbeSecs_ = 0;
+        const QString shown = lookup.isEmpty() ? tr("Off") : QStringLiteral("—");
+        ui->vOutIp->setText(shown);
+        ui->vCountry->setText(shown);
+    }
+
+    const QString cfgName = runningConfigName();
     const qint64 nowSecs = QDateTime::currentSecsSinceEpoch();
     if (cfgName.isEmpty()) {
         ui->vCfgName->setText(tr("No active config"));
@@ -412,18 +440,23 @@ void RuntimeStatsWidget::openEndpointDetails(const QString& tag) {
 void RuntimeStatsWidget::probeEgress() {
     if (probing_.exchange(true)) return;
 
-    auto* mw = GetMainWindow();
-    if (mw == nullptr || mw->GetRunningConfigName().isEmpty()) {
+    if (runningConfigName().isEmpty()) {
         probing_.store(false);
         return;
     }
 
+    const QString provider = egressLookup_;
+    const QString config = lastProbedConfig_;
     ui->vPing->setText(QStringLiteral("…"));
-    if (ui->vOutIp->text() == QStringLiteral("—")) ui->vOutIp->setText(QStringLiteral("…"));
-    if (ui->vCountry->text() == QStringLiteral("—")) ui->vCountry->setText(QStringLiteral("…"));
+    for (QLabel* row: std::initializer_list<QLabel*>{ui->vOutIp, ui->vCountry}) {
+        if (provider.isEmpty())
+            row->setText(tr("Off"));
+        else if (row->text() == QStringLiteral("—"))
+            row->setText(QStringLiteral("…"));
+    }
 
     QPointer<RuntimeStatsWidget> self(this);
-    runOnNewThread([self]() {
+    runOnNewThread([self, provider, config]() {
         QString pingText;
         {
             libcore::TestReq req;
@@ -433,7 +466,7 @@ void RuntimeStatsWidget::probeEgress() {
             const auto res = API::defaultClient->Test(&ok, req);
             if (ok && !res.results.empty()) {
                 const int lat = res.results[0].latency_ms.value();
-                const auto vpnText = lat > 0 ? QString() : MainWindow::liveVpnConnectOkText();
+                const auto vpnText = lat > 0 ? QString() : Stats::LiveVpnConnectOkText();
                 pingText = lat > 0 ? QStringLiteral("%1 ms").arg(lat)
                                    : (vpnText.isEmpty() ? RuntimeStatsWidget::tr("Unavailable") : vpnText);
             } else {
@@ -441,38 +474,31 @@ void RuntimeStatsWidget::probeEgress() {
             }
         }
 
-        QString ipText = RuntimeStatsWidget::tr("N/A");
-        QString countryText = RuntimeStatsWidget::tr("N/A");
-        bool egressOk = false;
-        const auto resp = NetworkRequestHelper::HttpGet(QStringLiteral("http://ip-api.com/json/"), true);
-        if (resp.error.isEmpty()) {
-            const QJsonDocument doc = QJsonDocument::fromJson(resp.data);
-            if (doc.isObject()) {
-                const QJsonObject obj = doc.object();
-                const QString ip = obj[QStringLiteral("query")].toString();
-                const QString countryName = obj[QStringLiteral("country")].toString();
-                const QString countryCode = obj[QStringLiteral("countryCode")].toString();
-                const QString city = obj[QStringLiteral("city")].toString();
-                if (!ip.isEmpty()) {
-                    ipText = ip;
-                    egressOk = true;
-                }
-                if (!countryName.isEmpty()) {
-                    countryText = CountryCodeToFlag(countryCode) + QStringLiteral(" ") + countryName;
-                    if (!city.isEmpty()) countryText += QStringLiteral(", ") + city;
-                }
-            }
+        // Off still counts as a finished snapshot, so the 30 s retry does not keep re-pinging.
+        QString ipText = RuntimeStatsWidget::tr("Off");
+        QString countryText = ipText;
+        bool egressOk = true;
+        if (!provider.isEmpty()) {
+            const auto info = Configs_network::LookupExit(provider);
+            ipText = info.ip.isEmpty() ? RuntimeStatsWidget::tr("N/A") : info.ip;
+            countryText = info.hasCountry() ? Configs_network::ExitLocationText(info) : RuntimeStatsWidget::tr("N/A");
+            egressOk = !info.ip.isEmpty() || info.hasCountry();
         }
 
-        runOnUiThread([self, pingText, ipText, countryText, egressOk]() {
+        runOnUiThread([self, provider, config, pingText, ipText, countryText, egressOk]() {
             if (!self) return;
+            self->probing_.store(false);
+            // The lookup setting or the config changed mid-probe, and refreshLive's own probe bailed on probing_.
+            if (provider != self->egressLookup_ || config != self->lastProbedConfig_) {
+                self->lastProbeSecs_ = 0;
+                return;
+            }
             if (!self->egressSnapshotDone_) {
                 self->ui->vPing->setText(pingText);
                 self->ui->vOutIp->setText(ipText);
                 self->ui->vCountry->setText(countryText);
                 if (egressOk) self->egressSnapshotDone_ = true;
             }
-            self->probing_.store(false);
         });
     });
 }

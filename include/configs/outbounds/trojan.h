@@ -44,5 +44,7 @@ public:
     BuildResult Build() override;
 
     QString DisplayType() override;
+
+    void Validate(Validation::Issues& issues) override;
 };
 } // namespace Configs

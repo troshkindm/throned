@@ -7,8 +7,9 @@
 #include <QSet>
 
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/EngineEvents.h"
 #include "include/global/Configs.hpp"
-#include "include/ui/mainwindow.h"
+#include "include/global/Logger.hpp"
 
 namespace Configs {
 GroupsRepo::GroupsRepo(Database& database) : db(database) {
@@ -334,6 +335,7 @@ bool GroupsRepo::AddGroup(std::shared_ptr<Group>& group) {
     db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
             group->id,
             maxOrder + 1);
+    ++revision;
     return true;
 }
 
@@ -358,11 +360,31 @@ std::shared_ptr<Group> GroupsRepo::CurrentGroup() const {
     return GetGroup(currentGroupId);
 }
 
-void GroupsRepo::DeleteGroup(int id) {
-    QMutexLocker locker(&mutex);
-    memMap.erase(id);
-    db.exec("DELETE FROM groups_order WHERE group_id = ?", id);
-    db.exec("DELETE FROM groups WHERE id = ?", id);
+bool GroupsRepo::DeleteGroup(int id) {
+    const auto group = GetGroup(id);
+    const QList<int> listed = group != nullptr ? group->Profiles() : QList<int>{};
+    // Runs under ProfilesRepo's lock, so no profile Save lands between the delete and the tombstones.
+    return dataManager->profilesRepo->DeleteAndForget([&](QList<int>& deletedIds) {
+        QMutexLocker locker(&mutex);
+        QSet<int> profileIds(listed.cbegin(), listed.cend());
+        const bool ok = db.transaction("GroupsRepo::DeleteGroup", [&] {
+            {
+                const auto owned = db.queryThrow("SELECT id FROM profiles WHERE gid = ?", id);
+                while (owned->executeStep()) profileIds.insert(owned->getColumn(0).getInt());
+            }
+            db.execThrow("DELETE FROM groups_order WHERE group_id = ?", id);
+            db.execDeleteByIdInThrow("profiles", "id", std::vector<int>(profileIds.cbegin(), profileIds.cend()));
+            db.execThrow("DELETE FROM groups WHERE id = ?", id);
+            return true;
+        });
+        if (!ok) return false;
+        memMap.erase(id);
+        // Only an id that existed: ids past the counter are still to be handed out.
+        if (group != nullptr) tombstones.insert(id);
+        deletedIds = profileIds.values();
+        ++revision;
+        return true;
+    });
 }
 
 QList<int> GroupsRepo::GetAllGroupIds() const {
@@ -398,16 +420,18 @@ QList<int> GroupsRepo::GetGroupsTabOrder() const {
 }
 
 void GroupsRepo::SetGroupsTabOrder(const QList<int>& order) {
+    QMutexLocker locker(&mutex);
     db.exec("DELETE FROM groups_order");
-    if (!order.isEmpty()) {
-        std::vector<int> pairs;
-        pairs.reserve(order.size() * 2);
-        for (int i = 0; i < order.size(); ++i) {
-            pairs.push_back(order[i]);
-            pairs.push_back(i);
-        }
-        db.execBatchInsertIntPairs("groups_order", "group_id", "display_order", pairs);
+    std::vector<int> pairs;
+    pairs.reserve(order.size() * 2);
+    int position = 0;
+    for (const int id: order) {
+        if (tombstones.contains(id)) continue;
+        pairs.push_back(id);
+        pairs.push_back(position++);
     }
+    if (!pairs.empty()) db.execBatchInsertIntPairs("groups_order", "group_id", "display_order", pairs);
+    ++revision;
 }
 
 bool GroupsRepo::Save(const std::shared_ptr<Group>& group) {
@@ -419,11 +443,17 @@ bool GroupsRepo::Save(const std::shared_ptr<Group>& group) {
         return false;
     }
 
-    QMutexLocker locker(&mutex);
-    saveToDatabase(group.get(), group->id);
-    memMap[group->id] = group;
-
-    return true;
+    {
+        QMutexLocker locker(&mutex);
+        if (!tombstones.contains(group->id)) {
+            saveToDatabase(group.get(), group->id);
+            memMap[group->id] = group;
+            ++revision;
+            return true;
+        }
+    }
+    LOG_DEBUG(QString("Group %1 was deleted; not saving it").arg(group->id));
+    return false;
 }
 
 namespace {
@@ -447,16 +477,16 @@ void drainSorts() {
             }
             batch.swap(pendingSorts);
         }
-        QStringList moved;
+        QList<int> moved;
         for (auto it = batch.cbegin(); it != batch.cend(); ++it) {
             const auto group = dataManager->groupsRepo->GetGroup(it.key());
             if (group == nullptr) continue;
             const bool reordered = it->full ? group->Resort() : group->Reposition(it->changed.values());
             if (!reordered) continue;
             dataManager->groupsRepo->Save(group);
-            moved << Int2String(it.key());
+            moved << it.key();
         }
-        if (!moved.isEmpty() && MW_dialog_message) MW_dialog_message(MwMessage::GroupOrderChanged, moved);
+        if (!moved.isEmpty()) Engine::EngineEvents::GroupOrderChanged(moved);
     }
 }
 

@@ -1811,7 +1811,7 @@ void DiagnosticsWindow::rebuildConnections() {
             group.outbound = text(c.outbound);
             group.network = text(c.network);
         }
-        if (group.matchedRule.isEmpty()) group.matchedRule = text(c.matched_rule);
+        if (group.matchedRule.isEmpty()) group.matchedRule = text(c.rule);
         if (c.closed_at.value_or(0) <= 0) group.ids << it.key();
         ++group.count;
         if (c.closed_at.value_or(0) > 0) ++group.closed;

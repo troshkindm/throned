@@ -19,7 +19,7 @@ inline QStringList DomainStrategy = {"", "ipv4_only", "ipv6_only", "prefer_ipv4"
 }
 
 namespace SingboxOptions {
-inline QStringList SniffProtocols = {"http", "tls", "quic", "stun", "dns", "bittorrent", "dtls", "ssh", "rdp"};
+inline QStringList SniffProtocols = {"http", "tls", "quic", "stun", "dns", "bittorrent", "dtls", "ssh", "rdp", "ntp"};
 inline QStringList ActionTypes = {"route", "reject", "hijack-dns", "route-options", "sniff", "resolve"};
 inline QStringList rejectMethods = {"default", "drop", "reply"};
 } // namespace SingboxOptions

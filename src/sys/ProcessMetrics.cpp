@@ -174,6 +174,7 @@ ProcessMetrics::Sample ProcessMetrics::sample(qint64 pid) {
         const qint64 dCpu = static_cast<qint64>(raw.cpuNs) - static_cast<qint64>(it->cpuTimeNs);
         if (dWall > 0 && dCpu >= 0) {
             s.cpuPercent = static_cast<double>(dCpu) / static_cast<double>(dWall) * 100.0 / static_cast<double>(cpuCount());
+            s.cpuValid = true;
         }
     }
     prior_.insert(pid, Prior{raw.cpuNs, nowNs});

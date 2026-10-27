@@ -52,6 +52,8 @@ private:
     QString lastProbedConfig_;
     qint64 lastProbeSecs_ = 0;
     bool egressSnapshotDone_ = false;
+    // The exit lookup provider the egress rows belong to; empty while the lookup is off.
+    QString egressLookup_;
 
     QPointer<DialogEndpointDetails> details_;
     QList<Stats::VpnEndpointView> endpointViews_;

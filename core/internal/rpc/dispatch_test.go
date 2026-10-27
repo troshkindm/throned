@@ -21,8 +21,8 @@ func TestDispatchCoversProtobufService(t *testing.T) {
 
 func TestDispatchDiagnoseSiteUsesRunningOutbound(t *testing.T) {
 	previous, previousCancel := currentInstance()
-	defer setBoxInstance(previous, previousCancel)
-	setBoxInstance(nil, nil)
+	defer setBoxInstance(previous, previousCancel, nil)
+	setBoxInstance(nil, nil, nil)
 	payload, _ := proto.Marshal(&gen.DiagnoseSiteRequest{Url: To("http://127.0.0.1")})
 	if _, err := dispatch("DiagnoseSite", payload); err == nil {
 		t.Fatal("a stopped instance must return an explicit error")
@@ -33,7 +33,7 @@ func TestDispatchDiagnoseSiteUsesRunningOutbound(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer env.close()
-	setBoxInstance(env.box, nil)
+	setBoxInstance(env.box, nil, nil)
 	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusForbidden) }))
 	defer site.Close()
 	for _, tag := range []string{"", "diagnostic-direct"} {
@@ -58,8 +58,8 @@ func TestDispatchDiagnoseSiteUsesRunningOutbound(t *testing.T) {
 
 func TestDispatchPreviewRouteReplaysTheRunningRules(t *testing.T) {
 	previous, previousCancel := currentInstance()
-	defer setBoxInstance(previous, previousCancel)
-	setBoxInstance(nil, nil)
+	defer setBoxInstance(previous, previousCancel, nil)
+	setBoxInstance(nil, nil, nil)
 	payload, _ := proto.Marshal(&gen.PreviewRouteRequest{Url: To("https://preview.example")})
 	if _, err := dispatch("PreviewRoute", payload); err == nil {
 		t.Fatal("a stopped instance must return an explicit error")
@@ -72,7 +72,7 @@ func TestDispatchPreviewRouteReplaysTheRunningRules(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer env.close()
-	setBoxInstance(env.box, nil)
+	setBoxInstance(env.box, nil, nil)
 
 	preview := func(url string) *gen.PreviewRouteResponse {
 		t.Helper()
@@ -103,8 +103,8 @@ func TestDispatchPreviewRouteReplaysTheRunningRules(t *testing.T) {
 
 func TestDispatchHealthNeedsARunningInstanceAndListsOutbounds(t *testing.T) {
 	previous, previousCancel := currentInstance()
-	defer setBoxInstance(previous, previousCancel)
-	setBoxInstance(nil, nil)
+	defer setBoxInstance(previous, previousCancel, nil)
+	setBoxInstance(nil, nil, nil)
 	payload, _ := proto.Marshal(&gen.HealthRequest{})
 	if _, err := dispatch("Health", payload); err == nil {
 		t.Fatal("a stopped instance must return an explicit error")
@@ -115,7 +115,7 @@ func TestDispatchHealthNeedsARunningInstanceAndListsOutbounds(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer env.close()
-	setBoxInstance(env.box, nil)
+	setBoxInstance(env.box, nil, nil)
 	// A domain nothing can resolve keeps the test off the network while still
 	// exercising the whole path; only the outbound inventory is asserted.
 	payload, _ = proto.Marshal(&gen.HealthRequest{DnsProbeDomain: To("invalid.")})

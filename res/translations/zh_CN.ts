@@ -122,6 +122,10 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>Click To Disable Sorting</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Matched: %1 → %2</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>CoreDiagnostics</name>
@@ -2368,6 +2372,290 @@ You can provide a subset of the said images and only the corresponding states wi
 It is suggested that each image&apos;s size be less than 100KB.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>A geo asset download is already running.</source>
+        <translation>地理资源下载已在进行中。</translation>
+    </message>
+    <message>
+        <source>The backup file is damaged or incomplete.</source>
+        <translation>备份文件已损坏或不完整。</translation>
+    </message>
+    <message>
+        <source>There is nothing to back up</source>
+        <translation>没有可备份的内容</translation>
+    </message>
+    <message>
+        <source>A subscription update is running; try again when it finishes.</source>
+        <translation>正在更新订阅；请在完成后重试。</translation>
+    </message>
+    <message>
+        <source>The backup&apos;s database is damaged: %1</source>
+        <translation>备份中的数据库已损坏：%1</translation>
+    </message>
+    <message>
+        <source>Trust System Certificates in Xray</source>
+        <translation>Xray 信任系统证书</translation>
+    </message>
+    <message>
+        <source>Xray verifies servers only against its built-in root certificates. Turn this on to also trust the certificates installed in the system, such as a company or self-signed root. A profile or Xray config that sets useSystemCA itself keeps its own value.</source>
+        <translation>Xray 仅使用内置根证书验证服务器。开启后还会信任系统中安装的证书，例如公司或自签名根证书。自行设置了 useSystemCA 的配置文件或 Xray 配置保留其自身的值。</translation>
+    </message>
+    <message>
+        <source>Interface</source>
+        <translation>界面</translation>
+    </message>
+    <message>
+        <source>Simple hides the advanced options. They keep their values and still apply.</source>
+        <translation>简洁模式会隐藏高级选项，它们保留原值并继续生效。</translation>
+    </message>
+    <message>
+        <source>Simple</source>
+        <translation>简洁</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;After connecting, Throned asks an IP lookup service — through the proxy — which IP and country the connection exits from.&lt;/p&gt;&lt;p&gt;Turn this off to never contact such a service automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Look up exit country</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lookup service</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WebDAV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep backups on a WebDAV server such as Nextcloud, a NAS or Yandex Disk. Uploads include the parts checked under Create Backup.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WebDAV Settings...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload to WebDAV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore from WebDAV...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a whole number of milliseconds, for example %1 (without a unit), or 0 for the default.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a whole number of milliseconds, for example %1 (without a unit).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be shorter than 1000 characters, on a single line.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown or malformed parameter &quot;%1&quot;. Use hwid=…, os=…, osVersion=…, model=… separated by commas.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>127.0.0.1 (default)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mixed inbound</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNS server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port %1 is already used by: %2. Choose a different port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>NTP server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>NTP port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Created by: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter your WebDAV server in WebDAV Settings first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WebDAV Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Device name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connect through the proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Testing the connection...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connected. The backup folder is ready.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connection failed:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server URL must start with http:// or https://.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Uploading the backup...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload failed:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Backup uploaded:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Backup uploaded, but the backup list could not be updated: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore from WebDAV</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Loading the backup list...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not list the backups:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The backup list could not be read: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There are no backups in the WebDAV folder yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Created</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Platform</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (this device)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Downloading the backup...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not download the backup:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete Backup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete this backup from the WebDAV server? This cannot be undone.
+
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Deleting the backup...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not delete the backup:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Backup deleted, but the backup list could not be updated: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP lists and scans</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill Switch</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -2470,6 +2758,10 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>Advanced</source>
         <translation>高级设置</translation>
+    </message>
+    <message>
+        <source>No profile named &quot;%1&quot;. Pick one from the list.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2645,6 +2937,54 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>This server last sent %1 h.</source>
         <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Must be shorter than 1000 characters, on a single line.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be at least 30 minutes, or 0 to keep the default.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Advanced Group Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Host or IP address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profiles&apos; own addresses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fixed address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Missing list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profiles connect to %1 (%2).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1, so profiles use their own addresses.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a host name or an IP address, without a port.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3330,6 +3670,206 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>Headers cannot contain &quot;|&quot;.</source>
         <translation type="unfinished" />
+    </message>
+    <message>
+        <source>This profile was deleted while you were editing it.</source>
+        <translation>此配置在您编辑时已被删除。</translation>
+    </message>
+    <message>
+        <source>Storage</source>
+        <translation>存储</translation>
+    </message>
+    <message>
+        <source>Tuning</source>
+        <translation>调优</translation>
+    </message>
+    <message>
+        <source>Service</source>
+        <translation>服务</translation>
+    </message>
+    <message>
+        <source>Folder</source>
+        <translation>文件夹</translation>
+    </message>
+    <message>
+        <source>Client ID</source>
+        <translation>客户端 ID</translation>
+    </message>
+    <message>
+        <source>Client Secret</source>
+        <translation>客户端密钥</translation>
+    </message>
+    <message>
+        <source>Refresh Token</source>
+        <translation>刷新令牌</translation>
+    </message>
+    <message>
+        <source>Secrets</source>
+        <translation>密钥</translation>
+    </message>
+    <message>
+        <source>Template</source>
+        <translation>模板</translation>
+    </message>
+    <message>
+        <source>Front Address</source>
+        <translation>前置地址</translation>
+    </message>
+    <message>
+        <source>Front Port</source>
+        <translation>前置端口</translation>
+    </message>
+    <message>
+        <source>Segment Bytes</source>
+        <translation>分段字节数</translation>
+    </message>
+    <message>
+        <source>Flush Interval</source>
+        <translation>刷新间隔</translation>
+    </message>
+    <message>
+        <source>Poll Interval</source>
+        <translation>轮询间隔</translation>
+    </message>
+    <message>
+        <source>Max Poll Interval</source>
+        <translation>最大轮询间隔</translation>
+    </message>
+    <message>
+        <source>Eager Window</source>
+        <translation>积极轮询窗口</translation>
+    </message>
+    <message>
+        <source>Hole Timeout</source>
+        <translation>缺段超时</translation>
+    </message>
+    <message>
+        <source>Session TTL</source>
+        <translation>会话存活时间</translation>
+    </message>
+    <message>
+        <source>Concurrency</source>
+        <translation>并发数</translation>
+    </message>
+    <message>
+        <source>Google Drive folder ID</source>
+        <translation>Google Drive 文件夹 ID</translation>
+    </message>
+    <message>
+        <source>A directory path</source>
+        <translation>目录路径</translation>
+    </message>
+    <message>
+        <source>Where both ends exchange the stream: google-drive uses a Google Drive folder, template any HTTP storage API described by Template, local a folder on this machine.</source>
+        <translation>双方交换数据流的位置：google-drive 使用 Google Drive 文件夹，template 使用模板所描述的任意 HTTP 存储 API，local 使用本机上的文件夹。</translation>
+    </message>
+    <message>
+        <source>google-drive: the folder ID. local: a directory path. template: read as {folder}.</source>
+        <translation>google-drive：文件夹 ID。local：目录路径。template：作为 {folder} 读取。</translation>
+    </message>
+    <message>
+        <source>The Google Drive OAuth client ID.</source>
+        <translation>Google Drive 的 OAuth 客户端 ID。</translation>
+    </message>
+    <message>
+        <source>The Google Drive OAuth client secret.</source>
+        <translation>Google Drive 的 OAuth 客户端密钥。</translation>
+    </message>
+    <message>
+        <source>The OAuth refresh token for the Google account that owns the folder.</source>
+        <translation>拥有该文件夹的 Google 账号的 OAuth 刷新令牌。</translation>
+    </message>
+    <message>
+        <source>Values the template reads as {secret0}, {secret1}, …, separated by commas.</source>
+        <translation>模板以 {secret0}、{secret1}… 读取的值，用逗号分隔。</translation>
+    </message>
+    <message>
+        <source>The storage API&apos;s auth, put, get, list and delete operations, as JSON.</source>
+        <translation>存储 API 的 auth、put、get、list 和 delete 操作，以 JSON 表示。</translation>
+    </message>
+    <message>
+        <source>Optional domain front: the storage API is dialed at this address while TLS still names the API host.</source>
+        <translation>可选的域前置：通过此地址连接存储 API，而 TLS 仍使用 API 的主机名。</translation>
+    </message>
+    <message>
+        <source>Port of the front address. Default: 443.</source>
+        <translation>前置地址的端口。默认：443。</translation>
+    </message>
+    <message>
+        <source>Largest upload per file, in bytes. Default: 524288; Xray caps it at 16 MiB.</source>
+        <translation>每个文件的最大上传量，单位为字节。默认：524288；Xray 将其上限设为 16 MiB。</translation>
+    </message>
+    <message>
+        <source>How long writes are gathered before an upload, in milliseconds. Default: 20.</source>
+        <translation>上传前收集写入数据的时长，单位为毫秒。默认：20。</translation>
+    </message>
+    <message>
+        <source>Shortest wait between checks for new files, in milliseconds. Default: 50.</source>
+        <translation>检查新文件的最短间隔，单位为毫秒。默认：50。</translation>
+    </message>
+    <message>
+        <source>Longest wait between checks while the stream is idle, in milliseconds. Default: 500.</source>
+        <translation>数据流空闲时检查的最长间隔，单位为毫秒。默认：500。</translation>
+    </message>
+    <message>
+        <source>How long after traffic polling stays at the shortest wait, in milliseconds. Default: 2000.</source>
+        <translation>有流量后保持最短轮询间隔的时长，单位为毫秒。默认：2000。</translation>
+    </message>
+    <message>
+        <source>How long a missing segment is waited for before the stream fails, in milliseconds. Default: 30000.</source>
+        <translation>在数据流失败前等待缺失分段的时长，单位为毫秒。默认：30000。</translation>
+    </message>
+    <message>
+        <source>How long an idle session lives before its files are cleaned up, in seconds. Default: 300.</source>
+        <translation>空闲会话在其文件被清理前的存活时长，单位为秒。默认：300。</translation>
+    </message>
+    <message>
+        <source>Parallel storage requests per stream. Default: 8; Xray caps it at 64.</source>
+        <translation>每个数据流的并行存储请求数。默认：8；Xray 将其上限设为 64。</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Configure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cipher Suites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Colon-separated TLS 1.2 cipher suite names. A uTLS fingerprint ignores them; use the &quot;unsafe&quot; fingerprint (Go&apos;s own TLS stack) to apply them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>cipherSuites: colon-separated TLS 1.2 cipher suite names, including Go&apos;s insecure ones. Only applied with the &quot;unsafe&quot; fingerprint.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The short ID has no effect without a Reality public key, so Reality stays off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The padding method or placement is not supported, and Xray refuses it even with obfuscation off. Turn this on and fix the value, or clear it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ECH Config List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>echConfigList: a base64 ECHConfigList, or &quot;domain+https://dns/dns-query&quot; to let Xray fetch it over DoH (e.g. cloudflare-ech.com+https://8.8.8.8/dns-query).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set by %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set by %1; the profile&apos;s own address is %2.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4078,6 +4618,68 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Default</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>WARP has no config yet: click Generate Warp Config.</source>
+        <translation>WARP 尚无配置：请点击“生成 Warp 配置”。</translation>
+    </message>
+    <message>
+        <source>It uses its own DNS servers: remote %1, direct %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use an IP address, for example 223.5.5.5 or tls://1.1.1.1: this server resolves the names of the others.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use three numbers from 0 to 255, for example 12,34,56.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not an IP address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add at least one host name after the address, for example 10.0.0.5 nas.lan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a host name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Line %1: &quot;%2&quot; never matches: %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Put an IPv6 address in brackets, for example [2606:4700::1].</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (default)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core raises values below 1024 to 1024.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It is on but empty: click Edit DNS Object to write one, or turn it off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The object is empty: add at least its &quot;servers&quot;, or turn it off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Required while WARP is on: click Generate Warp Config, or fill it in.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) were updated with warnings; see the details.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>DialogRuntimeStats</name>
@@ -4305,6 +4907,18 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>&quot;%1&quot; covers every address, which would stop Tun from routing anything.</source>
         <translation>&quot;%1&quot; 涵盖一切地址，这将导致 Tun 无法路由任何流量。</translation>
     </message>
+    <message>
+        <source>IPv6 needs an MTU of at least %1; below that the system may drop IPv6 from the Tun.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This covers every address, which would stop Tun from routing anything.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Improves Tun routing and performance using nftables. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditAdvanced</name>
@@ -4527,6 +5141,70 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Disable Path MTU Discovery</source>
         <translation>禁用路径 MTU 发现</translation>
+    </message>
+    <message>
+        <source>AnyTLS does not support TCP Fast Open, so it is turned off when the profile starts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP Fast Open is ignored while the custom TLS fragment is on.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A dhcp:// resolver cannot fetch the ECH config. Use a udp://, tls:// or https:// address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ECH Query Name / Resolver</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>domain or domain+resolver</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;SHA-256 of the server&apos;s whole certificate in base64, one per line (pcs in share links). A match replaces CA verification, so a self-signed certificate works.&lt;/p&gt;&lt;p&gt;Cannot be combined with a custom Certificate.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;SHA-256 of the server certificate&apos;s public key in base64, one per line. A match replaces CA verification and survives renewals that keep the key.&lt;/p&gt;&lt;p&gt;Cannot be combined with a custom Certificate.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Public Key SHA256</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inherit from group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Own address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Missing list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connects to %1 (%2).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1, so the profile&apos;s own address is used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Already set</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4886,6 +5564,28 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Every profile&apos;s last test failed, which usually means the network was down rather than the servers, so all %1 are kept and will be re-checked.</source>
         <translation>每个配置档的上次测试均失败，这通常意味着网络中断而不是服务器宕机，因此将保留私有 %1 个配置档并将会重新检查。</translation>
     </message>
+    <message>
+        <source>The groups whose profiles this selector picks from. Profiles from every checked group are pooled together, and each one is still wrapped in its own group&apos;s front and landing proxy, so it behaves as if started on its own. New servers added by a subscription update join automatically — you never have to edit this profile again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>leave empty to use every profile in the checked groups</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check at least one group for this auto selector to track.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 of %2 profiles in the checked groups can be used; %3 would run.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n tracked group(s) no longer exist and are ignored; saving removes them.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>EditChain</name>
@@ -4908,6 +5608,56 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Only one extra-core profile is allowed in a chain.</source>
         <translation>在代理链中仅允许一个  extra-core  配置档。</translation>
+    </message>
+    <message>
+        <source>A custom %1 config cannot be a hop; only custom outbounds can.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only one Extra Core profile can be in a chain.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only one custom Xray config can be in a chain.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An Extra Core profile and a custom Xray config cannot be in the same chain.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A custom Xray config cannot share a chain with other Xray profiles.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An Extra Core profile can only be the final hop; move it to the top of the list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A custom Xray config can only be the final hop; move it to the top of the list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The chain switches between %1 and Xray too often; keep the Xray hops together, between %1 hops.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hops</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n hop(s) no longer exist or cannot be hops, so they were left out; saving removes them.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Hop %1 no longer exists; replace or remove it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add at least one profile to the chain.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4944,6 +5694,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <location filename="Throne-1.3.1/src/ui/profile/edit_custom.cpp" line="66"/>
         <source>Xray full config (Throne adds a socks inbound and uses sing-box for tun/routing).</source>
         <translation>Xray 完整配置 (Throne 添加一个 socks inbound (套接字入站)并把 sing-box 用于 tun / 路由)。</translation>
+    </message>
+    <message>
+        <source>Config</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5130,6 +5884,10 @@ initial packet size and the initial receive windows.</source>
 rendezvous service. Replaces the server address and port.</source>
         <translation>通过 Hysteria Realm 会合服务访问位于 NAT 后的 Hysteria2 服务器。
 替换服务器地址和端口。</translation>
+    </message>
+    <message>
+        <source>Gecko obfuscation needs a password; without one, obfuscation is off.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5371,6 +6129,14 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Already set</source>
         <translation>已设置</translation>
     </message>
+    <message>
+        <source>This protocol does not accept the reported OS &quot;%1&quot; set under Advanced.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The token or form entries under Advanced use %1; select an authenticator entry.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditOpenVPN</name>
@@ -5518,6 +6284,14 @@ rendezvous service. Replaces the server address and port.</source>
         <location filename="Throne-1.3.1/include/ui/profile/edit_openvpn.ui" line="65"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static challenge text shown by the server when it asks for a second authentication response. When a challenge is set and an OTP profile is bound, Throne sends the answer itself and no interactive prompt appears.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;服务器在要求第二次身份验证响应时显示的静态质询文本。当设置了质询文本并绑定了 OTP 配置档时，Throne 将自行发送应答，而不出现交互式提示。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Control Channel Wrap Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Control Channel Wrap Direction</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -6111,6 +6885,10 @@ rendezvous service. Replaces the server address and port.</source>
         <source>1420</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Open Amnezia Options and fix %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditXrayVless</name>
@@ -6168,6 +6946,10 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>Remove %1?</source>
         <translation>删除 %1 吗?</translation>
+    </message>
+    <message>
+        <source>This group was deleted while you were editing it.</source>
+        <translation>此分组在您编辑时已被删除。</translation>
     </message>
 </context>
 <context>
@@ -7948,6 +8730,287 @@ Error: %1</source>
         <source>Default server is missing</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Export config</source>
+        <translation>导出配置</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <source>Copied</source>
+        <translation>已复制</translation>
+    </message>
+    <message>
+        <source>This group was deleted while you were editing it.</source>
+        <translation>此分组在您编辑时已被删除。</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs &quot;%2&quot;, but the installed %3 does not contain it.</source>
+        <translation>Xray 配置“%1”需要“%2”，但已安装的 %3 中没有它。</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Miscellaneous &gt; Xray Geo Assets.</source>
+        <translation>Xray 配置“%1”需要未安装的地理数据文件：%2。请在“基本设置 &gt; 杂项 &gt; Xray 地理资源”中下载。</translation>
+    </message>
+    <message>
+        <source>Geo asset files are already being downloaded.</source>
+        <translation>地理资源文件正在下载中。</translation>
+    </message>
+    <message>
+        <source>Update is unavailable while a background Throned (PID %1) runs from this installation; stop it first.</source>
+        <translation>从此安装目录运行的后台 Throned（PID %1）仍在运行，无法更新；请先停止它。</translation>
+    </message>
+    <message>
+        <source>Kill switch is blocking traffic</source>
+        <translation>Kill Switch 正在阻断流量</translation>
+    </message>
+    <message>
+        <source>Leftover Tun adapter</source>
+        <translation>残留的 Tun 适配器</translation>
+    </message>
+    <message>
+        <source>Windows was still holding the Tun adapter from an earlier session that did not close cleanly. Starting the profile again usually works; if it keeps failing, restart Windows.
+
+Error: %1</source>
+        <translation>Windows 仍占用着上一次未正常关闭的会话留下的 Tun 适配器。通常再次启动该配置档即可；如果仍然失败，请重启 Windows。
+
+错误: %1</translation>
+    </message>
+    <message>
+        <source>Start Again</source>
+        <translation>再次启动</translation>
+    </message>
+    <message>
+        <source>About</source>
+        <translation>关于</translation>
+    </message>
+    <message>
+        <source>Advanced Mode</source>
+        <translation>高级模式</translation>
+    </message>
+    <message>
+        <source>Show every option. Simple mode hides the advanced ones; they keep their values and still apply.</source>
+        <translation>显示所有选项。简洁模式会隐藏高级选项，但它们保留原值并继续生效。</translation>
+    </message>
+    <message>
+        <source>Search Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>close the open settings window first</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>close &quot;%1&quot; first</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to resolve domains: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the core did not answer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to resolve %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Specific server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Route through another server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There are no servers to route to.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Specific server rules</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing profile &quot;%1&quot;. Checked targets go through the chosen server; unchecking one removes its rule.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server (type part of its name to search):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search servers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Integration Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP Scanner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill switch: not active</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Not starting %1: the kill switch is not active.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] The extra core %1 could not be allowed through the kill switch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill switch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The kill switch could not be updated to allow this profile&apos;s extra core, so the profile was not started. See the log for details.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>System proxy: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill switch is not active</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart as Administrator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Grant Privileges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Kill Switch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable kill switch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Restarting the core so that its own traffic passes the kill switch...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 from the %2 rules of &quot;%3&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Moved %1 from the %2 to the %3 rules of &quot;%4&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warp-bypass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Modify rules in &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Modify rules</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 rules</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing profile &quot;%1&quot;. Checked targets go %2; unchecking one removes its rule.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>in %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checking it moves the rule from %1 to %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>covered by %1 in %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 in %2 is matched first, so this rule would never apply</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1  (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Added %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Moved %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 rules:
+%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Process %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trigger main window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show groups</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show routes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle System Proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start/Stop Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Tun Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Global hotkey not registered: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -7993,6 +9056,10 @@ Error: %1</source>
     <message>
         <source>Traffic</source>
         <translation>流量</translation>
+    </message>
+    <message>
+        <source>Certificate checks are turned off by the &quot;Skip TLS certificate authentication&quot; setting.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -9213,6 +10280,343 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>Auto-update: every %1</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Proxy</source>
+        <translation>代理</translation>
+    </message>
+    <message>
+        <source>Other outbounds</source>
+        <translation>其他出站</translation>
+    </message>
+    <message>
+        <source>Download stalled: no data arrived for %1 seconds.</source>
+        <translation>下载停滞：%1 秒内未收到数据。</translation>
+    </message>
+    <message>
+        <source>Throned needs at least one group.</source>
+        <translation>Throned 至少需要一个分组。</translation>
+    </message>
+    <message>
+        <source>This group&apos;s subscription is being updated. Try again when it finishes.</source>
+        <translation>此分组的订阅正在更新。请在更新完成后重试。</translation>
+    </message>
+    <message>
+        <source>Close the editor of this group or of one of its profiles first.</source>
+        <translation>请先关闭此分组或其某个配置的编辑器。</translation>
+    </message>
+    <message>
+        <source>This group no longer exists.</source>
+        <translation>此分组已不存在。</translation>
+    </message>
+    <message>
+        <source>Throned is running in the background (PID %1). Stop the service first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Throned is running in the background. Stop the service first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Another Throned instance (PID %1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Another Throned instance</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 is using this data directory:
+%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Request with proxy but the mixed inbound is disabled and Tun Mode is off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throned&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter the WebDAV server URL in the WebDAV settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The WebDAV server URL must start with http:// or https://.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server sent more than %1 MB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not write the downloaded backup: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server did not answer in time.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server could not be reached.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server answered with a redirect (HTTP %1); check the server URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server redirected to %1; check the server URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Wrong username or password.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Permission denied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server error (HTTP %1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server&apos;s folder listing could not be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not create the folder on the server: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The backup list kept changing while it was being updated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not read the backup file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The backup&apos;s file name is not safe to use.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not create a temporary file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The downloaded backup does not match the backup list; it may have been replaced or damaged.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignored %1 %2: %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignored an unreadable value: %1 %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Raised %1 %2 to 2s, the shortest interval the endpoint uses.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped the Tun private range &quot;%1&quot;: it is not a valid IP address or CIDR.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNS address &quot;%1&quot; is invalid: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Chain &quot;%1&quot; has a hop (profile id %2) that no longer exists, edit the chain to remove it</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a front proxy that has been deleted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a landing proxy that has been deleted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A proxy in the chain can no longer be found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped testing %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Raw download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Insecure TLS download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 dials its own address: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile no longer exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 profiles have no single server to scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria2 realm profiles have no fixed server to scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The chain has no hops</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A hop of the chain no longer exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Chains with an extra-core or Xray full config hop cannot be tested</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the group&apos;s fixed address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The IP list no longer exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP list &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The IP list &quot;%1&quot; is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 profiles have no single server address to replace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria2 realm profiles have no fixed server address to replace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile could not be copied for the scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile could not be checked: core unreachable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile is not valid; the log has the details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile cannot be pointed at the scanned addresses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Private</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Compromised</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Insecure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 scan in progress %2/%3 (%4%)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source> · +%n more</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source> · %1 found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>+%1 more</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unverified Host Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The built-in WARP MASQUE identity has not been generated yet (Routing Settings)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The built-in WARP WireGuard identity has not been generated yet (Routing Settings)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose a profile for the config test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This type of profile cannot be pointed at scanned addresses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile for the config test could not be copied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose the WARP profile to take the identity from</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This mode needs a MASQUE profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This mode needs a WireGuard profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Register a new identity for this mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The WARP identity could not be read; register a new one</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -9306,6 +10710,20 @@ outbounds and other Throne features may break. For advanced users only.</source>
         <translation>按原样使用路由对象 (outbounds ids (出站标识符)仍被解析为标记)。
 在 Throne 中「不会」添加它的 DNS-hijack (DNS劫持)或 xray bridge plumbing (桥接)等底层机制，
 所以 DNS、链式/xray 出口和其它 Throne 功能可能会失效。仅限高级用户使用。</translation>
+    </message>
+    <message>
+        <source>Route</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>The route has %n schema problem(s), and the core will likely refuse to start with it. Save anyway?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -9611,6 +11029,18 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>这条规则属于端点“%1”，且无法单独删除。
 
 同时从这个路由配置档中移除该端点吗？</translation>
+    </message>
+    <message>
+        <source>Disabled: kept in the profile but left out of the generated config.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Missing profile (id %1)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -10067,6 +11497,22 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Stopping…</source>
         <translation>正在停止…</translation>
+    </message>
+    <message>
+        <source>Kill switch is blocking traffic</source>
+        <translation>Kill Switch 正在阻断流量</translation>
+    </message>
+    <message>
+        <source>Kill switch: starting…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill switch: Tun is not running, so most traffic is blocked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill switch is not active</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -10591,6 +12037,32 @@ Deleted %3 Profiles:
         <translation>导出了 %1 个 OTP 配置档到:
 %2</translation>
     </message>
+    <message>
+        <source>Unnamed secret</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not imported:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>…and %n more</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Nothing could be imported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: already in the list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: could not be stored.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GroupOverflowMenu</name>
@@ -10598,13 +12070,6 @@ Deleted %3 Profiles:
         <source>Find a group</source>
         <translation type="unfinished"></translation>
     </message>
-</context>
-<context>
-    <name>WindowNotices</name>
-    <message><source>Try Mica</source><translation>试试 Mica</translation></message>
-    <message><source>A soft Windows 11 backdrop for Throned.</source><translation>为 Throned 启用柔和的 Windows 11 背景。</translation></message>
-    <message><source>Enable</source><translation>启用</translation></message>
-    <message><source>Don&apos;t show again</source><translation>不再显示</translation></message>
 </context>
 <context>
     <name>RuntimeStatsWidget</name>
@@ -10743,6 +12208,10 @@ Deleted %3 Profiles:
     <message>
         <source>State</source>
         <translation>状态</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -11017,6 +12486,14 @@ Deleted %3 Profiles:
     <message>
         <source>Secret is not valid base32</source>
         <translation>密钥不是有效的 base32</translation>
+    </message>
+    <message>
+        <source>Not valid base32: use the letters A-Z and the digits 2-7.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Too short to be a secret.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -11730,6 +13207,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the token the core generates itself. To use a Throne OTP profile, bind it on the main editor instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;这是核心自己生成的令牌。要使用 Throne OTP 配置档，请改为在主编辑器上绑定它。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
+    <message>
+        <source>Row %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TNCC Machine Certificates</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditOpenVPNAdvanced</name>
@@ -12289,6 +13774,30 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Already set</source>
         <translation>已设置</translation>
     </message>
+    <message>
+        <source>Row %1, host: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Row %1, port: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Row %1 has no host, so it is not saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Row %1 has no text, so it is not saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pull Filters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode does not use the credentials, certificates or control channel wrap on the profile page; clear them there.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditSnell</name>
@@ -12339,6 +13848,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Mode</source>
         <translation>模式</translation>
+    </message>
+    <message>
+        <source>Obfuscation Host is used only with http or tls obfuscation.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -12510,6 +14023,114 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <location filename="Throne-1.3.1/include/ui/setting/dialog_integration.ui" line="96"/>
         <source>Shortcuts</source>
         <translation>快捷键</translation>
+    </message>
+    <message>
+        <source>Allow management from the local network</source>
+        <translation>允许从局域网进行管理</translation>
+    </message>
+    <message>
+        <source>Lets devices on the local network import, delete, change settings, back up and restore through the Throned API. This device can always do so.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Global hotkeys can only be a single key combination.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; needs Ctrl, Alt or Meta, otherwise it would block typing in other applications.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter an IP address or a range such as 192.168.1.0/24 or fd00::/8.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is also assigned to &quot;%2&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Regenerate Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generate a new key?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scripts using the current key will stop working.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These global hotkeys could not be registered:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Integration Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Global Hotkeys</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start/Stop Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Tun Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listen on</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This computer only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Local network</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allowed addresses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Any address, or e.g. 192.168.1.0/24, 10.0.0.5</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Regenerate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy for scripts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -12687,6 +14308,4050 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>%1 / %2 · %3%</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Engine::CoreSupervisor</name>
+    <message>
+        <source>Throned could not open the local channel the core connects to (%1), so no profile can start.</source>
+        <translation>Throned 无法打开核心用于连接的本地通道（%1），因此无法启动任何配置档。</translation>
+    </message>
+    <message>
+        <source>Core unavailable</source>
+        <translation>核心不可用</translation>
+    </message>
+    <message>
+        <source>The core did not connect within %1 s, restarting it.</source>
+        <translation>核心未在 %1 秒内连接，正在重启。</translation>
+    </message>
+    <message>
+        <source>The core keeps exiting, so it is no longer restarted. Use Restart Core to try again.</source>
+        <translation>核心反复退出，已不再自动重启。请使用“重启核心”重试。</translation>
+    </message>
+</context>
+<context>
+    <name>GuiStartup</name>
+    <message>
+        <source>Throned is running in the background</source>
+        <translation>Throned 正在后台运行</translation>
+    </message>
+    <message>
+        <source>A background Throned (PID %1) is running on this computer (data directory: %2). Tun mode is unavailable here while it runs; stop it or use thronectl.</source>
+        <translation>此计算机上正在运行后台 Throned（PID %1，数据目录：%2）。它运行期间此处无法使用 Tun 模式；请停止它或使用 thronectl。</translation>
+    </message>
+</context>
+<context>
+    <name>Engine::ConnectionManager</name>
+    <message>
+        <source>A background Throned (PID %1) owns Tun on this computer; stop it or use thronectl.</source>
+        <translation>此计算机上的 Tun 由后台 Throned（PID %1）占用；请停止它或使用 thronectl。</translation>
+    </message>
+</context>
+<context>
+    <name>CommandPalette</name>
+    <message>
+        <source>Settings in Advanced mode</source>
+        <translation>高级模式中的设置</translation>
+    </message>
+    <message>
+        <source>Search Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>↑↓ move · Enter run · Esc close · &gt; commands only · @ settings only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Commands</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nothing found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> (on)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> (off)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogAbout</name>
+    <message>
+        <source>About Throned</source>
+        <translation>关于 Throned</translation>
+    </message>
+    <message>
+        <source>Version:</source>
+        <translation>版本：</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+    <message>
+        <source>An unofficial fork of Throne: a Qt desktop proxy client powered by sing-box and Xray.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upstream Throne</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditIpList</name>
+    <message>
+        <source>Must be from %1 to %2 minutes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manual</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule-set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>minutes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Entries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetch now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>One entry per line: 1.2.3.4, 1.2.3.0/24, 1.2.3.4:443, [2606:4700::1]:443, 1.2.3.0/24 443 or 1.2.3.1-1.2.3.9</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%Ln unreadable</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>New IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter an http(s) URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose a rule-set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown rule-set &quot;%1&quot;. Pick a geoip-* name from the list or enter a rule-set URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This list no longer exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Managed by a scan that no longer exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Managed by scan %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>geoip-ir, or a rule-set URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetching…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No entries yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%Ln lines</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%Ln entries</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%Ln duplicates</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Fetched %Ln entries</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>showing the first %Ln</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The entries are fetched when you press Fetch now or OK.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>updated %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>last update failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetch failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not fetch the list:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This list is being refreshed. Save again when the refresh has finished.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%Ln entries could not be read and will be dropped.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>For example: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save the list without them?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to store the IP list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogScanInstance</name>
+    <message>
+        <source>Must be from %1 to %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must not contain control characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use % only in an escape such as %20 (write a literal % as %25), for example /generate_204.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The minimum TLS version is higher than the maximum, so every handshake would fail.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP/2 needs &quot;h2&quot; in the ALPN list; add it or leave ALPN empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The method &quot;None&quot; only checks the TLS handshake, so it needs TLS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP/3 needs TLS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Jmin must not be larger than Jmax.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP Scanner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Targets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Base IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manage</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use built-in WARP ranges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ports</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ports to scan. Targets left without any port are probed on port 443 (80 for plain HTTP).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill in the ports Cloudflare&apos;s WARP endpoints listen on</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP ports</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>How these ports combine with the ports stored in the IP list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shuffle the target order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Off: IPv6 ranges in the list are skipped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan IPv6 addresses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stop after (results)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The scan completes once its result list holds this many entries. Empty or 0: no limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Concurrency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Targets probed or tested at the same time, in every phase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Spawn interval (ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delay between starting two probes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Phases</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save as IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copies the selected entries, or every entry when none is selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pause</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore the list&apos;s ports</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Merge with the list&apos;s ports</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the list&apos;s ports</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your ports are ignored; entries without a port are probed on port 443 (80 for plain HTTP).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No limit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selects an IP list of Cloudflare&apos;s WARP ranges for the chosen mode, creating it when missing, and sets the matching ports.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ICMP (ping)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Echo requests</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP connect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Attempts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS / HTTP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use TLS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The target address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SNI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The SNI, or the target address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Host header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>None (TLS handshake only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A request passes only when the answer is 200 OK.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Method</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From the HTTP version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ALPN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Minimum TLS version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum TLS version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allow insecure certificates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable SNI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fragment the TLS handshake</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fragment fallback delay (ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fragment TLS records</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Config test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested through a copy of this profile pointed at each of them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Report warm latency (two requests per target)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested by connecting to WARP through them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP/3, falling back to HTTP/2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP/3 only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP/2 only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MASQUE transport</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dedicated for this scan (recommended)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From a profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Built-in WARP settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Register</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk packets (Jc)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk minimum size (Jmin)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk maximum size (Jmax)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generic scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 - IP Scanner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a name for the scan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid port (1-65535).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stop after must be between %1 and %2 results; leave it empty for no limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Concurrency must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Spawn interval must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ICMP (ping): the timeout must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ICMP (ping): echo requests must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP connect: the timeout must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP connect: attempts must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS / HTTP: the fragment fallback delay must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS / HTTP: the timeout must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Config test: the timeout must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test: the MTU must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test: Jc must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test: Jmin must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test: Jmax must be between %1 and %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test: the timeout must be between %1 and %2 ms.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP test: Jmin must not be larger than Jmax.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pause the scan before changing its settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The scan no longer exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to store the scan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The settings could not be saved:
+%1
+
+Close without saving?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select an IP list…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%1 (%n entries)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a profile…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Registering a WARP device…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No device is registered for this scan yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The registered device is for %1; register a new one for this mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A WARP device is registered for this scan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Register again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to store the IP list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MASQUE: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WireGuard: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>WireGuard, all %n known ports</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>WARP registration failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Resume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No results yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Showing the first %1 of %2 results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n result(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Name of the new IP list:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Saved %n entries to the IP list &quot;%1&quot;.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n entries</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Export results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text files (*.txt);;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot write to: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan from the beginning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rescan current results</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MuxSettingsWidget</name>
+    <message>
+        <source>Protocol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max Streams</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max Connections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;b&gt;Max Streams&lt;/b&gt;: reuse a connection until it carries this many streams, then open another.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Max Connections&lt;/b&gt;: keep at most this many connections, and open a new one only while the least busy connection already carries Min Streams streams.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Min Streams</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Padding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP Brutal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TCP Brutal congestion control at the speeds below; the server must support it. Every stream then shares one connection, so the mode is ignored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Upload (Mb/s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download (Mb/s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom Multiplex</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QCoreApplication::QObject</name>
+    <message>
+        <source>Not an otpauth link or secret: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RouteDnsEditor</name>
+    <message>
+        <source>Use the global DNS settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The servers set in Routing Settings &gt; DNS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use custom DNS settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These servers replace the global ones while this routing profile is in use.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing Settings use a custom DNS object, so that object applies instead of the values below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;localhost&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remote DNS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable IPv6</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Answer AAAA queries sent to this server with an empty result.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direct DNS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default DNS server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable DNS Routing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Domains this profile sends direct are resolved with the direct DNS too.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable FakeIP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>FakeIP Disable IPv6</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Local Override, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Validation</name>
+    <message>
+        <source>%1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Line %1 (&quot;%2&quot;): %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fix these before saving:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>…and %n more</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Invalid input</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Warnings:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a valid IPv4 address (four numbers from 0 to 255 separated by dots).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a valid IPv6 address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a valid IP address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An IPv6 zone (the part starting with %) is not allowed here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a port number from 1 to 65535.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a valid host name or IP address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter only the host name, without a scheme such as https://.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be from %1 to %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core&apos;s regex engine (RE2) does not support &quot;%1&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core&apos;s regex engine (RE2) allows at most 1000 repetitions, counting nested repeats multiplied together.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This field is required.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a whole number.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use a range like 20000:30000.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use a range like 20000-30000.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ports must be at most 65535.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is a single port; write it as %1:%1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is a single port; write it as %1-%1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The range starts after it ends, so it matches nothing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a whole number or a range like 10-20.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The range starts after it ends; put the smaller number first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a unit: write %1ms or %1s, not %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a duration. Use a number followed by a unit (ns, us, ms, s, m, h or d), for example 500ms or 1m30s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must not be negative.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use whole seconds, for example 30s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be at least %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be at most %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use a whole number before the unit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The number is too large.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a unit, for example 8m or 512kb.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a size. Use a whole number followed by a unit, for example 8m or 512kb.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown unit &quot;%1&quot;. Use b, k, kb, m, mb, g or gb.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use an address with a prefix length, for example 10.0.0.0/8 or fd00::/8.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use a prefix length instead of a netmask, for example 10.0.0.0/8.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write the prefix length without leading zeros.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The prefix length must be from 0 to %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must not contain spaces.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter only the host name, without a path or user name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter the port in its own field.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Put an IPv6 address in brackets before the port, for example [2001:db8::1]:443.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the port after a colon, for example example.com:443.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a %1-byte key in URL-safe base64 without padding (%2 characters).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a %1-byte key in URL-safe base64 (%2 characters).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a %1-byte key in base64 without padding (%2 characters).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a %1-byte key in base64 (%2 characters).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not valid base64.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be hexadecimal (0-9, a-f).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must have an even number of characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be at most %1 characters long.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be at least %1 characters long.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a UUID, for example 123e4567-e89b-12d3-a456-426614174000.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a UUID, or a custom ID of at most 30 bytes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 or %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a URL starting with %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a valid URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown value &quot;%1&quot;. Use one of: %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must not contain spaces or special characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Invalid regular expression: %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not valid JSON: %1 (line %2, column %3).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a JSON object.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Item %1 (&quot;%2&quot;): %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unnamed entry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: algorithm &quot;%2&quot; is not supported (only SHA1, SHA256 and SHA512), so its codes would be wrong.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: %2 digits are not supported (use %3 to %4).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: a period of &quot;%2&quot; seconds is not supported (use %3 to %4).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: the counter &quot;%2&quot; is not a whole number of 0 or more.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: type &quot;%2&quot; is not supported (only totp and hotp).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: there is no secret.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: the secret is not valid base32 (letters A-Z and digits 2-7).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: the digit count code %2 is not supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped an item that is not an OTP entry.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An otpauth link could not be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped a base32 secret shorter than %1 characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped a secret that is not valid base32 (letters A-Z and digits 2-7).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remote DNS &quot;%1&quot;: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direct DNS &quot;%1&quot;: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The default DNS server must be remote or direct, not &quot;%1&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own DNS settings were dropped, so it uses the global ones: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (&quot;%2&quot;): %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot;: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot; was dropped: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot;: removed the item %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot; now uses the proxy outbound: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot;: %2 was cleared: %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot;: the outbound is neither a profile name nor an id, so it uses proxy.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot; was dropped: %2 holds something other than text, numbers or booleans.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot;: %2 holds something other than text, numbers or booleans, so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule &quot;%1&quot;: %2 takes one value, so only &quot;%3&quot; was kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not be parsed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 Shared endpoints arrive without their keys and passwords.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The shared endpoint %1 was not imported: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The shared endpoint %1 was imported with a warning: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The default outbound &quot;%1&quot; is unknown, so proxy is used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule #%1 is not a JSON object and was skipped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Line %1 of the %2 rules (&quot;%3&quot;): %4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start the line with domain:, suffix:, keyword:, regex:, ruleset:, ip:, processName: or processPath:.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add a value after &quot;%1:&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start the line with domain:, suffix:, keyword:, regex:, ruleset: or ip:.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start the line with processName: or processPath:.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write only the domain, without a scheme such as https://; as written, this never matches.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A domain has no spaces in it, so this never matches.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write only the domain, without a path; as written, this never matches.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A domain has no port or &apos;:&apos; in it, so this never matches; match ports and IP addresses with conditions of their own.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core compares lowercase host names, so this never matches; write it in lowercase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write an IPv6 address as 2001:db8::1 or [2001:db8::1]; a port goes in override_port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Put the port in override_port and only the address here, such as 1.2.3.4 or example.com.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An IP address sends no server name; use a host name such as www.example.com.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write only the host name, without a port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a valid outbound; pick another one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The outbound profile no longer exists; pick another one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing rules cannot use &quot;%1&quot;: extra core profiles and full configs are not supported. Pick another outbound.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The chain &quot;%1&quot; has no hops; pick another outbound.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing rules cannot use the chain &quot;%1&quot;: a hop of it is missing, another chain, an extra core profile or a full config. Pick another outbound.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A range goes in port_range, written like 1000:2000.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A range goes in source_port_range, written like 1000:2000.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write only the program&apos;s file name, such as chrome.exe; a name with a path never matches. Match a full path with a process path condition instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write the full path, such as C:\Program Files\App\app.exe or /usr/bin/app.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown rule-set. Use a built-in name such as geosite-google, or an http(s) URL of a binary .srs file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A route-options rule cannot turn on both tls_fragment and tls_record_fragment; keep one, or use a route rule, which accepts both.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A route-options rule must set at least one option: override_address, override_port, tls_fragment, tls_record_fragment or tls_spoof.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Has no effect unless tls_fragment is on.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Has no effect without a tls_spoof host name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Has no effect with the drop method.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A %1 rule ignores it; it applies only to these actions: %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This rule has no match conditions, so it matches all traffic.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write none when the server does not use VLESS encryption.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be none, or the mlkem768x25519plus string the server gives.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The part after mlkem768x25519plus must be native, xorpub or random.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The part after the mode must be 1rtt or 0rtt.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Each key in the string must be URL-safe base64 of 32 or 1184 bytes, without padding.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XTLS Vision needs the raw network with TLS or REALITY, or VLESS encryption: change the network or security, or clear the flow.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XDRIVE needs VLESS encryption: enter the mlkem768x25519plus string the server gives.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XDRIVE does not support a flow; clear it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XDRIVE needs Mux: set it to On or Keep Default.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not download the subscription: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server returned a web page instead of a subscription.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New subscription: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update of %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not copy %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) could not be saved to the database.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>No profiles were found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The group %1 was created, but its first download failed. Update it to try again; if the download keeps failing, try another TLS version, HTTP version or User Agent in the group&apos;s Advanced settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Problems:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Imported %n profile(s).</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n could not be imported.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n imported with warnings.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 (%2×, e.g. %3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2×)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[error]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[warning]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>See the details below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box endpoint #%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box endpoint &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box outbound #%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box outbound &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray outbound #%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray outbound &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray config #%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray config &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clash proxy #%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clash proxy &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A VLESS profile cannot store this setting, so it was ignored. Such an outbound is kept as written only when nothing else in it needs fixing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename this key to &quot;%1&quot;: Throned reads only that spelling, and dropping its value would weaken the connection&apos;s security.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename this key to &quot;%1&quot;: Throned reads only that spelling, so its value was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not valid JSON: %1 at line %2, column %3.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty object.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Missing &quot;type&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported sing-box type &quot;%1&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Imported as a custom Xray outbound to keep %1, which a VLESS profile would drop.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SIP008 server #%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty server object.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This Clash config only lists proxy-providers, which are not downloaded. Add each provider&apos;s URL as a subscription instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This Clash config has no proxies list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not be read: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not read the Clash config: %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not read the Clash config.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported Clash type &quot;%1&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The [Interface] section has no PrivateKey.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The [Peer] section has no PublicKey.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WireGuard config</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OpenVPN config</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OpenConnect profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write the link type in lower case: &quot;%1://&quot;, not &quot;%2://&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported link type &quot;%1://&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The link is damaged: it is not a valid URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The link is damaged: its payload is not valid base64.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The link is damaged: its payload is not a JSON object.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported profile type &quot;%1&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The vpn:// link could not be decoded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No importable profile was found in the vpn:// link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expected a whole number; ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expected true or false; ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An entry that is not valid base64 was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is a public key; paste the private key, the block that starts with -----BEGIN and ends with PRIVATE KEY-----.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PuTTY keys are not supported; export the key in OpenSSH format with PuTTYgen.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a private key: paste the whole block from -----BEGIN to the PRIVATE KEY----- line.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use the server&apos;s public key line, for example ssh-ed25519 AAAAC3Nza... as printed by ssh-keyscan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Servers expect a version starting with SSH-2.0-, for example SSH-2.0-OpenSSH_9.6.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Without a password or a private key, only a server that allows logging in without authentication accepts this profile.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Both a pasted key and a key file are set; the pasted key is used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do not advertise the default route; tick Advertise exit node instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A node that advertises itself as an exit node cannot use another one; clear the exit node or untick Advertise exit node.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The link sets neither security nor sni, so the profile connects without TLS, which most Trojan servers refuse.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use 1 to 32 bytes in hex, optionally followed by /mask of the same length, for example a0b0/f0f0.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TrustTunnel needs both a username and a password.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Client random cannot be combined with ECH.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom SNI cannot be combined with ECH.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom SNI cannot be combined with Disable SNI.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Client random and custom SNI cannot be combined with REALITY.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Client random cannot be combined with the custom uTLS fingerprint.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>The link lists %n more server address(es); only the first one was imported.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Missing UUID. TUIC v4 (token authentication) is not supported; only TUIC v5 servers work.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown packet encoding, so none was used. Use packetaddr or xudp.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box does not support xtls-rprx-vision-udp443; use xtls-rprx-vision, or the Xray VLESS type.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XTLS Vision works only with TLS or REALITY directly over TCP: turn on TLS and set the network to tcp, or clear the flow.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown security, so auto was used. Use auto, none, zero, aes-128-gcm, chacha20-poly1305 or aes-128-cfb.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported TLS mode; a VMess link can use only tls or none.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use three numbers from 0 to 255, for example 12,34,56.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>H%1 and H%2 overlap; each magic header needs its own number or range (unset ones are 1, 2, 3 and 4).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Header protection needs S1 to S4 of at least 12 each; S%1 is %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Jmin is larger than Jmax, so every junk packet will be Jmin bytes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A tag is missing its closing &gt;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty tag &lt;&gt;. Use &lt;b 0x...&gt;, &lt;r N&gt;, &lt;rc N&gt;, &lt;rd N&gt;, &lt;dz N&gt;, &lt;t&gt;, &lt;d&gt; or &lt;ds&gt;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt; needs an even number of hex digits, for example &lt;b 0x1a2b&gt;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;%1&gt; needs a whole number of bytes, for example &lt;%1 16&gt;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown tag &lt;%1&gt;. Use &lt;b 0x...&gt;, &lt;r N&gt;, &lt;rc N&gt;, &lt;rd N&gt;, &lt;dz N&gt;, &lt;t&gt;, &lt;d&gt; or &lt;ds&gt;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignored; Throned resolves names with its own DNS settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown setting, ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the last of the %1 [Peer] sections is used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignored; Throned sends all traffic of this profile through the tunnel.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The [Peer] section has no Endpoint such as vpn.example.com:51820.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the first of the %1 peers is used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>At least one local address is required, for example 10.0.0.2/32.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ports must be from 1 to 65535.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The range starts after it ends; write it as %1-%2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The = padding at the end is missing; copy the whole pattern.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write each header as Name=&quot;value&quot;, for example X-Username=&quot;user&quot; X-Password=&quot;pass&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Header name &quot;%1&quot;: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A header line without a name and a colon was ignored; write each line as Name: value.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the part from ? or #; the server takes only a path such as /vpn.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A % must start an escape such as %20.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core raises values below 576 to 576.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write the fingerprint without colons between the bytes, or as sha1:, sha256: or pin-sha256:.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>After pin-sha256: write the base64 SHA-256 of the public key (44 characters).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use at least 4 hexadecimal characters of the fingerprint (up to %1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core raises values below 2s to 2s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the key that belongs to this certificate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the certificate that belongs to this key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Needs a submission key, or a form ID and a field name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A promoted field is asked for when connecting, so it cannot also have a value.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set the token secret either directly or as a file, not both.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The software token needs its secret, directly or as a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Without a token mode these settings are not used or saved; pick a mode or clear them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only hotp tokens use the counter.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill in all three mobile fields or leave them all empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Compression is disabled, so the mode must be empty or stateless.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the link to a one-time password entry; choose the entry again in the profile&apos;s settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the CSD wrapper path from the imported profile; set it again in Advanced settings if you trust it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the HIP wrapper path from the imported profile; set it again in Advanced settings if you trust it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the TNCC wrapper path from the imported profile; set it again in Advanced settings if you trust it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be 0 or at least 1s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Separate the ciphers with commas, not colons.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not an OpenVPN cipher name. Use a name such as AES-256-GCM, CHACHA20-POLY1305 or AES-256-CBC.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use the certificate&apos;s SHA-256 fingerprint: 64 hexadecimal characters, colons allowed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use a hexadecimal key usage value such as a0 or 88.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use a name such as TLS Web Server Authentication or an OID such as 1.3.6.1.5.5.7.3.1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the empty entry between two colons.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a TLS 1.2 cipher suite the core supports, for example ECDHE-RSA-AES256-GCM-SHA384.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a TLS group the core supports. Use X25519, P-256, P-384 or P-521, separated by colons.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be 0 (off) or at least 68.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write the IPv6 address without brackets.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode does not use this setting; clear it or switch the mode to TLS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only static key mode uses Cipher; in TLS mode list the cipher under Data Ciphers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Key direction applies only to static key mode; for tls_auth set the control channel wrap direction.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only static key mode uses a static key; clear it or switch the mode to static_key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode needs the static key, pasted or as a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode needs a cipher, for example AES-256-CBC.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode supports only the CBC ciphers, such as AES-256-CBC, and NONE.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode needs the tunnel address, for example 10.8.0.2/24.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the IPv4 peer address for the IPv4 tunnel address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the IPv6 peer address for the IPv6 tunnel address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The IPv4 peer address needs an IPv4 tunnel address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The IPv6 peer address needs an IPv6 tunnel address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS mode needs the CA certificate or a peer fingerprint to verify the server.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the client key that belongs to this certificate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the client certificate that belongs to this key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set both pasted and as a file; keep only one of them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Static key mode does not use the control channel wrap; clear its key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick the control channel wrap type for this key: tls_auth, tls_crypt or tls_crypt_v2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The control channel wrap needs its key, pasted or as a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The key direction applies only to tls_auth.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use either the remote certificate EKU or the remote certificate TLS role, not both.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The maximum TLS version is below the minimum, which is 1.2 unless set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MSS clamping is disabled; clear the MSS fix value or enable it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MSS clamping is disabled; clear the MSS fix mode or enable it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The MSS fix mode needs an MSS fix value.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ping restart is disabled; clear the restart time or enable it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Renegotiation is disabled; clear the interval or enable it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 is replaced by a one-time code only when an authenticator entry is selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A backslash at the end has nothing to escape.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every option needs a name, as in obfs=http;obfs-host=example.com.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>2022-blake3-chacha20-poly1305 takes a single key; several keys joined with : need an AES 2022 method.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown obfs mode &quot;%1&quot;. Use obfs=http or obfs=tls.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown mode &quot;%1&quot;. Use mode=websocket or mode=quic.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>mux must be a whole number, for example mux=1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The link is neither ss://method:password@host:port nor valid base64.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The method and password are not valid base64.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The decoded userinfo must be method:password, for example aes-256-gcm:secret.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported plugin; only obfs and v2ray-plugin work.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The version must be 1, 2 or 3.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ShadowTLS v2 and v3 need the password set on the server.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only Snell versions 4 and 6 are supported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unsupported obfuscation; Snell can use only none, http or tls.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown network, so both TCP and UDP are used. Use tcp or udp.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be at most 255 bytes; this one is %1 bytes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Snell v6 has no obfuscation, so these settings are ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The obfuscation host is used only with http or tls obfuscation, so it is ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The mode is used only by Snell v6, so it is ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown SOCKS version, so SOCKS5 was used. Use 4, 4a or 5.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SOCKS4 sends no password, so it is ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a user name too; without one the password is not sent.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The DNS address is empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name an interface after dhcp://, or use dhcp://auto.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid interface name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a supported DNS scheme; use udp, tcp, tls, quic, https, h3, dhcp or local.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only https:// and h3:// DNS addresses take a path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The IPv6 address is missing its closing bracket.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only a port may follow a bracketed IPv6 address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid IPv6 address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid IPv6 address; put it in brackets to add a port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The DNS server address is missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid IPv4 address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid IP address or host name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The port is missing after the colon.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is not a valid port; use a number from 1 to 65535.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>AnyTLS does not support TCP Fast Open, so it was turned off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use two-letter country codes separated by commas, for example DE,NL,FR.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot run more profiles than are ranked (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The full sweep cannot run more often than the check interval (%1 s).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Watching the profile in use cannot be slower than the check interval (%1 s).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check closely at least as many profiles as are kept ready (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot check closely more profiles than are run (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Tor executable path from the imported configuration; add it back only if you trust that program.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Tor command-line arguments from the imported configuration: they can make Tor start other programs.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Tor data directory from the imported configuration: Tor reads its torrc file from there, which can make it start other programs.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed a Tor option with an invalid name from the imported configuration: option names use only letters, digits and underscores, like UseBridges.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Tor option %1 from the imported configuration: it makes Tor start a program on this computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the %1 wrapper path from the imported configuration; add it back only if you trust that program.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Tailscale SSH server from the imported configuration: it would let devices on that tailnet open a shell on this computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Taildrop folder from the imported configuration: devices on that tailnet could place files there. Received files now go to the default folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed from the imported configuration: it would open a port on this computer that other devices could reach.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed from the imported configuration: it would write a file on this computer at a path the sender chose.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the reverse proxy from the imported configuration: it would let the server reach this computer and its network.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed this inbound from the imported configuration: it could let other devices connect through this computer. Only tun inbounds and local proxies that listen on 127.0.0.1 or ::1 are kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the Clash API from the imported configuration: web pages and programs on this computer could use it to control the core, and its external_ui setting downloads files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the V2Ray API from the imported configuration: Throned&apos;s core is built without it and would not start, and it would open a statistics port on this computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the inbounds from the imported configuration: Throned adds its own local inbound, and these could let other devices connect through this computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the environment variables from the imported configuration: they would apply to Throned&apos;s core and to the programs it starts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the geodata updater from the imported configuration: it would download files from addresses the sender chose and replace files in Throned&apos;s folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed the webhook from this routing rule: it would send the details of every matching connection to an address the sender chose.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Comments are not allowed in the JSON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the outbound type, for example &quot;type&quot;: &quot;socks&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the protocol, for example &quot;protocol&quot;: &quot;vless&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;outbounds&quot; must be a list, for example &quot;outbounds&quot;: [].</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The headers must alternate names and values separated by commas, for example User-Agent,curl, so they were ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port hopping needs at least 5s between hops, for example 30s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Needs a Hop Interval above 0 as well, for example 30s with a maximum of 60s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must not be shorter than Hop Interval.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignored without a Hop Interval; set one as well, for example 30s with a maximum of 60s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria v1 needs both Up Mbps and Down Mbps, for example 100.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Packet sizes must be from 0 to 2048; 0 uses the default.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The minimum packet size must not exceed the maximum; 0 means the default, 512 for the minimum and 1200 for the maximum.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not valid base64. Choose STRING as the authentication type for a plain-text payload.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose an authentication type; without one the payload is not sent.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Realm needs a URL, an ID and at least one STUN server.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Realm URL: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>STUN Servers: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mapping Timeout: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mapping Lifetime: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a bandwidth such as 100 Mbps or 50 MB/s, so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the udp protocol is supported, so this server cannot be reached.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The certificate pin must be a SHA-256 hash in hex (64 characters) or base64 (44 characters).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the server&apos;s own certificate is checked against this pin; if it is the hash of an intermediate or root certificate, the connection will fail.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not a speed such as 100 Mbps or 12 MBps, so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be the base64 key from WARP registration (standard base64 with = padding).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused to import an Extra Core profile: it would run a program on this computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused to import a Chain Proxy profile: its hops are profiles of another installation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused to import an Auto Selector profile: the group it tracks belongs to another installation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The receive window must be a whole number of bytes or a size such as 8m, so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be 0 (the default) or from 1200 to 1452.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Each pin must be a SHA-256 in hexadecimal (64 characters, colons allowed).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box refuses this suite because Go lists it as insecure (CBC-SHA256, RC4, 3DES and RSA key exchange); only VLESS profiles running on Xray can use it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown cipher suite. Use Go&apos;s names, for example TLS_AES_128_GCM_SHA256.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The trailing = padding was removed from the REALITY public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown fingerprint &quot;%1&quot;. Use chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized or unsafe.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The minimum TLS version is above the maximum.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>REALITY needs the server&apos;s public key (43 characters, as printed by xray x25519).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the trailing = padding.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste the certificate as PEM text, starting with -----BEGIN CERTIFICATE-----.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste the private key as PEM text, starting with -----BEGIN PRIVATE KEY-----.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is a hexadecimal SHA-256; write it in base64 (44 characters ending in =).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste the ECH config list as base64, or as one -----BEGIN ECH CONFIGS----- block.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality cannot be combined with ECH. Turn off ECH in Advanced, or clear the Reality public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality cannot be used with Disable SNI. Turn off Disable SNI in Advanced.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality cannot be combined with TLS spoof. Set TLS Spoof to Off in Advanced.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A custom certificate cannot be combined with certificate pins; keep only one of them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set the client certificate and the client key together.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS spoof needs an SNI. Turn off Disable SNI, or set TLS Spoof to Off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS spoof needs a domain name as the SNI. Enter one in SNI, or set TLS Spoof to Off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The spoof SNI must differ from the real SNI.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS spoof is skipped while TLS fragment or record fragment is on with a uTLS fingerprint.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box cannot verify the REALITY ML-DSA-65 key, and ignoring it would weaken the server check. Only VLESS profiles running on Xray support it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The REALITY short ID is invalid: it must be at most 16 hexadecimal characters, an even number of them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP Brutal only works with a custom multiplex. Set Multiplex to Custom.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TCP Brutal needs both speeds; a missing one is sent as 1 Mbps.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The headers must alternate names and values separated by |, for example User-Agent|curl, so they were ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>sing-box does not support the transport &quot;%1&quot;. Use ws, httpupgrade, http, grpc or quic.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The QUIC transport needs TLS. Set Security to tls.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality does not work with the QUIC transport. Clear the Reality key, or choose another transport.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>uTLS is not used with the QUIC transport.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 The value was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expected text or a list of text, so the value was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>List items that are not text were ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must not contain &quot;|&quot;, which separates headers in share links.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write Name=value pairs separated by spaces, quoting values that contain spaces, for example User-Agent=&quot;Mozilla/5.0&quot; X-Token=abc.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter only the domain name, without a port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The download leg must use XHTTP too: write &quot;network&quot;: &quot;xhttp&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the download server&apos;s address, for example &quot;address&quot;: &quot;dl.example.com&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a port number from 1 to 65535, written without quotes, for example &quot;port&quot;: 443.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The extra value is not a valid JSON object, so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The finalmask value is not valid JSON (%1), so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The finalmask value must be a JSON object, so it was ignored.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XDRIVE has no share-link format. Import the server&apos;s JSON configuration instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Throned does not support the Xray transport &quot;%1&quot;. Use raw, xhttp, ws, httpupgrade, grpc or xdrive.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray does not support the security &quot;%1&quot;. Use none, tls or reality.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>REALITY works only with the raw, xhttp or grpc transport.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>REALITY cannot use the hellogolang fingerprint; choose another one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray does not know the fingerprint &quot;%1&quot;. Use chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized or unsafe.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray ignores the unknown cipher suite &quot;%1&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cipher suites only take effect with the unsafe fingerprint.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a SHA-256 in hexadecimal (64 characters, colons allowed).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be a base64 ECHConfigList, or domain+https://dns/dns-query to fetch it over DNS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetching ECH over DNS needs a domain SNI; otherwise write it as domain+https://dns/dns-query.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must start with /, for example /search?q=1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the Host header and put the host in the Host field instead.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Both bounds must be greater than 0, for example 100-1000.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cookie and header placement need the packet-up mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>GET uploads need the packet-up mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set a session ID length that starts above 0, for example 8-16.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The table and length allow too few session IDs; use a longer length (for example 8-16) or a larger table.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The table must contain only ASCII characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set either Max Connections or Max Concurrency, not both.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Must be google-drive, template or local.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter the directory both ends share.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter the ID of the Google Drive folder both ends share.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Google Drive needs the client ID, client secret and refresh token.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The template service needs a template describing the storage API.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The front port is used only together with a front address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These dial options are not supported and were ignored: %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>To reach this server through another one, build a chain profile instead of a detour.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Throned picks the resolver for server names itself.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The largest fragment must be at least 1 byte, for example 10-100.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fragments above 400 bytes can fail the connection when the ClientHello is very large; a maximum of 400 or less is always safe.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The TLS fragment size &quot;%1&quot; in Preset Settings &gt; TLS is invalid. %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The TLS fragment sleep &quot;%1&quot; in Preset Settings &gt; TLS is invalid. %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server address is missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server port is missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add at least one profile to the chain.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A quote is not closed; end it with the same quote mark.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The arguments end with a backslash; remove it or add the character it escapes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add %s to the arguments where the config file path goes; without it the config is not used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>XrayMuxSettingsWidget</name>
+    <message>
+        <source>Concurrency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Streams one connection carries before another opens. 0 uses Xray&apos;s 8, and -1 sends TCP outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No limit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max Connections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Keep at most this many connections, for TCP and for XUDP each. Once every one carries Concurrency streams, new streams join the least busy one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>XUDP Concurrency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP streams per connection, on connections of their own. 0 carries UDP on the TCP connections, and -1 sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skip</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UDP/443</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP to port 443, mostly QUIC. &lt;b&gt;Reject&lt;/b&gt; makes browsers fall back to TCP (Xray&apos;s default), &lt;b&gt;Allow&lt;/b&gt; carries it through the mux, and &lt;b&gt;Skip&lt;/b&gt; sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom Mux</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogIpLists</name>
+    <message>
+        <source>IP Lists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>…and %Ln more</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>From text…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From file…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From URL…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From rule-set…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add default lists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every default list is already present.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Importing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is being refreshed. Delete it when the refresh has finished.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete the IP list &quot;%1&quot;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan &quot;%1&quot; is running and stores its results in this list. Pause it first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It holds the results of scan &quot;%1&quot;, which creates a new result list the next time it runs.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These scans use it as their targets: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Duplicate IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name of the copy:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to copy the IP list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text files (*.txt);;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot write to: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Exported %Ln entries to:
+%1</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Import IP lists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>All files (*);;Text and CSV (*.txt *.csv *.lst *.list);;sing-box rule-sets (*.srs *.json)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: cannot be opened</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: larger than 50 MB, skipped</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: no addresses found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: could not be stored</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%1: %Ln unreadable entries skipped</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Nothing could be imported:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Imported %Ln list(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>with %Ln entries.</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>DialogNewScan</name>
+    <message>
+        <source>Scan %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generic scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WARP scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Probe addresses with ping, TCP, TLS or HTTP, and optionally test them through one of your profiles.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Find Cloudflare WARP endpoints that complete a WireGuard, AmneziaWG or MASQUE connection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to store the scan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogScanner</name>
+    <message>
+        <source>IP Scanner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No scans yet. Create one with &quot;New scan&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP Lists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pause the scan first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Confirmation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete the scan &quot;%1&quot;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Also delete its result list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GlobalHotkeys</name>
+    <message>
+        <source>Global hotkeys are not supported in this desktop session.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It needs Ctrl, Alt or Meta, otherwise it would block typing in other applications.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; already uses it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>KDE&apos;s shortcut service failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Registration failed: X error %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This key can&apos;t be used in a global hotkey.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Another application or a system shortcut already uses it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>IpEntriesModel</name>
+    <message>
+        <source>%1 ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Latency</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>IpListItem</name>
+    <message>
+        <source>%1 d</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 h</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>updated just now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>updated %1 min ago</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>updated %1 h ago</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>updated %1 d ago</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>URL %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule-set %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refreshing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%Ln entries</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Result of a deleted scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Result of scan %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>auto-update every %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>never updated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Last update failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RemoteApi</name>
+    <message>
+        <source>The request is not valid JSON: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The request is not a JSON object</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The method must be GET, POST, PUT or DELETE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The path must start with / and carry no query string or fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The query must be an object</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Query value %1 is not a string</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RemoteApi::Router</name>
+    <message>
+        <source>[API] %1 %2 from %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[API] %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>[API] Testing %n profile(s) to find the lowest latency</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>[API] Lowest latency: %1 (%2 ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RemoteApi::Server</name>
+    <message>
+        <source>The request was dropped without an answer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not listening: the key is missing or invalid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port %1 is in use</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot listen on port %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listening on port %1 (local network)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listening on %1:%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stopped listening</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused %1: too many failed attempts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused %1: not in the allowed addresses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refused %1: too many connections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unsupported protocol version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>invalid frame length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>a frame failed authentication, most likely the key is wrong</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The response is too large</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Closed the connection from %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScanItem</name>
+    <message numerus="yes">
+        <source>Starting over clears the %n result(s) this scan has found. Continue?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>This scan was paused partway. Starting over discards its progress and clears its %n result(s). Continue?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>This scan was paused partway. Starting over discards its progress. Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP Scanner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning and clear its %n result(s)?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The scan could not be started.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pausing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Idle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Completed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 / %2 (%3%)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n found</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n removed</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>WARP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generic</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pause</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Resume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::IpListUpdater</name>
+    <message>
+        <source>The IP list no longer exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only lists with a URL or rule-set source can be updated</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Updating IP list %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Updating IP list %1 failed: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>its source changed during the update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The source changed during the update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The entries could not be saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>IP list %1 updated (%n entries)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The list has no source to fetch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown rule-set: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The source must be an http(s) URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core is not running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core could not read the rule-set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The address returned a web page instead of an IP list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No addresses found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP list update failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP list update failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::ScanManager</name>
+    <message>
+        <source>The scan is already running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The scan no longer exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Turn on at least one test phase</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A TLS handshake check needs TLS turned on</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP/3 needs TLS turned on</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The profile for the config test cannot be used</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose the IP list to scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The IP list to scan is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The result list is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pause the scan first</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan %1 Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>config test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scanning %1 with %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 failed %2: %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connected to %1 with TCP (%2 ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 replied to ping (%2 ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS handshake with %1 succeeded (%2 ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 answered over HTTP (%2 ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 passed the config test (%2 ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preparing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The scan stopped on an unexpected error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan %1: saving its final state failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preparing targets…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The scan has no profile for the config test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The result list could not be created</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The base IP list no longer exists</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The base IP list is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The base IP list holds only IPv6 ranges; enable IPv6 scanning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 snapshot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The base IP list could not be copied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The base IP list holds no valid target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The result list holds only IPv6 entries; enable IPv6 scanning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 rescan snapshot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The result list could not be copied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The result list holds no valid target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The copy of the result list is gone; rescan the results again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The copy of the base IP list is gone; restart the scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n result(s); stopping as configured</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>IPv6 is unreachable from this network; scan paused (turn off IPv6 scanning to go on)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Network appears to be down; scan paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan %1: network check failed: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 is unreachable from this network; IPv4 results were kept</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv6 is unreachable from this network; IPv6 results were kept</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core ended the scan session early</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core made no progress on the scan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n result(s) passed only on a retry; the network fails some attempts at random</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Re-testing %n failed result(s)…</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The core did not answer the probe request</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Testing %n candidate(s) through the config…</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The core did not answer the config test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checking the network…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan %1 stopped: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Skipped %n invalid entry(ies)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Probing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Testing configs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checking network</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Sys::KillSwitch</name>
+    <message>
+        <source>The kill switch needs the core to have root privileges.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The kill switch is not supported on this system.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Another program removed the kill switch rules or disabled the system firewall.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The kill switch rejected its settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The kill switch process stopped unexpectedly.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Details: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Off.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Allowing the extra core %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Warning: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] New settings applied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the kill switch did not respond within %1 seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>could not start %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the kill switch process crashed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the kill switch process exited with code %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the kill switch process crashed before it was ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the kill switch process exited with code %1 before it was ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] The new settings could not be applied, the previous ones stay in force: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Protection lost: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Starting it again...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Kill switch] Not active: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

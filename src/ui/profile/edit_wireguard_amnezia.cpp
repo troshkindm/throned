@@ -7,9 +7,13 @@
 #include <QScreen>
 #include <QScrollBar>
 
+#include <limits>
+#include <optional>
+
 #include "include/api/RPC.h"
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 void WireguardAmneziaOptions::load(const Configs::wireguard *outbound) {
     if (outbound == nullptr) return;
@@ -42,7 +46,16 @@ void WireguardAmneziaOptions::load(const Configs::wireguard *outbound) {
 
 namespace {
 QString lastSignatureDomain;
+
+// Text the field's own rule rejects yields nothing, so cross rules stay quiet about it.
+std::optional<qint64> amneziaEditorNumber(const QLineEdit *edit, qint64 max) {
+    const QString text = edit->text().trimmed();
+    if (text.isEmpty()) return 0;
+    const auto value = Validation::ToInt(text);
+    if (!value || *value < 0 || *value > max) return std::nullopt;
+    return value;
 }
+} // namespace
 
 void WireguardAmneziaOptions::apply(Configs::wireguard *outbound) const {
     if (outbound == nullptr) return;
@@ -76,6 +89,9 @@ void WireguardAmneziaOptions::apply(Configs::wireguard *outbound) const {
 EditWireguardAmnezia::EditWireguardAmnezia(QWidget *parent, WireguardAmneziaOptions *options)
     : QDialog(parent), ui(new Ui::EditWireguardAmnezia), options(options) {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
+    bindValidation();
 
     ui->jc->setText(Int2String(options->jc));
     ui->jmin->setText(Int2String(options->jmin));
@@ -108,6 +124,7 @@ EditWireguardAmnezia::EditWireguardAmnezia(QWidget *parent, WireguardAmneziaOpti
     connect(ui->generate_signature, &QPushButton::clicked, this, [this] { generateSignature(); });
 
     ADD_ASTERISK(this)
+    form->markAll();
 
     // QScrollArea::sizeHint() caps at 36x24 font cells, so size the window off the content instead.
     for (auto *nested: ui->scroll_content->findChildren<QLayout *>()) nested->activate();
@@ -162,7 +179,39 @@ void EditWireguardAmnezia::generateSignature() {
     });
 }
 
+void EditWireguardAmnezia::bindValidation() {
+    using namespace Validation;
+    constexpr qint64 kIntMax = std::numeric_limits<int>::max();
+
+    for (auto *edit: {ui->jc, ui->jmin, ui->jmax}) form->bind(edit, Rules::Int(0, kIntMax));
+    for (auto *edit: {ui->s1, ui->s2, ui->s3, ui->s4}) form->bind(edit, Rules::Int(0, 65535));
+    for (auto *edit: {ui->h1, ui->h2, ui->h3, ui->h4, ui->content_padding_addition, ui->rekey_after_time, ui->rekey_timeout,
+                      ui->reject_after_time, ui->keepalive_timeout, ui->max_handshake_attempts}) {
+        form->bind(edit, Configs::Checks::AmneziaRange);
+    }
+    for (auto *edit: {ui->i1, ui->i2, ui->i3, ui->i4, ui->i5}) form->bind(edit, Configs::Checks::AmneziaSignature);
+    form->bind(ui->header_protection_key, Rules::Base64Key(32, false, true, Empty::Allowed));
+
+    form->addRule({ui->h1, ui->h2, ui->h3, ui->h4}, [this] {
+        return Configs::Checks::AmneziaHeaders({ui->h1->text(), ui->h2->text(), ui->h3->text(), ui->h4->text()});
+    });
+    form->addRule({ui->header_protection_key, ui->s1, ui->s2, ui->s3, ui->s4}, [this] {
+        QList<qint64> paddings;
+        for (const auto *edit: {ui->s1, ui->s2, ui->s3, ui->s4}) {
+            const auto value = amneziaEditorNumber(edit, 65535);
+            if (!value) return QString();
+            paddings << *value;
+        }
+        return Configs::Checks::AmneziaHeaderProtection(ui->header_protection_key->text(), paddings);
+    });
+    form->addRule({ui->jmin, ui->jmax}, [this, kIntMax] {
+        const auto jmin = amneziaEditorNumber(ui->jmin, kIntMax), jmax = amneziaEditorNumber(ui->jmax, kIntMax);
+        if (!jmin || !jmax) return QString();
+        return Configs::Checks::AmneziaJunkSizes(*jmin, *jmax); }, nullptr, Severity::Warning);
+}
+
 void EditWireguardAmnezia::accept() {
+    if (!form->validateAll()) return;
     options->jc = ui->jc->text().trimmed().toInt();
     options->jmin = ui->jmin->text().trimmed().toInt();
     options->jmax = ui->jmax->text().trimmed().toInt();

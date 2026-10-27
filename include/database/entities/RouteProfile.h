@@ -5,7 +5,9 @@
 #include "include/database/entities/RouteRule.h"
 #include <QUrl>
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QStringList>
+#include <optional>
 
 namespace Configs {
 const int INVALID_ID = -99999;
@@ -20,6 +22,34 @@ inline constexpr auto LocalProxyRuleName = "throned-local-proxy-traffic";
 // where the client's own local inbounds go rather than matching user traffic.
 bool IsLocalProxyTrafficRule(const std::shared_ptr<RouteRule>& rule);
 
+// The DNS settings a routing profile can take over; local override, hosts, predefined answers and the advanced settings stay global.
+struct RouteDns {
+    QString remote_dns = "https://8.8.8.8/dns-query";
+    bool remote_dns_disable_ipv6 = false;
+    QString direct_dns = "localhost";
+    bool direct_dns_disable_ipv6 = false;
+    QString dns_final_out = "remote";
+    bool enable_dns_routing = true;
+    bool fake_dns = false;
+    bool fakeip_disable_ipv6 = false;
+
+    static RouteDns Global();
+
+    // The current routing profile's own DNS, else the global one; *own tells which.
+    static RouteDns Current(bool* own = nullptr);
+
+    [[nodiscard]] QJsonObject ToJson() const;
+
+    // Absent keys keep their defaults.
+    static RouteDns FromJson(const QJsonObject& obj);
+
+    // Why the core could not use it; empty when it can.
+    [[nodiscard]] QString Problem() const;
+
+    bool operator==(const RouteDns&) const = default;
+};
+
+// Fixed underlying type so headers that only pass it around (mainwindow.h) can forward-declare it.
 enum simpleAction : int { bypass,
                           block,
                           proxy,
@@ -40,6 +70,17 @@ QString NormalizeRuleLine(const QString& line);
 
 // A canonical "kind:value" line split into its two halves, both trimmed, or an empty kind when there is no usable separator.
 std::pair<QString, QString> SplitRuleLine(const QString& line);
+
+// Where a simple "prefix:value" line goes: one of the simple lists, or, with serverID set, that server's own rules.
+struct SimpleTarget {
+    simpleAction action = proxy;
+    int serverID = INVALID_ID;
+    SimpleTarget() = default;
+    // Implicit, so a plain action still names its simple list.
+    SimpleTarget(simpleAction action, int serverID = INVALID_ID) : action(action), serverID(serverID) {}
+    [[nodiscard]] bool isServer() const { return serverID >= 0; }
+    bool operator==(const SimpleTarget&) const = default;
+};
 
 class RouteProfile {
 public:
@@ -72,6 +113,13 @@ public:
 
     // Subset of endpointProfileIDs whose inner endpoint hops are routable too.
     QList<int> innerHopEndpointIDs;
+
+    // Picks between the global DNS settings and dns, which is kept either way once set.
+    bool customDns = false;
+    std::optional<RouteDns> dns;
+
+    // The DNS this profile imposes; nullopt while the global settings apply.
+    [[nodiscard]] std::optional<RouteDns> ActiveDns() const { return customDns ? dns : std::nullopt; }
 
     RouteProfile() = default;
 
@@ -149,9 +197,13 @@ public:
 
     QString GetSimpleRules(simpleAction action, int outbound = anyOutbound);
 
-    QString UpdateSimpleRules(const QString& content, simpleAction action, int outbound = anyOutbound);
+    // label names the Basic-tab box in the returned reasons.
+    QString UpdateSimpleRules(const QString& content, simpleAction action, int outbound = anyOutbound, const QString& label = {});
 
-    bool AppendSimpleRule(const QString& rawRule, simpleAction action, int outbound = anyOutbound);
+    static RuleIssue CheckSimpleRule(const QString& line);
+
+    // Adds one "prefix:value" line to the matching simple rule, creating it if the profile has none yet.
+    bool AppendSimpleRule(const QString& rawRule, simpleAction action, int outbound = anyOutbound, QString* why = nullptr);
 
     static QList<ruleType> simple_rule_types(simpleAction action);
 
@@ -161,28 +213,43 @@ public:
     [[nodiscard]] QList<int> GetSimpleViaProfileIDs() const;
     void RemoveSimpleViaProfile(int profileID);
 
-    // Whether that "prefix:value" line already sits in the action's simple rules.
-    bool HasSimpleRule(const QString& rawRule, simpleAction action);
+    // A server target's lines live in its via-profile bucket; a custom route rule to it with nothing but address lists,
+    // process names or process paths counts too, as upstream builds them.
 
-    // Drops that "prefix:value" line from the action's simple rules, and a rule it leaves empty along with it.
-    bool RemoveSimpleRule(const QString& rawRule, simpleAction action);
+    // Adds one "prefix:value" line to the matching simple rule (or the server's bucket), creating it if the profile has none yet.
+    bool AppendSimpleRule(const QString& rawRule, const SimpleTarget& target, QString* why = nullptr);
 
-    // A line from another action's simple rules that already catches every host a suffix: or keyword: rawRule would,
-    // and sits in a rule matched before the action's own, so rawRule there would never apply. Empty when there is none.
-    QString CoveringSimpleRule(const QString& rawRule, simpleAction action, simpleAction* coveringAction);
+    // Whether that "prefix:value" line already sits in the target's rules.
+    bool HasSimpleRule(const QString& rawRule, const SimpleTarget& target);
+
+    // Drops that "prefix:value" line from the target's rules, and a rule it leaves empty along with it.
+    bool RemoveSimpleRule(const QString& rawRule, const SimpleTarget& target);
+
+    // The servers whose own rules hold that "prefix:value" line.
+    QList<int> ServersHoldingSimpleRule(const QString& rawRule);
+
+    // A line from another target's rules that already catches every host a suffix: or keyword: rawRule would,
+    // and sits in a rule matched before the target's own, so rawRule there would never apply. Empty when there is none.
+    QString CoveringSimpleRule(const QString& rawRule, const SimpleTarget& target, SimpleTarget* coveringTarget);
 
     void FilterEmptyRules();
 
 private:
-    static bool add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
+    static QString add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
 
-    static bool add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRule>& rule);
+    static QString add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRule>& rule);
 
-    static bool add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRule>& rule);
+    static QString add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRule>& rule);
 
     static QList<QString>* simple_rule_values(const QString& content, RouteRule& rule, QString* value);
 
     std::shared_ptr<RouteRule> get_simple_rule_by_type(ruleType type, int outbound = anyOutbound);
+
+    // Whether rule is a server rule of the kind (address or process) that line content goes in.
+    static bool is_server_rule_for(const RouteRule& rule, const QString& content);
+
+    // The rules of target a line like content goes in, in list order.
+    QList<std::shared_ptr<RouteRule>> rules_for(const QString& content, const SimpleTarget& target);
 
     static ruleType get_rule_type(const QString& content, simpleAction action);
 

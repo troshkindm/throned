@@ -4,7 +4,10 @@
 #include <QJsonObject>
 #include <QTimer>
 #include "include/ui/setting/SettingsBindings.h"
+#include <memory>
 #include "ui_dialog_basic_settings.h"
+#include "include/engine/EditLocks.h"
+#include "include/engine/services/WebDavBackup.h"
 
 namespace Ui {
 class DialogBasicSettings;
@@ -12,6 +15,9 @@ class DialogBasicSettings;
 
 class QButtonGroup;
 class QStackedWidget;
+namespace Validation {
+class Form;
+}
 
 class DialogBasicSettings : public QDialog {
     Q_OBJECT
@@ -22,6 +28,8 @@ public:
     ~DialogBasicSettings();
 
     void showLoggingPage();
+    // Widgets this platform or installation does not offer: the dialog hides them and the settings search skips them.
+    static QList<QWidget *> UnavailableWidgets(const Ui::DialogBasicSettings *ui);
 
 public slots:
 
@@ -42,6 +50,12 @@ private:
     Ui::DialogBasicSettings *ui;
 
     void applySelectedTheme();
+    Validation::Form *form = nullptr;
+
+    Engine::EditLock settingsLock{Engine::EditTarget::Settings};
+
+    void bindValidation();
+
     void applyRegexHighlighting();
 
     void refreshUrlSchemeStatus();
@@ -49,6 +63,29 @@ private:
     void downloadXrayGeoAsset(const QString &url, const QString &fileName);
 
     void rememberGeoAssetUrl(QComboBox *combo, const QString &url, QStringList &history);
+
+    // Inspect, choose the parts, apply and restart; fallbackDeviceName names the creator when the archive does not.
+    void restoreBackupFile(const QString &filePath, const QString &fallbackDeviceName);
+
+    struct WebDavChooser;
+
+    // A WebDAV worker is running; the backup buttons refuse to start anything else meanwhile.
+    bool webDavBusy = false;
+
+    bool webDavReady(const QString &title);
+
+    void showWebDavSettings();
+
+    // A null chooser opens one with the list; otherwise the open one is refilled and notice joins its note.
+    void loadWebDavBackups(const std::shared_ptr<WebDavChooser> &chooser, const QString &notice = {});
+
+    void showWebDavBackups(const QList<Engine::WebDavBackup::Entry> &entries, const QString &indexWarning);
+
+    void fillWebDavChooser(WebDavChooser &chooser, const QList<Engine::WebDavBackup::Entry> &entries, const QString &note);
+
+    void restoreWebDavBackup(const std::shared_ptr<WebDavChooser> &chooser);
+
+    void deleteWebDavBackup(const std::shared_ptr<WebDavChooser> &chooser);
 
     struct {
         QString custom_inbound;
@@ -65,6 +102,9 @@ private:
 private slots:
     void on_backup_create_clicked();
     void on_backup_restore_clicked();
+    void on_webdav_settings_clicked();
+    void on_webdav_upload_clicked();
+    void on_webdav_restore_clicked();
     void on_xray_geoip_download_clicked();
     void on_xray_geosite_download_clicked();
 };

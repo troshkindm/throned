@@ -39,6 +39,10 @@ namespace Ui {
 class EditWireguardAmnezia;
 }
 
+namespace Validation {
+class Form;
+}
+
 class EditWireguardAmnezia : public QDialog {
     Q_OBJECT
 
@@ -53,6 +57,9 @@ public slots:
 private:
     void generateSignature();
 
+    void bindValidation();
+
     Ui::EditWireguardAmnezia *ui;
     WireguardAmneziaOptions *options;
+    Validation::Form *form = nullptr;
 };

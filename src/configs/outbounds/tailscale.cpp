@@ -1,12 +1,51 @@
 #include "include/configs/outbounds/tailscale.h"
 
+#include <QCoreApplication>
+#include <QHostAddress>
 #include <QJsonArray>
 #include <QUrlQuery>
 #include <include/global/Utils.hpp>
 
+#include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/utils.h"
 
 namespace Configs {
+namespace {
+// Import only: a route the core would refuse is dropped with a warning; DB loads and clones keep it.
+QStringList tailscaleKeepRoutes(const QStringList& routes) {
+    QStringList kept;
+    for (const auto& raw: routes) {
+        const auto route = raw.trimmed();
+        if (route.isEmpty()) continue;
+        if (!ParseDiag::Active() || AcceptOptional("advertise_routes", Checks::TailscaleRoute(route), route)) kept << route;
+    }
+    return kept;
+}
+} // namespace
+
+namespace Checks {
+QString TailscaleControlUrl(const QString& text) {
+    return Validation::Url(text, {"https", "http"});
+}
+
+// sing-box protocol/tailscale/endpoint.go: an unspecified address with prefix length 0.
+QString TailscaleRoute(const QString& item) {
+    if (auto message = Validation::Cidr(item); !message.isEmpty()) return message;
+    const auto route = item.trimmed();
+    const auto slash = route.lastIndexOf('/');
+    const QHostAddress address(route.left(slash));
+    if (route.mid(slash + 1) == "0" && (address == QHostAddress(QHostAddress::AnyIPv4) || address == QHostAddress(QHostAddress::AnyIPv6))) {
+        return QCoreApplication::translate("Validation", "Do not advertise the default route; tick Advertise exit node instead.");
+    }
+    return {};
+}
+
+QString TailscaleExitNode(const QString& exitNode, bool advertiseExitNode) {
+    if (!advertiseExitNode || exitNode.trimmed().isEmpty()) return {};
+    return QCoreApplication::translate("Validation", "A node that advertises itself as an exit node cannot use another one; clear the exit node or untick Advertise exit node.");
+}
+} // namespace Checks
+
 bool tailscale::ParseFromLink(const QString& link) {
     auto url = QUrl(link);
     if (!url.isValid()) return false;
@@ -23,7 +62,7 @@ bool tailscale::ParseFromLink(const QString& link) {
     if (query.hasQueryItem("exit_node")) exit_node = query.queryItemValue("exit_node");
     if (query.hasQueryItem("exit_node_allow_lan_access")) exit_node_allow_lan_access = query.queryItemValue("exit_node_allow_lan_access") == "true";
     if (query.hasQueryItem("advertise_routes")) {
-        advertise_routes = query.queryItemValue("advertise_routes", QUrl::FullyDecoded).split(",");
+        advertise_routes = tailscaleKeepRoutes(SplitAndTrim(query.queryItemValue("advertise_routes", QUrl::FullyDecoded), ",", false));
     }
     if (query.hasQueryItem("advertise_exit_node")) advertise_exit_node = query.queryItemValue("advertise_exit_node") == "true";
     if (query.hasQueryItem("globalDNS")) globalDNS = query.queryItemValue("globalDNS") == "true";
@@ -43,9 +82,8 @@ bool tailscale::ParseFromJson(const QJsonObject& object) {
     if (object.contains("accept_routes")) accept_routes = object["accept_routes"].toBool();
     if (object.contains("exit_node")) exit_node = object["exit_node"].toString();
     if (object.contains("exit_node_allow_lan_access")) exit_node_allow_lan_access = object["exit_node_allow_lan_access"].toBool();
-    if (object.contains("advertise_routes")) {
-        advertise_routes = QJsonArray2QListString(object["advertise_routes"].toArray());
-    }
+    // Older editor saves stored [""] for an empty field, which the core rejects.
+    if (object.contains("advertise_routes")) advertise_routes = tailscaleKeepRoutes(QJsonArray2QListString(object["advertise_routes"].toArray()));
     if (object.contains("advertise_exit_node")) advertise_exit_node = object["advertise_exit_node"].toBool();
     if (object.contains("globalDNS")) globalDNS = object["globalDNS"].toBool();
     return true;
@@ -130,5 +168,20 @@ SecurityInfo tailscale::GetSecurity() {
 
 bool tailscale::IsEndpoint() {
     return true;
+}
+
+void tailscale::Validate(Validation::Issues& issues) {
+    outbound::Validate(issues);
+    const auto report = [&issues](const QString& field, const QString& message, const QString& value = {}) {
+        if (!message.isEmpty()) issues << Validation::Issue{Validation::Severity::Error, field, message, value};
+    };
+    report("control_url", Checks::TailscaleControlUrl(control_url), control_url);
+    for (const auto& route: advertise_routes) {
+        if (const auto message = Checks::TailscaleRoute(route); !message.isEmpty()) {
+            report("advertise_routes", message, route);
+            break;
+        }
+    }
+    report("exit_node", Checks::TailscaleExitNode(exit_node, advertise_exit_node), exit_node);
 }
 } // namespace Configs

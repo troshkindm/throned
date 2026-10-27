@@ -2,10 +2,16 @@
 
 #include <QDialog>
 #include <QHash>
+#include <optional>
 #include "ui_dialog_edit_group.h"
 #include "include/database/entities/Group.h"
+#include "include/engine/EditLocks.h"
 
 class QComboBox;
+
+namespace Validation {
+class Form;
+}
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -30,6 +36,8 @@ private:
 
     std::shared_ptr<Configs::Group> ent;
 
+    std::optional<Engine::EditLock> editLock;
+
     struct {
         int front_proxy;
     } CACHE;
@@ -45,6 +53,8 @@ private:
     bool restartNeeded = false;
 
     QHash<QString, int> proxyNameToId;
+
+    Validation::Form *form = nullptr;
 
     int resolve_proxy_selection(QComboBox *combo, int fallback) const;
 

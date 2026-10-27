@@ -2,10 +2,12 @@
 
 #include <QObject>
 #include <QColor>
+#include <QHash>
 #include <QIcon>
 #include <QPalette>
 #include <QMap>
 #include <QStringList>
+#include <QStyle>
 
 #include "include/ui/setting/ThronedPalette.hpp"
 
@@ -31,12 +33,16 @@ public:
     [[nodiscard]] const ThronedSkin *Skin(const QString &theme = {}) const;
     void RegisterStyle(QWidget *widget, const QString &styleSheetTemplate) const;
     void RefreshRegisteredStyles() const;
+
+    // QStyle::standardIcon loads from the system on every call: about 9 ms for a message box icon on Windows.
+    QIcon standardIcon(QStyle::StandardPixmap pixmap);
 signals:
     void themeChanged(QString themeName);
 
 private:
     QMap<QString, ThronedSkin> skins; // keyed by lowercased display name
     QString base_font_family;
+    QHash<int, QIcon> standardIcons; // the current style's; ApplyTheme() reloads the message box icons
 };
 
 ThemeManager *themeManager();

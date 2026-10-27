@@ -42,7 +42,7 @@ class TestDiagnostics : public QObject {
         c.domain = "example.org";
         c.dest = "203.0.113.10:443";
         c.outbound = "chosen-proxy";
-        c.matched_rule = "process_name=demo.exe => route(chosen-proxy)";
+        c.rule = "process_name=demo.exe => route(chosen-proxy)";
         c.upload = 42;
         c.download = 0;
         return c;
@@ -198,7 +198,7 @@ private slots:
         const auto rule = window.findChild<QLabel *>("diagnosticRuleDetail")->text();
         // What caught the connection leads; the rule itself follows it.
         QVERIFY(rule.startsWith("Chosen by the program that opened the connection."));
-        QVERIFY(rule.contains(QString::fromStdString(snapshot.active[0].matched_rule.value())));
+        QVERIFY(rule.contains(QString::fromStdString(snapshot.active[0].rule.value())));
     }
     void connectionsToOneDestinationCollapseIntoOneRow() {
         DiagnosticsWindow window;
@@ -272,7 +272,7 @@ private slots:
         const std::string rule =
             "domain=[a.example b.example c.example d.example] "
             "rule_set=[geosite-one geosite-two geosite-three geosite-four geosite-five] => route(chosen-proxy)";
-        entry.matched_rule = rule;
+        entry.rule = rule;
         libcore::QueryConnectionsResp snapshot;
         snapshot.active.push_back(entry);
         window.applyConnections(snapshot);
