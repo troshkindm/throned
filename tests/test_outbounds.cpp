@@ -17,6 +17,7 @@
 #include <QTest>
 
 void Logging::Write(Level, const QString &, const char *, int) {}
+void Logging::WriteUserLog(const QString &) {}
 
 // Outbound generators need real settings, but no profile repositories or persistent database.
 Configs::DatabaseManager::DatabaseManager(const std::string &path) : db(path), statsDb(":memory:"), scanDb(":memory:") {

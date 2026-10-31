@@ -25,7 +25,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 
 #ifdef Q_OS_WIN
-#include <3rdparty/WinCommander.hpp>
+#include <WinCommander.hpp>
 #include "include/sys/windows/eventHandler.h"
 #include "include/sys/windows/WinVersion.h"
 #endif

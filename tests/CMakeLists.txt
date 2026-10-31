@@ -125,7 +125,7 @@ throned_add_qt_test(throned_tests
         SOURCES test_validate.cpp ${PROJECT_SOURCE_DIR}/src/configs/validate.cpp)
 
 throned_add_qt_test(throned_route_tests
-        SOURCES test_route_rule.cpp ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
+        SOURCES test_route_rule.cpp ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Throned::FkYAML Throned::SQLiteCpp)
 
 throned_add_qt_test(throned_app_routes_tests
@@ -133,6 +133,7 @@ throned_add_qt_test(throned_app_routes_tests
             ${PROJECT_SOURCE_DIR}/src/database/entities/AppRoutes.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Throned::FkYAML Throned::SQLiteCpp)
 target_compile_definitions(throned_app_routes_tests PRIVATE APP_CATALOG="${PROJECT_SOURCE_DIR}/res/routing/apps.json")
 
@@ -167,6 +168,8 @@ throned_add_qt_test(throned_outbound_tests
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Notice.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Utils.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/LogBuffer.cpp
+            stub_route_dns.cpp
             ${PROJECT_SOURCE_DIR}/src/global/ReleaseNotes.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Qt6::Svg
             Throned::FkYAML Throned::Protocol Throned::SQLiteCpp
@@ -212,6 +215,7 @@ throned_add_qt_test(throned_simple_routes_page_tests
             ${PROJECT_SOURCE_DIR}/src/database/entities/AppRoutes.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
+            ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Qt6::Svg Throned::FkYAML Throned::SQLiteCpp)
 qt_add_resources(throned_simple_routes_page_tests "simple_test_catalog"
         PREFIX "/routing" BASE "${PROJECT_SOURCE_DIR}/res/routing"
