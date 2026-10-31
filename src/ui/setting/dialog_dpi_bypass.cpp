@@ -184,7 +184,7 @@ void DialogDpiBypass::applyDpiPreset() {
             return;
         }
     } else {
-        Configs::dataManager->routesRepo->UpdateRouteProfiles({target});
+        Configs::dataManager->routesRepo->UpdateRouteProfiles({target}, {});
     }
     settings->current_route_id = target->id;
 

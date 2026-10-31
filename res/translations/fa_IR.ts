@@ -2552,6 +2552,18 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
         <translation>هر به‌روزرسانی اشتراک «%1» قوانین آن را بازنویسی می‌کند. حذف آن، وارد کردن را متوقف می‌کند.</translation>
     </message>
+    <message>
+        <source>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generating the AmneziaWG QUIC signature...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>AmneziaWG has no QUIC signature yet: click Generate Warp Config.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditAutoSelector</name>
@@ -2588,6 +2600,24 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR or !RU</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4383,6 +4413,14 @@ Error: %1</source>
     <message>
         <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
         <translation>گروه «%1» از نمایه مسیریابی خودش استفاده می‌کند، بنابراین نمایه در حال اجرا همان را نگه می‌دارد.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -10280,6 +10318,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Technical Support: %1</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>%1h %2m left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1d %2h left</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QHotkey</name>
@@ -13318,6 +13364,14 @@ Close without saving?</source>
     </message>
     <message>
         <source>Add %s to the arguments where the config file path goes; without it the config is not used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use two-letter country codes separated by commas, for example DE,NL,FR; put ! before a code to exclude that country, for example !RU.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -36,6 +36,10 @@ void EngineEvents::SubscriptionReplacedRunning(int profileId) {
     emit instance() -> subscriptionReplacedRunning(profileId);
 }
 
+void EngineEvents::RoutingRestartNeeded() {
+    emit instance() -> routingRestartNeeded();
+}
+
 void EngineEvents::GroupOrderChanged(const QList<int> &groupIds) {
     emit instance() -> groupOrderChanged(groupIds);
 }

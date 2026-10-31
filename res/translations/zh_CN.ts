@@ -4724,6 +4724,18 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
         <translation>订阅“%1”的每次更新都会覆盖其规则。删除它将停止导入。</translation>
     </message>
+    <message>
+        <source>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generating the AmneziaWG QUIC signature...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>AmneziaWG has no QUIC signature yet: click Generate Warp Config.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogRuntimeStats</name>
@@ -5657,6 +5669,12 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     <message>
         <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
         <translation>其余的将在选择器启动时测量：一旦有足够的配置档可用，选择器就会运行，并在全部测量完成后切换到完整排名。</translation>
+    </message>
+    <message>
+        <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -14423,6 +14441,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Technical Support: %1</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>%1h %2m left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1d %2h left</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TestProgressWidget</name>
@@ -17429,6 +17455,14 @@ Close without saving?</source>
     </message>
     <message>
         <source>Add %s to the arguments where the config file path goes; without it the config is not used.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use two-letter country codes separated by commas, for example DE,NL,FR; put ! before a code to exclude that country, for example !RU.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

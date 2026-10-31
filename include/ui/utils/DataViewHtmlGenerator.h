@@ -103,7 +103,7 @@ public:
 
     void addTestProgress(int count = 1);
 
-    Content build();
+    QString buildHtml();
 
 private:
     static QString getProgressBar(long long current, long long total);
@@ -111,7 +111,7 @@ private:
     // Assume mu_ is held.
     [[nodiscard]] bool itemVisible(DataViewItem item) const;
 
-    Content itemContent(DataViewItem item);
+    QString itemHtml(DataViewItem item, bool shared);
 
     // The core can hand back a result from an earlier run, so the counter is bounded where it is read rather than trusted.
     int cappedProgress(int total) const { return qBound(0, testProgress.load(), total); }
@@ -125,7 +125,7 @@ private:
 
     QString scannerSectionHtml(bool compact);
 
-    // Pool threads seed panels while build reads them.
+    // Pool threads seed panels while buildHtml reads them.
     mutable QMutex mu_;
 
     DownloadPanelState download_ = {};

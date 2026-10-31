@@ -4,7 +4,6 @@
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 
-#include <QTextDocument>
 #include <array>
 
 namespace {
@@ -13,19 +12,15 @@ struct ItemPriority {
     DataViewPriority priority;
 };
 
-// Within one level, the first visible panel in this order is the one shown; ambient status comes last.
+// Within one level, panels render in this order.
 constexpr std::array kItemPriorities = {
     ItemPriority{DataViewItem::Scanner, DataViewPriority::Medium},
-    ItemPriority{DataViewItem::Download, DataViewPriority::Medium},
     ItemPriority{DataViewItem::VpnEndpoint, DataViewPriority::Medium},
     ItemPriority{DataViewItem::AutoSelector, DataViewPriority::Medium},
+    ItemPriority{DataViewItem::Download, DataViewPriority::Medium},
 };
 
-constexpr int kScannerPanelLines = 2;
-
-QString dataViewToolTip(const QStringList &lines) {
-    return lines.isEmpty() ? QString() : Qt::convertFromPlainText(lines.join(u'\n'), Qt::WhiteSpaceNormal);
-}
+constexpr int kScannerPanelLines = 3;
 
 constexpr std::array kPriorityOrder = {
     DataViewPriority::Critical,
@@ -104,12 +99,19 @@ void DataViewHtmlGenerator::addTestProgress(int count) {
     testProgress.fetch_add(count);
 }
 
-DataViewHtmlGenerator::Content DataViewHtmlGenerator::build() {
+QString DataViewHtmlGenerator::buildHtml() {
     QMutexLocker lk(&mu_);
     for (const auto priority: kPriorityOrder) {
+        int occupied = 0;
         for (const auto &entry: kItemPriorities) {
-            if (entry.priority == priority && itemVisible(entry.item)) return itemContent(entry.item);
+            if (entry.priority == priority && itemVisible(entry.item)) ++occupied;
         }
+        if (occupied == 0) continue;
+        QString html;
+        for (const auto &entry: kItemPriorities) {
+            if (entry.priority == priority) html += itemHtml(entry.item, occupied > 1);
+        }
+        return html;
     }
     return {};
 }
@@ -128,7 +130,8 @@ bool DataViewHtmlGenerator::itemVisible(DataViewItem item) const {
     return false;
 }
 
-DataViewHtmlGenerator::Content DataViewHtmlGenerator::itemContent(DataViewItem item) {
+QString DataViewHtmlGenerator::itemHtml(DataViewItem item, bool shared) {
+    if (!itemVisible(item)) return {};
     switch (item) {
         case DataViewItem::Download:
             return downloadSectionHtml();
@@ -151,9 +154,8 @@ QString DataViewHtmlGenerator::scannerSectionHtml(bool compact) {
         return QString("<p style='text-align:center;margin:0;color:%1;'>%2</p>").arg(tokens.accent.name(), line.toHtmlEscaped());
     }
     const qsizetype shown = scanner_.size() > kScannerPanelLines ? kScannerPanelLines - 1 : scanner_.size();
-    Content res;
-    QStringList all;
-    for (qsizetype i = 0; i < scanner_.size(); ++i) {
+    QString res;
+    for (qsizetype i = 0; i < shown; ++i) {
         const auto &item = scanner_.at(i);
         QString line = dataViewScannerProgressLine(item);
         if (item.found > 0) line += QObject::tr(" · %1 found").arg(item.found);
