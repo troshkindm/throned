@@ -30,6 +30,9 @@ public:
     // Any thread; the running profile, or null.
     using RunningSnapshot = std::function<std::shared_ptr<Configs::Profile>()>;
 
+    // Test threads, after each stored URL result (a profile may report twice); a late result poll can still call it after onFinished.
+    using ResultHook = std::function<void(const std::shared_ptr<Configs::Profile>&)>;
+
     // policy and observer outlive the runner; a null observer gets a no-op stand-in (headless).
     TestRunner(EnginePolicy* policy, TestObserver* observer, RunningSnapshot runningSnapshot);
 
@@ -37,7 +40,8 @@ public:
     TestRunner& operator=(const TestRunner&) = delete;
 
     // The run* calls return whether a session started; onFinished fires either way, on a refusal before they return.
-    bool runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
+    bool runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true,
+                     const ResultHook& onResult = {});
 
     // Waits out a running session instead of refusing it; returns at once and is safe from any thread.
     void queueUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive = true);
@@ -104,10 +108,12 @@ private:
         // Not derivable from an empty outboundTags: a test-current run leaves both empty but wants "proxy".
         bool useDefaultOutbound = false;
         bool testCurrent = false;
+        ResultHook onResult;
     };
 
     bool runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
-                         const std::function<void()>& onFinished, bool waitForSession = false, bool interactive = true);
+                         const std::function<void()>& onFinished, bool waitForSession = false, bool interactive = true,
+                         const ResultHook& onResult = {});
 
     void runUrlProbe(const Target& target);
 

@@ -353,7 +353,8 @@ public:
     QString warp_ep = "";
     QStringList warp_reserved = {};
     bool warp_tos_accepted = false;
-    QString warp_mode = "wireguard"; // "wireguard" or "masque"
+    QString warp_mode = "wireguard";       // "wireguard", "amnezia", or "masque"
+    QStringList warp_amnezia_packets = {}; // AmneziaWG I1-I5, generated with the identity so config builds need no RPC
     QString warp_masque_private_key = "";
     QString warp_masque_peer_public_key = "";
     QString warp_masque_ep = "";
@@ -380,6 +381,7 @@ public:
     QString core_box_api_secret = "";
     QString core_box_underlying_dns = "";
     int core_dns_in_port = 5533;
+    bool core_dns_in_lan = false;
 
     // Xray
     QString xray_log_level = "warning";

@@ -167,6 +167,12 @@ std::string_view linkScheme(std::string_view line) {
     return line.substr(0, sep);
 }
 
+// "happ://routing/onadd/...": a routing profile for the group, read by ShippedRoutingLink, not a proxy.
+bool isRoutingLink(std::string_view line) {
+    const auto scheme = linkScheme(line);
+    return !scheme.empty() && scan::startsWithNoCase(line.substr(scheme.size()), "://routing/");
+}
+
 // Never the raw link: "scheme://host:port #name", the address taken from the parsed outbound when it has one.
 QString linkSource(const QString &link, const Configs::outbound *ob) {
     const auto sep = link.indexOf(QStringLiteral("://"));
@@ -1037,6 +1043,7 @@ void Parser::link(std::string_view line, int depth, const QString &overrideName)
 
     const char *profileType = typeForScheme(line);
     if (profileType == nullptr) {
+        if (isRoutingLink(line)) return;
         if (const auto scheme = linkScheme(line); !scheme.empty() && sink.report) {
             const auto written = toQString(scheme);
             const auto lower = written.toLower();
@@ -1209,6 +1216,24 @@ bool ParseDocument(QByteArray body, const ParseSink &sink) {
     Parser parser(sink);
     parser.document(scan::view(body), false, true, 0);
     return parser.ok();
+}
+
+QString ShippedRoutingLink(QByteArray body) {
+    scan::trimInPlace(body);
+    if (body.isEmpty()) return {};
+    if (scan::looksLikeBase64(scan::view(body))) {
+        if (auto decoded = scan::decodeBase64(scan::view(body)); !decoded.isEmpty()) body = std::move(decoded);
+    } else if (scan::looksLikeWrappedBase64(scan::view(body))) {
+        if (auto decoded = QByteArray::fromBase64(body); !decoded.isEmpty()) body = std::move(decoded);
+    }
+    QString found;
+    scan::forEachLine(scan::view(body), [&](std::string_view line) {
+        line = scan::trim(line);
+        if (!isRoutingLink(line)) return true;
+        found = toQString(line);
+        return false;
+    });
+    return found;
 }
 
 bool ParseText(const QString &text, const ParseSink &sink) {

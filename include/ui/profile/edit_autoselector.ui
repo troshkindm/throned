@@ -50,7 +50,9 @@
         <string>leave empty to use every profile in the checked groups</string>
        </property>
        <property name="toolTip">
-        <string>Optional regular expression. Only profiles whose name matches are considered — useful to pick out one country or provider.</string>
+        <string>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</string>
        </property>
       </widget>
      </item>
@@ -164,10 +166,10 @@
          <item row="0" column="1">
           <widget class="QLineEdit" name="country_filter">
            <property name="placeholderText">
-            <string>e.g. DE,NL,FR</string>
+            <string>e.g. DE,NL,FR or !RU</string>
            </property>
            <property name="toolTip">
-            <string>Comma-separated country codes, empty means any. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</string>
+            <string>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</string>
            </property>
           </widget>
          </item>

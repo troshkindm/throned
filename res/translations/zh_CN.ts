@@ -2656,6 +2656,14 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
         <source>Kill Switch</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Allow other devices to connect</source>
+        <translation>允许其他设备连接</translation>
+    </message>
+    <message>
+        <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
+        <translation>允许网络中的其他设备使用此 DNS 服务器，例如通过本机转发 DNS 的路由器。任何能访问此端口的人都可以通过你的 DNS 设置解析域名。</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -2762,6 +2770,34 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>No profile named &quot;%1&quot;. Pick one from the list.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default (%1)</source>
+        <translation>默认（%1）</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>%1 (from this subscription)</source>
+        <translation>%1（来自此订阅）</translation>
+    </message>
+    <message>
+        <source>Routing Profile</source>
+        <translation>路由配置档</translation>
+    </message>
+    <message>
+        <source>Use the subscription&apos;s routing profile</source>
+        <translation>使用订阅提供的路由配置档</translation>
+    </message>
+    <message>
+        <source>The routing profile this group&apos;s profiles connect with. Default follows the routing profile chosen in the Routing menu.</source>
+        <translation>此组的配置档连接时使用的路由配置档。“默认”跟随路由菜单中选择的路由配置档。</translation>
+    </message>
+    <message>
+        <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
+        <translation>每次更新时，将订阅提供的路由配置档（Happ 格式）保存为此组自己的路由配置档。从不使用订阅中的 DNS 设置。</translation>
     </message>
 </context>
 <context>
@@ -4680,6 +4716,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
             <numerusform></numerusform>
         </translation>
     </message>
+    <message>
+        <source>%1 (updated by subscription &quot;%2&quot;)</source>
+        <translation>%1（由订阅“%2”更新）</translation>
+    </message>
+    <message>
+        <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
+        <translation>订阅“%1”的每次更新都会覆盖其规则。删除它将停止导入。</translation>
+    </message>
 </context>
 <context>
     <name>DialogRuntimeStats</name>
@@ -4918,6 +4962,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Improves Tun routing and performance using nftables. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart Core</source>
+        <translation>重启核心</translation>
+    </message>
+    <message>
+        <source>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</source>
+        <translation>停止正在运行的配置并重启核心。Tun 无法启动时可尝试此操作，然后重新启动配置。</translation>
     </message>
 </context>
 <context>
@@ -5585,6 +5637,26 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
+        <translation>可选的正则表达式，在配置名称的任意位置匹配，不区分大小写。仅使用名称匹配的配置。
+选择多个：germany|nl
+排除部分：^(?!.*(germany|🇩🇪)).*$ 会使用所有两者都不包含的名称。</translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR or !RU</source>
+        <translation>如 DE,NL,FR 或 !RU</translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation>逗号间隔的国家代码，空白表示任何国家。在代码前加 ! 则排除该国家，例如 !RU 使用除俄罗斯以外的所有国家。使用由 IP 测试找到的国家，因此在设定这个期间，从未进行 IP 测试的配置档会被跳过。</translation>
+    </message>
+    <message>
+        <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
+        <translation>其余的将在选择器启动时测量：一旦有足够的配置档可用，选择器就会运行，并在全部测量完成后切换到完整排名。</translation>
     </message>
 </context>
 <context>
@@ -9011,6 +9083,22 @@ Error: %1</source>
         <source>Global hotkey not registered: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>
+        <translation>[自动选择器] 已找到 %1 个可用配置档；现在启动，其余 %2 个仍在测量中。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
+        <translation>[自动选择器] 所有配置档均已测量，且最佳配置档有变化——按完整排名重新构建。</translation>
+    </message>
+    <message>
+        <source>The current routing profile is updated by the subscription &quot;%1&quot;.</source>
+        <translation>当前路由配置档由订阅“%1”更新。</translation>
+    </message>
+    <message>
+        <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
+        <translation>组“%1”使用自己的路由配置档，因此正在运行的配置档保持不变。</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -10616,6 +10704,66 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>The WARP identity could not be read; register a new one</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Changed: %1</source>
+        <translation>已更改：%1</translation>
+    </message>
+    <message>
+        <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
+        <translation>%1 已在更新中被移除并保持停止：没有唯一的同名配置档可以替代它。</translation>
+    </message>
+    <message>
+        <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
+        <translation>%1 已在更新中被替换；正在连接到同名配置档。</translation>
+    </message>
+    <message>
+        <source>the routing profile is not in the Happ format</source>
+        <translation>路由配置档不是 Happ 格式</translation>
+    </message>
+    <message>
+        <source>a raw routing profile is not accepted from a subscription</source>
+        <translation>不接受来自订阅的原始路由配置档</translation>
+    </message>
+    <message>
+        <source>unknown routing link action &quot;%1&quot;</source>
+        <translation>未知的路由链接操作“%1”</translation>
+    </message>
+    <message>
+        <source>the routing profile is not valid base64</source>
+        <translation>路由配置档不是有效的 base64</translation>
+    </message>
+    <message>
+        <source>the routing profile is not a JSON object</source>
+        <translation>路由配置档不是 JSON 对象</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was ignored: %2</source>
+        <translation>[路由] %1：已忽略订阅提供的路由配置档：%2</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was not applied, the routing profiles are open for editing.</source>
+        <translation>[路由] %1：未应用订阅提供的路由配置档，因为路由配置档正在编辑中。</translation>
+    </message>
+    <message>
+        <source>%1 entries, %2 skipped</source>
+        <translation>%1 条，跳过 %2 条</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>%1 条</translation>
+    </message>
+    <message>
+        <source>%1 routing</source>
+        <translation>%1 路由</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: created the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[路由] %1：已从订阅创建路由配置档“%2”（%3）</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[路由] %1：已从订阅更新路由配置档“%2”（%3）</translation>
     </message>
 </context>
 <context>

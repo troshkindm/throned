@@ -130,7 +130,7 @@ void EditHysteria::bindValidation(Validation::Form &form) {
     form.addRule({ui->up_mbps, ui->down_mbps}, [this, kIntMax] {
         const auto up = editHysteriaNumber(ui->up_mbps, kIntMax), down = editHysteriaNumber(ui->down_mbps, kIntMax);
         if (isV2() || !up || !down) return QString();
-        return Configs::Checks::HysteriaV1Speed(*up, *down); }, this);
+        return Configs::Checks::HysteriaV1Speed(*up, *down); }, this, Severity::Warning);
 
     form.addRule({ui->auth, ui->auth_type}, [this] { return Configs::Checks::HysteriaAuth(ui->auth_type->currentText().trimmed(), ui->auth->text()); }, this);
     form.addRule({ui->auth, ui->auth_type}, [this] { return Configs::Checks::HysteriaAuthType(ui->auth_type->currentText().trimmed(), ui->auth->text()); }, this, Severity::Warning);

@@ -23,6 +23,12 @@ QString vlessImportPacketEncoding(const QString &raw) {
     ParseDiag::Warn("packet_encoding", QCoreApplication::translate("Validation", "Unknown packet encoding, so none was used. Use packetaddr or xudp."), value);
     return {};
 }
+
+// No flow is the core's default; an unknown one stops it and a misplaced Vision fails every connection.
+void dropUnusableVlessFlow(vless &v) {
+    if (v.flow == "xtls-rprx-vision-udp443") return;
+    if (!AcceptOptional("flow", Checks::VlessFlow(v.flow, v.tls->enabled, v.transport->type), v.flow)) v.flow.clear();
+}
 } // namespace
 
 namespace Checks {
@@ -56,6 +62,7 @@ bool vless::ParseFromLink(const QString &link) {
     packet_encoding = packetEncoding.isEmpty() ? QStringLiteral("xudp") : vlessImportPacketEncoding(packetEncoding);
 
     multiplex->ParseFromLink(link);
+    dropUnusableVlessFlow(*this);
 
     return !(uuid.isEmpty() || server.isEmpty());
 }
@@ -72,6 +79,7 @@ bool vless::ParseFromJson(const QJsonObject &object) {
     if (ParseDiag::Active()) {
         flow = vlessImportFlow(flow);
         packet_encoding = vlessImportPacketEncoding(packet_encoding);
+        dropUnusableVlessFlow(*this);
     }
     return true;
 }
@@ -86,6 +94,7 @@ bool vless::ParseFromClash(const clash::Proxies &object) {
     tls->ParseFromClash(object, object.tls);
     transport->ParseFromClash(object);
     multiplex->ParseFromClash(object);
+    dropUnusableVlessFlow(*this);
     return true;
 }
 

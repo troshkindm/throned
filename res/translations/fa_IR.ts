@@ -2114,6 +2114,14 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
         <source>Kill Switch</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Allow other devices to connect</source>
+        <translation>به دستگاه های دیگر اجازه اتصال دهید</translation>
+    </message>
+    <message>
+        <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
+        <translation>به دستگاه‌های دیگر شبکه اجازه می‌دهد از این سرور DNS استفاده کنند، مثلاً روتری که DNS خود را از طریق این رایانه می‌فرستد. هر کسی که به این پورت دسترسی داشته باشد می‌تواند نام‌ها را با تنظیمات DNS شما ترجمه کند.</translation>
+    </message>
 </context>
 <context>
     <name>DialogManageRoutes</name>
@@ -2535,6 +2543,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
+    </message>
+    <message>
+        <source>%1 (updated by subscription &quot;%2&quot;)</source>
+        <translation>%1 (به‌روزشده توسط اشتراک «%2»)</translation>
+    </message>
+    <message>
+        <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
+        <translation>هر به‌روزرسانی اشتراک «%1» قوانین آن را بازنویسی می‌کند. حذف آن، وارد کردن را متوقف می‌کند.</translation>
     </message>
 </context>
 <context>
@@ -4360,6 +4376,14 @@ Error: %1</source>
         <source>Global hotkey not registered: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>The current routing profile is updated by the subscription &quot;%1&quot;.</source>
+        <translation>نمایه مسیریابی فعلی توسط اشتراک «%1» به‌روز می‌شود.</translation>
+    </message>
+    <message>
+        <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
+        <translation>گروه «%1» از نمایه مسیریابی خودش استفاده می‌کند، بنابراین نمایه در حال اجرا همان را نگه می‌دارد.</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -5497,6 +5521,66 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>The WARP identity could not be read; register a new one</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Changed: %1</source>
+        <translation>تغییر کرده: %1</translation>
+    </message>
+    <message>
+        <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
+        <translation>%1 با به‌روزرسانی حذف شد و متوقف می‌ماند: هیچ نمایهٔ یکتایی با همین نام جایگزین آن نیست.</translation>
+    </message>
+    <message>
+        <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
+        <translation>%1 با به‌روزرسانی جایگزین شد؛ در حال اتصال به نمایهٔ هم‌نام.</translation>
+    </message>
+    <message>
+        <source>the routing profile is not in the Happ format</source>
+        <translation>نمایه مسیریابی در قالب Happ نیست</translation>
+    </message>
+    <message>
+        <source>a raw routing profile is not accepted from a subscription</source>
+        <translation>نمایه مسیریابی خام از اشتراک پذیرفته نمی‌شود</translation>
+    </message>
+    <message>
+        <source>unknown routing link action &quot;%1&quot;</source>
+        <translation>عمل ناشناخته در پیوند مسیریابی «%1»</translation>
+    </message>
+    <message>
+        <source>the routing profile is not valid base64</source>
+        <translation>نمایه مسیریابی base64 معتبر نیست</translation>
+    </message>
+    <message>
+        <source>the routing profile is not a JSON object</source>
+        <translation>نمایه مسیریابی یک شیء JSON نیست</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was ignored: %2</source>
+        <translation>[مسیریابی] %1: نمایه مسیریابی ارائه‌شده توسط اشتراک نادیده گرفته شد: %2</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was not applied, the routing profiles are open for editing.</source>
+        <translation>[مسیریابی] %1: نمایه مسیریابی ارائه‌شده توسط اشتراک اعمال نشد، نمایه‌های مسیریابی در حال ویرایش هستند.</translation>
+    </message>
+    <message>
+        <source>%1 entries, %2 skipped</source>
+        <translation>%1 مورد، %2 رد شد</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>%1 مورد</translation>
+    </message>
+    <message>
+        <source>%1 routing</source>
+        <translation>مسیریابی %1</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: created the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[مسیریابی] %1: نمایه مسیریابی «%2» از اشتراک ایجاد شد (%3)</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[مسیریابی] %1: نمایه مسیریابی «%2» از اشتراک به‌روز شد (%3)</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -5599,6 +5683,34 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>No profile named &quot;%1&quot;. Pick one from the list.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default (%1)</source>
+        <translation>پیش فرض (%1)</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>پیش فرض</translation>
+    </message>
+    <message>
+        <source>%1 (from this subscription)</source>
+        <translation>%1 (از این اشتراک)</translation>
+    </message>
+    <message>
+        <source>Routing Profile</source>
+        <translation>نمایه مسیریابی</translation>
+    </message>
+    <message>
+        <source>Use the subscription&apos;s routing profile</source>
+        <translation>استفاده از نمایه مسیریابی اشتراک</translation>
+    </message>
+    <message>
+        <source>The routing profile this group&apos;s profiles connect with. Default follows the routing profile chosen in the Routing menu.</source>
+        <translation>نمایه مسیریابی که نمایه‌های این گروه با آن متصل می‌شوند. «پیش فرض» از نمایه مسیریابی انتخاب‌شده در منوی مسیریابی پیروی می‌کند.</translation>
+    </message>
+    <message>
+        <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
+        <translation>هر به‌روزرسانی، نمایه مسیریابی ارائه‌شده توسط اشتراک (قالب Happ) را به‌عنوان نمایه مسیریابی خود این گروه ذخیره می‌کند. تنظیمات DNS اشتراک هرگز استفاده نمی‌شود.</translation>
     </message>
 </context>
 <context>
@@ -6253,6 +6365,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Improves Tun routing and performance using nftables. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart Core</source>
+        <translation>راه‌اندازی مجدد هسته</translation>
+    </message>
+    <message>
+        <source>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</source>
+        <translation>پروفایل در حال اجرا را متوقف و هسته را دوباره راه‌اندازی می‌کند. وقتی Tun راه‌اندازی نمی‌شود این را امتحان کنید و سپس پروفایل را دوباره اجرا کنید.</translation>
     </message>
 </context>
 <context>

@@ -251,6 +251,7 @@ const QList<Key> &keys() {
         list << tunIpv6Cidr;
 
         list << intKey(QStringLiteral("dns_in_port"), &Settings::core_dns_in_port, 1, 65535, Restart::Profile);
+        list << boolKey(QStringLiteral("dns_in_lan"), &Settings::core_dns_in_lan, Restart::Profile);
         list << portOrOffKey(QStringLiteral("clash_api_port"), &Settings::core_box_clash_api, Restart::Profile);
         list << stringKey(QStringLiteral("clash_listen_addr"), &Settings::core_box_clash_listen_addr, Restart::Profile, [](const QString &text) { return Validation::Host(text, Validation::Empty::Allowed).isEmpty(); }, QStringLiteral("must be empty (127.0.0.1) or a host name or IP address, without a scheme, port or spaces"));
         list << portOrOffKey(QStringLiteral("singbox_api_port"), &Settings::core_box_api_port, Restart::Profile);
@@ -441,6 +442,7 @@ const QStringList &HostKeys() {
         QStringLiteral("core_box_api_port"),
         QStringLiteral("core_box_api_secret"),
         QStringLiteral("core_dns_in_port"),
+        QStringLiteral("core_dns_in_lan"),
         QStringLiteral("core_box_underlying_dns"),
         QStringLiteral("vpn_strict_route"),
         QStringLiteral("vpn_auto_redirect"),

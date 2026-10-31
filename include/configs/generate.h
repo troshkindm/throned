@@ -4,6 +4,8 @@
 #include <QJsonObject>
 #include <QSet>
 
+#include <optional>
+
 #include "include/database/entities/Profile.h"
 
 namespace Configs {
@@ -62,6 +64,10 @@ public:
     QHash<QString, QString> outboundNames;
     // Every profile the config was built from, chain hops and route members included.
     QSet<int> involvedProfiles;
+    // The routing profile it was built with; -1 for a custom full config.
+    int routeId = -1;
+    // The Xray sidecar's outbound resolution, read under the build's routing profile; empty without Xray.
+    QString xrayDnsStrategy;
 };
 
 class BuildTestConfigResult {
@@ -143,9 +149,10 @@ struct DnsAddress {
 // "local...", "dhcp://auto|<iface>", "udp|tcp|tls|quic://host[:port]", "https|h3://host[:port][/path]" or a bare "host[:port]" (udp).
 bool ParseDnsAddress(const QString &text, DnsAddress *out, QString *why = nullptr);
 
-std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent);
-std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent,
-                                                      ConfigBuildPurpose purpose);
+// routeId overrides the routing profile, which otherwise follows ent's group (RouteIdFor).
+std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent, std::optional<int> routeId = std::nullopt);
+std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent, ConfigBuildPurpose purpose,
+                                                      std::optional<int> routeId = std::nullopt);
 
 // Tun plus a reject and nothing else. Keeping this running in place of a
 // stopped profile is what makes the kill switch a kill switch: sing-tun's

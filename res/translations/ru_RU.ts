@@ -3079,6 +3079,14 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
         <source>Backup deleted, but the backup list could not be updated: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Allow other devices to connect</source>
+        <translation>Разрешить подключаться другим устройствам</translation>
+    </message>
+    <message>
+        <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
+        <translation>Позволяет другим устройствам в сети использовать этот DNS-сервер, например роутеру, который направляет DNS через этот компьютер. Любой, кто может достучаться до этого порта, сможет разрешать имена через ваши настройки DNS.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -3181,6 +3189,34 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>No profile named &quot;%1&quot;. Pick one from the list.</source>
         <translation>Профиля с названием &quot;%1&quot; нет. Выберите профиль из списка.</translation>
+    </message>
+    <message>
+        <source>Default (%1)</source>
+        <translation>По умолчанию (%1)</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>%1 (from this subscription)</source>
+        <translation>%1 (из этой подписки)</translation>
+    </message>
+    <message>
+        <source>Routing Profile</source>
+        <translation>Профиль маршрутизации</translation>
+    </message>
+    <message>
+        <source>Use the subscription&apos;s routing profile</source>
+        <translation>Использовать профиль маршрутизации из подписки</translation>
+    </message>
+    <message>
+        <source>The routing profile this group&apos;s profiles connect with. Default follows the routing profile chosen in the Routing menu.</source>
+        <translation>Профиль маршрутизации, с которым подключаются профили этой группы. «По умолчанию» — профиль, выбранный в меню «Маршрутизация».</translation>
+    </message>
+    <message>
+        <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
+        <translation>При каждом обновлении профиль маршрутизации из подписки (формат Happ) сохраняется как собственный профиль этой группы. Настройки DNS из подписки никогда не используются.</translation>
     </message>
 </context>
 <context>
@@ -5086,6 +5122,26 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <source>It uses its own DNS servers: remote %1, direct %2.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</source>
+        <translation>WireGuard работает по UDP. AmneziaWG добавляет совместимые с WARP мусорные и маскирующие пакеты. MASQUE работает через HTTP/3 или HTTP/2.</translation>
+    </message>
+    <message>
+        <source>Generating the AmneziaWG QUIC signature...</source>
+        <translation>Генерация QUIC-сигнатуры AmneziaWG...</translation>
+    </message>
+    <message>
+        <source>AmneziaWG has no QUIC signature yet: click Generate Warp Config.</source>
+        <translation>У AmneziaWG ещё нет QUIC-сигнатуры: нажмите «Сгенерировать конфигурацию Warp».</translation>
+    </message>
+    <message>
+        <source>%1 (updated by subscription &quot;%2&quot;)</source>
+        <translation>%1 (обновляется подпиской «%2»)</translation>
+    </message>
+    <message>
+        <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
+        <translation>Каждое обновление подписки «%1» перезаписывает его правила. Удаление прекращает импорт.</translation>
+    </message>
 </context>
 <context>
     <name>DialogDpiBypass</name>
@@ -5423,6 +5479,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>This covers every address, which would stop Tun from routing anything.</source>
         <translation>Это охватывает все адреса — в этом случае TUN вообще перестанет маршрутизировать трафик.</translation>
+    </message>
+    <message>
+        <source>Restart Core</source>
+        <translation>Перезапустить ядро</translation>
+    </message>
+    <message>
+        <source>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</source>
+        <translation>Останавливает запущенный профиль и перезапускает ядро. Попробуйте, если Tun не запускается, затем снова запустите профиль.</translation>
     </message>
 </context>
 <context>
@@ -6092,6 +6156,26 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
             <numerusform>%n отслеживаемые группы больше не существуют и игнорируются; при сохранении они будут удалены.</numerusform>
             <numerusform>%n отслеживаемых групп больше не существуют и игнорируются; при сохранении они будут удалены.</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
+        <translation>Необязательное регулярное выражение; ищется в любом месте названия профиля без учёта регистра. Используются только профили с подходящим названием.
+Выбрать несколько: germany|nl
+Исключить некоторые: ^(?!.*(germany|🇩🇪)).*$ берёт все названия, где нет ни того, ни другого.</translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR or !RU</source>
+        <translation>например, DE,NL,FR или !RU</translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation>Коды стран через запятую; пустое поле — любая страна. Поставьте ! перед кодом, чтобы исключить страну, например !RU — все страны, кроме России. Используется страна, определённая IP-тестом, поэтому, пока фильтр задан, профили без IP-теста пропускаются.</translation>
+    </message>
+    <message>
+        <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
+        <translation>Остальные профили будут измерены при запуске: автовыбор заработает, как только наберётся достаточно рабочих профилей, и перейдёт на полный рейтинг, когда измерены все.</translation>
     </message>
 </context>
 <context>
@@ -9722,6 +9806,22 @@ Error: %1</source>
         <source>Failed to resolve %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>
+        <translation>[Автовыбор] Найдено рабочих профилей: %1; запуск сейчас, остальные (%2) ещё измеряются.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
+        <translation>[Автовыбор] Все профили измерены, и лучшие изменились — пересборка по полному рейтингу.</translation>
+    </message>
+    <message>
+        <source>The current routing profile is updated by the subscription &quot;%1&quot;.</source>
+        <translation>Текущий профиль маршрутизации обновляется подпиской «%1».</translation>
+    </message>
+    <message>
+        <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
+        <translation>Группа «%1» использует собственный профиль маршрутизации, поэтому запущенный профиль сохраняет его.</translation>
+    </message>
 </context>
 <context>
     <name>SimpleModeNotice</name>
@@ -11936,6 +12036,66 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>A proxy in the chain can no longer be found.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Changed: %1</source>
+        <translation>Изменено: %1</translation>
+    </message>
+    <message>
+        <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
+        <translation>%1 удалён при обновлении и остаётся остановленным: нет единственного профиля с тем же названием, который бы его заменил.</translation>
+    </message>
+    <message>
+        <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
+        <translation>%1 заменён при обновлении; подключение к профилю с тем же названием.</translation>
+    </message>
+    <message>
+        <source>the routing profile is not in the Happ format</source>
+        <translation>профиль маршрутизации не в формате Happ</translation>
+    </message>
+    <message>
+        <source>a raw routing profile is not accepted from a subscription</source>
+        <translation>необработанный (raw) профиль маршрутизации из подписки не принимается</translation>
+    </message>
+    <message>
+        <source>unknown routing link action &quot;%1&quot;</source>
+        <translation>неизвестное действие ссылки маршрутизации «%1»</translation>
+    </message>
+    <message>
+        <source>the routing profile is not valid base64</source>
+        <translation>профиль маршрутизации не является корректным base64</translation>
+    </message>
+    <message>
+        <source>the routing profile is not a JSON object</source>
+        <translation>профиль маршрутизации не является JSON-объектом</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was ignored: %2</source>
+        <translation>[Маршрутизация] %1: профиль маршрутизации из подписки пропущен: %2</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was not applied, the routing profiles are open for editing.</source>
+        <translation>[Маршрутизация] %1: профиль маршрутизации из подписки не применён — профили маршрутизации открыты для редактирования.</translation>
+    </message>
+    <message>
+        <source>%1 entries, %2 skipped</source>
+        <translation>записей: %1, пропущено: %2</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>записей: %1</translation>
+    </message>
+    <message>
+        <source>%1 routing</source>
+        <translation>%1 — маршрутизация</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: created the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[Маршрутизация] %1: из подписки создан профиль маршрутизации «%2» (%3)</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[Маршрутизация] %1: профиль маршрутизации «%2» обновлён из подписки (%3)</translation>
     </message>
 </context>
 <context>
@@ -15411,6 +15571,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Technical Support: %1</source>
         <translation>Техническая поддержка: %1</translation>
+    </message>
+    <message>
+        <source>%1h %2m left</source>
+        <translation>Осталось %1 ч. %2 мин.</translation>
+    </message>
+    <message>
+        <source>%1d %2h left</source>
+        <translation>Осталось %1 д. %2 ч.</translation>
     </message>
 </context>
 <context>
@@ -19345,6 +19513,14 @@ Close without saving?</source>
     <message>
         <source>TCP Brutal only works with a custom multiplex. Set Multiplex to Custom.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.</source>
+        <translation>Для Hysteria v1 нужны и «Up Mbps», и «Down Mbps»; вместо отсутствующего значения используется %1 на отдачу и %2 на загрузку. Для лучшего результата укажите реальную скорость канала.</translation>
+    </message>
+    <message>
+        <source>Use two-letter country codes separated by commas, for example DE,NL,FR; put ! before a code to exclude that country, for example !RU.</source>
+        <translation>Используйте двухбуквенные коды стран через запятую, например DE,NL,FR; поставьте ! перед кодом, чтобы исключить страну, например !RU.</translation>
     </message>
 </context>
 <context>

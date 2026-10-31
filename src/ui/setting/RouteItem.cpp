@@ -17,6 +17,8 @@
 #include <srslist.h>
 
 #include <algorithm>
+#include <limits>
+#include <numeric>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -164,18 +166,49 @@ static void routeItemShowDisabled(QListWidgetItem *row, bool disabled) {
 }
 
 void adjustComboBoxWidth(const QComboBox *comboBox) {
-    int maxWidth = 0;
-    const QFontMetrics fontMetrics(comboBox->font());
+    // Avoid shaping every profile name on the GUI thread when subscriptions contain thousands
+    // of entries. QString::size() is a cheap heuristic for likely wide candidates, not a guarantee
+    // of the widest rendered name; the popup is capped to the available screen width below.
+    constexpr int maxMeasuredItems = 64;
+    constexpr int padding = 30;
 
-    for (int i = 0; i < comboBox->count(); ++i) {
-        int itemWidth = fontMetrics.horizontalAdvance(comboBox->itemText(i));
-        maxWidth = qMax(maxWidth, itemWidth);
+    const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen();
+    const int maxPopupWidth = scr != nullptr
+                                  ? scr->availableGeometry().width() * 2 / 3
+                                  : std::numeric_limits<int>::max();
+    const int maxTextWidth = qMax(0, maxPopupWidth - padding);
+
+    const int count = comboBox->count();
+    const QFontMetrics fontMetrics(comboBox->font());
+    int maxWidth = 0;
+
+    if (count <= maxMeasuredItems) {
+        // Small combos are cheap to measure directly and need no candidate-list allocations.
+        for (int i = 0; i < count && maxWidth < maxTextWidth; ++i)
+            maxWidth = qMax(maxWidth, fontMetrics.horizontalAdvance(comboBox->itemText(i)));
+    } else {
+        // The current value may sit outside the measured candidates but still must fit.
+        maxWidth = fontMetrics.horizontalAdvance(comboBox->currentText());
+
+        // Once the width cap is reached, measuring more entries cannot change the result.
+        if (maxWidth < maxTextWidth) {
+            QList<qsizetype> lengths;
+            lengths.reserve(count);
+            for (int i = 0; i < count; ++i) lengths.append(comboBox->itemText(i).size());
+
+            QList<int> order;
+            order.resize(count);
+            std::iota(order.begin(), order.end(), 0);
+            std::partial_sort(order.begin(), order.begin() + maxMeasuredItems, order.end(),
+                              [&lengths](const int a, const int b) { return lengths[a] > lengths[b]; });
+
+            for (int i = 0; i < maxMeasuredItems && maxWidth < maxTextWidth; ++i)
+                maxWidth = qMax(maxWidth, fontMetrics.horizontalAdvance(comboBox->itemText(order[i])));
+        }
     }
 
-    maxWidth += 30;
-    if (const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen())
-        maxWidth = qMin(maxWidth, scr->availableGeometry().width() * 2 / 3);
-    comboBox->view()->setMinimumWidth(maxWidth);
+    const int popupWidth = qMin(maxWidth, maxTextWidth) + padding;
+    comboBox->view()->setMinimumWidth(qMin(popupWidth, maxPopupWidth));
 }
 
 QString get_outbound_name(int id) {

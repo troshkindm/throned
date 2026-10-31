@@ -2,6 +2,7 @@
 
 #include "include/configs/generate.h"
 #include "include/configs/sub/ImportReport.hpp"
+#include "include/configs/sub/RouteUpdater.hpp"
 #include "include/configs/sub/SubscriptionParser.hpp"
 #include "include/configs/sub/SubscriptionReconcile.hpp"
 #include "include/configs/sub/SubscriptionScan.hpp"
@@ -121,19 +122,44 @@ struct DeleteOutcome {
     bool ok = false;
     QList<int> deleted;
     QList<int> kept;
+    // The running profile this delete stopped (allow_stopping_active_profile).
+    std::shared_ptr<Configs::Profile> stopped;
 };
 
 DeleteOutcome deleteProfiles(QList<int> ids) {
     DeleteOutcome outcome;
     const QSet<int> requested(ids.begin(), ids.end());
-    outcome.ok = Configs::dataManager->profilesRepo->BatchDeleteProfiles(
-        ids, Configs::dataManager->settingsRepo->allow_stopping_active_profile, false);
+    const auto &settings = Configs::dataManager->settingsRepo;
+    const int startedId = settings->started_id;
+    const auto running = settings->allow_stopping_active_profile && requested.contains(startedId)
+                             ? Configs::dataManager->profilesRepo->GetProfile(startedId)
+                             : nullptr;
+    outcome.ok = Configs::dataManager->profilesRepo->BatchDeleteProfiles(ids, settings->allow_stopping_active_profile, false);
     const QSet<int> deleted(ids.begin(), ids.end());
     outcome.deleted = std::move(ids);
     for (int id: requested) {
         if (!deleted.contains(id)) outcome.kept << id;
     }
+    if (outcome.ok && running != nullptr && deleted.contains(startedId)) outcome.stopped = running;
     return outcome;
+}
+
+// #2051: only an unambiguous successor takes over; with none or several, the profile stays stopped.
+void reconnectSuccessor(const QList<int> &ids, const std::shared_ptr<Configs::Profile> &stopped) {
+    const auto name = stopped->outbound->name;
+    QList<int> matches;
+    if (!name.isEmpty()) {
+        forEachProfile(ids, [&](const std::shared_ptr<Configs::Profile> &ent) {
+            if (ent->type == stopped->type && ent->outbound->name == name) matches << ent->id;
+        });
+    }
+    const auto display = stopped->outbound->DisplayTypeAndName();
+    if (matches.size() != 1) {
+        MW_show_log(QObject::tr("%1 was removed by the update and stays stopped: no single profile with the same name replaces it.").arg(display));
+        return;
+    }
+    MW_show_log(QObject::tr("%1 was replaced by the update; connecting to the profile with the same name.").arg(display));
+    Engine::EngineEvents::SubscriptionReplacedRunning(matches.first());
 }
 
 // Inserts in chunks; only per-profile digests survive a flush.
@@ -885,7 +911,7 @@ void GroupUpdater::drain() {
 
 bool GroupUpdater::fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body,
                          QString &userInfo, Configs::SubUserInfo &subInfo, QString *error, const QString &fallbackUrl,
-                         QList<QPair<QByteArray, QByteArray>> *responseHeaders) {
+                         QList<QPair<QByteArray, QByteArray>> *responseHeaders, QString *routing) {
     MW_show_log(">>>>>>>> " + QObject::tr("Requesting subscription: %1").arg(name));
     HttpGetOptions options;
     options.maxBytes = kMaxSubscriptionBytes;
@@ -907,6 +933,7 @@ bool GroupUpdater::fetch(const QString &url, const QString &name, const RequestI
     body = std::move(resp.data);
     userInfo = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
     subInfo = {};
+    if (routing != nullptr) *routing = NetworkRequestHelper::GetHeader(resp.header, "routing").trimmed();
 
     const QString userInfoHeader = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
     if (!userInfoHeader.isEmpty()) subInfo = Configs::ParseSubUserInfo(userInfoHeader);
@@ -1067,8 +1094,9 @@ UpdateOutcome GroupUpdater::refresh(int gid, Surface surface) {
     Configs::SubUserInfo subInfo;
     QString error;
     QList<QPair<QByteArray, QByteArray>> responseHeaders;
+    QString routing;
     if (!fetch(url, group->name, ResolveIdentity(group.get()), body, userInfo, subInfo, &error,
-               group->provider.fallbackUrl, &responseHeaders)) {
+               group->provider.fallbackUrl, &responseHeaders, &routing)) {
         auto outcome = groupUpdaterFailure(gid, UpdateOutcome::Failure::Fetch, groupUpdaterFetchError(error));
         outcome.report.addFatal(fetchFailure(error));
         if (surface == Surface::Report) {
@@ -1077,9 +1105,15 @@ UpdateOutcome GroupUpdater::refresh(int gid, Surface surface) {
         if (surface != Surface::Log) ShowImportReport(reportTitle(surface, group->name), outcome.report);
         return outcome;
     }
+    const bool importRoute = group->import_sub_route;
+    // "off" means the header carries nothing; the link may then sit in the body instead.
+    if (importRoute && (routing.isEmpty() || routing.compare(QLatin1String("off"), Qt::CaseInsensitive) == 0)) {
+        if (const auto shipped = ShippedRoutingLink(body); !shipped.isEmpty()) routing = shipped;
+    }
     UpdateOutcome outcome;
     outcome.gid = gid;
     applyRefresh(group, url, std::move(body), userInfo, subInfo, responseHeaders, surface, outcome);
+    if (importRoute && outcome.ok()) RouteUpdate::ImportSubscriptionRoute(gid, routing);
     return outcome;
 }
 
@@ -1173,6 +1207,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
     QSet<int> keptIds;
     bool deleteFailed = false;
     bool cleared = false;
+    std::shared_ptr<Configs::Profile> stoppedRunning;
     if (settings->sub_clear) {
         MW_show_log(QObject::tr("Clearing servers..."));
         auto doomed = members();
@@ -1191,6 +1226,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
             return;
         }
         disturbed = outcome.deleted;
+        stoppedRunning = outcome.stopped;
         result.removed = static_cast<int>(outcome.deleted.size());
         // A survivor still belongs to the subscription: fall through to the diff.
         cleared = members().isEmpty();
@@ -1274,6 +1310,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
             deleteFailed = true;
         }
         disturbed << outcome.deleted;
+        if (outcome.stopped != nullptr) stoppedRunning = outcome.stopped;
         // stale also lists the fresh rows that only carried an update into an old id.
         const QSet<int> deletedIds(outcome.deleted.begin(), outcome.deleted.end());
         for (const auto &entry: old) {
@@ -1334,6 +1371,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
 
     const auto flagged = removeFlagged(members(), options, change_text);
     disturbed << flagged.deleted;
+    if (flagged.stopped != nullptr) stoppedRunning = flagged.stopped;
     result.removed += static_cast<int>(flagged.deleted.size());
     for (int id: flagged.kept) keptIds << id;
     result.kept = static_cast<int>(keptIds.size());
@@ -1362,6 +1400,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
     } else if (surface != Surface::Log && report.hasProblems()) {
         ShowImportReport(reportTitle(surface, group->name), report);
     }
+    if (stoppedRunning != nullptr) reconnectSuccessor(members(), stoppedRunning);
     // Auto selectors resolve members from the group at build time, so a refresh can invalidate an untouched one.
     Engine::EngineEvents::SubscriptionGroupChanged(group->id, disturbed);
     Engine::EngineEvents::SubscriptionFinished(-1, true);
