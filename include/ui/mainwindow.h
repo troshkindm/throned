@@ -58,7 +58,9 @@
 class MainWindow;
 namespace UiPreview {
 void VerifyTestProgress(MainWindow *window, const QString &prefix);
-}
+void FeedPreviewLog(MainWindow *window, const QStringList &lines);
+QList<QAction *> PreviewShortcutActions(MainWindow *window);
+} // namespace UiPreview
 namespace Configs {
 enum simpleAction : int;
 struct SimpleTarget;
@@ -83,6 +85,7 @@ class VpnAuthController;
 class QMessageBox;
 class TrayProfileSelector;
 class RoutingQuickMenu;
+class FloatingJumpButton;
 class TrayOtpCodes;
 class GlobalHotkeys;
 class DialogVpnAuth;
@@ -529,7 +532,7 @@ private:
     QRegularExpression m_logSearch;
     QTimer *m_logSearchDebounce = nullptr;
     QToolButton *logFilterButton = nullptr;
-    QToolButton *logJumpLatestButton = nullptr;
+    FloatingJumpButton *logJumpLatestButton = nullptr;
 
     struct LogFilter {
         bool enableInclude = false;
@@ -913,6 +916,8 @@ private:
     void refreshConnectionIcons();
 
     friend void UiPreview::VerifyTestProgress(MainWindow *window, const QString &prefix);
+    friend void UiPreview::FeedPreviewLog(MainWindow *window, const QStringList &lines);
+    friend QList<QAction *> UiPreview::PreviewShortcutActions(MainWindow *window);
 
     // EnginePolicy, in mainwindow_policy.cpp; reached through EngineHost::policy().
     void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) override;

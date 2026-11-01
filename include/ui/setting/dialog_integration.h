@@ -33,6 +33,8 @@ private:
 
     void bindHotkeyValidation();
 
+    void dressGlobalHotkeyTab();
+
     void setupApiTab();
 
     void updateApiControls();

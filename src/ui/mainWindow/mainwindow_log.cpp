@@ -1,5 +1,6 @@
 #include "include/ui/mainwindow.h"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/FloatingJumpButton.h"
 
 #include <QAction>
 #include <QApplication>
@@ -93,10 +94,9 @@ void MainWindow::setupLogView() {
         if (m_logFollow) bar->setValue(max);
     });
 
-    // Both sit in the stats tab corner, which setupConnectionFilter() builds.
-    logJumpLatestButton = new QToolButton(this);
-    logJumpLatestButton->setToolTip(tr("New logs are held while the view is scrolled up"));
+    logJumpLatestButton = new FloatingJumpButton(ui->masterLogBrowser);
     connect(logJumpLatestButton, &QToolButton::clicked, this, [this] { releaseHeldLogs(); });
+    // The filter sits in the stats tab corner, which setupConnectionFilter() builds.
     logFilterButton = new QToolButton(this);
     logFilterButton->setObjectName(QStringLiteral("panelIconButton"));
     logFilterButton->setCursor(Qt::PointingHandCursor);
@@ -306,8 +306,9 @@ void MainWindow::updateLogStatus() {
         const auto matched = std::count_if(m_logLines.begin(), m_logLines.end(), [](const LogLine &line) { return line.visible; });
         ui->logMatchCount->setText(QStringLiteral("%1 / %2").arg(matched).arg(m_logLines.size()));
     }
-    logJumpLatestButton->setVisible(!m_logFollow);
-    logJumpLatestButton->setText(m_logHeld.empty() ? tr("Jump to latest") : tr("Jump to latest (%1 new)").arg(m_logHeld.size()));
+    logJumpLatestButton->setShown(!m_logFollow);
+    logJumpLatestButton->setPending(static_cast<int>(m_logHeld.size()));
+    logJumpLatestButton->setToolTip(m_logHeld.empty() ? tr("Jump to latest") : tr("Jump to latest (%1 new)").arg(m_logHeld.size()));
 }
 
 void MainWindow::clear_log_view() {

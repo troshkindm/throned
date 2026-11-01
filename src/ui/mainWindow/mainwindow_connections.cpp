@@ -317,7 +317,6 @@ void MainWindow::setupConnectionFilter() {
     auto* logLayout = new QHBoxLayout(logButtons);
     logLayout->setContentsMargins(0, 0, 0, 0);
     logLayout->setSpacing(2);
-    logLayout->addWidget(logJumpLatestButton);
     logLayout->addWidget(logFilterButton);
     auto* corner = new QWidget(this);
     corner->setProperty("statsPage", ui->connections_tab->objectName());

@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QMutexLocker>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -38,9 +39,11 @@
 #include "include/ui/mainwindow.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/dialog_basic_settings.h"
+#include "include/ui/setting/dialog_integration.h"
 #include "include/ui/setting/DiagnosticsTab.h"
 #include "include/ui/stats/RuntimeStatsWidget.h"
 #include "include/ui/stats/diagnostics_window.h"
+#include "include/ui/widget/FloatingJumpButton.h"
 #include "include/ui/stats/dialog_site_reachability.h"
 #include "include/ui/widget/GroupTabBar.h"
 #include "include/ui/widget/SubscriptionPopover.hpp"
@@ -54,6 +57,20 @@
 #endif
 
 namespace UiPreview {
+// The preview starts no log thread, so lines go straight into the batch the UI thread renders.
+QList<QAction *> PreviewShortcutActions(MainWindow *window) {
+    return window->getActionsForShortcut();
+}
+
+void FeedPreviewLog(MainWindow *window, const QStringList &lines) {
+    {
+        QMutexLocker locker(&window->logPendingMutex);
+        if (!window->logPendingText.isEmpty()) window->logPendingText += QLatin1Char('\n');
+        window->logPendingText += lines.join(QLatin1Char('\n'));
+    }
+    window->flush_log_batch();
+}
+
 void RunMainWindow(const QString &prefix) {
     auto *window = GetMainWindow();
     if (window == nullptr) {
@@ -479,6 +496,48 @@ void RunMainWindow(const QString &prefix) {
                     return;
                 }
                 qApp->exit(0);
+            });
+            return;
+        }
+        if (arguments.contains(QStringLiteral("-ui-preview-hotkeys"))) {
+            auto *dialog = new DialogIntegration(window, PreviewShortcutActions(window));
+            dialog->show();
+            QTimer::singleShot(400, window, [dialog, prefix] {
+                const bool ok = dialog->grab().save(prefix + QStringLiteral("-hotkeys.png"), "PNG");
+                dialog->close();
+                qApp->exit(ok ? 0 : 2);
+            });
+            return;
+        }
+        if (arguments.contains(QStringLiteral("-ui-preview-log-held"))) {
+            auto *stats = window->findChild<QTabWidget *>(QStringLiteral("logsCard"));
+            auto *logs = window->findChild<QWidget *>(QStringLiteral("Logs"));
+            auto *browser = window->findChild<QTextBrowser *>(QStringLiteral("masterLogBrowser"));
+            if (stats == nullptr || logs == nullptr || browser == nullptr) {
+                qWarning() << "The log page is missing in the log preview";
+                qApp->exit(2);
+                return;
+            }
+            window->setStatsPanelOpen(true, false);
+            stats->setCurrentWidget(logs);
+            QStringList history;
+            for (int i = 0; i < 80; ++i) history << QStringLiteral("[Connection] inbound/mixed-in connection to cdn%1.example.com:443 via proxy").arg(i);
+            FeedPreviewLog(window, history);
+            QTimer::singleShot(1200, window, [window, browser, prefix] {
+                browser->verticalScrollBar()->setValue(0);
+                QStringList held;
+                for (int i = 0; i < 12; ++i) held << QStringLiteral("[DNS] lookup api%1.example.net via remote").arg(i);
+                FeedPreviewLog(window, held);
+                QTimer::singleShot(900, window, [window, prefix] {
+                    auto *jump = window->findChild<FloatingJumpButton *>();
+                    if (jump == nullptr || !jump->isVisible()) {
+                        qWarning() << "The jump-to-latest button did not appear while the log was scrolled up";
+                        qApp->exit(2);
+                        return;
+                    }
+                    window->grab().save(prefix + QStringLiteral("-log-held.png"), "PNG");
+                    qApp->exit(0);
+                });
             });
             return;
         }

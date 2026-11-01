@@ -6,13 +6,18 @@
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Validation.hpp"
 #include "include/ui/mainwindow.h"
+#include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/utils/ValidationForm.h"
 #include <QAction>
 #include <QClipboard>
+#include <QFrame>
+#include <QHBoxLayout>
 #include <QHostAddress>
 #include <QLabel>
 #include <QMessageBox>
 #include <QScreen>
+#include <QVBoxLayout>
 
 namespace {
 // Mirrors GlobalHotkeys::setActions, which registers only the first chord and refuses keys that would swallow typing.
@@ -43,6 +48,87 @@ QString integrationFieldLabel(QFormLayout *layout, QWidget *field) {
 }
 } // namespace
 
+// The Designer form keeps the editors; this regroups them into titled cards with an icon per action.
+void DialogIntegration::dressGlobalHotkeyTab() {
+    struct Row {
+        QKeySequenceEdit *edit;
+        MaterialIcon::Glyph glyph;
+    };
+    const QList<QPair<QString, QList<Row>>> sections{
+        {tr("Window"),
+         {{ui->show_mainwindow, MaterialIcon::Glyph::Desktop}, {ui->show_groups, MaterialIcon::Glyph::Users}, {ui->show_routes, MaterialIcon::Glyph::Routes}}},
+        {tr("Connection"),
+         {{ui->toggle_connection, MaterialIcon::Glyph::Power}, {ui->toggle_proxy, MaterialIcon::Glyph::Public}, {ui->toggle_tun, MaterialIcon::Glyph::Shield}, {ui->system_proxy, MaterialIcon::Glyph::Menu}}},
+    };
+
+    auto *host = new QWidget(ui->tab);
+    host->setObjectName(QStringLiteral("hotkeyHost"));
+    auto *column = new QVBoxLayout(host);
+    column->setContentsMargins(0, 0, 0, 0);
+    column->setSpacing(10);
+    auto *intro = new QLabel(tr("These work from any application, even while Throned is hidden in the tray."), host);
+    intro->setObjectName(QStringLiteral("hotkeyMuted"));
+    intro->setWordWrap(true);
+    column->addWidget(intro);
+
+    const auto muted = themeManager()->Colors().textMuted;
+    for (const auto &[title, rows]: sections) {
+        auto *section = new QFrame(host);
+        section->setObjectName(QStringLiteral("hotkeySection"));
+        auto *sectionLayout = new QVBoxLayout(section);
+        sectionLayout->setContentsMargins(0, 0, 0, 0);
+        sectionLayout->setSpacing(0);
+        auto *heading = new QLabel(title, section);
+        heading->setObjectName(QStringLiteral("hotkeySectionTitle"));
+        sectionLayout->addWidget(heading);
+        for (const auto &row: rows) {
+            const QString text = integrationFieldLabel(ui->formLayout, row.edit);
+            const auto taken = ui->formLayout->takeRow(row.edit);
+            if (taken.labelItem != nullptr) {
+                if (auto *label = taken.labelItem->widget()) label->deleteLater();
+                delete taken.labelItem;
+            }
+            delete taken.fieldItem;
+
+            auto *line = new QFrame(section);
+            line->setObjectName(QStringLiteral("hotkeyRow"));
+            auto *lineLayout = new QHBoxLayout(line);
+            lineLayout->setContentsMargins(12, 7, 10, 7);
+            lineLayout->setSpacing(10);
+            auto *icon = new QLabel(line);
+            icon->setPixmap(MaterialIcon::pixmap(row.glyph, muted, 18));
+            icon->setFixedSize(20, 20);
+            lineLayout->addWidget(icon);
+            auto *label = new QLabel(text, line);
+            label->setObjectName(QStringLiteral("hotkeyLabel"));
+            lineLayout->addWidget(label, 1);
+            row.edit->setParent(line);
+            row.edit->setClearButtonEnabled(true);
+            row.edit->setFixedWidth(230);
+            lineLayout->addWidget(row.edit);
+            sectionLayout->addWidget(line);
+        }
+        column->addWidget(section);
+    }
+    column->addStretch();
+    ui->formLayout->addRow(host);
+
+    themeManager()->RegisterStyle(ui->tab, QStringLiteral(R"(
+QWidget#hotkeyHost QFrame#hotkeySection { background: #171B21; border: 1px solid #2F3136; border-radius: 7px; }
+QWidget#hotkeyHost QLabel#hotkeySectionTitle {
+    color: #F1F3F5; font-weight: 700; padding: 10px 12px 8px 12px; background: transparent;
+}
+QWidget#hotkeyHost QFrame#hotkeyRow { background: transparent; border: none; border-top: 1px solid #25292F; }
+QWidget#hotkeyHost QLabel#hotkeyLabel { color: #DDE2E7; background: transparent; }
+QWidget#hotkeyHost QLabel#hotkeyMuted { color: #AEB7C2; background: transparent; }
+QWidget#hotkeyHost QLineEdit {
+    color: #F1F3F5; background: #222529; border: 1px solid #3E454F; border-radius: 6px; padding: 4px 8px;
+}
+QWidget#hotkeyHost QLineEdit:hover { background: #292D33; border-color: #4A4F57; }
+QWidget#hotkeyHost QLineEdit:focus { border-color: #237AE9; }
+)"));
+}
+
 DialogIntegration::DialogIntegration(QWidget *parent, const QList<QAction *> &actions) : QDialog(parent), ui(new Ui::DialogIntegration) {
     ui->setupUi(this);
     form = new Validation::Form(this);
@@ -64,6 +150,7 @@ DialogIntegration::DialogIntegration(QWidget *parent, const QList<QAction *> &ac
         note->setWordWrap(true);
         ui->formLayout->insertRow(0, note);
     }
+    dressGlobalHotkeyTab();
 
     setupApiTab();
     // The Remote API reads the list split at commas and whitespace (RemoteApi::ConfigFromSettings).
