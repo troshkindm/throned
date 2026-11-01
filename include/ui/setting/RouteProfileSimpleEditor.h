@@ -6,9 +6,12 @@
 #include <QStringList>
 #include <QWidget>
 
+#include <functional>
+
 class QAbstractButton;
 class QComboBox;
 class QLabel;
+class QMenu;
 class QVBoxLayout;
 
 class RouteProfileSimpleEditor final : public QWidget {
@@ -45,8 +48,17 @@ signals:
     void viaBucketAdded(int profileID);
     void viaBucketRemoved(int profileID);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     [[nodiscard]] QString viaLabelFor(int action) const;
+    // Every action on the sidebar except `exclude`, as menu entries that call pick(action).
+    void addMoveTargets(QMenu *menu, int exclude, const std::function<void(int)> &pick);
+    void moveRules(int from, const QStringList &moved, int to);
+    void showRuleMenu(const QString &rule, const QPoint &globalPos);
+    void showActionMenu(int action, const QPoint &globalPos);
+    void changeViaProfile(int profileID);
     void selectAction(int action);
     void rebuildSidebar();
     void addViaBucket();

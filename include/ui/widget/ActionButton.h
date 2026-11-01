@@ -28,6 +28,9 @@ public:
 
     void setScrollsWhenTooLong(bool enabled);
 
+    // Outlines the row while a dragged rule hovers over it.
+    void setDropHighlight(bool on);
+
 protected:
     void paintEvent(QPaintEvent *) override;
 
@@ -44,6 +47,7 @@ private:
     QString title_;
     QColor tone_;
     int count_ = 0;
+    bool dropHighlight_ = false;
     QTimer *marquee_ = nullptr;
     int offset_ = 0;
     int overflow_ = 0;

@@ -12,6 +12,12 @@
 #include <QAbstractButton>
 #include <QComboBox>
 #include <QDir>
+#include <QDrag>
+#include <QDragEnterEvent>
+#include <QMenu>
+#include <QMimeData>
+#include <QMouseEvent>
+#include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -54,6 +60,9 @@ constexpr auto Green = "#2EBC75";
 constexpr auto Red = "#FF4D56";
 constexpr auto Purple = "#A66CFF";
 constexpr auto Muted = "#A4ABB4";
+
+// One rule text per drag; the source action is whatever the editor has selected.
+constexpr auto kRuleMime = "application/x-throned-route-rule";
 
 // Same footprint as an action, drawn as an outline so it reads as "make one"
 // rather than as another action sitting in the list.
@@ -155,7 +164,7 @@ public:
     RuleChip(const QString &rule, const QIcon &icon, bool removable, QWidget *parent = nullptr)
         : QAbstractButton(parent), rule_(rule), icon_(icon), removable_(removable) {
         setCursor(removable ? Qt::PointingHandCursor : Qt::ArrowCursor);
-        setToolTip(rule);
+        setToolTip(removable ? rule + QLatin1Char('\n') + RouteProfileSimpleEditor::tr("Click to remove. Drag onto another action, or right-click, to move it.") : rule);
         // Fixed would clamp the chip back to its own hint and break the columns.
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
         setFixedHeight(32);
@@ -171,6 +180,32 @@ public:
     }
 
 protected:
+    void mousePressEvent(QMouseEvent *event) override {
+        if (event->button() == Qt::LeftButton) pressPos_ = event->position().toPoint();
+        QAbstractButton::mousePressEvent(event);
+    }
+
+    void mouseMoveEvent(QMouseEvent *event) override {
+        if (!removable_ || !(event->buttons() & Qt::LeftButton) ||
+            (event->position().toPoint() - pressPos_).manhattanLength() < QApplication::startDragDistance()) {
+            QAbstractButton::mouseMoveEvent(event);
+            return;
+        }
+        auto *mime = new QMimeData;
+        mime->setData(kRuleMime, rule_.toUtf8());
+        auto *drag = new QDrag(this);
+        drag->setMimeData(mime);
+        QPixmap image(size() * devicePixelRatioF());
+        image.setDevicePixelRatio(devicePixelRatioF());
+        image.fill(Qt::transparent);
+        render(&image, {}, {}, QWidget::DrawChildren);
+        drag->setPixmap(image);
+        drag->setHotSpot(pressPos_);
+        // The release goes to the drag, so the press must not linger and fire a remove later.
+        setDown(false);
+        drag->exec(Qt::MoveAction);
+    }
+
     void paintEvent(QPaintEvent *) override {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
@@ -208,6 +243,7 @@ private:
     QString rule_;
     QIcon icon_;
     bool removable_;
+    QPoint pressPos_;
 };
 
 constexpr int kChipPreviewLimit = 24;
@@ -217,9 +253,9 @@ class RuleCard final : public QFrame {
 public:
     RuleCard(const QString &title, const QString &subtitle, MaterialIcon::Glyph glyph, const QColor &tone,
              const QStringList &rules, bool expanded, const std::function<void(const QString &)> &remove,
-             const std::function<void()> &add,
+             const std::function<void()> &add, const std::function<void(const QString &, const QPoint &)> &menu,
              QWidget *parent = nullptr)
-        : QFrame(parent), glyph_(glyph), tone_(tone), rules_(rules), remove_(remove) {
+        : QFrame(parent), glyph_(glyph), tone_(tone), rules_(rules), remove_(remove), menu_(menu) {
         setObjectName("routeRuleCard");
         auto *root = new QVBoxLayout(this);
         root->setContentsMargins(14, 12, 14, 12);
@@ -329,6 +365,12 @@ private:
                 const auto remove = remove_;
                 QObject::connect(chip, &QAbstractButton::clicked, chip, [remove, rule] { remove(rule); });
             }
+            if (menu_) {
+                chip->setContextMenuPolicy(Qt::CustomContextMenu);
+                QObject::connect(chip, &QWidget::customContextMenuRequested, chip, [menu = menu_, chip, rule](const QPoint &pos) {
+                    menu(rule, chip->mapToGlobal(pos));
+                });
+            }
             chips_->addWidget(chip);
         }
         if (folded || showAll_) {
@@ -349,6 +391,7 @@ private:
     QColor tone_;
     QStringList rules_;
     std::function<void(const QString &)> remove_;
+    std::function<void(const QString &, const QPoint &)> menu_;
     QWidget *details_ = nullptr;
     FlowLayout *chips_ = nullptr;
     QLineEdit *filter_ = nullptr;
@@ -936,6 +979,12 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
         auto *button = new ActionButton(item.glyph, tr(item.title), QColor(item.tone), sidebar_);
         actionButtons_[item.action] = button;
         connect(button, &QAbstractButton::clicked, this, [this, action = item.action] { selectAction(action); });
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(button, &QWidget::customContextMenuRequested, this, [this, button, action = item.action](const QPoint &pos) {
+            showActionMenu(action, button->mapToGlobal(pos));
+        });
+        button->setAcceptDrops(true);
+        button->installEventFilter(this);
         sideLayout_->addWidget(button);
     }
 
@@ -949,16 +998,15 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
         const int action = viaAction(profileID);
         auto *button = new ActionButton(MaterialIcon::Glyph::Public, label, QColor(Cyan), sidebar_);
         button->setScrollsWhenTooLong(true);
-        button->setToolTip(tr("Rules here leave through %1. Right-click to remove the action.").arg(label));
+        button->setToolTip(tr("Rules here leave through %1. Right-click to change the profile, move or remove the rules.").arg(label));
         button->setContextMenuPolicy(Qt::CustomContextMenu);
         actionButtons_[action] = button;
         connect(button, &QAbstractButton::clicked, this, [this, action] { selectAction(action); });
-        connect(button, &QWidget::customContextMenuRequested, this, [this, profileID, label](const QPoint &) {
-            if (QMessageBox::question(this, tr("Remove action"),
-                                      tr("Remove the action for %1 and every rule in it?").arg(label)) != QMessageBox::Yes)
-                return;
-            emit viaBucketRemoved(profileID);
+        connect(button, &QWidget::customContextMenuRequested, this, [this, button, action](const QPoint &pos) {
+            showActionMenu(action, button->mapToGlobal(pos));
         });
+        button->setAcceptDrops(true);
+        button->installEventFilter(this);
         sideLayout_->addWidget(button);
     }
 
@@ -1029,16 +1077,17 @@ void RouteProfileSimpleEditor::rebuild() {
             domains.append(rule);
     }
     const auto remove = [this](const QString &rule) { removeRule(rule); };
+    const auto menu = [this](const QString &rule, const QPoint &pos) { showRuleMenu(rule, pos); };
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-                               new RuleCard(tr("Applications"), tr("Match by installed app, running process, or executable."), MaterialIcon::Glyph::Apps, QColor(Blue), applications, true, remove, [this] { addApplicationRules(); }, this));
+                               new RuleCard(tr("Applications"), tr("Match by installed app, running process, or executable."), MaterialIcon::Glyph::Apps, QColor(Blue), applications, true, remove, [this] { addApplicationRules(); }, menu, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-                               new RuleCard(tr("Domains"), tr("Match domain names, suffixes, keywords, and regexes."), MaterialIcon::Glyph::Public, QColor(Cyan), domains, true, remove, [this] { addRule(QStringLiteral("domain")); }, this));
+                               new RuleCard(tr("Domains"), tr("Match domain names, suffixes, keywords, and regexes."), MaterialIcon::Glyph::Public, QColor(Cyan), domains, true, remove, [this] { addRule(QStringLiteral("domain")); }, menu, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-                               new RuleCard(tr("Rule sets"), tr("Remote geosite lists, matched as a whole."), MaterialIcon::Glyph::List, QColor(Purple), ruleSets, true, remove, [this] { addRule(QStringLiteral("ruleset")); }, this));
+                               new RuleCard(tr("Rule sets"), tr("Remote geosite lists, matched as a whole."), MaterialIcon::Glyph::List, QColor(Purple), ruleSets, true, remove, [this] { addRule(QStringLiteral("ruleset")); }, menu, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-                               new RuleCard(tr("IP addresses & ranges"), tr("Match destination IP addresses, CIDR ranges, and geoip lists."), MaterialIcon::Glyph::Process, QColor(Green), network, false, remove, [this] { addRule(QStringLiteral("network")); }, this));
+                               new RuleCard(tr("IP addresses & ranges"), tr("Match destination IP addresses, CIDR ranges, and geoip lists."), MaterialIcon::Glyph::Process, QColor(Green), network, false, remove, [this] { addRule(QStringLiteral("network")); }, menu, this));
     cardsLayout_->insertWidget(cardsLayout_->count() - 1,
-                               new RuleCard(tr("Advanced / raw rules"), tr("Ordered conditions, exact priority, and lossless JSON."), MaterialIcon::Glyph::List, QColor(Cyan), advancedRules_, false, {}, [this] { emit advancedEditorRequested(); }, this));
+                               new RuleCard(tr("Advanced / raw rules"), tr("Ordered conditions, exact priority, and lossless JSON."), MaterialIcon::Glyph::List, QColor(Cyan), advancedRules_, false, {}, [this] { emit advancedEditorRequested(); }, {}, this));
 }
 
 void RouteProfileSimpleEditor::bulkEdit() {
@@ -1282,6 +1331,128 @@ void RouteProfileSimpleEditor::removeRule(const QString &rule) {
     emit rulesChanged(selectedAction_, rules(selectedAction_));
     updateActionButtons();
     rebuild();
+}
+
+void RouteProfileSimpleEditor::addMoveTargets(QMenu *menu, int exclude, const std::function<void(int)> &pick) {
+    QList<int> order{0, 2, 1, 3};
+    for (const auto &[profileID, label]: viaBuckets_) order << viaAction(profileID);
+    for (int action: order) {
+        if (action == exclude || !actionButtons_.contains(action)) continue;
+        const auto presentation = actionPresentation(action, viaLabelFor(action));
+        const QString title = isViaAction(action) ? presentation.title
+                              : action == 0       ? tr("Direct")
+                              : action == 1       ? tr("Block")
+                              : action == 3       ? tr("WARP bypass")
+                                                  : tr("Proxy");
+        menu->addAction(MaterialIcon::icon(presentation.glyph, presentation.tone, 16), title, this, [pick, action] { pick(action); });
+    }
+}
+
+void RouteProfileSimpleEditor::moveRules(int from, const QStringList &moved, int to) {
+    if (from == to || moved.isEmpty()) return;
+    auto &target = rules_[to];
+    for (const QString &rule: moved) {
+        rules_[from].removeAll(rule);
+        if (!target.contains(rule)) target.append(rule);
+    }
+    emit rulesChanged(from, rules(from));
+    emit rulesChanged(to, rules(to));
+    updateTotalCount();
+    updateActionButtons();
+    rebuild();
+}
+
+void RouteProfileSimpleEditor::showRuleMenu(const QString &rule, const QPoint &globalPos) {
+    QMenu menu(this);
+    const int from = selectedAction_;
+    auto *moveMenu = menu.addMenu(MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, QColor(Muted), 16), tr("Move to"));
+    addMoveTargets(moveMenu, from, [this, from, rule](int to) { moveRules(from, {rule}, to); });
+    moveMenu->setEnabled(!moveMenu->isEmpty());
+    menu.addSeparator();
+    menu.addAction(MaterialIcon::icon(MaterialIcon::Glyph::Delete, QColor(Red), 16), tr("Remove"), this, [this, rule] { removeRule(rule); });
+    menu.exec(globalPos);
+}
+
+void RouteProfileSimpleEditor::showActionMenu(int action, const QPoint &globalPos) {
+    QMenu menu(this);
+    const QStringList current = rules_.value(action);
+    if (isViaAction(action)) {
+        menu.addAction(MaterialIcon::icon(MaterialIcon::Glyph::Public, QColor(Cyan), 16), tr("Change profile…"), this,
+                       [this, action] { changeViaProfile(viaProfileOf(action)); });
+    }
+    auto *moveMenu = menu.addMenu(MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, QColor(Muted), 16), tr("Move all rules to"));
+    addMoveTargets(moveMenu, action, [this, action, current](int to) {
+        moveRules(action, current, to);
+        selectAction(to);
+    });
+    moveMenu->setEnabled(!current.isEmpty() && !moveMenu->isEmpty());
+    if (isViaAction(action)) {
+        menu.addSeparator();
+        const QString label = viaLabelFor(action);
+        menu.addAction(MaterialIcon::icon(MaterialIcon::Glyph::Delete, QColor(Red), 16), tr("Remove action…"), this, [this, action, label] {
+            if (QMessageBox::question(this, tr("Remove action"),
+                                      tr("Remove the action for %1 and every rule in it?").arg(label)) != QMessageBox::Yes)
+                return;
+            emit viaBucketRemoved(viaProfileOf(action));
+        });
+    }
+    menu.exec(globalPos);
+}
+
+void RouteProfileSimpleEditor::changeViaProfile(int profileID) {
+    QList<QPair<int, QString>> choices;
+    for (const auto &entry: viaCatalog_) {
+        if (entry.first != profileID) choices << entry;
+    }
+    if (choices.isEmpty()) {
+        QMessageBox::information(this, tr("Change profile"), tr("There is no other profile to send these rules through."));
+        return;
+    }
+    QStringList labels;
+    for (const auto &[id, label]: choices) labels << label;
+    bool picked = false;
+    const auto choice = QInputDialog::getItem(this, tr("Change profile"),
+                                              tr("Rules of %1 will leave through this profile instead:").arg(viaLabelFor(viaAction(profileID))),
+                                              labels, 0, false, &picked);
+    const int index = static_cast<int>(labels.indexOf(QStringView(choice)));
+    if (!picked || index < 0) return;
+    const int target = choices[index].first;
+    const QStringList moved = rules_.value(viaAction(profileID));
+    // The owner rebuilds the sidebar on each of these, so the new bucket exists before the rules move into it.
+    if (!actionButtons_.contains(viaAction(target))) emit viaBucketAdded(target);
+    moveRules(viaAction(profileID), moved, viaAction(target));
+    emit viaBucketRemoved(profileID);
+    selectAction(viaAction(target));
+}
+
+bool RouteProfileSimpleEditor::eventFilter(QObject *watched, QEvent *event) {
+    auto *button = qobject_cast<ActionButton *>(watched);
+    const int action = button != nullptr ? actionButtons_.key(button, -1) : -1;
+    if (action < 0) return QWidget::eventFilter(watched, event);
+    switch (event->type()) {
+        case QEvent::DragEnter: {
+            auto *drag = static_cast<QDragEnterEvent *>(event);
+            if (!drag->mimeData()->hasFormat(kRuleMime) || action == selectedAction_) return false;
+            drag->acceptProposedAction();
+            button->setDropHighlight(true);
+            return true;
+        }
+        case QEvent::DragLeave:
+            button->setDropHighlight(false);
+            return false;
+        case QEvent::Drop: {
+            auto *drop = static_cast<QDropEvent *>(event);
+            button->setDropHighlight(false);
+            if (!drop->mimeData()->hasFormat(kRuleMime) || action == selectedAction_) return false;
+            const QString rule = QString::fromUtf8(drop->mimeData()->data(kRuleMime));
+            drop->acceptProposedAction();
+            // Deferred: the dragged chip is deleted by the rebuild, and it is still inside QDrag::exec.
+            QTimer::singleShot(0, this, [this, from = selectedAction_, rule, action] { moveRules(from, {rule}, action); });
+            return true;
+        }
+        default:
+            return QWidget::eventFilter(watched, event);
+    }
 }
 
 void RouteProfileSimpleEditor::updateTotalCount() {

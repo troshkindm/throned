@@ -23,6 +23,12 @@ void ActionButton::setCount(int count) {
     update();
 }
 
+void ActionButton::setDropHighlight(bool on) {
+    if (dropHighlight_ == on) return;
+    dropHighlight_ = on;
+    update();
+}
+
 void ActionButton::setScrollsWhenTooLong(bool enabled) {
     if (!enabled) return;
     // Start inside the dwell so the first pass shows the head as long as every later one.
@@ -54,6 +60,12 @@ void ActionButton::paintEvent(QPaintEvent *) {
     const QRectF bounds = rect().adjusted(.5, .5, -.5, -.5);
     painter.setPen(isChecked() ? tone_ : QColor("#2F3136"));
     painter.setBrush(isChecked() ? QColor("#193452") : QColor("#222529"));
+    if (dropHighlight_) {
+        QColor wash = tone_;
+        wash.setAlpha(46);
+        painter.setPen(QPen(tone_, 1.5, Qt::DashLine));
+        painter.setBrush(wash);
+    }
     painter.drawRoundedRect(bounds, 6, 6);
 
     const auto icon = MaterialIcon::pixmap(glyph_, tone_, 18);

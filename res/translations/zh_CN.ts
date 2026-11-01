@@ -14298,6 +14298,18 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Window</source>
+        <translation>窗口</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <source>These work from any application, even while Throned is hidden in the tray.</source>
+        <translation>在任何应用中都可使用，即使 Throned 已最小化到托盘。</translation>
+    </message>
 </context>
 <context>
     <name>QHotkey</name>
@@ -18535,6 +18547,49 @@ Close without saving?</source>
     <message>
         <source>[Kill switch] Not active: %1</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RouteProfileSimpleEditor</name>
+    <message>
+        <source>Rules here leave through %1. Right-click to change the profile, move or remove the rules.</source>
+        <translation>此处的规则经由 %1 出站。右键可更换配置、移动或删除规则。</translation>
+    </message>
+    <message>
+        <source>Move to</source>
+        <translation>移动到</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <source>Change profile…</source>
+        <translation>更换配置…</translation>
+    </message>
+    <message>
+        <source>Move all rules to</source>
+        <translation>将所有规则移动到</translation>
+    </message>
+    <message>
+        <source>Remove action…</source>
+        <translation>删除动作…</translation>
+    </message>
+    <message>
+        <source>Change profile</source>
+        <translation>更换配置</translation>
+    </message>
+    <message>
+        <source>There is no other profile to send these rules through.</source>
+        <translation>没有其他配置可用于转发这些规则。</translation>
+    </message>
+    <message>
+        <source>Rules of %1 will leave through this profile instead:</source>
+        <translation>%1 的规则将改为经由此配置出站：</translation>
+    </message>
+    <message>
+        <source>Click to remove. Drag onto another action, or right-click, to move it.</source>
+        <translation>点击删除。拖到其他动作上或右键即可移动。</translation>
     </message>
 </context>
 </TS>

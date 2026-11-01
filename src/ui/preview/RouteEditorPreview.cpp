@@ -15,6 +15,8 @@
 #include <QJsonObject>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
+#include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScreen>
@@ -220,8 +222,15 @@ int RunRouteEditor(QApplication &app) {
         QStringLiteral("geoip-example-chat"),
     });
     editor->setLocalProxyTrafficEnabled(true);
-    editor->setViaCatalog({});
-    editor->setViaBuckets({});
+    if (app.arguments().contains(QStringLiteral("--via"))) {
+        // Reserved names only; the ids are never resolved against a database here.
+        editor->setViaCatalog({{101, QStringLiteral("NL · relay.example")}, {102, QStringLiteral("DE · edge.example")}});
+        editor->setRules(RouteProfileSimpleEditor::viaAction(101), "domain:media.example\nprocessName:PlayerDemo.exe\n");
+        editor->setViaBuckets({{101, QStringLiteral("NL · relay.example")}});
+    } else {
+        editor->setViaCatalog({});
+        editor->setViaBuckets({});
+    }
     tabs->addTab(editor, QCoreApplication::translate("RouteItem", "Simple"));
     auto *advanced = new QLabel(QObject::tr("The existing lossless advanced editor remains available here."));
     advanced->setAlignment(Qt::AlignCenter);
@@ -265,11 +274,47 @@ int RunRouteEditor(QApplication &app) {
                         "?? total nonsense here\n"));
         });
     if (const int outputAt = args.indexOf(QStringLiteral("--output"));
-        outputAt >= 0 && outputAt + 1 < args.size()) {
+        args.contains(QStringLiteral("--rule-menu")) && outputAt >= 0 && outputAt + 1 < args.size()) {
+        // The chip menu and its "Move to" submenu are popups, so they are painted onto the dialog's grab by hand.
+        const QString output = args.at(outputAt + 1);
+        QTimer::singleShot(700, &dialog, [&dialog, editor, output, &app] {
+            QAbstractButton *chip = nullptr;
+            for (auto *button: editor->findChildren<QAbstractButton *>()) {
+                if (button->toolTip().startsWith(QStringLiteral("processName:DemoChat.exe"))) chip = button;
+            }
+            if (chip == nullptr) {
+                app.exit(2);
+                return;
+            }
+            QTimer::singleShot(250, &dialog, [&dialog, output, &app] {
+                auto *menu = qobject_cast<QMenu *>(QApplication::activePopupWidget());
+                QMenu *sub = menu != nullptr && !menu->actions().isEmpty() ? menu->actions().first()->menu() : nullptr;
+                if (sub == nullptr) {
+                    app.exit(2);
+                    return;
+                }
+                menu->setActiveAction(menu->actions().first());
+                sub->popup(menu->mapToGlobal(menu->actionGeometry(menu->actions().first()).topRight()));
+                QTimer::singleShot(250, &dialog, [&dialog, menu, sub, output, &app] {
+                    QPixmap shot = dialog.grab();
+                    QPainter painter(&shot);
+                    for (QMenu *popup: {menu, sub}) painter.drawPixmap(dialog.mapFromGlobal(popup->pos()), popup->grab());
+                    painter.end();
+                    const bool ok = shot.save(output, "PNG");
+                    sub->close();
+                    menu->close();
+                    app.exit(ok ? 0 : 2);
+                });
+            });
+            emit chip->customContextMenuRequested(QPoint(24, 16));
+        });
+    } else if (const int outputAt = args.indexOf(QStringLiteral("--output"));
+               outputAt >= 0 && outputAt + 1 < args.size()) {
         const QString output = args.at(outputAt + 1);
         QTimer::singleShot(700, &dialog, [&dialog, editor, output, &app] {
             int expected = 0;
-            for (int action: {0, 1, 2, 3}) expected += editor->rules(action).split('\n', Qt::SkipEmptyParts).size();
+            for (int action: {0, 1, 2, 3, RouteProfileSimpleEditor::viaAction(101)})
+                expected += editor->rules(action).split('\n', Qt::SkipEmptyParts).size();
             int count = 0;
             int checked = 0;
             for (auto *button: editor->findChildren<ActionButton *>()) {

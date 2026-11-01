@@ -12654,10 +12654,6 @@ Stop routing to that endpoint&apos;s inner hops?</source>
         <translation>Также направлять mixed-in и socks-in через этот outbound.</translation>
     </message>
     <message>
-        <source>Rules here leave through %1. Right-click to remove the action.</source>
-        <translation>Правила отсюда уходят через %1. Правый клик — удалить действие.</translation>
-    </message>
-    <message>
         <source>Remove action</source>
         <translation>Удалить действие</translation>
     </message>
@@ -12906,6 +12902,46 @@ A line without a prefix is recognised on its own — sing-box spellings (domain_
     <message>
         <source>processes</source>
         <translation>процессы</translation>
+    </message>
+    <message>
+        <source>Rules here leave through %1. Right-click to change the profile, move or remove the rules.</source>
+        <translation>Правила здесь идут через %1. ПКМ — сменить профиль, перенести или удалить правила.</translation>
+    </message>
+    <message>
+        <source>Move to</source>
+        <translation>Перенести в</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Change profile…</source>
+        <translation>Сменить профиль…</translation>
+    </message>
+    <message>
+        <source>Move all rules to</source>
+        <translation>Перенести все правила в</translation>
+    </message>
+    <message>
+        <source>Remove action…</source>
+        <translation>Удалить действие…</translation>
+    </message>
+    <message>
+        <source>Change profile</source>
+        <translation>Смена профиля</translation>
+    </message>
+    <message>
+        <source>There is no other profile to send these rules through.</source>
+        <translation>Нет другого профиля, через который можно направить эти правила.</translation>
+    </message>
+    <message>
+        <source>Rules of %1 will leave through this profile instead:</source>
+        <translation>Правила %1 будут идти через этот профиль:</translation>
+    </message>
+    <message>
+        <source>Click to remove. Drag onto another action, or right-click, to move it.</source>
+        <translation>Нажмите, чтобы удалить. Перетащите на другое действие или нажмите ПКМ, чтобы перенести.</translation>
     </message>
 </context>
 <context>
@@ -15474,6 +15510,18 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Lets devices on the local network import, delete, change settings, back up and restore through the Throned API. This device can always do so.</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Window</source>
+        <translation>Окно</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>Подключение</translation>
+    </message>
+    <message>
+        <source>These work from any application, even while Throned is hidden in the tray.</source>
+        <translation>Работают из любого приложения, даже когда Throned свёрнут в трей.</translation>
     </message>
 </context>
 <context>

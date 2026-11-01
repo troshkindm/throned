@@ -10175,6 +10175,18 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Status</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These work from any application, even while Throned is hidden in the tray.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>RawRouteItem</name>
@@ -14443,6 +14455,49 @@ Close without saving?</source>
     </message>
     <message>
         <source>[Kill switch] Not active: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RouteProfileSimpleEditor</name>
+    <message>
+        <source>Rules here leave through %1. Right-click to change the profile, move or remove the rules.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change profile…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move all rules to</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove action…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There is no other profile to send these rules through.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rules of %1 will leave through this profile instead:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click to remove. Drag onto another action, or right-click, to move it.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
