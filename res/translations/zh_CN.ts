@@ -18591,5 +18591,13 @@ Close without saving?</source>
         <source>Click to remove. Drag onto another action, or right-click, to move it.</source>
         <translation>点击删除。拖到其他动作上或右键即可移动。</translation>
     </message>
+    <message>
+        <source>Move these rules to another action, or change the profile they leave through.</source>
+        <translation>将这些规则移动到其他动作，或更换它们出站所经的配置。</translation>
+    </message>
+    <message>
+        <source>New profile group…</source>
+        <translation>新建经由配置的分组…</translation>
+    </message>
 </context>
 </TS>

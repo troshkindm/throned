@@ -274,27 +274,46 @@ int RunRouteEditor(QApplication &app) {
                         "?? total nonsense here\n"));
         });
     if (const int outputAt = args.indexOf(QStringLiteral("--output"));
-        args.contains(QStringLiteral("--rule-menu")) && outputAt >= 0 && outputAt + 1 < args.size()) {
-        // The chip menu and its "Move to" submenu are popups, so they are painted onto the dialog's grab by hand.
+        (args.contains(QStringLiteral("--rule-menu")) || args.contains(QStringLiteral("--action-menu"))) && outputAt >= 0 &&
+        outputAt + 1 < args.size()) {
+        // The menu and its move submenu are popups, so they are painted onto the dialog's grab by hand.
         const QString output = args.at(outputAt + 1);
-        QTimer::singleShot(700, &dialog, [&dialog, editor, output, &app] {
+        const bool actionMenu = args.contains(QStringLiteral("--action-menu"));
+        // The profile group is the one row the action menu offers more on; selected early so the old cards are gone.
+        if (actionMenu)
+            QTimer::singleShot(300, editor, [editor] {
+                for (auto *button: editor->findChildren<QAbstractButton *>())
+                    if (button->toolTip().contains(QStringLiteral("relay.example"))) button->click();
+            });
+        QTimer::singleShot(700, &dialog, [&dialog, editor, output, actionMenu, &app] {
             QAbstractButton *chip = nullptr;
+            QAbstractButton *menuButton = nullptr;
             for (auto *button: editor->findChildren<QAbstractButton *>()) {
                 if (button->toolTip().startsWith(QStringLiteral("processName:DemoChat.exe"))) chip = button;
+                if (button->property("routeActionMenu").toBool()) menuButton = button;
             }
-            if (chip == nullptr) {
+            if (actionMenu ? menuButton == nullptr : chip == nullptr) {
                 app.exit(2);
                 return;
             }
             QTimer::singleShot(250, &dialog, [&dialog, output, &app] {
                 auto *menu = qobject_cast<QMenu *>(QApplication::activePopupWidget());
-                QMenu *sub = menu != nullptr && !menu->actions().isEmpty() ? menu->actions().first()->menu() : nullptr;
+                QAction *opener = nullptr;
+                for (auto *action: menu != nullptr ? menu->actions() : QList<QAction *>{}) {
+                    if (opener == nullptr && action->menu() != nullptr) opener = action;
+                }
+                QMenu *sub = opener != nullptr ? opener->menu() : nullptr;
                 if (sub == nullptr) {
                     app.exit(2);
                     return;
                 }
-                menu->setActiveAction(menu->actions().first());
-                sub->popup(menu->mapToGlobal(menu->actionGeometry(menu->actions().first()).topRight()));
+                menu->setActiveAction(opener);
+                // Like Qt itself, open toward the side that has room; here the dialog edge stands in for the screen's.
+                const QRect item = menu->actionGeometry(opener);
+                QPoint at = menu->mapToGlobal(item.topRight());
+                if (at.x() + sub->sizeHint().width() > dialog.mapToGlobal(QPoint(dialog.width(), 0)).x())
+                    at = menu->mapToGlobal(item.topLeft()) - QPoint(sub->sizeHint().width(), 0);
+                sub->popup(at);
                 QTimer::singleShot(250, &dialog, [&dialog, menu, sub, output, &app] {
                     QPixmap shot = dialog.grab();
                     QPainter painter(&shot);
@@ -306,7 +325,11 @@ int RunRouteEditor(QApplication &app) {
                     app.exit(ok ? 0 : 2);
                 });
             });
-            emit chip->customContextMenuRequested(QPoint(24, 16));
+            if (actionMenu) {
+                menuButton->click();
+            } else {
+                emit chip->customContextMenuRequested(QPoint(24, 16));
+            }
         });
     } else if (const int outputAt = args.indexOf(QStringLiteral("--output"));
                outputAt >= 0 && outputAt + 1 < args.size()) {

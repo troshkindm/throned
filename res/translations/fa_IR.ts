@@ -14500,5 +14500,13 @@ Close without saving?</source>
         <source>Click to remove. Drag onto another action, or right-click, to move it.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Move these rules to another action, or change the profile they leave through.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New profile group…</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

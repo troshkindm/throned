@@ -457,6 +457,8 @@ RouteProfileSimpleEditor::RouteProfileSimpleEditor(QWidget *parent) : QWidget(pa
 
     addViaButton_ = new AddActionButton(tr("Add profile"), QColor(Cyan), sidebar);
     connect(addViaButton_, &QAbstractButton::clicked, this, &RouteProfileSimpleEditor::addViaBucket);
+    addViaButton_->setAcceptDrops(true);
+    addViaButton_->installEventFilter(this);
     side->addWidget(addViaButton_);
     side->addSpacing(4);
 
@@ -507,6 +509,16 @@ RouteProfileSimpleEditor::RouteProfileSimpleEditor(QWidget *parent) : QWidget(pa
     ruleOrderButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, QColor("#DDE2E7"), 16));
     connect(ruleOrderButton, &QPushButton::clicked, this, &RouteProfileSimpleEditor::advancedEditorRequested);
     top->addWidget(ruleOrderButton);
+    // The same menu as a right-click on the sidebar row, for whoever never right-clicks.
+    auto *actionMenuButton = new QToolButton(content);
+    actionMenuButton->setObjectName("routeIconButton");
+    actionMenuButton->setProperty("routeActionMenu", true);
+    actionMenuButton->setCursor(Qt::PointingHandCursor);
+    actionMenuButton->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::More, QColor("#DDE2E7"), 18));
+    actionMenuButton->setToolTip(tr("Move these rules to another action, or change the profile they leave through."));
+    actionMenuButton->setFixedSize(34, 34);
+    connect(actionMenuButton, &QToolButton::clicked, this, [this, actionMenuButton] { showActionMenu(selectedAction_, {}, actionMenuButton); });
+    top->addWidget(actionMenuButton);
     contentLayout->addLayout(top);
 
     auto *quick = new QFrame(content);
@@ -1015,6 +1027,10 @@ void RouteProfileSimpleEditor::rebuildSidebar() {
 }
 
 void RouteProfileSimpleEditor::addViaBucket() {
+    createViaBucket();
+}
+
+int RouteProfileSimpleEditor::createViaBucket() {
     QList<QPair<int, QString>> available;
     for (const auto &entry: viaCatalog_) {
         const bool taken = std::any_of(viaBuckets_.begin(), viaBuckets_.end(),
@@ -1024,7 +1040,7 @@ void RouteProfileSimpleEditor::addViaBucket() {
     if (available.isEmpty()) {
         QMessageBox::information(this, tr("Add profile"),
                                  tr("Every profile already has an action here."));
-        return;
+        return -1;
     }
 
     QStringList labels;
@@ -1034,10 +1050,12 @@ void RouteProfileSimpleEditor::addViaBucket() {
     const auto choice = QInputDialog::getItem(this, tr("Add profile"),
                                               tr("Rules in the new action leave through this profile:"),
                                               labels, 0, false, &picked);
-    if (!picked) return;
+    if (!picked) return -1;
     const int index = static_cast<int>(labels.indexOf(QStringView(choice)));
-    if (index < 0) return;
+    if (index < 0) return -1;
+    // The owner pushes the new bucket back synchronously, so the action exists once this returns.
     emit viaBucketAdded(available[index].first);
+    return viaAction(available[index].first);
 }
 
 void RouteProfileSimpleEditor::updateActionButtons() {
@@ -1346,6 +1364,11 @@ void RouteProfileSimpleEditor::addMoveTargets(QMenu *menu, int exclude, const st
                                                   : tr("Proxy");
         menu->addAction(MaterialIcon::icon(presentation.glyph, presentation.tone, 16), title, this, [pick, action] { pick(action); });
     }
+    if (viaCatalog_.size() <= viaBuckets_.size()) return;
+    menu->addSeparator();
+    menu->addAction(MaterialIcon::icon(MaterialIcon::Glyph::Add, QColor(Cyan), 16), tr("New profile group…"), this, [this, pick] {
+        if (const int created = createViaBucket(); created >= 0) pick(created);
+    });
 }
 
 void RouteProfileSimpleEditor::moveRules(int from, const QStringList &moved, int to) {
@@ -1373,7 +1396,7 @@ void RouteProfileSimpleEditor::showRuleMenu(const QString &rule, const QPoint &g
     menu.exec(globalPos);
 }
 
-void RouteProfileSimpleEditor::showActionMenu(int action, const QPoint &globalPos) {
+void RouteProfileSimpleEditor::showActionMenu(int action, const QPoint &globalPos, QWidget *anchor) {
     QMenu menu(this);
     const QStringList current = rules_.value(action);
     if (isViaAction(action)) {
@@ -1396,7 +1419,8 @@ void RouteProfileSimpleEditor::showActionMenu(int action, const QPoint &globalPo
             emit viaBucketRemoved(viaProfileOf(action));
         });
     }
-    menu.exec(globalPos);
+    // Hung under the button by its right edge, so it opens over the cards instead of off the dialog.
+    menu.exec(anchor != nullptr ? anchor->mapToGlobal(QPoint(anchor->width() - menu.sizeHint().width(), anchor->height() + 2)) : globalPos);
 }
 
 void RouteProfileSimpleEditor::changeViaProfile(int profileID) {
@@ -1426,6 +1450,19 @@ void RouteProfileSimpleEditor::changeViaProfile(int profileID) {
 }
 
 bool RouteProfileSimpleEditor::eventFilter(QObject *watched, QEvent *event) {
+    // A rule dropped on "Add profile" makes the group and lands in it.
+    if (watched == addViaButton_ && (event->type() == QEvent::DragEnter || event->type() == QEvent::Drop)) {
+        auto *drop = static_cast<QDropEvent *>(event);
+        if (!drop->mimeData()->hasFormat(kRuleMime)) return false;
+        drop->acceptProposedAction();
+        if (event->type() == QEvent::Drop) {
+            const QString rule = QString::fromUtf8(drop->mimeData()->data(kRuleMime));
+            QTimer::singleShot(0, this, [this, from = selectedAction_, rule] {
+                if (const int created = createViaBucket(); created >= 0) moveRules(from, {rule}, created);
+            });
+        }
+        return true;
+    }
     auto *button = qobject_cast<ActionButton *>(watched);
     const int action = button != nullptr ? actionButtons_.key(button, -1) : -1;
     if (action < 0) return QWidget::eventFilter(watched, event);

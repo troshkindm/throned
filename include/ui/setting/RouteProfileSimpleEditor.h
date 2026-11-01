@@ -57,11 +57,13 @@ private:
     void addMoveTargets(QMenu *menu, int exclude, const std::function<void(int)> &pick);
     void moveRules(int from, const QStringList &moved, int to);
     void showRuleMenu(const QString &rule, const QPoint &globalPos);
-    void showActionMenu(int action, const QPoint &globalPos);
+    void showActionMenu(int action, const QPoint &globalPos, QWidget *anchor = nullptr);
     void changeViaProfile(int profileID);
     void selectAction(int action);
     void rebuildSidebar();
     void addViaBucket();
+    // Asks for a profile and adds its bucket; the new action, or -1 when cancelled.
+    int createViaBucket();
     void rebuild();
     void bulkEdit();
     void addApplicationRules();

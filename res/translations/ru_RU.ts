@@ -12943,6 +12943,14 @@ A line without a prefix is recognised on its own — sing-box spellings (domain_
         <source>Click to remove. Drag onto another action, or right-click, to move it.</source>
         <translation>Нажмите, чтобы удалить. Перетащите на другое действие или нажмите ПКМ, чтобы перенести.</translation>
     </message>
+    <message>
+        <source>Move these rules to another action, or change the profile they leave through.</source>
+        <translation>Перенести эти правила в другое действие или сменить профиль, через который они идут.</translation>
+    </message>
+    <message>
+        <source>New profile group…</source>
+        <translation>Новая группа через профиль…</translation>
+    </message>
 </context>
 <context>
     <name>RoutingQuickMenu</name>
