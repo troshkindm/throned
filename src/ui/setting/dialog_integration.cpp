@@ -103,7 +103,9 @@ void DialogIntegration::dressGlobalHotkeyTab() {
             label->setObjectName(QStringLiteral("hotkeyLabel"));
             lineLayout->addWidget(label, 1);
             row.edit->setParent(line);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
             row.edit->setClearButtonEnabled(true);
+#endif
             row.edit->setFixedWidth(230);
             lineLayout->addWidget(row.edit);
             sectionLayout->addWidget(line);
