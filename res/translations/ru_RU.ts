@@ -3149,7 +3149,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>While Throne is running, block all traffic that does not go through Throne, including when no profile is running.
-        The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</source>
+The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5553,27 +5553,27 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
     <message>
         <source>Sends proxied traffic out through Tor, over the selected server. TCP only.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отправляет проксируемый трафик в сеть Tor через выбранный сервер. Только TCP.</translation>
     </message>
     <message>
         <source>Exit through Tor</source>
-        <translation type="unfinished"></translation>
+        <translation>Выходить через Tor</translation>
     </message>
     <message>
         <source>Tor is installed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tor установлен.</translation>
     </message>
     <message>
         <source>Tor will be downloaded when you press OK.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tor будет загружен после нажатия OK.</translation>
     </message>
     <message>
         <source>Tor download failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось загрузить Tor</translation>
     </message>
     <message>
         <source>[Tor] A download is already running; turn Tor on again once it finishes.</source>
-        <translation type="unfinished"></translation>
+        <translation>[Tor] Загрузка уже идёт; включите Tor снова, когда она закончится.</translation>
     </message>
 </context>
 <context>
@@ -6632,7 +6632,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Fastest: always use the best measured profile out of all of them.
-        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6777,7 +6777,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Fastest: always use the best measured profile out of all of them.
-        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -10627,27 +10627,27 @@ Error: %1</source>
     </message>
     <message>
         <source>Scan DPI evasion settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Подобрать параметры обхода DPI</translation>
     </message>
     <message>
         <source>Route path lookup</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка маршрута</translation>
     </message>
     <message>
         <source>The core did not get administrator rights, although they were granted. The log shows why.
-        
-        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+
+Restart Throned as administrator to use Tun Mode and the kill switch.</source>
         <translation>Ядро не получило права администратора, хотя они были предоставлены. Причина указана в журнале.
-        
-        Перезапустите Throned от имени администратора, чтобы использовать режим TUN и kill switch.</translation>
+
+Перезапустите Throned от имени администратора, чтобы использовать режим TUN и kill switch.</translation>
     </message>
     <message>
         <source>Tun Mode and the kill switch need the core to run with administrator rights.
-        
-        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+
+Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
         <translation>Для режима TUN и kill switch ядру нужны права администратора.
-        
-        Предоставьте их один раз с подтверждением Windows; сам Throned продолжит работать как обычный пользователь.</translation>
+
+Предоставьте их один раз с подтверждением Windows; сам Throned продолжит работать как обычный пользователь.</translation>
     </message>
     <message>
         <source>Throned can restart as administrator instead.</source>
@@ -10655,7 +10655,7 @@ Error: %1</source>
     </message>
     <message>
         <source>Windows asks once to let the Throned core run with administrator rights. Choose Yes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Windows один раз спросит разрешение запускать ядро Throned с правами администратора. Выберите «Да».</translation>
     </message>
     <message>
         <source>Restart as administrator was cancelled, Throned keeps running</source>
@@ -10663,15 +10663,19 @@ Error: %1</source>
     </message>
     <message>
         <source>The core did not get administrator rights, although they were granted. The log shows why.
-        
-        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
-        <translation type="unfinished"></translation>
+
+Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+        <translation>Ядро не получило права администратора, хотя они были выданы. Причина — в журнале.
+
+Перезапустите Throned от имени администратора, чтобы использовать режим Tun и kill switch.</translation>
     </message>
     <message>
         <source>Tun Mode and the kill switch need the core to run with administrator rights.
-        
-        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
-        <translation type="unfinished"></translation>
+
+Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+        <translation>Режиму Tun и kill switch нужно ядро с правами администратора.
+
+Выдайте их один раз через подтверждение Windows; сам Throned продолжит работать как обычный пользователь.</translation>
     </message>
     <message>
         <source>Turn off the kill switch? Traffic that does not go through Throne will no longer be blocked.</source>
@@ -13773,11 +13777,11 @@ Stop routing to that endpoint&apos;s inner hops?</source>
     </message>
     <message>
         <source>Add Program…</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить программу…</translation>
     </message>
     <message>
         <source>Pick a program that is running or has used the network, spelled exactly as the core matches it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать запущенную или недавно подключавшуюся программу — в том виде, в каком её сопоставляет ядро.</translation>
     </message>
 </context>
 <context>
@@ -16939,7 +16943,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Service check</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка сервисов</translation>
     </message>
 </context>
 <context>
@@ -22706,31 +22710,31 @@ Close without saving?</source>
     <name>DialogRuleTester</name>
     <message>
         <source>Route path lookup</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка маршрута</translation>
     </message>
     <message>
         <source>Routing profile</source>
-        <translation type="unfinished"></translation>
+        <translation>Профиль маршрутизации</translation>
     </message>
     <message>
         <source>Nothing is running, so the test builds the configuration this routing profile would start with. Outbounds are not dialed, endpoint rules are skipped and domains resolve with the system resolver.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ничего не запущено, поэтому проверка собирает конфигурацию, с которой стартовал бы этот профиль маршрутизации. Подключения к серверам не выполняются, правила эндпоинтов пропускаются, домены разрешаются системным резолвером.</translation>
     </message>
     <message>
         <source>chrome.exe or full path</source>
-        <translation type="unfinished"></translation>
+        <translation>chrome.exe или полный путь</translation>
     </message>
     <message>
         <source>Pick…</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать…</translation>
     </message>
     <message>
         <source>Choose from running programs and the ones seen connecting, or browse for a file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать из запущенных или недавно подключавшихся программ либо указать файл.</translation>
     </message>
     <message>
         <source>Process</source>
-        <translation type="unfinished"></translation>
+        <translation>Процесс</translation>
     </message>
     <message>
         <source>example.com</source>
@@ -22738,7 +22742,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Domain</source>
-        <translation type="unfinished"></translation>
+        <translation>Домен</translation>
     </message>
     <message>
         <source>1.1.1.1 or 2606:4700::1111</source>
@@ -22746,51 +22750,51 @@ Close without saving?</source>
     </message>
     <message>
         <source>IP address</source>
-        <translation type="unfinished"></translation>
+        <translation>IP-адрес</translation>
     </message>
     <message>
         <source>Port</source>
-        <translation type="unfinished"></translation>
+        <translation>Порт</translation>
     </message>
     <message>
         <source>Network</source>
-        <translation type="unfinished"></translation>
+        <translation>Сеть</translation>
     </message>
     <message>
         <source>Auto (by port)</source>
-        <translation type="unfinished"></translation>
+        <translation>Авто (по порту)</translation>
     </message>
     <message>
         <source>None</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет</translation>
     </message>
     <message>
         <source>What a sniff rule finds in the connection&apos;s first packets.</source>
-        <translation type="unfinished"></translation>
+        <translation>Что правило sniff находит в первых пакетах соединения.</translation>
     </message>
     <message>
         <source>Sniffed protocol</source>
-        <translation type="unfinished"></translation>
+        <translation>Определённый протокол</translation>
     </message>
     <message>
         <source>Test</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверить</translation>
     </message>
     <message>
         <source>Rule</source>
-        <translation type="unfinished"></translation>
+        <translation>Правило</translation>
     </message>
     <message>
         <source>Action</source>
-        <translation type="unfinished"></translation>
+        <translation>Действие</translation>
     </message>
     <message>
         <source>Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Подробности</translation>
     </message>
     <message>
         <source>Testing the running configuration, routing profile “%1”.</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверяется запущенная конфигурация, профиль маршрутизации «%1».</translation>
     </message>
     <message>
         <source>Testing the running configuration. It is a custom configuration, so rules are shown as sing-box describes them.</source>
@@ -22798,95 +22802,95 @@ Close without saving?</source>
     </message>
     <message>
         <source>Testing the running configuration.</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверяется запущенная конфигурация.</translation>
     </message>
     <message>
         <source>Enter a process, a domain or an IP address.</source>
-        <translation type="unfinished"></translation>
+        <translation>Введите процесс, домен или IP-адрес.</translation>
     </message>
     <message>
         <source>“%1” is an IP address: enter it under IP address.</source>
-        <translation type="unfinished"></translation>
+        <translation>«%1» — это IP-адрес: введите его в поле IP-адреса.</translation>
     </message>
     <message>
         <source>“%1” is not a valid domain.</source>
-        <translation type="unfinished"></translation>
+        <translation>«%1» — недопустимый домен.</translation>
     </message>
     <message>
         <source>“%1” is not an IP address.</source>
-        <translation type="unfinished"></translation>
+        <translation>«%1» — не IP-адрес.</translation>
     </message>
     <message>
         <source>Select a routing profile to test.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите профиль маршрутизации для проверки.</translation>
     </message>
     <message>
         <source>Could not build the configuration: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось собрать конфигурацию: %1</translation>
     </message>
     <message>
         <source>Testing…</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка…</translation>
     </message>
     <message>
         <source>the core did not answer</source>
-        <translation type="unfinished"></translation>
+        <translation>ядро не ответило</translation>
     </message>
     <message>
         <source>The test failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка не удалась: %1</translation>
     </message>
     <message>
         <source>Rejected</source>
-        <translation type="unfinished"></translation>
+        <translation>Отклонено</translation>
     </message>
     <message>
         <source>Rejected by %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Отклонено правилом %1</translation>
     </message>
     <message>
         <source>Handled as DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>Обработано как DNS</translation>
     </message>
     <message>
         <source>Handled as DNS by %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Обработано как DNS правилом %1</translation>
     </message>
     <message>
         <source>unknown error</source>
-        <translation type="unfinished"></translation>
+        <translation>неизвестная ошибка</translation>
     </message>
     <message>
         <source>The connection would be closed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Соединение будет закрыто: %1</translation>
     </message>
     <message>
         <source>No rule matched: the default outbound applies.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ни одно правило не подошло: действует выход по умолчанию.</translation>
     </message>
     <message>
         <source>Matched %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Совпало: %1</translation>
     </message>
     <message>
         <source>Inbound: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Входящее: %1</translation>
     </message>
     <message>
         <source>Destination: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Назначение: %1</translation>
     </message>
     <message>
         <source>Domain: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Домен: %1</translation>
     </message>
     <message>
         <source>Addresses: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Адреса: %1</translation>
     </message>
     <message>
         <source>Built with %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Собрано с %1</translation>
     </message>
     <message numerus="yes">
         <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
@@ -22894,75 +22898,75 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unknown outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>Неизвестный выход</translation>
     </message>
     <message>
         <source>Direct</source>
-        <translation type="unfinished"></translation>
+        <translation>Напрямую</translation>
     </message>
     <message>
         <source>Block</source>
-        <translation type="unfinished"></translation>
+        <translation>Блокировать</translation>
     </message>
     <message>
         <source>Direct (L3 bridge)</source>
-        <translation type="unfinished"></translation>
+        <translation>Напрямую (L3-мост)</translation>
     </message>
     <message>
         <source>Rule %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Правило %1</translation>
     </message>
     <message>
         <source>“%1”</source>
-        <translation type="unfinished"></translation>
+        <translation>«%1»</translation>
     </message>
     <message>
         <source>Raw rule %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Raw-правило %1</translation>
     </message>
     <message>
         <source>Xray bridge (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Мост Xray (Throned)</translation>
     </message>
     <message>
         <source>Extra core goes direct (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Дополнительное ядро напрямую (Throned)</translation>
     </message>
     <message>
         <source>System DNS (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Системный DNS (Throned)</translation>
     </message>
     <message>
         <source>Tun DNS guard (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита DNS в Tun (Throned)</translation>
     </message>
     <message>
         <source>Tun loop guard (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита от петли в Tun (Throned)</translation>
     </message>
     <message>
         <source>Service inbound (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Служебный вход (Throned)</translation>
     </message>
     <message>
         <source>Sniff (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Sniff (Throned)</translation>
     </message>
     <message>
         <source>Onion sites via Tor (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Onion-сайты через Tor (Throned)</translation>
     </message>
     <message>
         <source>Domain resolve (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Разрешение доменов (Throned)</translation>
     </message>
     <message>
         <source>DNS hijack (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Перехват DNS (Throned)</translation>
     </message>
     <message>
         <source>DNS inbound guard (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита входящего DNS (Throned)</translation>
     </message>
     <message>
         <source>AdBlock</source>
@@ -22970,59 +22974,59 @@ Close without saving?</source>
     </message>
     <message>
         <source>Endpoint: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Эндпоинт: %1</translation>
     </message>
     <message>
         <source>L3 bridge direct (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>L3-мост напрямую (Throned)</translation>
     </message>
     <message>
         <source>raw rule %1</source>
-        <translation type="unfinished"></translation>
+        <translation>raw-правила %1</translation>
     </message>
     <message>
         <source>rule %1</source>
-        <translation type="unfinished"></translation>
+        <translation>правила %1</translation>
     </message>
     <message>
         <source>L3 bridge copy of %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Копия для L3-моста из %1</translation>
     </message>
     <message>
         <source>Tunnel gate (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Шлюз туннеля (Throned)</translation>
     </message>
     <message>
         <source>Block the rest (Throned)</source>
-        <translation type="unfinished"></translation>
+        <translation>Блокировать остальное (Throned)</translation>
     </message>
     <message>
         <source>Route</source>
-        <translation type="unfinished"></translation>
+        <translation>Маршрут</translation>
     </message>
     <message>
         <source>Route to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Маршрут в %1</translation>
     </message>
     <message>
         <source>Bypass</source>
-        <translation type="unfinished"></translation>
+        <translation>В обход</translation>
     </message>
     <message>
         <source>Bypass to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>В обход через %1</translation>
     </message>
     <message>
         <source>Route options</source>
-        <translation type="unfinished"></translation>
+        <translation>Параметры маршрута</translation>
     </message>
     <message>
         <source>Reject</source>
-        <translation type="unfinished"></translation>
+        <translation>Отклонить</translation>
     </message>
     <message>
         <source>Hijack DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>Перехватить DNS</translation>
     </message>
     <message>
         <source>Sniff</source>
@@ -23030,38 +23034,38 @@ Close without saving?</source>
     </message>
     <message>
         <source>Resolve</source>
-        <translation type="unfinished"></translation>
+        <translation>Разрешить</translation>
     </message>
     <message>
         <source>Found nothing</source>
-        <translation type="unfinished"></translation>
+        <translation>Ничего не найдено</translation>
     </message>
     <message>
         <source>Found %1, no domain</source>
-        <translation type="unfinished"></translation>
+        <translation>Найден %1, домена нет</translation>
     </message>
     <message>
         <source>Found %1, domain %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Найден %1, домен %2</translation>
     </message>
     <message>
         <source>a protocol</source>
-        <translation type="unfinished"></translation>
+        <translation>протокол</translation>
     </message>
     <message>
         <source>Resolved to %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Разрешено в %1</translation>
     </message>
     <message>
         <source>Error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка: %1</translation>
     </message>
 </context>
 <context>
     <name>ProcessPicker</name>
     <message>
         <source>just now</source>
-        <translation type="unfinished"></translation>
+        <translation>только что</translation>
     </message>
     <message numerus="yes">
         <source>%n min ago</source>
@@ -23077,147 +23081,147 @@ Close without saving?</source>
     </message>
     <message>
         <source>Service: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Служба: %1</translation>
     </message>
     <message>
         <source>Chosen file</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбранный файл</translation>
     </message>
     <message>
         <source>Connected now</source>
-        <translation type="unfinished"></translation>
+        <translation>Подключена сейчас</translation>
     </message>
     <message>
         <source>Seen %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Замечена %1</translation>
     </message>
     <message>
         <source>Running (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Запущена (%1)</translation>
     </message>
     <message>
         <source>Running</source>
-        <translation type="unfinished"></translation>
+        <translation>Запущена</translation>
     </message>
     <message>
         <source>The core is not connected, so running programs are not listed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ядро не подключено, поэтому запущенные программы не показаны.</translation>
     </message>
     <message>
         <source>The core did not answer, so running programs are not listed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ядро не ответило, поэтому запущенные программы не показаны.</translation>
     </message>
     <message>
         <source>Some programs could not be listed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Некоторые программы не удалось получить: %1</translation>
     </message>
     <message>
         <source>Apps like %1 often connect from helper programs inside the bundle; match by app folder to catch them too.</source>
-        <translation type="unfinished"></translation>
+        <translation>Приложения вроде %1 часто подключаются через вспомогательные программы внутри пакета; сопоставляйте по папке приложения, чтобы поймать и их.</translation>
     </message>
     <message>
         <source>%1 is a script: what connects is the interpreter that runs it, which other scripts share.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 — скрипт: подключается интерпретатор, который его запускает, а им пользуются и другие скрипты.</translation>
     </message>
     <message>
         <source>Program</source>
-        <translation type="unfinished"></translation>
+        <translation>Программа</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation type="unfinished"></translation>
+        <translation>Активность</translation>
     </message>
     <message>
         <source>Path</source>
-        <translation type="unfinished"></translation>
+        <translation>Путь</translation>
     </message>
     <message>
         <source>The core could not read where this program is.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ядро не смогло определить путь к этой программе.</translation>
     </message>
     <message>
         <source>Choose a Program</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбор программы</translation>
     </message>
     <message>
         <source>Add Programs</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить программы</translation>
     </message>
     <message>
         <source>Search by name or path</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск по имени или пути</translation>
     </message>
     <message>
         <source>Programs</source>
-        <translation type="unfinished"></translation>
+        <translation>Программы</translation>
     </message>
     <message>
         <source>Everything, with services and system programs</source>
-        <translation type="unfinished"></translation>
+        <translation>Всё, включая службы и системные программы</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновить</translation>
     </message>
     <message>
         <source>Match by:</source>
-        <translation type="unfinished"></translation>
+        <translation>Сопоставлять по:</translation>
     </message>
     <message>
         <source>Program name</source>
-        <translation type="unfinished"></translation>
+        <translation>Имени программы</translation>
     </message>
     <message>
         <source>Matches the program wherever it is installed (process_name).</source>
-        <translation type="unfinished"></translation>
+        <translation>Совпадает с программой, где бы она ни была установлена (process_name).</translation>
     </message>
     <message>
         <source>Exact path</source>
-        <translation type="unfinished"></translation>
+        <translation>Точному пути</translation>
     </message>
     <message>
         <source>Matches only this file (process_path).</source>
-        <translation type="unfinished"></translation>
+        <translation>Совпадает только с этим файлом (process_path).</translation>
     </message>
     <message>
         <source>App folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Папке приложения</translation>
     </message>
     <message>
         <source>Matches every program in the app&apos;s folder, helpers and later versions included (process_path_regex).</source>
-        <translation type="unfinished"></translation>
+        <translation>Совпадает со всеми программами в папке приложения, включая вспомогательные и будущие версии (process_path_regex).</translation>
     </message>
     <message>
         <source>Choose</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать</translation>
     </message>
     <message>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить</translation>
     </message>
     <message>
         <source>Browse…</source>
-        <translation type="unfinished"></translation>
+        <translation>Обзор…</translation>
     </message>
     <message>
         <source>Looking for programs…</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск программ…</translation>
     </message>
     <message>
         <source>Programs (*.exe);;All files (*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Программы (*.exe);;Все файлы (*)</translation>
     </message>
     <message>
         <source>Applications (*.app);;All files (*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Приложения (*.app);;Все файлы (*)</translation>
     </message>
     <message>
         <source>Select a program, or browse for one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите программу или укажите файл.</translation>
     </message>
     <message>
         <source>Select one or more programs, or browse for one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите одну или несколько программ или укажите файл.</translation>
     </message>
     <message numerus="yes">
         <source>and %n more</source>
@@ -23225,27 +23229,27 @@ Close without saving?</source>
     </message>
     <message>
         <source>Adds: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Будет добавлено: %1</translation>
     </message>
     <message>
         <source>%1 runs many unrelated programs, so the rule catches all of them.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 запускает много разных программ, и правило поймает их все.</translation>
     </message>
     <message>
         <source>The core could not read where %1 is, so it can only be matched by name.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ядро не смогло определить путь к %1, поэтому сопоставить можно только по имени.</translation>
     </message>
     <message>
         <source>The path of %1 has a version number in it, so the rule stops matching after an update.</source>
-        <translation type="unfinished"></translation>
+        <translation>В пути к %1 есть номер версии, поэтому после обновления правило перестанет срабатывать.</translation>
     </message>
     <message>
         <source>%1 holds many other programs, and the rule catches all of them.</source>
-        <translation type="unfinished"></translation>
+        <translation>В %1 много других программ, и правило поймает их все.</translation>
     </message>
     <message>
         <source>More warnings for the other selected programs.</source>
-        <translation type="unfinished"></translation>
+        <translation>Есть ещё предупреждения для других выбранных программ.</translation>
     </message>
 </context>
 </TS>

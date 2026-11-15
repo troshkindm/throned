@@ -107,8 +107,7 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
                           "QLabel { background: transparent; border: none; color: %3; }"
                           "QLabel#cpuChartTitle, QLabel#ramChartTitle, QLabel#runningTitle { color: %4; font-weight: 600; }"
                           "QLabel#vThroneCpu, QLabel#vThroneRam, QLabel#vCfgName { color: %3; font-weight: 600; }"
-                          "QLabel#labelPing, QLabel#labelOutIp, QLabel#labelCountry, QLabel#labelServices, QLabel#vServiceChecked,"
-                          " QWidget#runtimeFooter QLabel { color: %4; }")
+                          "QLabel#labelPing, QLabel#labelOutIp, QLabel#labelCountry, QWidget#runtimeFooter QLabel { color: %4; }")
                           .arg(colors.window.name(), colors.border.name(), colors.text.name(), colors.textMuted.name()));
         for (auto* label: {ui->labelThroneName, ui->labelRamThroneName})
             label->setText(QStringLiteral("<span style=\"color:%1\">●</span> Throned").arg(colors.accent.name()));
@@ -121,11 +120,7 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
     ui->vOutIp->setTextFormat(Qt::PlainText);
     ui->vCountry->setTextFormat(Qt::PlainText);
     // Rich text built by ServiceCheckHtml::summary, which escapes everything it did not write itself.
-    ui->vServices->setTextFormat(Qt::RichText);
-    ui->vServices->setWordWrap(true);
-    ui->vServiceChecked->setTextFormat(Qt::PlainText);
-    ui->vServiceChecked->setCursor(Qt::WhatsThisCursor);
-    connect(ui->btnServiceCheck, &QPushButton::clicked, this, [this] {
+    connect(ui->btnServiceCheck, &QToolButton::clicked, this, [this] {
         auto* engine = Engine::host();
         if (engine == nullptr) return;
         serviceChecking_->store(true);
@@ -222,9 +217,7 @@ void RuntimeStatsWidget::refreshServices() {
     auto* engine = Engine::host();
     const auto running = runningProfile();
     const QString summary = running != nullptr ? ServiceCheckHtml::summary(*running) : QString();
-    ui->vServices->setText(summary.isEmpty() ? QStringLiteral("—") : summary);
     const QString details = running != nullptr ? ServiceCheckHtml::details(*running) : QString();
-    ui->vServices->setToolTip(details);
 
     QString checked;
     if (serviceChecking_->load()) {
@@ -237,9 +230,17 @@ void RuntimeStatsWidget::refreshServices() {
             checked = tr("Checked %1 ago").arg(age < 3600 ? QStringLiteral("%1m").arg(age / 60) : age < 86400 ? QStringLiteral("%1h").arg(age / 3600)
                                                                                                               : QStringLiteral("%1d").arg(age / 86400));
     }
-    ui->vServiceChecked->setText(checked);
-    ui->vServiceChecked->setToolTip(details);
-    ui->vServiceChecked->setVisible(!checked.isEmpty());
+    // The card has no room for a fourth row: the result lives in the tool tip, the button only says what it does.
+    ui->btnServiceCheck->setText(serviceChecking_->load() ? tr("Checking…") : tr("Services"));
+    QString tip = tr("Check which services work through the running profile");
+    if (!summary.isEmpty()) {
+        QString body = details;
+        body.remove(QStringLiteral("<qt>")).remove(QStringLiteral("</qt>"));
+        tip = QStringLiteral("<qt><p>%1</p>%2").arg(summary, body);
+        if (!checked.isEmpty() && !serviceChecking_->load()) tip += QStringLiteral("<p>%1</p>").arg(checked.toHtmlEscaped());
+        tip += QStringLiteral("</qt>");
+    }
+    ui->btnServiceCheck->setToolTip(tip);
 
     // The runner skips auto selectors, so the button would do nothing for one.
     ui->btnServiceCheck->setEnabled(running != nullptr && running->type != QStringLiteral("autoselector") && engine != nullptr && !engine->tests()->isRunning());

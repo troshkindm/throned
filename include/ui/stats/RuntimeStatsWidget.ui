@@ -184,6 +184,22 @@
          </widget>
         </item>
         <item>
+         <widget class="QToolButton" name="btnServiceCheck">
+          <property name="text">
+           <string>Services</string>
+          </property>
+          <property name="autoRaise">
+           <bool>true</bool>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QToolButton" name="runtimeEndpoints">
           <property name="text">
            <string notr="true">VPN</string>
@@ -260,38 +276,6 @@
            <string notr="true">—</string>
           </property>
          </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="labelServices">
-          <property name="text">
-           <string>Services</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <layout class="QHBoxLayout" name="servicesLayout" stretch="1,0,0">
-          <item>
-           <widget class="QLabel" name="vServices">
-            <property name="text">
-             <string notr="true">—</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="vServiceChecked">
-            <property name="text">
-             <string notr="true"/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnServiceCheck">
-            <property name="text">
-             <string>Check</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </item>
        </layout>
       </item>

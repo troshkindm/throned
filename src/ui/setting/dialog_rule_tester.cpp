@@ -1,9 +1,10 @@
 #include "include/ui/setting/dialog_rule_tester.h"
+#include "include/ui/widget/ThronedTitleBar.h"
+#include "include/ui/widget/ThronedWindowChrome.h"
 
 #include <QComboBox>
 #include <QAbstractItemView>
 #include <QCompleter>
-#include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -75,7 +76,14 @@ DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int pr
     : QDialog(parent), m_connection(connection), m_preferredProfileId(preferredProfileId) {
     setWindowTitle(tr("Route path lookup"));
 
-    auto *layout = new QVBoxLayout(this);
+    auto *root = new QVBoxLayout(this);
+    root->setContentsMargins(1, 1, 1, 1);
+    root->setSpacing(0);
+    root->addWidget(ThronedChrome::install(this, windowTitle()));
+    auto *body = new QWidget(this);
+    root->addWidget(body, 1);
+    auto *layout = new QVBoxLayout(body);
+    layout->setContentsMargins(12, 10, 12, 12);
 
     m_scope = new QLabel(this);
     m_scope->setTextFormat(Qt::PlainText);
@@ -204,10 +212,6 @@ DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int pr
     m_steps->setColumnWidth(RuleTesterColRule, ch * 30);
     m_steps->setColumnWidth(RuleTesterColAction, ch * 24);
     layout->addWidget(m_steps, 1);
-
-    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
-    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    layout->addWidget(buttons);
 
     if (m_connection != nullptr) {
         connect(m_connection, &Engine::ConnectionManager::statusChanged, this, [this] {

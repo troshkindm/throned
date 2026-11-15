@@ -2184,7 +2184,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>While Throne is running, block all traffic that does not go through Throne, including when no profile is running.
-        The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</source>
+The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2750,7 +2750,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Fastest: always use the best measured profile out of all of them.
-        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2903,7 +2903,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Fastest: always use the best measured profile out of all of them.
-        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4783,19 +4783,19 @@ Error: %1</source>
     </message>
     <message>
         <source>The core did not get administrator rights, although they were granted. The log shows why.
-        
-        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+
+Restart Throned as administrator to use Tun Mode and the kill switch.</source>
         <translation>هسته با وجود اعطای دسترسی، با دسترسی مدیر اجرا نشد. علت در گزارش آمده است.
-        
-        برای استفاده از حالت Tun و کیل سوییچ، Throned را با دسترسی مدیر دوباره اجرا کنید.</translation>
+
+برای استفاده از حالت Tun و کیل سوییچ، Throned را با دسترسی مدیر دوباره اجرا کنید.</translation>
     </message>
     <message>
         <source>Tun Mode and the kill switch need the core to run with administrator rights.
-        
-        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+
+Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
         <translation>حالت Tun و کیل سوییچ نیاز دارند که هسته با دسترسی مدیر اجرا شود.
-        
-        یک بار با تأیید ویندوز این دسترسی را بدهید؛ خود Throned همچنان به‌عنوان کاربر عادی اجرا می‌شود.</translation>
+
+یک بار با تأیید ویندوز این دسترسی را بدهید؛ خود Throned همچنان به‌عنوان کاربر عادی اجرا می‌شود.</translation>
     </message>
     <message>
         <source>Throned can restart as administrator instead.</source>
@@ -4811,14 +4811,14 @@ Error: %1</source>
     </message>
     <message>
         <source>The core did not get administrator rights, although they were granted. The log shows why.
-        
-        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+
+Restart Throned as administrator to use Tun Mode and the kill switch.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Tun Mode and the kill switch need the core to run with administrator rights.
-        
-        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+
+Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

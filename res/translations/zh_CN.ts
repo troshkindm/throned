@@ -6160,7 +6160,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Fastest: always use the best measured profile out of all of them.
-        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6305,7 +6305,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Fastest: always use the best measured profile out of all of them.
-        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -9964,19 +9964,19 @@ Error: %1</source>
     </message>
     <message>
         <source>The core did not get administrator rights, although they were granted. The log shows why.
-        
-        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+
+Restart Throned as administrator to use Tun Mode and the kill switch.</source>
         <translation>虽然已授予管理员权限，但核心未能以管理员身份运行。原因请查看日志。
-        
-        请以管理员身份重启 Throned 以使用 Tun 模式和急停开关。</translation>
+
+请以管理员身份重启 Throned 以使用 Tun 模式和急停开关。</translation>
     </message>
     <message>
         <source>Tun Mode and the kill switch need the core to run with administrator rights.
-        
-        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+
+Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
         <translation>Tun 模式和急停开关需要核心以管理员权限运行。
-        
-        只需在 Windows 确认窗口中授予一次；Throned 本身仍以标准用户身份运行。</translation>
+
+只需在 Windows 确认窗口中授予一次；Throned 本身仍以标准用户身份运行。</translation>
     </message>
     <message>
         <source>Throned can restart as administrator instead.</source>
@@ -9992,14 +9992,14 @@ Error: %1</source>
     </message>
     <message>
         <source>The core did not get administrator rights, although they were granted. The log shows why.
-        
-        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+
+Restart Throned as administrator to use Tun Mode and the kill switch.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Tun Mode and the kill switch need the core to run with administrator rights.
-        
-        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+
+Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

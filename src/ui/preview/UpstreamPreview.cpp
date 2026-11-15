@@ -12,8 +12,17 @@
 #include "include/ui/scanner/dialog_new_scan.h"
 #include "include/ui/scanner/dialog_scan_instance.h"
 #include "include/ui/setting/dialog_integration.h"
+#include "include/ui/setting/dialog_manage_routes.h"
+#include "include/ui/setting/dialog_rule_tester.h"
+#include "include/ui/setting/ProcessPicker.h"
+#include "include/ui/group/dialog_edit_group_advanced.h"
+#include "include/ui/profile/dialog_edit_profile.h"
+#include "include/engine/EngineHost.h"
 
 #include <QApplication>
+#include <QMenu>
+#include <functional>
+#include <memory>
 #include <QJsonArray>
 #include <QDebug>
 #include <QTemporaryDir>
@@ -137,6 +146,78 @@ bool verifyDirectDns() {
 }
 } // namespace
 
+// Screens the November 2026 upstream merge brought in; each is shown, captured and closed in turn.
+static void captureNovemberScreens(QWidget *parent, const QString &prefix) {
+    struct Step {
+        QString name;
+        std::function<QWidget *()> open;
+    };
+    auto steps = std::make_shared<QList<Step>>();
+    *steps << Step{QStringLiteral("tor"), [parent]() -> QWidget * {
+                       auto *routing = new DialogManageRoutes(parent);
+                       auto *tabs = routing->findChild<QTabWidget *>(QStringLiteral("routeSettingsPages"));
+                       auto *tor = routing->findChild<QWidget *>(QStringLiteral("tab_tor"));
+                       if (tabs && tor) tabs->setCurrentWidget(tor);
+                       return routing;
+                   }};
+    *steps << Step{QStringLiteral("rule-tester"), [parent]() -> QWidget * {
+                       auto *host = Engine::host();
+                       return host ? new DialogRuleTester(host->connection(), -1, parent) : nullptr;
+                   }};
+    *steps << Step{QStringLiteral("process-picker"), [parent]() -> QWidget * {
+                       return new ProcessPicker(parent, {ProcessPicker::Match::Name, ProcessPicker::Match::Path});
+                   }};
+    *steps << Step{QStringLiteral("group-filters"), [parent]() -> QWidget * {
+                       return new DialogEditGroupAdvanced(Configs::SubscriptionOptions{}, 0, Configs::EndpointSource{}, true, 12, parent);
+                   }};
+    for (const auto *menuName: {"menuRouting_Menu", "menu_server", "menuTesting"}) {
+        *steps << Step{QString::fromLatin1(menuName), [parent, menuName]() -> QWidget * {
+                           auto *menu = parent->findChild<QMenu *>(QString::fromLatin1(menuName));
+                           if (menu == nullptr) return nullptr;
+                           // aboutToShow is where the menus refresh their entries' state.
+                           emit menu->aboutToShow();
+                           menu->popup(parent->mapToGlobal(QPoint(40, 40)));
+                           return menu;
+                       }};
+    }
+    for (const auto *type: {"dnstt", "masterdns"}) {
+        *steps << Step{QString::fromLatin1(type), [parent, type]() -> QWidget * {
+                           const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+                           if (!group) return nullptr;
+                           auto *editor = new DialogEditProfile(QString::fromLatin1(type), group->id, parent);
+                           editor->setInitialCommonFields(QStringLiteral("Example tunnel"), QStringLiteral("t.example.com"), QStringLiteral("53"));
+                           return editor;
+                       }};
+    }
+    auto next = std::make_shared<std::function<void(int)>>();
+    *next = [steps, next, prefix](int index) {
+        if (index >= steps->size()) {
+            qApp->exit(0);
+            return;
+        }
+        const auto &step = steps->at(index);
+        QWidget *widget = step.open();
+        if (widget == nullptr) {
+            qWarning() << "Upstream preview: could not open" << step.name;
+            qApp->exit(2);
+            return;
+        }
+        widget->show();
+        const QString name = step.name;
+        QTimer::singleShot(400, widget, [widget, next, prefix, name, index] {
+            const bool ok = captureUpstream(widget, prefix + "-" + name + ".png");
+            widget->hide();
+            if (!qobject_cast<QMenu *>(widget)) widget->deleteLater();
+            if (!ok) {
+                qApp->exit(2);
+                return;
+            }
+            (*next)(index + 1);
+        });
+    };
+    (*next)(0);
+}
+
 void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
     if (!verifyDatabaseMigration() || !verifyDirectDns()) {
         qCritical() << "Upstream database migration, subscription scheduling or Direct DNS generation failed";
@@ -179,11 +260,15 @@ void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
                 auto *tabs = integration->findChild<QTabWidget *>("tabWidget");
                 if (tabs) tabs->setCurrentIndex(tabs->count() - 1);
                 integration->show();
-                QTimer::singleShot(300, integration, [integration, prefix] {
+                QTimer::singleShot(300, integration, [integration, parent, prefix] {
                     const bool ok = captureUpstream(integration, prefix + "-integration.png");
                     integration->hide();
                     integration->deleteLater();
-                    qApp->exit(ok ? 0 : 2);
+                    if (!ok) {
+                        qApp->exit(2);
+                        return;
+                    }
+                    captureNovemberScreens(parent, prefix);
                 });
             });
         });

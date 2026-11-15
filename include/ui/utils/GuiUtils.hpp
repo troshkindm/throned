@@ -81,7 +81,7 @@ inline QString GroupDeleteRefusalText(const Engine::ServiceError &error) {
 #define ADD_ASTERISK(parent)                                                               \
     for (auto label: parent->findChildren<QLabel *>()) {                                   \
         auto text = label->text();                                                         \
-        if (!label->toolTip().isEmpty() && !text.endsWith("*")) {                          \
+        if (!label->toolTip().isEmpty() && !text.isEmpty() && !text.endsWith("*")) {       \
             label->setText(text + "*");                                                    \
         }                                                                                  \
     }                                                                                      \
