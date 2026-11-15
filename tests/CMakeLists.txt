@@ -219,6 +219,7 @@ throned_add_qt_test(throned_simple_routes_page_tests
             ${PROJECT_SOURCE_DIR}/src/database/entities/AppRoutes.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
+            stub_process_rules.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Qt6::Svg Throned::FkYAML Throned::SQLiteCpp)
 qt_add_resources(throned_simple_routes_page_tests "simple_test_catalog"
