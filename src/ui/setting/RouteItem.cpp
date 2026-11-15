@@ -22,6 +22,7 @@
 #include <numeric>
 
 #include <QCheckBox>
+#include <QPointer>
 #include <QComboBox>
 #include <QAbstractButton>
 #include <QAction>

@@ -126,6 +126,7 @@ throned_add_qt_test(throned_tests
 
 throned_add_qt_test(throned_route_tests
         SOURCES test_route_rule.cpp ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
+            stub_process_rules.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Throned::FkYAML Throned::SQLiteCpp)
 
 throned_add_qt_test(throned_app_routes_tests
@@ -134,6 +135,7 @@ throned_add_qt_test(throned_app_routes_tests
             ${PROJECT_SOURCE_DIR}/src/database/entities/RuleLine.cpp
             ${PROJECT_SOURCE_DIR}/src/database/entities/RouteRule.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
+            stub_process_rules.cpp
         LIBRARIES Qt6::Widgets Qt6::Network Throned::FkYAML Throned::SQLiteCpp)
 target_compile_definitions(throned_app_routes_tests PRIVATE APP_CATALOG="${PROJECT_SOURCE_DIR}/res/routing/apps.json")
 
