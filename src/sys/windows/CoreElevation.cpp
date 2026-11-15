@@ -25,7 +25,7 @@
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/windows/MiniDump.h"
 #include "include/sys/windows/guihelper.h"
-#include "3rdparty/WinCommander.hpp"
+#include <WinCommander.hpp>
 #include "NkrVersion.h"
 
 #include <windows.h>
