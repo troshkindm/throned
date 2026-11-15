@@ -6,6 +6,7 @@
 
 #include <optional>
 
+#include "include/configs/RouteRuleOrigin.h"
 #include "include/database/entities/Profile.h"
 
 namespace Configs {
@@ -38,6 +39,8 @@ struct AutoSelectorBuildInfo {
     QString groupTag;
     std::shared_ptr<Profile> profile;
     QList<QPair<QString, std::shared_ptr<Profile>>> members;
+    // Members dial through chain hops in front of the selector.
+    bool upstream = false;
 };
 
 class BuildConfigResult {
@@ -68,6 +71,8 @@ public:
     int routeId = -1;
     // The Xray sidecar's outbound resolution, read under the build's routing profile; empty without Xray.
     QString xrayDnsStrategy;
+    // One per route.rules entry; empty for a custom full config.
+    QList<RouteRuleOrigin> routeRuleOrigins;
 };
 
 class BuildTestConfigResult {
@@ -123,6 +128,9 @@ inline QString get_jsdelivr_link(QString link) {
 
 constexpr int warpProfileID = -2408;
 
+// The stored identity of the built-in WARP's mode ("wireguard", "amnezia" or "masque") is complete enough to build.
+bool WarpConfigured(const QString &mode);
+
 struct PredefinedDNSEntry {
     QString domain;
     QStringList v4;
@@ -149,6 +157,14 @@ struct DnsAddress {
 // "local...", "dhcp://auto|<iface>", "udp|tcp|tls|quic://host[:port]", "https|h3://host[:port][/path]" or a bare "host[:port]" (udp).
 bool ParseDnsAddress(const QString &text, DnsAddress *out, QString *why = nullptr);
 
+// A DNS setting holds one or more comma-separated addresses; several are raced and the first definitive answer wins.
+QStringList SplitDnsAddresses(const QString &text);
+
+// Empty when every address parses; otherwise why, naming the bad address when there are several.
+QString DnsAddressListProblem(const QString &text);
+
+QString NormalizeDnsAddressList(const QString &text);
+
 // routeId overrides the routing profile, which otherwise follows ent's group (RouteIdFor).
 std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent, std::optional<int> routeId = std::nullopt);
 std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent, ConfigBuildPurpose purpose,
@@ -159,6 +175,15 @@ std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Prof
 // strict_route filters live and die with the core process, so the moment it
 // exits the block disappears with it.
 std::shared_ptr<BuildConfigResult> BuildBlackholeConfig();
+
+struct RuleTestBuild {
+    QString error;
+    std::shared_ptr<BuildConfigResult> build;
+    int profileId = -1;
+};
+
+// UI thread. Offline and consumes no OTP code; built from preferredProfileId when it can build routes, else from another profile.
+RuleTestBuild BuildRuleTestConfig(int routeId, int preferredProfileId);
 
 // coreUnreachable is set when a false came from a failed core call rather than from the config.
 bool IsValid(const std::shared_ptr<Profile> &ent, bool *coreUnreachable = nullptr);
@@ -229,6 +254,25 @@ QString ValidateScanBase(const std::shared_ptr<Profile> &base);
 
 // Worker thread only; group landing/front hops are not applied.
 ScanTestBuild BuildScanTestConfig(const std::shared_ptr<Profile> &base, const QList<ScanTestTarget> &targets);
+
+struct ChainStepProbe {
+    // Index into the top-to-bottom hop list; hops.size() stands for the group's landing proxy.
+    int hop = -1;
+    // The hop dialed by itself rather than through every hop above it.
+    bool alone = false;
+};
+
+struct ChainStepTestBuild {
+    QString error;
+    std::shared_ptr<BuildTestConfigResult> build;
+    QHash<QString, ChainStepProbe> tag2probe;
+    QSet<int> invalidHops;
+    QStringList vpnEndpointTags;
+    bool hasLanding = false;
+};
+
+// Worker thread only. Unsaved hops, top first; the group's front proxy leads every probe.
+ChainStepTestBuild BuildChainStepTestConfig(const QList<int> &hops, int gid);
 
 // Accepts host, host:port, [v6] and [v6]:port; a bare IPv6 address takes defaultPort.
 void SplitWarpEndpoint(const QString &endpoint, int defaultPort, QString &host, int &port);

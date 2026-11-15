@@ -161,6 +161,8 @@ throned_add_qt_test(throned_outbound_tests
             ${PROJECT_SOURCE_DIR}/src/configs/common/multiplex.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/xrayStreamSetting.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/xrayMultiplex.cpp
+            ${PROJECT_SOURCE_DIR}/src/configs/common/ResolverSource.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/IpListsRepo.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/utils.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/ParseDiagnostics.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp

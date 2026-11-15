@@ -62,14 +62,17 @@ bool AutoSelectorController::rankBeforeStart(const std::shared_ptr<Configs::Prof
     // A pool can still need ranking right after a sweep (validity 0, refused sweep); re-ranking on resume would loop.
     const bool justRanked = std::exchange(rankedFor_, -1) == ent->id;
     // A second sweep would only be refused while one runs, and an early-started selector restarts during it.
-    if (ent->type != "autoselector" || rankingInFlight_ > 0 || justRanked) return false;
-    const auto plan = Configs::PlanAutoSelector(ent);
+    if (rankingInFlight_ > 0 || justRanked) return false;
+    // Behind fixed hops a direct test says nothing about a member, so the core ranks them itself.
+    const auto selectorEnt = Configs::RunningSelectorOf(ent);
+    if (selectorEnt == nullptr || Configs::SelectorBehindHops(ent)) return false;
+    const auto plan = Configs::PlanAutoSelector(selectorEnt);
     if (!plan.error.isEmpty() || !plan.needsRanking) return false;
 
     ++rankingInFlight_;
     const auto resumeRanked = [=, this] { startRanked(ent->id, resume); };
     runOnNewThread([=, this] {
-        const bool startedEarly = rank(ent, interactive, {}, resumeRanked);
+        const bool startedEarly = rank(selectorEnt, interactive, {}, resumeRanked);
         runOnUiThread([=, this] {
             --rankingInFlight_;
             if (startedEarly)
@@ -90,9 +93,9 @@ void AutoSelectorController::startRanked(int profileID, const std::function<void
 
 void AutoSelectorController::noteBuilt(const std::shared_ptr<Configs::Profile> &ent, const QList<Configs::AutoSelectorBuildInfo> &builds) {
     Stats::autoSelectorMonitor->SetBuild(builds);
-    if (!builds.isEmpty()) {
+    if (const auto selectorEnt = Configs::RunningSelectorOf(ent); !builds.isEmpty() && selectorEnt != nullptr) {
         const auto &info = builds.first();
-        if (auto selector = ent->AutoSelector(); selector != nullptr) {
+        if (auto selector = selectorEnt->AutoSelector(); selector != nullptr) {
             QList<int> builtIDs;
             QHash<int, QString> names;
             for (const auto &[tag, member]: info.members) {
@@ -104,7 +107,7 @@ void AutoSelectorController::noteBuilt(const std::shared_ptr<Configs::Profile> &
             selector->lastBuilt = builtIDs;
             selector->lastBuiltAt = now;
             selector->RecordHistory(builtIDs, names, now);
-            Configs::dataManager->profilesRepo->Save(ent);
+            Configs::dataManager->profilesRepo->Save(selectorEnt);
             MW_show_log(MainWindowTr::tr("[Auto selector] Running the best %1 of %2 ranked profiles.")
                             .arg(builtIDs.size())
                             .arg(selector->pool.size()));
@@ -205,9 +208,10 @@ void AutoSelectorController::finishEarlySweep(const std::shared_ptr<Configs::Pro
         return;
     }
     runOnNewThread([=, this] {
-        const auto ranked = Configs::RerankAutoSelectorPool(ent);
+        const auto selectorEnt = Configs::RunningSelectorOf(ent);
+        const auto ranked = Configs::RerankAutoSelectorPool(selectorEnt);
         MW_show_log(MainWindowTr::tr("[Auto selector] Ranked %1 profiles.").arg(ranked.size()));
-        const bool changed = Configs::AutoSelectorBuildChanged(ent);
+        const bool changed = Configs::AutoSelectorBuildChanged(selectorEnt);
         runOnUiThread([=, this] {
             if (!changed || control_->connectionState() != ConnectionState::Running) return;
             if (const auto running = control_->runningSnapshot(); running == nullptr || running->id != ent->id) return;
@@ -224,6 +228,7 @@ void AutoSelectorController::onSubscriptionGroupChanged(int gid, const QList<int
     if (gid < 0) return;
     const QSet<int> disturbedSet(disturbed.begin(), disturbed.end());
     const auto running = control_->runningSnapshot();
+    const auto runningSelector = Configs::RunningSelectorOf(running);
     int restartID = -1;
 
     for (int id: Configs::dataManager->profilesRepo->GetProfileIdsByType("autoselector")) {
@@ -239,7 +244,7 @@ void AutoSelectorController::onSubscriptionGroupChanged(int gid, const QList<int
         const auto prunedBuilt = selector->lastBuilt.removeIf(gone);
         if (prunedPool > 0 || prunedBuilt > 0) Configs::dataManager->profilesRepo->Save(ent);
 
-        if (running == nullptr || running->id != ent->id) continue;
+        if (runningSelector == nullptr || runningSelector->id != ent->id) continue;
         // A replaced member keeps its id, so only the disturbed set spots it.
         bool rebuild = prunedBuilt > 0;
         for (int memberID: selector->lastBuilt) {
@@ -247,7 +252,7 @@ void AutoSelectorController::onSubscriptionGroupChanged(int gid, const QList<int
             rebuild = true;
             break;
         }
-        if (rebuild) restartID = ent->id;
+        if (rebuild) restartID = running->id;
     }
 
     if (restartID < 0) return;
@@ -258,15 +263,28 @@ void AutoSelectorController::onSubscriptionGroupChanged(int gid, const QList<int
 void AutoSelectorController::onPoolExhausted(int profileID) {
     auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
     const auto running = control_->runningSnapshot();
-    if (ent == nullptr || running == nullptr || running->id != profileID) return;
+    const auto runningSelector = Configs::RunningSelectorOf(running);
+    if (ent == nullptr || runningSelector == nullptr || runningSelector->id != profileID) return;
+    const int runningID = running->id;
+
+    if (Configs::SelectorBehindHops(running)) {
+        const auto plan = Configs::PlanAutoSelector(ent);
+        if (!plan.error.isEmpty() || plan.pool.size() <= plan.build.size()) return;
+        MW_show_log(MainWindowTr::tr(
+            "[Auto selector] Every running profile stopped working through the hops in front "
+            "of it — rebuilding with the next candidates."));
+        if (auto selector = ent->AutoSelector(); selector != nullptr) Configs::DemoteAutoSelectorMembers(ent, selector->lastBuilt);
+        control_->start(StartRequest{runningID});
+        return;
+    }
 
     MW_show_log(MainWindowTr::tr(
         "[Auto selector] Every running profile stopped working — rebuilding from the "
         "next best candidates."));
     ++rankingInFlight_;
     const auto restart = [=, this] {
-        if (const auto current = control_->runningSnapshot(); current == nullptr || current->id != profileID) return;
-        startRanked(profileID, [=, this] { control_->start(StartRequest{profileID}); });
+        if (const auto current = control_->runningSnapshot(); current == nullptr || current->id != runningID) return;
+        startRanked(runningID, [=, this] { control_->start(StartRequest{runningID}); });
     };
     runOnNewThread([=, this] {
         QList<int> stale;
@@ -275,7 +293,7 @@ void AutoSelectorController::onPoolExhausted(int profileID) {
         runOnUiThread([=, this] {
             --rankingInFlight_;
             if (startedEarly)
-                finishEarlySweep(ent);
+                finishEarlySweep(running);
             else
                 restart();
         });

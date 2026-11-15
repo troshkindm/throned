@@ -31,6 +31,7 @@ struct ProfileInsertRow {
     long long traffic_up = 0;
     bool favorite = false;
     std::string endpoint_json = "{}";
+    std::string service_checks;
 };
 // icons is the icons/ folder, handled by the UI layer rather than the database.
 struct BackupParts {

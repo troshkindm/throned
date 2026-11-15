@@ -1,18 +1,26 @@
 package sysdns
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"net/netip"
 	"os"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	"ThroneCore/internal/pfctl"
+
+	"github.com/sagernet/sing-box/option"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -25,6 +33,8 @@ const (
 	stateDir  = "/var/db/Throne"
 	stateFile = stateDir + "/system-dns.json"
 	lockFile  = stateDir + "/system-dns.lock"
+	// Ahead of Apple's children, like the kill switch's anchors.
+	redirectAnchor = pfctl.RootAnchor + "/000.throne-dns"
 )
 
 // record is written before every change, so whatever a dead core left behind can be put back by the next one.
@@ -32,15 +42,20 @@ type record struct {
 	PID      int                 `json:"pid"`
 	Alias    bool                `json:"alias,omitempty"`
 	Services map[string][]string `json:"services,omitempty"`
+	Redirect bool                `json:"redirect,omitempty"`
+	Token    string              `json:"token,omitempty"`
+	TokenPID string              `json:"tokenPid,omitempty"`
 }
 
 var (
 	mu        sync.Mutex
 	owned     record
-	current   string
 	monitor   tun.DefaultInterfaceMonitor
 	callback  *list.Element[tun.DefaultInterfaceUpdateCallback]
 	followGen int
+	// listenPort is where the dns-system inbound listens: behind the redirect, or 53 when pf cannot redirect.
+	listenPort      uint16
+	redirectFailing bool
 )
 
 var serviceOrderPattern = regexp.MustCompile(`(?m)^\((\d+|\*)\) (.+)\n\(Hardware Port: .*, Device: (.*)\)$`)
@@ -70,10 +85,36 @@ func Prepare() error {
 			return err
 		}
 	}
+	port, err := redirectLocked()
+	if err == nil {
+		listenPort = port
+		return nil
+	}
+	log.Println("system DNS: listening on port 53 itself, so macOS Internet Sharing's DNS proxy cannot start:", err)
+	releaseRedirectLocked()
+	listenPort = 53
 	return probe()
 }
 
-// Apply points the default interface's network service at Address and follows the default interface from then on.
+// AdjustInbound moves generate.cpp's dns-system inbound, written for port 53, to the port Prepare chose.
+func AdjustInbound(options *option.Options) {
+	mu.Lock()
+	port := listenPort
+	mu.Unlock()
+	if port == 0 {
+		return
+	}
+	for _, inbound := range options.Inbounds {
+		if listen, ok := inbound.Options.(option.ListenOptionsWrapper); ok && inbound.Tag == InboundTag {
+			listenOptions := listen.TakeListenOptions()
+			listenOptions.ListenPort = port
+			listen.ReplaceListenOptions(listenOptions)
+		}
+	}
+}
+
+// Apply points every network service with a device at Address, so switching interfaces never meets a service's own DNS,
+// and points services that show up later on each default interface change.
 func Apply(interfaceMonitor tun.DefaultInterfaceMonitor) error {
 	mu.Lock()
 	defer mu.Unlock()
@@ -87,6 +128,9 @@ func Apply(interfaceMonitor tun.DefaultInterfaceMonitor) error {
 		// Off the monitor's goroutine: networksetup is slow, and each run reconciles to the latest default anyway.
 		go follow(gen)
 	})
+	if owned.Redirect {
+		go keepRedirect(gen)
+	}
 	return followLocked()
 }
 
@@ -98,18 +142,20 @@ func Release() {
 	if monitor != nil && callback != nil {
 		monitor.UnregisterCallback(callback)
 	}
-	monitor, callback, current = nil, nil, ""
+	monitor, callback = nil, nil
+	listenPort = 0
 	if owned.PID == 0 {
 		return
 	}
 	for service := range owned.Services {
 		restoreLocked(service)
 	}
+	releaseRedirectLocked()
 	if owned.Alias {
 		removeAlias()
 		owned.Alias = false
 	}
-	if len(owned.Services) > 0 {
+	if len(owned.Services) > 0 || owned.Redirect {
 		// Kept under this PID: the next core retries once this process is gone.
 		if err := saveLocked(); err != nil {
 			log.Println("system DNS:", err)
@@ -141,25 +187,39 @@ func follow(gen int) {
 	}
 }
 
+// followLocked points every service not pointed yet; only a failure on the default interface's service is an error.
 func followLocked() error {
-	defaultInterface := monitor.DefaultInterface()
-	if defaultInterface == nil {
-		return nil
-	}
-	service, err := serviceForDevice(defaultInterface.Name)
+	services, err := listServices()
 	if err != nil {
 		return err
 	}
-	if service == current {
-		return nil
+	var defaultDevice string
+	if defaultInterface := monitor.DefaultInterface(); defaultInterface != nil {
+		defaultDevice = defaultInterface.Name
 	}
-	if err = pointLocked(service); err != nil {
-		return err
+	defaultFound := defaultDevice == ""
+	var defaultErr error
+	for _, service := range services {
+		isDefault := service.device == defaultDevice
+		defaultFound = defaultFound || isDefault
+		if _, pointed := owned.Services[service.name]; pointed {
+			continue
+		}
+		if err = pointLocked(service.name); err == nil {
+			continue
+		}
+		if isDefault {
+			defaultErr = err
+		} else {
+			log.Println("system DNS: point", service.name+":", err)
+		}
 	}
-	if previous := current; previous != "" {
-		restoreLocked(previous)
+	if defaultErr != nil {
+		return defaultErr
 	}
-	current = service
+	if !defaultFound {
+		return E.New("no network service uses ", defaultDevice)
+	}
 	return nil
 }
 
@@ -211,11 +271,22 @@ func restoreStaleLocked() map[string][]string {
 			}
 			delete(stored.Services, service)
 		}
+		if stored.Redirect {
+			if err = pfctl.FlushAnchor(redirectAnchor); err != nil {
+				log.Println("system DNS:", err)
+			} else {
+				stored.Redirect = false
+			}
+		}
+		if stored.Token != "" {
+			_ = pfctl.ReleaseToken(stored.Token, stored.TokenPID)
+			stored.Token, stored.TokenPID = "", ""
+		}
 		if stored.Alias {
 			removeAlias()
 			stored.Alias = false
 		}
-		if len(stored.Services) == 0 {
+		if len(stored.Services) == 0 && !stored.Redirect {
 			return os.Remove(stateFile)
 		}
 		leftovers = stored.Services
@@ -344,18 +415,165 @@ func probe() error {
 	return listener.Close()
 }
 
-func serviceForDevice(device string) (string, error) {
-	output, err := shell.Exec("/usr/sbin/networksetup", "-listnetworkserviceorder").ReadOutput()
+// redirectLocked keeps the listener off port 53: mDNSResponder's Internet Sharing DNS proxy binds *:53 without
+// SO_REUSEADDR, which XNU refuses next to any specific-address :53 socket (#2061).
+func redirectLocked() (uint16, error) {
+	target, port, err := reservePort()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	for _, match := range serviceOrderPattern.FindAllStringSubmatch(output, -1) {
-		// "(*)" marks a disabled service.
-		if match[1] != "*" && match[3] == device {
-			return match[2], nil
+	defer target.Close()
+	token, tokenPID, err := pfctl.Enable()
+	if token != "" {
+		owned.Token, owned.TokenPID = token, tokenPID
+	}
+	if err != nil {
+		return 0, E.Cause(err, "enable pf")
+	}
+	owned.Redirect = true
+	if err = saveLocked(); err != nil {
+		return 0, err
+	}
+	if err = loadRedirect(port); err != nil {
+		return 0, err
+	}
+	return port, checkRedirect(target)
+}
+
+func releaseRedirectLocked() {
+	if owned.Redirect {
+		if err := pfctl.FlushAnchor(redirectAnchor); err != nil {
+			log.Println("system DNS:", err)
+		} else {
+			owned.Redirect = false
 		}
 	}
-	return "", E.New("no enabled network service uses ", device)
+	if owned.Token != "" {
+		if err := pfctl.ReleaseToken(owned.Token, owned.TokenPID); err != nil {
+			log.Println("system DNS: release the pf reference:", err)
+		}
+		owned.Token, owned.TokenPID = "", ""
+	}
+	redirectFailing = false
+}
+
+func loadRedirect(port uint16) error {
+	rule := fmt.Sprintf("rdr pass on lo0 inet proto { tcp udp } from any to %s port 53 -> %s port %d\n", Address, Address, port)
+	_, err := pfctl.Run([]byte(rule), "-a", redirectAnchor, "-f", "-")
+	return err
+}
+
+// reservePort finds a port on Address free for both UDP and TCP, and keeps the UDP socket for checkRedirect.
+func reservePort() (*net.UDPConn, uint16, error) {
+	config := net.ListenConfig{Control: control.ReuseAddr()}
+	for range 8 {
+		packetConn, err := config.ListenPacket(context.Background(), "udp4", net.JoinHostPort(Address, "0"))
+		if err != nil {
+			return nil, 0, E.Cause(err, "listen on ", Address)
+		}
+		udpConn := packetConn.(*net.UDPConn)
+		port := udpConn.LocalAddr().(*net.UDPAddr).Port
+		listener, err := config.Listen(context.Background(), "tcp4", net.JoinHostPort(Address, strconv.Itoa(port)))
+		if err == nil {
+			listener.Close()
+			return udpConn, uint16(port), nil
+		}
+		udpConn.Close()
+	}
+	return nil, 0, E.New("no port on ", Address, " is free for both UDP and TCP")
+}
+
+// checkRedirect catches a pf.conf that skips lo0 or has no rdr-anchor "com.apple/*".
+func checkRedirect(target *net.UDPConn) error {
+	client, err := net.DialUDP("udp4", nil, net.UDPAddrFromAddrPort(netip.AddrPortFrom(netip.MustParseAddr(Address), 53)))
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	deadline := time.Now().Add(time.Second)
+	_ = client.SetDeadline(deadline)
+	_ = target.SetDeadline(deadline)
+	payload := make([]byte, 16)
+	_, _ = rand.Read(payload)
+	buffer := make([]byte, 64)
+	if _, err = client.Write(payload); err != nil {
+		return E.Cause(err, "check the pf redirect")
+	}
+	n, from, err := target.ReadFromUDPAddrPort(buffer)
+	if err != nil || !bytes.Equal(buffer[:n], payload) {
+		return E.New("pf did not redirect ", Address, ":53")
+	}
+	if _, err = target.WriteToUDPAddrPort(payload, from); err != nil {
+		return E.Cause(err, "check the pf redirect")
+	}
+	// The client is connected to port 53, so it only takes the reply if pf translated the source back.
+	n, err = client.Read(buffer)
+	if err != nil || !bytes.Equal(buffer[:n], payload) {
+		return E.New("pf did not translate replies from ", Address, ":53 back")
+	}
+	return nil
+}
+
+// keepRedirect puts the redirect back when another program flushes it or turns pf off: system DNS dies without it.
+func keepRedirect(gen int) {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		mu.Lock()
+		if gen != followGen || !owned.Redirect {
+			mu.Unlock()
+			return
+		}
+		err := ensureRedirectLocked()
+		if err != nil && !redirectFailing {
+			log.Println("system DNS: restore the pf redirect:", err)
+		}
+		redirectFailing = err != nil
+		mu.Unlock()
+	}
+}
+
+func ensureRedirectLocked() error {
+	info, err := pfctl.Run(nil, "-s", "info")
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(info.Stdout, "Status: Enabled") {
+		// pfctl -d freed our reference along with everyone else's.
+		token, tokenPID, enableErr := pfctl.Enable()
+		if token != "" {
+			owned.Token, owned.TokenPID = token, tokenPID
+			_ = saveLocked()
+		}
+		if enableErr != nil {
+			return enableErr
+		}
+	}
+	rules, err := pfctl.Run(nil, "-a", redirectAnchor, "-s", "nat")
+	if err != nil || strings.TrimSpace(rules.Stdout) != "" {
+		return err
+	}
+	return loadRedirect(listenPort)
+}
+
+type networkService struct {
+	name   string
+	device string
+}
+
+// listServices includes disabled services, which can be enabled while the Tun runs, and skips deviceless ones such as other VPNs.
+func listServices() ([]networkService, error) {
+	output, err := shell.Exec("/usr/sbin/networksetup", "-listnetworkserviceorder").ReadOutput()
+	if err != nil {
+		return nil, err
+	}
+	var services []networkService
+	for _, match := range serviceOrderPattern.FindAllStringSubmatch(output, -1) {
+		if match[3] != "" {
+			services = append(services, networkService{name: match[2], device: match[3]})
+		}
+	}
+	return services, nil
 }
 
 func dnsServers(service string) ([]string, error) {

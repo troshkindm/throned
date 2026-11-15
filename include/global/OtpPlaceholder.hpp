@@ -24,5 +24,14 @@ private:
     QHash<int, OTP::Entry> hotpProfiles;
 };
 
+// While alive, ResolveOtpCode() on this thread answers empty and leaves HOTP counters alone.
+class ScopedOtpSuppression {
+public:
+    ScopedOtpSuppression();
+    ~ScopedOtpSuppression();
+    ScopedOtpSuppression(const ScopedOtpSuppression &) = delete;
+    ScopedOtpSuppression &operator=(const ScopedOtpSuppression &) = delete;
+};
+
 QString SubstituteOtp(const QString &text, const QString &code);
 } // namespace Configs

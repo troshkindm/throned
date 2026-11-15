@@ -32,6 +32,7 @@
 #include "include/database/RoutesRepo.h"
 #include "include/api/remote/Server.hpp"
 #include "include/configs/generate.h"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EngineHost.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/app/ExitController.h"
@@ -64,6 +65,8 @@
 
 #ifdef Q_OS_WIN
 #include <WinCommander.hpp>
+#include "include/sys/CoreElevation.hpp"
+#include "include/sys/windows/guihelper.h"
 #include "include/sys/windows/WinVersion.h"
 #endif
 
@@ -120,7 +123,10 @@ void MainWindow::openRouteProfileEditor(int routeId) {
         connect(item, &RouteItem::settingsChanged, this, onSaved);
         editor = item;
     }
-    connect(editor, &QDialog::finished, this, [=, this] {
+    // The API must not edit what this editor saves back on OK.
+    auto routeLock = std::make_shared<Engine::EditLock>(Engine::EditTarget::Routes, routeId);
+    connect(editor, &QDialog::finished, this, [this, editor, routeLock]() mutable {
+        routeLock.reset();
         editor->deleteLater();
         setDialogInUse(false);
     });
@@ -186,7 +192,7 @@ void MainWindow::on_menu_exit_triggered() {
     const auto program = QApplication::applicationFilePath();
     QStringList arguments;
     if (restart) {
-        arguments = Configs::dataManager->settingsRepo->argv;
+        arguments = LaunchArgs_WithoutPayload(Configs::dataManager->settingsRepo->argv);
         if (arguments.length() > 0) {
             arguments.removeFirst();
             arguments.removeAll("-tray");
@@ -205,7 +211,7 @@ void MainWindow::on_menu_exit_triggered() {
         if (!launched) {
             exitController()->setExitInProgress(false);
             exit_reason = ExitReason::None;
-            MW_show_log(tr("Restart as administrator was cancelled, Throne keeps running"));
+            MW_show_log(tr("Restart as administrator was cancelled, Throned keeps running"));
             return;
         }
         relaunched = true;
@@ -394,7 +400,7 @@ void MainWindow::OpenDashboard() {
     const auto &settings = *Configs::dataManager->settingsRepo;
     const auto port = settings.core_box_api_port;
     if (port <= 0) {
-        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Basic Settings > Core."));
+        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Integration Settings > Core APIs."));
         return;
     }
     if (settings.started_id < 0) {

@@ -29,6 +29,8 @@
 #include "include/configs/outbounds/extracore.h"
 #include "include/configs/outbounds/naive.h"
 #include "include/configs/outbounds/direct.h"
+#include "include/configs/outbounds/dnstt.h"
+#include "include/configs/outbounds/masterdns.h"
 
 namespace Configs {
 outbound* NewOutboundByType(const QString& type) {
@@ -59,6 +61,8 @@ outbound* NewOutboundByType(const QString& type) {
     if (type == "extracore") return new extracore();
     if (type == "naive") return new naive();
     if (type == "direct") return new direct();
+    if (type == "dnstt") return new dnstt();
+    if (type == "masterdns") return new masterdns();
     auto* ob = new outbound();
     ob->invalid = true;
     return ob;

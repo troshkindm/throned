@@ -78,16 +78,17 @@ inline QString GroupDeleteRefusalText(const Engine::ServiceError &error) {
     if (result.isEmpty()) CACHE.a = "";                                               \
     editor->deleteLater();
 
-#define ADD_ASTERISK(parent)                                         \
-    for (auto label: parent->findChildren<QLabel *>()) {             \
-        auto text = label->text();                                   \
-        if (!label->toolTip().isEmpty() && !text.endsWith("*")) {    \
-            label->setText(text + "*");                              \
-        }                                                            \
-    }                                                                \
-    for (auto checkBox: parent->findChildren<QCheckBox *>()) {       \
-        auto text = checkBox->text();                                \
-        if (!checkBox->toolTip().isEmpty() && !text.endsWith("*")) { \
-            checkBox->setText(text + "*");                           \
-        }                                                            \
+#define ADD_ASTERISK(parent)                                                               \
+    for (auto label: parent->findChildren<QLabel *>()) {                                   \
+        auto text = label->text();                                                         \
+        if (!label->toolTip().isEmpty() && !text.endsWith("*")) {                          \
+            label->setText(text + "*");                                                    \
+        }                                                                                  \
+    }                                                                                      \
+    for (auto button: parent->findChildren<QAbstractButton *>()) {                         \
+        if (!button->inherits("QCheckBox") && !button->inherits("QRadioButton")) continue; \
+        auto text = button->text();                                                        \
+        if (!button->toolTip().isEmpty() && !text.endsWith("*")) {                         \
+            button->setText(text + "*");                                                   \
+        }                                                                                  \
     }

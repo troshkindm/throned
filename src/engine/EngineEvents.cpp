@@ -56,6 +56,14 @@ void EngineEvents::ProfilesRemoved(const QList<int> &profileIds) {
     emit instance() -> profilesRemoved(profileIds);
 }
 
+void EngineEvents::ProfilesChanged(const QList<int> &profileIds) {
+    emit instance() -> profilesChanged(profileIds);
+}
+
+void EngineEvents::RoutesChanged() {
+    emit instance() -> routesChanged();
+}
+
 void EngineEvents::SettingsChanged(const QStringList &keys) {
     emit instance() -> settingsChanged(keys);
 }

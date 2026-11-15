@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QRegularExpression>
 #include <QSet>
 #include <QTimer>
@@ -264,6 +265,18 @@ void Router::dispatch(const Request &request, const Responder &respond) {
         {"POST", "/v1/shutdown", &Router::postShutdown, true},
         {"GET", "/v1/logs", &Router::getLogs, true},
         {"GET", "/v1/events", &Router::getEvents},
+        {"GET", "/v1/profiles/{id}/config", &Router::getProfileConfig, true},
+        {"PUT", "/v1/profiles/{id}/config", &Router::putProfileConfig, true},
+        {"GET", "/v1/routes/schema", &Router::getRouteSchema},
+        {"GET", "/v1/routes/{id}", &Router::getRoute},
+        {"POST", "/v1/routes", &Router::postRoute, true},
+        {"PUT", "/v1/routes/{id}", &Router::putRoute, true},
+        {"DELETE", "/v1/routes/{id}", &Router::deleteRoute, true},
+        {"GET", "/v1/connections", &Router::getConnections, true},
+        {"DELETE", "/v1/connections", &Router::deleteConnections, true},
+        {"GET", "/v1/warp", &Router::getWarp},
+        {"PUT", "/v1/warp", &Router::putWarp, true},
+        {"POST", "/v1/warp/register", &Router::postWarpRegister, true},
     };
 
     const auto &settings = Configs::dataManager->settingsRepo;
@@ -553,6 +566,7 @@ QJsonObject Router::profileJson(const std::shared_ptr<Configs::Profile> &profile
         {"upload_bps", RouterImpl::bitsPerSecond(profile->ul_speed)},
         {"country", profile->test_country},
         {"ip_out", profile->ip_out},
+        {"service_checks", QJsonDocument::fromJson(profile->service_checks.toUtf8()).object()},
         {"traffic_up", profile->traffic_uplink},
         {"traffic_down", profile->traffic_downlink},
         {"running", running != nullptr && running->id == profile->id},
@@ -583,6 +597,8 @@ QJsonObject Router::routeJson(const Configs::RouteProfile &route) {
         {"active", route.id == Configs::dataManager->settingsRepo->current_route_id},
         {"in_use", route.id == Configs::ActiveRouteId()},
         {"source_group_id", route.source_gid},
+        {"kind", route.isRaw ? QStringLiteral("raw") : route.isRemote ? QStringLiteral("remote")
+                                                                      : QStringLiteral("rules")},
     };
 }
 

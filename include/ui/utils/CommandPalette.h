@@ -23,7 +23,7 @@ public:
                     Setting };
         Kind kind = Command;
         QString label;
-        // Where the entry lives, shown after the label: "Groups › Clean up", "Basic Settings › Logging".
+        // Where the entry lives, shown after the label: "Groups › Clean up", "Basic Settings › Logs".
         QString path;
         // Heading used while browsing without a query.
         QString section;

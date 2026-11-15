@@ -142,6 +142,31 @@ void MainWindow::on_menu_clone_triggered() {
     Subscription::updater()->CloneProfiles(entIDs);
 }
 
+void MainWindow::refresh_pin_action() {
+    const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    const auto selected = get_now_selected_list();
+    const bool unpin = group != nullptr && !selected.isEmpty() && std::ranges::all_of(selected, [&group](int id) { return group->IsPinned(id); });
+    ui->menu_pin->setText(unpin ? tr("Unpin") : tr("Pin"));
+}
+
+void MainWindow::on_menu_pin_triggered() {
+    const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    const auto selected = get_now_selected_list();
+    if (group == nullptr || selected.isEmpty()) return;
+
+    QList<int> unpinned;
+    if (std::ranges::all_of(selected, [&group](int id) { return group->IsPinned(id); })) {
+        unpinned = group->UnpinProfiles(selected);
+        if (unpinned.isEmpty()) return;
+    } else if (!group->PinProfiles(selected)) {
+        return;
+    }
+    Configs::dataManager->groupsRepo->Save(group);
+    refresh_proxy_list({}, true);
+    // They wait at the top of the unpinned rows until a kept sort places them.
+    if (!unpinned.isEmpty()) Configs::RepositionLater(QHash<int, QList<int>>{{group->id, unpinned}}, Configs::SortInput::Membership);
+}
+
 void MainWindow::on_menu_delete_repeat_triggered() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (group == nullptr) return;
@@ -186,6 +211,7 @@ void MainWindow::on_menu_delete_repeat_triggered() {
     }
 
     group->profiles = newOrder;
+    group->NormalizePins();
     Configs::dataManager->groupsRepo->Save(group);
     if (!del_ids.isEmpty()) Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids, true);
     refresh_proxy_list({}, true, RefreshAnchor::Removal);
@@ -349,7 +375,7 @@ void MainWindow::display_qr_link(bool nkrFormat) {
             l->setScaledContents(true);
             layout()->addWidget(l);
             cb = new QCheckBox;
-            cb->setText("Deep Link");
+            cb->setText(MainWindow::tr("Deep Link"));
             // Set before wiring toggled, so refresh() below draws it just once.
             cb->setChecked(showDeep);
             layout()->addWidget(cb);

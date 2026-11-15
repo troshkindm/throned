@@ -43,6 +43,10 @@ private:
 
     void copyForScripts();
 
+    void setupCoreApisTab();
+
+    void bindCoreApiValidation();
+
     struct HotkeyEdit {
         QtExtKeySequenceEdit *edit = nullptr;
         QString label;

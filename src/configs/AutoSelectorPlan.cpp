@@ -1,6 +1,7 @@
 #include "include/configs/AutoSelectorPlan.h"
 
 #include "include/configs/outbounds/autoselector.h"
+#include "include/configs/outbounds/chain.h"
 #include "include/configs/outbounds/custom.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
@@ -16,12 +17,20 @@
 
 namespace Configs {
 namespace {
+struct MemberTierFilter {
+    int gid = -1;
+    QRegularExpression name;
+    bool hasName = false;
+};
+
 struct MemberFilters {
     QRegularExpression name;
     bool hasName = false;
     QSet<QString> countries;
     // "!RU": removed whether or not includes are given.
     QSet<QString> excludedCountries;
+    // Priority strategy only, in tier order.
+    QList<MemberTierFilter> tiers;
 };
 
 MemberFilters buildFilters(const autoSelector *selector) {
@@ -38,7 +47,30 @@ MemberFilters buildFilters(const autoSelector *selector) {
         if (code.isEmpty()) continue;
         (exclude ? filters.excludedCountries : filters.countries).insert(code.toUpper());
     }
+    if (selector->Prioritized()) {
+        for (const auto &tier: selector->tiers) {
+            MemberTierFilter tierFilter;
+            tierFilter.gid = tier.gid;
+            if (const auto pattern = tier.nameFilter.trimmed(); !pattern.isEmpty()) {
+                tierFilter.name = QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption);
+                tierFilter.hasName = true;
+            }
+            filters.tiers << tierFilter;
+        }
+    }
     return filters;
+}
+
+// First match wins, tiers.size() when none does; an invalid pattern matches nothing.
+int memberTierOf(const std::shared_ptr<Profile> &member, const MemberFilters &filters) {
+    const auto name = member->outbound->DisplayName();
+    for (int i = 0; i < filters.tiers.size(); i++) {
+        const auto &tier = filters.tiers[i];
+        if (tier.gid >= 0 && member->gid != tier.gid) continue;
+        if (tier.hasName && (!tier.name.isValid() || !tier.name.match(name).hasMatch())) continue;
+        return i;
+    }
+    return static_cast<int>(filters.tiers.size());
 }
 
 bool hasFreshResult(const std::shared_ptr<Profile> &member, const autoSelector *selector, qint64 now) {
@@ -108,11 +140,20 @@ bool xrayFullConfigFitsChain(const std::shared_ptr<Profile> &landing,
     return !landing->outbound->IsXray() && !landing->outbound->IsXrayFullConfig() && !landing->outbound->IsExtraCore();
 }
 
-// Untested (1) outranks failed (2) so a fresh subscription still gets explored.
-int latencyRank(int latency) {
-    if (latency > 0) return 0;
+// Same test as the core's qualifies(): at or over the cap, a member is only a fallback.
+bool overCap(int latency, const autoSelector *selector) {
+    return latency > 0 && selector->maxRTTms > 0 && latency >= selector->maxRTTms;
+}
+
+bool qualifyingLatency(int latency, const autoSelector *selector) {
+    return latency > 0 && !overCap(latency, selector);
+}
+
+// Untested outranks over-cap and failed: it may still qualify, so a fresh subscription gets explored.
+int latencyRank(int latency, const autoSelector *selector) {
+    if (latency > 0) return overCap(latency, selector) ? 2 : 0;
     if (latency == 0) return 1;
-    return 2;
+    return 3;
 }
 
 int effectiveLatency(const std::shared_ptr<Profile> &member, const autoSelector *selector, qint64 now) {
@@ -123,11 +164,11 @@ int effectiveLatencyOf(int id, const autoSelector *selector, qint64 now) {
     return effectiveLatency(dataManager->profilesRepo->GetProfile(id), selector, now);
 }
 
-bool byLatency(int leftLatency, int rightLatency) {
-    const int leftRank = latencyRank(leftLatency);
-    const int rightRank = latencyRank(rightLatency);
+bool byLatency(int leftLatency, int rightLatency, const autoSelector *selector) {
+    const int leftRank = latencyRank(leftLatency, selector);
+    const int rightRank = latencyRank(rightLatency, selector);
     if (leftRank != rightRank) return leftRank < rightRank;
-    if (leftRank == 0) return leftLatency < rightLatency;
+    if (leftLatency > 0) return leftLatency < rightLatency;
     return false;
 }
 
@@ -138,8 +179,9 @@ void sortByLatency(QList<int> &ids, const autoSelector *selector, qint64 now, co
     for (int id: std::as_const(ids)) {
         latency.insert(id, untrusted.contains(id) ? 0 : effectiveLatencyOf(id, selector, now));
     }
-    std::stable_sort(ids.begin(), ids.end(),
-                     [&latency](int left, int right) { return byLatency(latency.value(left), latency.value(right)); });
+    std::stable_sort(ids.begin(), ids.end(), [&latency, selector](int left, int right) {
+        return byLatency(latency.value(left), latency.value(right), selector);
+    });
 }
 
 QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
@@ -194,6 +236,7 @@ QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
                 skips[AutoSelectorSkip::CoreTransitions]++;
                 continue;
             }
+            if (plan != nullptr && selector->Prioritized()) plan->tierOf.insert(id, memberTierOf(member, filters));
             if (skip == AutoSelectorSkip::Unavailable) {
                 unavailable << id;
                 continue;
@@ -218,7 +261,7 @@ QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
     return members;
 }
 
-// The persisted order is the core's ranking prior: keep it, append newcomers by latency.
+// The persisted order is the core's ranking prior; newcomers follow by latency, over-cap then failed members last.
 QList<int> orderMembers(const QList<int> &members, const QList<int> &persistedPool,
                         const autoSelector *selector, qint64 now) {
     QSet<int> eligible(members.begin(), members.end());
@@ -237,7 +280,52 @@ QList<int> orderMembers(const QList<int> &members, const QList<int> &persistedPo
     }
     sortByLatency(newcomers, selector, now);
     ordered << newcomers;
+
+    QHash<int, int> demotion;
+    demotion.reserve(ordered.size());
+    for (int id: std::as_const(ordered)) {
+        const int latency = effectiveLatencyOf(id, selector, now);
+        demotion.insert(id, latency < 0 ? 2 : overCap(latency, selector) ? 1
+                                                                         : 0);
+    }
+    std::stable_sort(ordered.begin(), ordered.end(),
+                     [&demotion](int left, int right) { return demotion.value(left) < demotion.value(right); });
     return ordered;
+}
+
+// Cuts a tier-sorted list to `limit` without crowding out a tier: each one first gets a fair share, the rest goes in tier order.
+QList<int> capByTier(const QList<int> &ordered, int limit, const QHash<int, int> &tierOf, int noTier) {
+    if (ordered.size() <= limit) return ordered;
+    QList<QList<int>> byTier(noTier + 1);
+    for (int id: ordered) byTier[tierOf.value(id, noTier)] << id;
+    int nonEmpty = 0;
+    for (const auto &members: std::as_const(byTier)) {
+        if (!members.isEmpty()) nonEmpty++;
+    }
+    const int reserve = std::max(1, limit / (2 * nonEmpty));
+    QList<int> quota(byTier.size(), 0);
+    int given = 0;
+    for (int i = 0; i < byTier.size(); i++) {
+        quota[i] = std::min(static_cast<int>(byTier[i].size()), reserve);
+        given += quota[i];
+    }
+    if (given > limit) {
+        // More tiers than slots: one each, in tier order.
+        given = 0;
+        for (int i = 0; i < byTier.size(); i++) {
+            quota[i] = !byTier[i].isEmpty() && given < limit ? 1 : 0;
+            given += quota[i];
+        }
+    }
+    for (int i = 0; i < byTier.size() && given < limit; i++) {
+        const int extra = std::min(static_cast<int>(byTier[i].size()) - quota[i], limit - given);
+        quota[i] += extra;
+        given += extra;
+    }
+    QList<int> capped;
+    capped.reserve(given);
+    for (int i = 0; i < byTier.size(); i++) capped << byTier[i].mid(0, quota[i]);
+    return capped;
 }
 } // namespace
 
@@ -297,10 +385,25 @@ AutoSelectorPlan PlanAutoSelector(const std::shared_ptr<Profile> &ent) {
 
     const auto now = QDateTime::currentSecsSinceEpoch();
     auto ordered = orderMembers(members, selector->pool, selector, now);
+    const int noTier = static_cast<int>(selector->tiers.size());
     plan.truncated = ordered.size() > selector->poolCap;
-    if (plan.truncated) ordered = ordered.mid(0, selector->poolCap);
-    plan.pool = ordered;
-    plan.build = ordered.mid(0, std::min<qsizetype>(ordered.size(), selector->buildLimit));
+    if (selector->Prioritized()) {
+        // The core reads this order as its ranking prior, and capByTier keeps it.
+        std::stable_sort(ordered.begin(), ordered.end(), [&plan, noTier](int left, int right) {
+            return plan.tierOf.value(left, noTier) < plan.tierOf.value(right, noTier);
+        });
+        plan.tierEligible = QList<int>(noTier + 1, 0);
+        for (int id: std::as_const(ordered)) plan.tierEligible[plan.tierOf.value(id, noTier)]++;
+        ordered = capByTier(ordered, selector->poolCap, plan.tierOf, noTier);
+        plan.pool = ordered;
+        plan.build = capByTier(ordered, selector->buildLimit, plan.tierOf, noTier);
+        plan.tierBuilt = QList<int>(noTier + 1, 0);
+        for (int id: std::as_const(plan.build)) plan.tierBuilt[plan.tierOf.value(id, noTier)]++;
+    } else {
+        if (plan.truncated) ordered = ordered.mid(0, selector->poolCap);
+        plan.pool = ordered;
+        plan.build = ordered.mid(0, std::min<qsizetype>(ordered.size(), selector->buildLimit));
+    }
 
     if (ordered.size() > selector->buildLimit) {
         int unranked = 0;
@@ -338,7 +441,7 @@ QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent,
         const int latency = effectiveLatencyOf(id, selector, now);
         if (latency == 0)
             needed << id;
-        else if (latency > 0 && working != nullptr)
+        else if (qualifyingLatency(latency, selector) && working != nullptr)
             ++*working;
     }
     return needed;
@@ -347,7 +450,7 @@ QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent,
 bool AutoSelectorMemberWorks(const std::shared_ptr<Profile> &ent, const std::shared_ptr<Profile> &member) {
     if (ent == nullptr) return false;
     const auto selector = ent->AutoSelector();
-    return selector != nullptr && effectiveLatency(member, selector, QDateTime::currentSecsSinceEpoch()) > 0;
+    return selector != nullptr && qualifyingLatency(effectiveLatency(member, selector, QDateTime::currentSecsSinceEpoch()), selector);
 }
 
 int AutoSelectorStartQuorum(const std::shared_ptr<Profile> &ent) {
@@ -373,7 +476,7 @@ bool AutoSelectorBuildChanged(const std::shared_ptr<Profile> &ent) {
     // The build drops members that fail validation, so an unbuilt one counts only when it is known to work.
     const auto now = QDateTime::currentSecsSinceEpoch();
     for (int id: next) {
-        if (!built.contains(id) && effectiveLatencyOf(id, selector, now) > 0) return true;
+        if (!built.contains(id) && qualifyingLatency(effectiveLatencyOf(id, selector, now), selector)) return true;
     }
     return false;
 }
@@ -391,5 +494,40 @@ QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent, const QLi
     selector->poolRankedAt = QDateTime::currentSecsSinceEpoch();
     dataManager->profilesRepo->Save(ent);
     return members;
+}
+
+void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const QList<int> &members) {
+    if (ent == nullptr || members.isEmpty()) return;
+    auto selector = ent->AutoSelector();
+    if (selector == nullptr) return;
+    const auto plan = PlanAutoSelector(ent);
+    if (!plan.error.isEmpty()) return;
+    const QSet<int> demoted(members.begin(), members.end());
+    QList<int> pool;
+    QList<int> tail;
+    for (int id: plan.pool) (demoted.contains(id) ? tail : pool) << id;
+    selector->pool = pool << tail;
+    dataManager->profilesRepo->Save(ent);
+}
+
+std::shared_ptr<Profile> RunningSelectorOf(const std::shared_ptr<Profile> &ent) {
+    if (ent == nullptr) return nullptr;
+    if (ent->type == "autoselector") return ent;
+    const auto *chain = ent->Chain();
+    if (chain == nullptr) return nullptr;
+    for (int id: chain->list) {
+        if (auto hop = dataManager->profilesRepo->GetProfile(id); hop != nullptr && hop->type == "autoselector") return hop;
+    }
+    return nullptr;
+}
+
+bool SelectorBehindHops(const std::shared_ptr<Profile> &ent) {
+    const auto *chain = ent != nullptr ? ent->Chain() : nullptr;
+    if (chain == nullptr) return false;
+    const auto selector = RunningSelectorOf(ent);
+    if (selector == nullptr) return false;
+    if (chain->list.indexOf(selector->id) > 0) return true;
+    const auto group = dataManager->groupsRepo->GetGroup(ent->gid);
+    return group != nullptr && group->front_proxy_id >= 0;
 }
 } // namespace Configs

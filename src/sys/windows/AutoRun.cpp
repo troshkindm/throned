@@ -8,81 +8,14 @@
 #include <vector>
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
+#include "include/sys/CoreElevation.hpp"
+#include "include/sys/windows/guihelper.h"
 
 #include <WinCommander.hpp>
 
 #include <windows.h>
 #include <sddl.h>
-#include <taskschd.h>
-
-namespace {
-// WRL's ComPtr is off limits: its roapi.h declares namespace Windows, which clashes with osType::Windows.
-template<typename T>
-class TaskPtr {
-public:
-    TaskPtr() = default;
-    TaskPtr(TaskPtr &&other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
-    TaskPtr(const TaskPtr &) = delete;
-    TaskPtr &operator=(const TaskPtr &) = delete;
-    ~TaskPtr() {
-        if (ptr) ptr->Release();
-    }
-    T **put() { return &ptr; }
-    T *get() const { return ptr; }
-    T *operator->() const { return ptr; }
-    explicit operator bool() const { return ptr != nullptr; }
-
-private:
-    T *ptr = nullptr;
-};
-
-struct ComApartment {
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-    ~ComApartment() {
-        if (SUCCEEDED(hr)) CoUninitialize();
-    }
-};
-
-struct TaskBstr {
-    BSTR value;
-    explicit TaskBstr(const QString &s) : value(SysAllocStringLen(reinterpret_cast<const OLECHAR *>(s.utf16()), UINT(s.size()))) {}
-    ~TaskBstr() { SysFreeString(value); }
-    TaskBstr(const TaskBstr &) = delete;
-    TaskBstr &operator=(const TaskBstr &) = delete;
-    operator BSTR() const { return value; }
-};
-
-class TaskRoot {
-public:
-    TaskRoot() {
-        hr = CoCreateInstance(__uuidof(TaskScheduler), nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(service.put()));
-        if (SUCCEEDED(hr)) hr = service->Connect(VARIANT{}, VARIANT{}, VARIANT{}, VARIANT{});
-        if (SUCCEEDED(hr)) hr = service->GetFolder(TaskBstr("\\"), folder.put());
-    }
-
-    HRESULT status() const { return hr; }
-
-    TaskPtr<IRegisteredTask> find(const QString &name) const {
-        TaskPtr<IRegisteredTask> task;
-        folder->GetTask(TaskBstr(name), task.put());
-        return task;
-    }
-
-    HRESULT put(const QString &name, const QString &xml) const {
-        TaskPtr<IRegisteredTask> task;
-        return folder->RegisterTask(TaskBstr(name), TaskBstr(xml), TASK_CREATE_OR_UPDATE, VARIANT{}, VARIANT{},
-                                    TASK_LOGON_INTERACTIVE_TOKEN, VARIANT{}, task.put());
-    }
-
-    HRESULT remove(const QString &name) const { return folder->DeleteTask(TaskBstr(name), 0); }
-
-private:
-    ComApartment apartment;
-    TaskPtr<ITaskService> service;
-    TaskPtr<ITaskFolder> folder;
-    HRESULT hr = E_FAIL;
-};
-} // namespace
+#include "include/sys/windows/TaskSchedulerCom.h"
 
 static QString hresultText(HRESULT hr) {
     LPWSTR text = nullptr;
@@ -126,21 +59,22 @@ static QString autoRunExeKey(const QString &exePath = QCoreApplication::applicat
 }
 
 // Older builds registered one task for any user's logon, named after the executable alone.
-static QString legacyTaskName() {
-    return autoRunTaskName(autoRunExeKey());
+static QString legacyTaskName(const QString &exePath = QCoreApplication::applicationFilePath()) {
+    return autoRunTaskName(autoRunExeKey(exePath));
 }
 
-static QString userTaskName() {
-    return autoRunTaskName(autoRunExeKey() + "|" + autoRunUserSid());
+static QString userTaskName(const QString &exePath = QCoreApplication::applicationFilePath()) {
+    return autoRunTaskName(autoRunExeKey(exePath) + "|" + autoRunUserSid());
 }
 
+// With a current core elevation grant Throne itself starts as a standard user.
 static bool autoRunElevated() {
-    return Configs::IsAdmin() && !Configs::dataManager->settingsRepo->disable_run_admin;
+    return Windows_IsInAdmin() && !Configs::dataManager->settingsRepo->disable_run_admin && Sys::CoreElevation::CurrentStatus() != Sys::CoreElevation::Status::Granted;
 }
 
-static QString autoRunTaskXml(bool elevated) {
+static QString autoRunTaskXml(bool elevated, const QString &exePath = QCoreApplication::applicationFilePath()) {
     const QString runLevel = elevated ? QStringLiteral("HighestAvailable") : QStringLiteral("LeastPrivilege");
-    const QString command = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    const QString command = QDir::toNativeSeparators(exePath);
     return QString(
                "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n"
                "<Task version=\"1.2\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">\n"
@@ -300,6 +234,22 @@ static QStringList throneTaskNames() {
     for (const auto &exe: executables) names << autoRunTaskName(autoRunExeKey(exe), QStringLiteral("Throne"));
     names.removeDuplicates();
     return names;
+}
+
+void AutoRun_SetLeastPrivilege(const QString &exePath) {
+    const TaskRoot root;
+    if (FAILED(root.status())) return;
+    const QString name = userTaskName(exePath);
+    const QString xml = autoRunTaskXml(false, exePath);
+    if (const auto task = root.find(name)) {
+        if (taskStartsAtLogon(task.get()) && taskIsStale(task.get(), false)) root.put(name, xml);
+        return;
+    }
+    const QString legacyName = legacyTaskName(exePath);
+    const auto legacy = root.find(legacyName);
+    if (legacy && taskStartsAtLogon(legacy.get()) && taskAuthor(legacy.get()).compare(autoRunUserName(), Qt::CaseInsensitive) == 0 && SUCCEEDED(root.put(name, xml)) && FAILED(root.remove(legacyName))) {
+        root.remove(name);
+    }
 }
 
 void AutoRun_MigrateIfNeeded() {

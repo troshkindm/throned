@@ -19,6 +19,8 @@
 #include <QScreen>
 #include <QGridLayout>
 #include <QFormLayout>
+#include <QGroupBox>
+#include <QLineEdit>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QRegularExpression>
@@ -33,6 +35,7 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
+#include "include/engine/services/AssetUpdates.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/RouteProfileSimpleEditor.h"
@@ -88,12 +91,6 @@ void manageRoutesPlainBox(QWidget *parent, QMessageBox::Icon icon, const QString
 // Shown before import: those servers would see every query made while the profile is in use.
 QString manageRoutesDnsNote(const Configs::RouteDns &dns) {
     return DialogManageRoutes::tr("It uses its own DNS servers: remote %1, direct %2.").arg(dns.remote_dns, dns.direct_dns);
-}
-
-QString manageRoutesDnsProblem(const QString &text) {
-    Configs::DnsAddress parsed;
-    QString why;
-    return Configs::ParseDnsAddress(text, &parsed, &why) ? QString() : why;
 }
 
 // dns-local resolves the other servers' names, so it cannot depend on one itself.
@@ -201,6 +198,60 @@ void editWarpApiHosts(QWidget *parent) {
         if (!popupForm->validateAll()) return;
         Configs::dataManager->settingsRepo->warp_api_hosts = normalizeWarpApiHosts(tEdit->toPlainText());
         Configs::dataManager->settingsRepo->Save();
+        w->accept();
+    });
+    QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
+
+    w->resize(w->sizeHint().boundedTo(parent->screen()->availableGeometry().size()));
+    w->exec();
+    w->deleteLater();
+}
+
+void editWarpAdvanced(QWidget *parent) {
+    auto w = new QDialog(parent);
+    w->setWindowTitle(DialogManageRoutes::tr("Advanced WARP Settings"));
+    w->setWindowModality(Qt::ApplicationModal);
+
+    auto *settings = Configs::dataManager->settingsRepo.get();
+    auto layout = new QVBoxLayout(w);
+
+    auto registration = new QGroupBox(DialogManageRoutes::tr("Registration"), w);
+    auto registrationForm = new QFormLayout(registration);
+    auto hint = new QLabel(DialogManageRoutes::tr("Applies only when registration connects directly, not through a running profile."),
+                           registration);
+    hint->setWordWrap(true);
+    registrationForm->addRow(hint);
+    auto fragment = new QCheckBox(DialogManageRoutes::tr("Fragment TLS"), registration);
+    fragment->setChecked(settings->warp_api_tls_fragment);
+    registrationForm->addRow(fragment);
+    auto recordFragment = new QCheckBox(DialogManageRoutes::tr("Record fragment"), registration);
+    recordFragment->setChecked(settings->warp_api_tls_record_fragment);
+    registrationForm->addRow(recordFragment);
+    auto fallbackDelay = new QLineEdit(settings->warp_api_tls_fragment_fallback_delay, registration);
+    fallbackDelay->setPlaceholderText(QStringLiteral("500ms"));
+    registrationForm->addRow(DialogManageRoutes::tr("Fallback delay"), fallbackDelay);
+    const auto syncFallbackDelay = [=] {
+        fallbackDelay->setEnabled(fragment->isChecked());
+        if (auto *label = registrationForm->labelForField(fallbackDelay)) label->setEnabled(fragment->isChecked());
+    };
+    QObject::connect(fragment, &QCheckBox::toggled, w, syncFallbackDelay);
+    syncFallbackDelay();
+    layout->addWidget(registration);
+
+    auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
+    layout->addWidget(buttons);
+
+    auto popupForm = new Validation::Form(w);
+    popupForm->attachStatus(buttons);
+    popupForm->bind(fallbackDelay, Validation::Rules::Duration());
+    popupForm->markAll();
+
+    QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
+        if (!popupForm->validateAll()) return;
+        settings->warp_api_tls_fragment = fragment->isChecked();
+        settings->warp_api_tls_record_fragment = recordFragment->isChecked();
+        settings->warp_api_tls_fragment_fallback_delay = fallbackDelay->text().trimmed();
+        settings->Save();
         w->accept();
     });
     QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
@@ -455,10 +506,10 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->tabWidget->tabBar()->hide();
     ui->tabWidget->setIconSize(QSize(18, 18));
     const QColor navIconColor(QStringLiteral("#AEB7C2"));
-    ui->tabWidget->setTabIcon(0, MaterialIcon::icon(MaterialIcon::Glyph::Settings, navIconColor, 18));
-    ui->tabWidget->setTabIcon(1, MaterialIcon::icon(MaterialIcon::Glyph::Shield, navIconColor, 18));
-    ui->tabWidget->setTabIcon(2, MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, navIconColor, 18));
-    ui->tabWidget->setTabIcon(3, MaterialIcon::icon(MaterialIcon::Glyph::Public, navIconColor, 18));
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->tab), MaterialIcon::icon(MaterialIcon::Glyph::Settings, navIconColor, 18));
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->tab_5), MaterialIcon::icon(MaterialIcon::Glyph::Shield, navIconColor, 18));
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->tab_3), MaterialIcon::icon(MaterialIcon::Glyph::SwapVertical, navIconColor, 18));
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(ui->tab_tor), MaterialIcon::icon(MaterialIcon::Glyph::Public, navIconColor, 18));
     const int profilesPage = ui->tabWidget->indexOf(ui->tab_2);
     ui->tabWidget->setTabIcon(profilesPage, MaterialIcon::icon(MaterialIcon::Glyph::Routes, navIconColor, 18));
     ui->tabWidget->setTabText(profilesPage, tr("Profiles"));
@@ -494,13 +545,14 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     auto *navGroup = new QButtonGroup(this);
     navGroup->setExclusive(true);
     const QMap<int, MaterialIcon::Glyph> navGlyphs{
-        {0, MaterialIcon::Glyph::Settings},
-        {1, MaterialIcon::Glyph::Shield},
-        {2, MaterialIcon::Glyph::SwapVertical},
+        {ui->tabWidget->indexOf(ui->tab), MaterialIcon::Glyph::Settings},
+        {ui->tabWidget->indexOf(ui->tab_5), MaterialIcon::Glyph::Shield},
+        {ui->tabWidget->indexOf(ui->tab_3), MaterialIcon::Glyph::SwapVertical},
+        {ui->tabWidget->indexOf(ui->tab_tor), MaterialIcon::Glyph::Public},
         {profilesPage, MaterialIcon::Glyph::Routes},
     };
-    const QList<int> navOrder{profilesPage, ui->tabWidget->indexOf(ui->tab),
-                              ui->tabWidget->indexOf(ui->tab_5), ui->tabWidget->indexOf(ui->tab_3)};
+    const QList<int> navOrder{profilesPage, ui->tabWidget->indexOf(ui->tab), ui->tabWidget->indexOf(ui->tab_5),
+                              ui->tabWidget->indexOf(ui->tab_tor), ui->tabWidget->indexOf(ui->tab_3)};
     for (const int pageIndex: navOrder) {
         auto *button = new QPushButton(ui->tabWidget->tabText(pageIndex), sidebar);
         button->setObjectName(QStringLiteral("routeSettingsNav"));
@@ -796,7 +848,7 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
         on_import_route_clicked();
     });
 
-    ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
+    ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp && !Configs::dataManager->settingsRepo->enable_tor);
     ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : Configs::dataManager->settingsRepo->warp_mode == "amnezia" ? 2
                                                                                                                                                               : 0);
     ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
@@ -820,6 +872,22 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, this, showWarpMode);
     connect(ui->warp_autogen, &QPushButton::clicked, this, &DialogManageRoutes::generate_warp_config);
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
+    connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
+
+    ui->enable_tor->setChecked(Configs::dataManager->settingsRepo->enable_tor);
+    const auto showTorStatus = [this] {
+        const bool installed = Engine::AssetUpdates::TorInstalled();
+        ui->tor_status->setText(installed ? tr("Tor is installed.") : tr("Tor will be downloaded when you press OK."));
+        ui->tor_status->setVisible(installed || ui->enable_tor->isChecked());
+    };
+    showTorStatus();
+    connect(ui->enable_tor, &QCheckBox::toggled, this, [this, showTorStatus](bool on) {
+        if (on) ui->enable_warp->setChecked(false);
+        showTorStatus();
+    });
+    connect(ui->enable_warp, &QCheckBox::toggled, this, [this](bool on) {
+        if (on) ui->enable_tor->setChecked(false);
+    });
 
     // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
     if (ui->use_dns_object->isChecked()) {
@@ -829,8 +897,8 @@ QDialog#routeProfileEditor QCheckBox { color: #DDE2E7; spacing: 8px; }
     UiMode::Apply(this);
     UiMode::Fold(this);
 
-    form->bind(ui->remote_dns, manageRoutesDnsProblem).label(ui->label_9->text());
-    form->bind(ui->direct_dns, manageRoutesDnsProblem).label(ui->label_8->text());
+    form->bind(ui->remote_dns, Configs::DnsAddressListProblem).label(ui->label_9->text());
+    form->bind(ui->direct_dns, Configs::DnsAddressListProblem).label(ui->label_8->text());
     form->bind(ui->local_override, manageRoutesLocalDnsProblem).label(ui->label_2->text());
     // buildDNSSection would emit an unparsable object as "dns": {}, silently dropping every DNS setting.
     form->addRule({ui->use_dns_object}, [this] {
@@ -984,8 +1052,8 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
     Configs::dataManager->settingsRepo->apply_dns_to_full_config = ui->apply_dns_to_full_config->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;
-    const auto remoteDns = ui->remote_dns->currentText().trimmed();
-    const auto directDns = ui->direct_dns->currentText().trimmed();
+    const auto remoteDns = Configs::NormalizeDnsAddressList(ui->remote_dns->currentText());
+    const auto directDns = Configs::NormalizeDnsAddressList(ui->direct_dns->currentText());
     if (remoteDns != Configs::dataManager->settingsRepo->remote_dns)
         DnsServerHistory::Remember(Configs::dataManager->settingsRepo->remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
     if (directDns != Configs::dataManager->settingsRepo->direct_dns)
@@ -1019,6 +1087,10 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
 
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
+    const bool torWanted = ui->enable_tor->isChecked();
+    const bool torMissing = torWanted && !Engine::AssetUpdates::TorInstalled();
+    // Switched on only once downloaded: a restart without the binary would drop the proxy the download runs through.
+    Configs::dataManager->settingsRepo->enable_tor = torWanted && !torMissing;
     Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text().trimmed();
     Configs::dataManager->settingsRepo->warp_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false));
     Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text().trimmed();
@@ -1036,6 +1108,19 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->warp_masque_http_mode = ui->warp_masque_http_mode->currentIndex();
 
     MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});
+
+    if (torMissing) {
+        const bool started = Engine::AssetUpdates::InstallTor([](const QString &error) {
+            if (!error.isEmpty()) {
+                MessageBoxWarning(tr("Tor download failed"), error);
+                return;
+            }
+            Configs::dataManager->settingsRepo->enable_tor = true;
+            Configs::dataManager->settingsRepo->enable_warp = false;
+            MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});
+        });
+        if (!started) MW_show_log(tr("[Tor] A download is already running; turn Tor on again once it finishes."));
+    }
 
     QDialog::accept();
 }
@@ -1056,6 +1141,7 @@ void DialogManageRoutes::on_new_route_clicked() {
     if (chosen == rawAct) {
         newProfile->isRaw = true;
         auto *rawWidget = new RawRouteItem(this, newProfile);
+        rawWidget->setAttribute(Qt::WA_DeleteOnClose);
         rawWidget->setWindowModality(Qt::ApplicationModal);
         rawWidget->show();
         connect(rawWidget, &RawRouteItem::settingsChanged, this, onCreated);
@@ -1063,6 +1149,7 @@ void DialogManageRoutes::on_new_route_clicked() {
         // Remote profiles are structured underneath; RouteItem grows a "Remote source" section when isRemote.
         if (chosen == remoteAct) newProfile->isRemote = true;
         routeChainWidget = new RouteItem(this, newProfile);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, onCreated);
@@ -1091,6 +1178,7 @@ void DialogManageRoutes::applyImportedProfile(const std::shared_ptr<Configs::Rou
         auto shell = Configs::dataManager->routesRepo->NewRouteProfile();
         shell->Rules = profile->Rules;
         routeChainWidget = new RouteItem(this, shell);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, [=, this](const std::shared_ptr<Configs::RouteProfile> &chain) {
@@ -1217,11 +1305,13 @@ void DialogManageRoutes::on_edit_route_clicked() {
 
     if (chainList[idx]->isRaw) {
         auto *rawWidget = new RawRouteItem(this, chainList[idx]);
+        rawWidget->setAttribute(Qt::WA_DeleteOnClose);
         rawWidget->setWindowModality(Qt::ApplicationModal);
         rawWidget->show();
         connect(rawWidget, &RawRouteItem::settingsChanged, this, onEdited);
     } else {
         routeChainWidget = new RouteItem(this, chainList[idx]);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, onEdited);

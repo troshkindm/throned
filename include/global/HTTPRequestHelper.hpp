@@ -13,6 +13,8 @@ struct HTTPResponse {
     QString error;
     QByteArray data;
     QList<QPair<QByteArray, QByteArray>> header;
+    // HTTP status; 0 when no response arrived.
+    int status = 0;
 };
 
 struct DownloadProgressReport {

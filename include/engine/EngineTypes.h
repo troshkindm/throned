@@ -90,6 +90,7 @@ enum class TestKind {
     Ip,
     Speed,
     Udp,
+    Service,
 };
 
 // The topics of the Throne API's GET /v1/events, in the order it lists them.

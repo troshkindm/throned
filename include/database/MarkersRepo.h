@@ -11,6 +11,8 @@ inline constexpr auto TunPrivateRangesIPv6 = "migration.tun_private_ranges_ipv6"
 inline constexpr auto HijackDeprecated = "notice.hijack_deprecated";
 inline constexpr auto HijackRemoved = "notice.hijack_removed";
 inline constexpr auto DefaultIpLists = "migration.default_ip_lists";
+inline constexpr auto DefaultResolverLists = "migration.default_resolver_lists";
+inline constexpr auto WarpMasqueRanges = "migration.warp_masque_ranges";
 } // namespace Markers
 
 class MarkersRepo {

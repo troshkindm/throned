@@ -4,6 +4,7 @@
 #include <QList>
 #include <QMutex>
 #include <QString>
+#include <QStringList>
 #include <algorithm>
 
 #include <optional>
@@ -129,6 +130,15 @@ struct SubscriptionOptions {
     // Follow-ups of url_test: ignored while it is off.
     bool remove_unavailable = false;
     bool sort_by_latency = false;
+    // Case-insensitive regexes on the profile name, applied as a fetch is parsed; the exclusion wins.
+    QString name_filter;
+    QString name_exclude;
+    // Subscription::FilterProtocols() ids.
+    QStringList type_exclude;
+    // "HK,JP" keeps, "!RU" drops; judged by an IP test after each update.
+    QString country_filter;
+
+    [[nodiscard]] bool SameFilters(const SubscriptionOptions &other) const;
 
     [[nodiscard]] QJsonObject ToJson() const;
 
@@ -172,6 +182,8 @@ public:
     QList<int> column_width;
     QList<int> calculated_column_width; // memory only, no need to save to db
     QList<int> profiles;
+    // Always the head of `profiles`, in this order; sorts only order the rows below them.
+    QList<int> pinned;
     int scroll_last_profile = -1;
     testBy test_sort_by = testBy::latency;
     trafficBy traffic_sort_by = trafficBy::total;
@@ -199,7 +211,7 @@ public:
     // Sorts by `action` and keeps the group sorted that way.
     bool SortProfiles(GroupSortAction action);
 
-    // Re-applies the kept sort to the whole group.
+    // Re-applies the kept sort to every unpinned row.
     bool Resort();
 
     // Moves just the changed profiles into place; the rest must still be sorted. Falls back to Resort when many changed.
@@ -213,10 +225,25 @@ public:
 
     bool AddProfileBatch(const QList<int> &IDs);
 
+    // False for a swap across the pinned block's edge.
     bool SwapProfiles(int idx1, int idx2);
 
-    bool EmplaceProfile(int idx, int newIdx);
-
     [[nodiscard]] bool HasProfile(int ID) const;
+
+    [[nodiscard]] int PinnedCount() const;
+
+    [[nodiscard]] bool IsPinned(int ID) const;
+
+    // The unpinned ones of IDs join the end of the pinned block in list order; true when any was pinned.
+    bool PinProfiles(const QList<int> &IDs);
+
+    // The pinned ones of IDs lead the unpinned rows; returns them.
+    QList<int> UnpinProfiles(const QList<int> &IDs);
+
+    // Drops row `from` above or below `target`, pinned iff `target` is; landing among unpinned rows stops a kept sort. The new row, or -1.
+    int MoveProfile(int from, int target, bool below);
+
+    // Re-heads `profiles` with `pinned` after a wholesale rewrite, dropping pins of unlisted profiles; true when anything changed.
+    bool NormalizePins();
 };
 } // namespace Configs

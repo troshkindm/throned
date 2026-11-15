@@ -144,6 +144,7 @@ HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, const HttpGetOpti
 
     HTTPResponse result;
     result.header = _reply->rawHeaderPairs();
+    result.status = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (tooLarge) {
         result.error = QObject::tr("Response larger than %1 MB").arg(maxBytes / (1024 * 1024));
     } else {

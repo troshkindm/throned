@@ -34,6 +34,12 @@ std::optional<Validation::PortRangeStyle> hysteriaRangeStyle(const QString &item
     return std::nullopt;
 }
 
+// The official client reads "" and "plain" as no obfuscation; panels also write "none".
+QString hysteriaObfsType(const QString &type) {
+    const auto t = type.trimmed().toLower();
+    return t == u"none" || t == u"plain" ? QString() : t;
+}
+
 void hysteriaDropBadGeckoSizes(int &minSize, int &maxSize) {
     if (!ParseDiag::Active()) return;
     const auto message = Checks::HysteriaGeckoSizes(minSize, maxSize);
@@ -299,7 +305,7 @@ bool hysteria::ParseFromLink(const QString &link) {
             obfs = query.queryItemValue("obfs-password", QUrl::FullyDecoded);
         }
         if (query.hasQueryItem("obfs")) {
-            obfs_type = query.queryItemValue("obfs").trimmed().toLower();
+            obfs_type = hysteriaObfsType(query.queryItemValue("obfs"));
         } else if (query.hasQueryItem("min_packet_size") || query.hasQueryItem("max_packet_size")) {
             obfs_type = "gecko";
         } else {
@@ -336,9 +342,8 @@ bool hysteria::ParseFromLink(const QString &link) {
 
     tls->ParseFromLink(link);
     tls->enabled = true; // Hysteria always uses tls
-    // The official hysteria2 URI pins a certificate's SHA-256 in hex, as sing-box's certificate_sha256 does in base64.
+    // Hex here, base64 in sing-box's certificate_sha256, which (unlike the official client) matches only the leaf certificate.
     if (query.hasQueryItem("pinSHA256")) {
-        bool pinned = false;
         for (auto pin: query.queryItemValue("pinSHA256", QUrl::FullyDecoded).split(u',', Qt::SkipEmptyParts)) {
             pin = pin.trimmed();
             // The official client's normalizeCertHash strips both separators.
@@ -353,11 +358,6 @@ bool hysteria::ParseFromLink(const QString &link) {
                 continue;
             }
             if (!tls->certificate_sha256.contains(hash)) tls->certificate_sha256 << hash;
-            pinned = true;
-        }
-        // The official client accepts a pin of any certificate in the chain; sing-box checks only the server's own.
-        if (pinned) {
-            ParseDiag::Warn("pinSHA256", QCoreApplication::translate("Validation", "Only the server's own certificate is checked against this pin; if it is the hash of an intermediate or root certificate, the connection will fail."));
         }
     }
     quic->ParseFromLink(link);
@@ -416,7 +416,7 @@ bool hysteria::ParseFromJson(const QJsonObject &object) {
             auto obfsObj = object["obfs"].toObject();
             if (obfsObj.contains("password")) obfs = obfsObj["password"].toString();
             if (obfsObj.contains("type"))
-                obfs_type = obfsObj["type"].toString().trimmed().toLower();
+                obfs_type = hysteriaObfsType(obfsObj["type"].toString());
             else
                 obfs_type = "salamander";
             for (const auto &[key, target]: {std::pair{"min_packet_size", &min_packet_size}, std::pair{"max_packet_size", &max_packet_size}}) {
@@ -505,7 +505,8 @@ bool hysteria::ParseFromClash(const clash::Proxies &object) {
         disable_mtu_discovery = object.disable_mtu_discovery;
     } else {
         if (!object.password.empty()) password = QString::fromStdString(object.password);
-        if (!object.obfs.empty()) obfs_type = QString::fromStdString(object.obfs).trimmed().toLower();
+        // mihomo turns obfs on only by its type; a lone obfs-password is ignored there.
+        obfs_type = hysteriaObfsType(QString::fromStdString(object.obfs));
         if (!object.obfs_password.empty()) obfs = QString::fromStdString(object.obfs_password);
     }
 
@@ -545,7 +546,7 @@ void hysteria::Validate(Validation::Issues &issues) {
     if (!realm) hysteriaReport(issues, "hop_interval_max", Validation::Duration(hop_interval_max));
     hysteriaReport(issues, "hop_interval_max", Checks::HysteriaHopMaximum(hopping, hop_interval, hop_interval_max));
     hysteriaReport(issues, "hop_interval_max", Checks::HysteriaHopMaximumIgnored(hopping, hop_interval, hop_interval_max), Severity::Warning);
-    if (!obfs.isEmpty()) {
+    if (ObfsActive()) {
         const auto type = obfs_type.trimmed().toLower();
         if (const auto message = Validation::OneOf(type, hysteriaObfsTypes); !message.isEmpty()) {
             hysteriaReport(issues, "obfs.type", message, Severity::Error, obfs_type);
@@ -584,7 +585,7 @@ QString hysteria::ExportToLink() {
         } else {
             url.setUserName(password);
         }
-        if (!obfs.isEmpty()) {
+        if (ObfsActive()) {
             query.addQueryItem("obfs", QUrl::toPercentEncoding(obfs_type));
             query.addQueryItem("obfs-password", QUrl::toPercentEncoding(obfs));
             if (min_packet_size > 0) query.addQueryItem("min_packet_size", QString::number(min_packet_size));
@@ -678,7 +679,7 @@ QJsonObject hysteria::ExportIdentity() {
     auto object = outbound::ExportIdentity();
     object["protocol_version"] = protocol_version;
     if (!server_ports.isEmpty()) object["server_ports"] = server_ports.join(",");
-    if (!obfs.isEmpty()) object["obfs"] = true;
+    if (protocol_version == "1" ? !obfs.isEmpty() : ObfsActive()) object["obfs"] = true;
     return object;
 }
 
@@ -705,7 +706,7 @@ BuildResult hysteria::Build() {
         if (recv_window > 0) object["recv_window"] = recv_window;
         if (disable_mtu_discovery) object["disable_mtu_discovery"] = disable_mtu_discovery;
     } else {
-        if (!obfs.isEmpty()) {
+        if (ObfsActive()) {
             const auto obfsType = obfs_type.trimmed().toLower();
             if (obfsType == "salamander") {
                 object["obfs"] = QJsonObject{

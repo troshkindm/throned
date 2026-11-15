@@ -288,6 +288,34 @@ Total speed: %5/s↑ %6/s↓</source>
         <source>Include Throne logs</source>
         <translation>Добавить логи Throne</translation>
     </message>
+    <message>
+        <source>Logs</source>
+        <translation>Логи</translation>
+    </message>
+    <message>
+        <source>Saves the Throne log of this session as one file, including the core output shown in the log panel.</source>
+        <translation>Сохраняет лог Throne за текущий сеанс в один файл, включая вывод ядра из панели логов.</translation>
+    </message>
+    <message>
+        <source>Save logs…</source>
+        <translation>Сохранить логи…</translation>
+    </message>
+    <message>
+        <source>There is no log file to save.</source>
+        <translation>Нет файла лога для сохранения.</translation>
+    </message>
+    <message>
+        <source>Save logs</source>
+        <translation>Сохранить логи</translation>
+    </message>
+    <message>
+        <source>Log files (*.log);;All files (*)</source>
+        <translation>Файлы логов (*.log);;Все файлы (*)</translation>
+    </message>
+    <message>
+        <source>Cannot write to: %1</source>
+        <translation>Не удается записать файл: %1</translation>
+    </message>
 </context>
 <context>
     <name>DiagnosticsWindow</name>
@@ -1428,6 +1456,30 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <source>Real connection attempts made by apps through this profile.</source>
         <translation>Реальные попытки подключения, предпринятые приложениями через этот профиль.</translation>
     </message>
+    <message>
+        <source>Tier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Real traffic</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Using tier %1: %2.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It moves back up once a profile from a higher tier passes %1 checks in a row and goes %2 s without a failure.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Learning from real connections: %n site(s) remember a profile.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 ok / %2 failed</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogBasicSettings</name>
@@ -1785,7 +1837,7 @@ It stays a preference, not a lock: if that profile stops working the selector st
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config&apos;s security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Отображать безопасность каждой конфигурации рядом с ее типом в списке прокси-серверов, например, &quot;Trojan (WebSocket+TLS)&quot;. Небезопасные конфигурации помечены предупреждающим знаком.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Отображать безопасность каждой конфигурации рядом с ее типом в списке прокси-серверов, например, «Trojan (WebSocket+TLS)». Небезопасные конфигурации помечены предупреждающим знаком.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Show Config Security</source>
@@ -2845,7 +2897,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Unknown or malformed parameter &quot;%1&quot;. Use hwid=…, os=…, osVersion=…, model=… separated by commas.</source>
-        <translation>Неизвестный или некорректный параметр &quot;%1&quot;. Используйте hwid=…, os=…, osVersion=…, model=… через запятую.</translation>
+        <translation>Неизвестный или некорректный параметр «%1». Используйте hwid=…, os=…, osVersion=…, model=… через запятую.</translation>
     </message>
     <message>
         <source>Automatic</source>
@@ -2901,183 +2953,191 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>WebDAV</source>
-        <translation type="unfinished"></translation>
+        <translation>WebDAV</translation>
     </message>
     <message>
         <source>Keep backups on a WebDAV server such as Nextcloud, a NAS or Yandex Disk. Uploads include the parts checked under Create Backup.</source>
-        <translation type="unfinished"></translation>
+        <translation>Храните резервные копии на сервере WebDAV (например, Nextcloud, NAS или Яндекс Диск). Выгружаются разделы, отмеченные в блоке «Создать резервную копию».</translation>
     </message>
     <message>
         <source>WebDAV Settings...</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки WebDAV...</translation>
     </message>
     <message>
         <source>Upload to WebDAV</source>
-        <translation type="unfinished"></translation>
+        <translation>Выгрузить в WebDAV</translation>
     </message>
     <message>
         <source>Restore from WebDAV...</source>
-        <translation type="unfinished"></translation>
+        <translation>Восстановить из WebDAV...</translation>
     </message>
     <message>
         <source>Created by: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Создано: %1</translation>
     </message>
     <message>
         <source>Enter your WebDAV server in WebDAV Settings first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сначала укажите сервер WebDAV в окне «Настройки WebDAV».</translation>
     </message>
     <message>
         <source>WebDAV Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки WebDAV</translation>
     </message>
     <message>
         <source>Server URL</source>
-        <translation type="unfinished"></translation>
+        <translation>URL сервера</translation>
     </message>
     <message>
         <source>Folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка</translation>
     </message>
     <message>
         <source>Device name</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя устройства</translation>
     </message>
     <message>
         <source>Connect through the proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Подключаться через прокси</translation>
     </message>
     <message>
         <source>Test</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверить</translation>
     </message>
     <message>
         <source>Testing the connection...</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка подключения...</translation>
     </message>
     <message>
         <source>Connected. The backup folder is ready.</source>
-        <translation type="unfinished"></translation>
+        <translation>Подключено. Папка для резервных копий готова.</translation>
     </message>
     <message>
         <source>Connection failed:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка подключения:
+%1</translation>
     </message>
     <message>
         <source>The server URL must start with http:// or https://.</source>
-        <translation type="unfinished"></translation>
+        <translation>URL сервера должен начинаться с http:// или https://.</translation>
     </message>
     <message>
         <source>Uploading the backup...</source>
-        <translation type="unfinished"></translation>
+        <translation>Выгрузка резервной копии...</translation>
     </message>
     <message>
         <source>Upload failed:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка выгрузки:
+%1</translation>
     </message>
     <message>
         <source>Backup uploaded:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Резервная копия выгружена:
+%1</translation>
     </message>
     <message>
         <source>Backup uploaded, but the backup list could not be updated: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Резервная копия выгружена, но не удалось обновить список копий: %1</translation>
     </message>
     <message>
         <source>Restore from WebDAV</source>
-        <translation type="unfinished"></translation>
+        <translation>Восстановление из WebDAV</translation>
     </message>
     <message>
         <source>Loading the backup list...</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузка списка резервных копий...</translation>
     </message>
     <message>
         <source>Could not list the backups:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось получить список резервных копий:
+%1</translation>
     </message>
     <message>
         <source>The backup list could not be read: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось прочитать список резервных копий: %1</translation>
     </message>
     <message>
         <source>There are no backups in the WebDAV folder yet.</source>
-        <translation type="unfinished"></translation>
+        <translation>В папке WebDAV пока нет резервных копий.</translation>
     </message>
     <message>
         <source>Created</source>
-        <translation type="unfinished"></translation>
+        <translation>Создана</translation>
     </message>
     <message>
         <source>Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Устройство</translation>
     </message>
     <message>
         <source>Platform</source>
-        <translation type="unfinished"></translation>
+        <translation>Платформа</translation>
     </message>
     <message>
         <source>Version</source>
-        <translation type="unfinished"></translation>
+        <translation>Версия</translation>
     </message>
     <message>
         <source>Parts</source>
-        <translation type="unfinished"></translation>
+        <translation>Разделы</translation>
     </message>
     <message>
         <source>Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <source>Unknown device</source>
-        <translation type="unfinished"></translation>
+        <translation>Неизвестное устройство</translation>
     </message>
     <message>
         <source>%1 (this device)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 (это устройство)</translation>
     </message>
     <message>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Неизвестно</translation>
     </message>
     <message>
         <source>Downloading the backup...</source>
-        <translation type="unfinished"></translation>
+        <translation>Скачивание резервной копии...</translation>
     </message>
     <message>
         <source>Could not download the backup:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось скачать резервную копию:
+%1</translation>
     </message>
     <message>
         <source>Delete Backup</source>
-        <translation type="unfinished"></translation>
+        <translation>Удаление резервной копии</translation>
     </message>
     <message>
         <source>Delete this backup from the WebDAV server? This cannot be undone.
 
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить эту резервную копию с сервера WebDAV? Это действие нельзя отменить.
+
+%1</translation>
     </message>
     <message>
         <source>Deleting the backup...</source>
-        <translation type="unfinished"></translation>
+        <translation>Удаление резервной копии...</translation>
     </message>
     <message>
         <source>Could not delete the backup:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось удалить резервную копию:
+%1</translation>
     </message>
     <message>
         <source>Backup deleted, but the backup list could not be updated: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Резервная копия удалена, но не удалось обновить список копий: %1</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
@@ -3086,6 +3146,11 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
         <translation>Позволяет другим устройствам в сети использовать этот DNS-сервер, например роутеру, который направляет DNS через этот компьютер. Любой, кто может достучаться до этого порта, сможет разрешать имена через ваши настройки DNS.</translation>
+    </message>
+    <message>
+        <source>While Throne is running, block all traffic that does not go through Throne, including when no profile is running.
+        The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3188,7 +3253,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>No profile named &quot;%1&quot;. Pick one from the list.</source>
-        <translation>Профиля с названием &quot;%1&quot; нет. Выберите профиль из списка.</translation>
+        <translation>Профиля с названием «%1» нет. Выберите профиль из списка.</translation>
     </message>
     <message>
         <source>Default (%1)</source>
@@ -3217,6 +3282,14 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     <message>
         <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
         <translation>При каждом обновлении профиль маршрутизации из подписки (формат Happ) сохраняется как собственный профиль этой группы. Настройки DNS из подписки никогда не используются.</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>INVALID</source>
+        <translation>НЕДЕЙСТВИТЕЛЬНЫЙ</translation>
     </message>
 </context>
 <context>
@@ -3441,6 +3514,170 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
         <source>Enter a host name or an IP address, without a port.</source>
         <translation>Введите имя хоста или IP-адрес без порта.</translation>
     </message>
+    <message>
+        <source>Filter</source>
+        <translation>Фильтр</translation>
+    </message>
+    <message>
+        <source>Keeps only the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. Empty keeps every profile.</source>
+        <translation>При каждой загрузке подписки оставляет только профили, имя которых совпадает с этим регулярным выражением (без учёта регистра). Пустое поле оставляет все профили.</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>Оставлять только совпадающие</translation>
+    </message>
+    <message>
+        <source>e.g. HK|Hong Kong</source>
+        <translation>например, HK|Hong Kong</translation>
+    </message>
+    <message>
+        <source>Removes the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. It wins over Keep only matching.</source>
+        <translation>При каждой загрузке подписки удаляет профили, имя которых совпадает с этим регулярным выражением (без учёта регистра). Имеет приоритет над «Оставлять только совпадающие».</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>Удалять совпадающие</translation>
+    </message>
+    <message>
+        <source>e.g. expire|traffic</source>
+        <translation>например, expire|traffic</translation>
+    </message>
+    <message>
+        <source>Removes every profile of the ticked protocols each time the subscription is fetched.</source>
+        <translation>При каждой загрузке подписки удаляет все профили отмеченных протоколов.</translation>
+    </message>
+    <message>
+        <source>Remove types</source>
+        <translation>Удалять типы</translation>
+    </message>
+    <message>
+        <source>Exit countries by two-letter code: HK,JP keeps only those, !RU removes one. After each update, profiles whose exit country is unknown get an IP test, and the ones outside these countries are removed. Profiles whose test fails are kept. To filter by a country written in profile names, use Keep only matching.</source>
+        <translation>Страны выхода по двухбуквенному коду: HK,JP оставляет только их, !RU убирает одну. После каждого обновления профили с неизвестной страной выхода проходят IP-тест, а профили вне этих стран удаляются. Профили, тест которых не удался, сохраняются. Чтобы фильтровать по стране, указанной в имени профиля, используйте «Оставлять только совпадающие».</translation>
+    </message>
+    <message>
+        <source>Countries</source>
+        <translation>Страны</translation>
+    </message>
+    <message>
+        <source>e.g. HK,JP or !RU</source>
+        <translation>например, HK,JP или !RU</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Keeps %1.</source>
+        <translation>Оставляет: %1.</translation>
+    </message>
+    <message>
+        <source>Removes %1.</source>
+        <translation>Удаляет: %1.</translation>
+    </message>
+    <message numerus="yes">
+        <source>After each update, profiles whose exit country is unknown are IP-tested, so the next update can test up to %n profile(s). On a large group this takes a while.</source>
+        <translation>
+            <numerusform>После каждого обновления профили с неизвестной страной выхода проходят IP-тест, поэтому следующее обновление может проверить до %n профиля. Для большой группы это займёт некоторое время.</numerusform>
+            <numerusform>После каждого обновления профили с неизвестной страной выхода проходят IP-тест, поэтому следующее обновление может проверить до %n профилей. Для большой группы это займёт некоторое время.</numerusform>
+            <numerusform>После каждого обновления профили с неизвестной страной выхода проходят IP-тест, поэтому следующее обновление может проверить до %n профилей. Для большой группы это займёт некоторое время.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>After each update, profiles whose exit country is unknown are IP-tested. On a large subscription this takes a while.</source>
+        <translation>После каждого обновления профили с неизвестной страной выхода проходят IP-тест. Для большой подписки это займёт некоторое время.</translation>
+    </message>
+    <message>
+        <source>Custom (JSON)</source>
+        <translation>Пользовательский (JSON)</translation>
+    </message>
+    <message>
+        <source>Shadowsocks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>VMess</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>VLESS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trojan</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hysteria / Hysteria2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TUIC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>AnyTLS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ShadowTLS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>WireGuard / AmneziaWG</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SOCKS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>HTTP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SSH</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Snell</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Juicity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mieru</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>NaiveProxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TrustTunnel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MASQUE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNSTT</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MasterDNS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OpenVPN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OpenConnect</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditProfile</name>
@@ -3530,7 +3767,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Service Name</source>
-        <translation>Service Name</translation>
+        <translation>Имя сервиса (Service Name)</translation>
     </message>
     <message>
         <source>TLS Security Settings</source>
@@ -3542,7 +3779,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Allow insecure</source>
-        <translation>Allow insecure</translation>
+        <translation>Не проверять сертификат (Allow insecure)</translation>
     </message>
     <message>
         <source>Certificate</source>
@@ -3578,7 +3815,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Fingerprint</source>
-        <translation>Fingerprint</translation>
+        <translation>Отпечаток (Fingerprint)</translation>
     </message>
     <message>
         <source>ALPN</source>
@@ -3586,7 +3823,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Pinned Cert SHA256</source>
-        <translation>Pinned Cert SHA256</translation>
+        <translation>SHA256 сертификата (Pinned)</translation>
     </message>
     <message>
         <source>pinnedPeerCertSha256: hex SHA256 of the peer certificate (comma-separated for multiple). Replacement for allowInsecure.</source>
@@ -3594,7 +3831,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Verify Cert Name</source>
-        <translation>Verify Cert Name</translation>
+        <translation>Проверять имя в сертификате</translation>
     </message>
     <message>
         <source>verifyPeerCertByName: verify the peer certificate against this name instead of the SNI.</source>
@@ -3602,7 +3839,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Reality Pbk</source>
-        <translation>Reality Pbk</translation>
+        <translation>Публичный ключ Reality (Pbk)</translation>
     </message>
     <message>
         <source>Reality SpiderX</source>
@@ -3618,11 +3855,11 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>EarlyData Length</source>
-        <translation>EarlyData Length</translation>
+        <translation>Длина EarlyData</translation>
     </message>
     <message>
         <source>Multi Mode</source>
-        <translation>Multi Mode</translation>
+        <translation>Мультирежим (Multi Mode)</translation>
     </message>
     <message>
         <source>xPaddingObfsMode</source>
@@ -3646,7 +3883,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Upload / Stream Tuning</source>
-        <translation>Настройка upload / stream</translation>
+        <translation>Настройка отправки и потока</translation>
     </message>
     <message>
         <source>scMaxEachPostBytes</source>
@@ -3742,31 +3979,31 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Max Concurrency</source>
-        <translation>Max Concurrency</translation>
+        <translation>Макс. параллельность</translation>
     </message>
     <message>
         <source>Max Post Bytes</source>
-        <translation>Max Post Bytes</translation>
+        <translation>Макс. размер POST (байт)</translation>
     </message>
     <message>
         <source>Max Reusable Secs</source>
-        <translation>Max Reusable Secs</translation>
+        <translation>Макс. время переиспользования (с)</translation>
     </message>
     <message>
         <source>Max Request Times</source>
-        <translation>Max Request Times</translation>
+        <translation>Макс. число запросов</translation>
     </message>
     <message>
         <source>Host</source>
-        <translation>Host</translation>
+        <translation>Хост (Host)</translation>
     </message>
     <message>
         <source>X Padding Bytes</source>
-        <translation>X Padding Bytes</translation>
+        <translation>Размер X-Padding (байт)</translation>
     </message>
     <message>
         <source>Min Post Interval</source>
-        <translation>Min Post Interval</translation>
+        <translation>Мин. интервал POST (мс)</translation>
     </message>
     <message>
         <source>Mode</source>
@@ -3774,31 +4011,31 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>No GRPC Headers</source>
-        <translation>No GRPC Headers</translation>
+        <translation>Без заголовков gRPC</translation>
     </message>
     <message>
         <source>Max Reuse times</source>
-        <translation>Max Reuse Times</translation>
+        <translation>Макс. число переиспользований</translation>
     </message>
     <message>
         <source>Keep Alive Period</source>
-        <translation>Keep Alive Period</translation>
+        <translation>Период Keep-Alive</translation>
     </message>
     <message>
         <source>Download Settings</source>
-        <translation>Download Settings</translation>
+        <translation>Настройки загрузки (Download)</translation>
     </message>
     <message>
         <source>Padding Obfuscation</source>
-        <translation>Padding Obfuscation</translation>
+        <translation>Обфускация Padding</translation>
     </message>
     <message>
         <source>Max Connections</source>
-        <translation>Max Connections</translation>
+        <translation>Макс. соединений</translation>
     </message>
     <message>
         <source>Path</source>
-        <translation>Path</translation>
+        <translation>Путь (Path)</translation>
     </message>
     <message>
         <source>Application layer protocol negotiation, clear text. Please separate them with commas.</source>
@@ -3878,7 +4115,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Fallback Delay</source>
-        <translation>Fallback Delay</translation>
+        <translation>Задержка отката (Fallback)</translation>
     </message>
     <message>
         <source>Enable TLS Record Fragment</source>
@@ -3916,7 +4153,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Server Max Header Bytes</source>
-        <translation>Server Max Header Bytes</translation>
+        <translation>Макс. размер заголовков сервера (байт)</translation>
     </message>
     <message>
         <source>Maximum request header size accepted by the server. Default: 8192.</source>
@@ -3924,7 +4161,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Enable Padding Obfuscation</source>
-        <translation>Включить Padding Obfuscation</translation>
+        <translation>Включить обфускацию Padding</translation>
     </message>
     <message>
         <source>Enable custom X-Padding placement, key, header, and method. When disabled, the client uses Referer?...x_padding and the server uses X-Padding.</source>
@@ -3932,7 +4169,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Padding Method</source>
-        <translation>Padding Method</translation>
+        <translation>Метод Padding</translation>
     </message>
     <message>
         <source>Padding value format: repeat-x or tokenish. Default: repeat-x.</source>
@@ -3940,7 +4177,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Padding Placement</source>
-        <translation>Padding Placement</translation>
+        <translation>Расположение Padding</translation>
     </message>
     <message>
         <source>Where X-Padding is sent: queryInHeader, cookie, header, or query. Default: queryInHeader.</source>
@@ -3948,7 +4185,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Padding Key</source>
-        <translation>Padding Key</translation>
+        <translation>Ключ Padding</translation>
     </message>
     <message>
         <source>Query or cookie key for X-Padding, and query key inside queryInHeader. Default: x_padding.</source>
@@ -3956,7 +4193,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Padding Header</source>
-        <translation>Padding Header</translation>
+        <translation>Заголовок Padding</translation>
     </message>
     <message>
         <source>Header name used by header or queryInHeader padding. Default: X-Padding.</source>
@@ -3972,7 +4209,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Max Buffered Posts</source>
-        <translation>Max Buffered Posts</translation>
+        <translation>Макс. буферизованных POST</translation>
     </message>
     <message>
         <source>Packet-up server upload queue size per proxied connection. Default: 30.</source>
@@ -3980,7 +4217,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Uplink HTTP Method</source>
-        <translation>Uplink HTTP Method</translation>
+        <translation>HTTP-метод отправки (Uplink)</translation>
     </message>
     <message>
         <source>HTTP method for upload requests. Default: POST. Xray uppercases it; GET is accepted only in packet-up mode.</source>
@@ -3988,7 +4225,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Uplink Data Placement</source>
-        <translation>Uplink Data Placement</translation>
+        <translation>Расположение данных отправки</translation>
     </message>
     <message>
         <source>Where upload data is placed. Default: auto. cookie/header are accepted only in packet-up mode; auto/body are always accepted.</source>
@@ -3996,7 +4233,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Uplink Data Key</source>
-        <translation>Uplink Data Key</translation>
+        <translation>Ключ данных отправки</translation>
     </message>
     <message>
         <source>Key used when upload data is placed in a cookie or header. Defaults: X-Data for auto/header, x_data for cookie.</source>
@@ -4004,7 +4241,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Uplink Chunk Size</source>
-        <translation>Uplink Chunk Size</translation>
+        <translation>Размер чанка отправки</translation>
     </message>
     <message>
         <source>Packet-up header/cookie payload chunk size range. Defaults: cookie 2-3 KiB, header 3-4 KB, otherwise scMaxEachPostBytes. Values below 64 are clamped.</source>
@@ -4016,7 +4253,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>No SSE Headers</source>
-        <translation>No SSE Headers</translation>
+        <translation>Без заголовков SSE</translation>
     </message>
     <message>
         <source>Server-side downstream/stream-one option: do not send Content-Type: text/event-stream in responses.</source>
@@ -4024,7 +4261,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Stream Up Server Seconds</source>
-        <translation>Stream Up Server Seconds</translation>
+        <translation>Интервал удержания stream-up (с)</translation>
     </message>
     <message>
         <source>Stream-up server interval for periodic xPaddingBytes keepalive writes, in seconds. Default: 20-80; values &lt;= 0 disable periodic padding.</source>
@@ -4032,7 +4269,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Session Placement</source>
-        <translation>Session Placement</translation>
+        <translation>Расположение ID сессии</translation>
     </message>
     <message>
         <source>Where the XHTTP session id is sent: path, cookie, header, or query. Default: path.</source>
@@ -4040,7 +4277,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Session Key</source>
-        <translation>Session Key</translation>
+        <translation>Ключ ID сессии</translation>
     </message>
     <message>
         <source>Key used for the session id outside path placement. Defaults: x_session for cookie/query, X-Session for header.</source>
@@ -4048,7 +4285,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Session ID Table</source>
-        <translation>Session ID Table</translation>
+        <translation>Алфавит ID сессии</translation>
     </message>
     <message>
         <source>Charset for generating the XHTTP session id: a predefined name (number, hex, HEX, base36, BASE36, alphabet, ALPHABET, Alphabet, Base62) or a literal ASCII string. Empty falls back to a random UUID.</source>
@@ -4056,15 +4293,15 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Session ID Length</source>
-        <translation>Session ID Length</translation>
+        <translation>Длина ID сессии</translation>
     </message>
     <message>
         <source>Length range of the generated session id, e.g. 8-16. Only used together with sessionIDTable; &quot;from&quot; must be greater than 0.</source>
-        <translation>Диапазон длины генерируемого session id, например 8-16. Используется только вместе с sessionIDTable; значение &quot;from&quot; должно быть больше 0.</translation>
+        <translation>Диапазон длины генерируемого session id, например 8-16. Используется только вместе с sessionIDTable; значение «from» должно быть больше 0.</translation>
     </message>
     <message>
         <source>Sequence Placement</source>
-        <translation>Sequence Placement</translation>
+        <translation>Расположение номера пакета</translation>
     </message>
     <message>
         <source>Where the XHTTP packet sequence is sent: path, cookie, header, or query. Default: path.</source>
@@ -4072,7 +4309,7 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Sequence Key</source>
-        <translation>Sequence Key</translation>
+        <translation>Ключ номера пакета</translation>
     </message>
     <message>
         <source>Key used for the sequence value outside path placement. Defaults: x_seq for cookie/query, X-Seq for header.</source>
@@ -4132,19 +4369,19 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Colon-separated TLS 1.2 cipher suite names. A uTLS fingerprint ignores them; use the &quot;unsafe&quot; fingerprint (Go&apos;s own TLS stack) to apply them.</source>
-        <translation>Названия наборов шифров TLS 1.2 через двоеточие. uTLS fingerprint их игнорирует; чтобы они применялись, выберите fingerprint &quot;unsafe&quot; (собственный стек TLS из Go).</translation>
+        <translation>Названия наборов шифров TLS 1.2 через двоеточие. uTLS fingerprint их игнорирует; чтобы они применялись, выберите fingerprint «unsafe» (собственный стек TLS из Go).</translation>
     </message>
     <message>
         <source>ECH Config List</source>
-        <translation>ECH Config List</translation>
+        <translation>Список конфигурации ECH</translation>
     </message>
     <message>
         <source>echConfigList: a base64 ECHConfigList, or &quot;domain+https://dns/dns-query&quot; to let Xray fetch it over DoH (e.g. cloudflare-ech.com+https://8.8.8.8/dns-query).</source>
-        <translation>echConfigList: ECHConfigList в base64 или &quot;domain+https://dns/dns-query&quot;, чтобы Xray получил его через DoH (например, cloudflare-ech.com+https://8.8.8.8/dns-query).</translation>
+        <translation>echConfigList: ECHConfigList в base64 или «domain+https://dns/dns-query», чтобы Xray получил его через DoH (например, cloudflare-ech.com+https://8.8.8.8/dns-query).</translation>
     </message>
     <message>
         <source>cipherSuites: colon-separated TLS 1.2 cipher suite names, including Go&apos;s insecure ones. Only applied with the &quot;unsafe&quot; fingerprint.</source>
-        <translation>cipherSuites: названия наборов шифров TLS 1.2 через двоеточие, включая те, что Go считает небезопасными. Применяется только с fingerprint &quot;unsafe&quot;.</translation>
+        <translation>cipherSuites: названия наборов шифров TLS 1.2 через двоеточие, включая те, что Go считает небезопасными. Применяется только с fingerprint «unsafe».</translation>
     </message>
     <message>
         <source>Set by %1.</source>
@@ -4316,11 +4553,151 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Настраиваемое</translation>
     </message>
     <message>
         <source>Configure</source>
-        <translation type="unfinished"></translation>
+        <translation>Настроить</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>Эндпоинт</translation>
+    </message>
+    <message>
+        <source>Region</source>
+        <translation>Регион</translation>
+    </message>
+    <message>
+        <source>Bucket</source>
+        <translation>Бакет</translation>
+    </message>
+    <message>
+        <source>Path-Style Addressing</source>
+        <translation>Адресация path-style</translation>
+    </message>
+    <message>
+        <source>Access Key ID</source>
+        <translation>Access Key ID</translation>
+    </message>
+    <message>
+        <source>Secret Access Key</source>
+        <translation>Secret Access Key</translation>
+    </message>
+    <message>
+        <source>Session Token</source>
+        <translation>Session Token</translation>
+    </message>
+    <message>
+        <source>Key prefix in the bucket</source>
+        <translation>Префикс ключей в бакете</translation>
+    </message>
+    <message>
+        <source>Where both ends exchange the stream: google-drive uses a Google Drive folder, s3 a bucket of any S3-compatible storage, template any HTTP storage API described by Template, local a folder on this machine.</source>
+        <translation>Где обе стороны обмениваются потоком: google-drive использует папку Google Drive, s3 — бакет любого S3-совместимого хранилища, template — любой HTTP API хранилища, описанный в шаблоне, local — папку на этом компьютере.</translation>
+    </message>
+    <message>
+        <source>google-drive: the folder ID. s3: the key prefix inside the bucket. local: a directory path. template: read as {folder}.</source>
+        <translation>google-drive: ID папки. s3: префикс ключей внутри бакета. local: путь к каталогу. template: подставляется как {folder}.</translation>
+    </message>
+    <message>
+        <source>The S3 API URL, such as https://s3.us-east-1.amazonaws.com or a MinIO or R2 endpoint.</source>
+        <translation>URL API S3, например https://s3.us-east-1.amazonaws.com или эндпоинт MinIO или R2.</translation>
+    </message>
+    <message>
+        <source>The region requests are signed for. Default: us-east-1.</source>
+        <translation>Регион, для которого подписываются запросы. По умолчанию: us-east-1.</translation>
+    </message>
+    <message>
+        <source>The bucket both ends share.</source>
+        <translation>Бакет, общий для обеих сторон.</translation>
+    </message>
+    <message>
+        <source>Puts the bucket in the URL path. When off, the bucket becomes part of the endpoint&apos;s host name, which needs a DNS endpoint and a DNS-compatible bucket name. Default: on.</source>
+        <translation>Помещает бакет в путь URL. Если выключено, бакет становится частью имени хоста эндпоинта, для чего нужны DNS-эндпоинт и совместимое с DNS имя бакета. По умолчанию: вкл.</translation>
+    </message>
+    <message>
+        <source>The S3 access key ID.</source>
+        <translation>Access key ID для S3.</translation>
+    </message>
+    <message>
+        <source>The S3 secret access key.</source>
+        <translation>Secret access key для S3.</translation>
+    </message>
+    <message>
+        <source>Optional: the session token of temporary credentials.</source>
+        <translation>Необязательно: session token временных учётных данных.</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>TTI</source>
+        <translation>TTI</translation>
+    </message>
+    <message>
+        <source>Uplink Capacity</source>
+        <translation>Исходящая полоса</translation>
+    </message>
+    <message>
+        <source>Downlink Capacity</source>
+        <translation>Входящая полоса</translation>
+    </message>
+    <message>
+        <source>CWND Multiplier</source>
+        <translation>Множитель CWND</translation>
+    </message>
+    <message>
+        <source>Max Sending Window</source>
+        <translation>Макс. окно отправки</translation>
+    </message>
+    <message>
+        <source>Largest packet mKCP sends, in bytes, from 21 to 8192. Default: 1350.</source>
+        <translation>Наибольший пакет, который отправляет mKCP, в байтах, от 21 до 8192. По умолчанию: 1350.</translation>
+    </message>
+    <message>
+        <source>How often mKCP sends, in milliseconds, from 10 to 1000. Default: 50.</source>
+        <translation>Как часто mKCP отправляет данные, в миллисекундах, от 10 до 1000. По умолчанию: 50.</translation>
+    </message>
+    <message>
+        <source>Most data sent per second, in MB/s; 0 means very little. Default: 5.</source>
+        <translation>Максимум данных, отправляемых в секунду, в МБ/с; 0 означает очень мало. По умолчанию: 5.</translation>
+    </message>
+    <message>
+        <source>Most data received per second, in MB/s; 0 means very little. Default: 20.</source>
+        <translation>Максимум данных, принимаемых в секунду, в МБ/с; 0 означает очень мало. По умолчанию: 20.</translation>
+    </message>
+    <message>
+        <source>Multiplies how many packets may be in flight at once. Default: 1.</source>
+        <translation>Множитель числа пакетов, которые могут одновременно находиться в пути. По умолчанию: 1.</translation>
+    </message>
+    <message>
+        <source>Most data waiting to be sent or acknowledged, in bytes; at least the MTU. Default: 2097152.</source>
+        <translation>Максимум данных, ожидающих отправки или подтверждения, в байтах; не меньше MTU. По умолчанию: 2097152.</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>Резолверы</translation>
+    </message>
+    <message>
+        <source>DNSTT / VayDNS</source>
+        <translation>DNSTT / VayDNS</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP-путь (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>EarlyData Name</source>
+        <translation>Имя заголовка EarlyData</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space separated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Заголовки в виде пар ключ=значение через пробел:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP-хост (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -4453,19 +4830,19 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
     </message>
     <message>
         <source>Endpoint</source>
-        <translation>Endpoint</translation>
+        <translation>Конечная точка (Endpoint)</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation>Private Key</translation>
+        <translation>Приватный ключ (Private Key)</translation>
     </message>
     <message>
         <source>Public Key</source>
-        <translation>Public Key</translation>
+        <translation>Публичный ключ (Public Key)</translation>
     </message>
     <message>
         <source>Reserved</source>
-        <translation>Reserved</translation>
+        <translation>Резерв (Reserved)</translation>
     </message>
     <message>
         <source>Interface Addresses</source>
@@ -4515,9 +4892,9 @@ It is suggested that each image&apos;s size be less than 100KB.</source>
         <source>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
 If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
 For more information, see the document &quot;Configuration/DNS&quot;.</source>
-        <translation>Это особенно важно: рекомендуется использовать значение по умолчанию — &quot;localhost&quot;.
-Если значение по умолчанию не работает, попробуйте изменить его на &quot;223.5.5.5&quot;.
-Дополнительную информацию см. в документации &quot;Конфигурация/DNS&quot;.</translation>
+        <translation>Это особенно важно: рекомендуется использовать значение по умолчанию — «localhost».
+Если значение по умолчанию не работает, попробуйте изменить его на «223.5.5.5».
+Дополнительную информацию см. в документации «Конфигурация/DNS».</translation>
     </message>
     <message>
         <source>Routing Profile</source>
@@ -4685,7 +5062,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>routing profile &quot;%1&quot;</source>
-        <translation>профиль маршрутизации &quot;%1&quot;</translation>
+        <translation>профиль маршрутизации «%1»</translation>
     </message>
     <message>
         <source>Import %1 from the clipboard?</source>
@@ -5068,7 +5445,7 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not an IP address.</source>
-        <translation>&quot;%1&quot; — не IP-адрес.</translation>
+        <translation>«%1» — не IP-адрес.</translation>
     </message>
     <message>
         <source>Add at least one host name after the address, for example 10.0.0.5 nas.lan.</source>
@@ -5076,11 +5453,11 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a host name.</source>
-        <translation>&quot;%1&quot; — не имя хоста.</translation>
+        <translation>«%1» — не имя хоста.</translation>
     </message>
     <message>
         <source>Line %1: &quot;%2&quot; never matches: %3</source>
-        <translation>Строка %1: &quot;%2&quot; никогда не совпадет: %3</translation>
+        <translation>Строка %1: «%2» никогда не совпадет: %3</translation>
     </message>
     <message>
         <source>Put an IPv6 address in brackets, for example [2606:4700::1].</source>
@@ -5100,7 +5477,7 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
     <message>
         <source>The object is empty: add at least its &quot;servers&quot;, or turn it off.</source>
-        <translation>Объект пуст: добавьте хотя бы &quot;servers&quot; или отключите его.</translation>
+        <translation>Объект пуст: добавьте хотя бы «servers» или отключите его.</translation>
     </message>
     <message>
         <source>Required while WARP is on: click Generate Warp Config, or fill it in.</source>
@@ -5120,7 +5497,7 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
     <message>
         <source>It uses its own DNS servers: remote %1, direct %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Использует собственные DNS-серверы: удалённый %1, прямой %2.</translation>
     </message>
     <message>
         <source>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</source>
@@ -5141,6 +5518,62 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     <message>
         <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
         <translation>Каждое обновление подписки «%1» перезаписывает его правила. Удаление прекращает импорт.</translation>
+    </message>
+    <message>
+        <source>TLS fragmentation for WARP registration</source>
+        <translation>Фрагментация TLS при регистрации WARP</translation>
+    </message>
+    <message>
+        <source>Advanced…</source>
+        <translation>Дополнительно…</translation>
+    </message>
+    <message>
+        <source>Advanced WARP Settings</source>
+        <translation>Доп. настройки WARP</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>Регистрация</translation>
+    </message>
+    <message>
+        <source>Applies only when registration connects directly, not through a running profile.</source>
+        <translation>Действует только при прямой регистрации, а не через запущенный профиль.</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>Фрагментация TLS</translation>
+    </message>
+    <message>
+        <source>Record fragment</source>
+        <translation>Фрагментация записей</translation>
+    </message>
+    <message>
+        <source>Fallback delay</source>
+        <translation>Резервная задержка</translation>
+    </message>
+    <message>
+        <source>Sends proxied traffic out through Tor, over the selected server. TCP only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Exit through Tor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tor is installed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tor will be downloaded when you press OK.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tor download failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Tor] A download is already running; turn Tor on again once it finishes.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5497,7 +5930,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Dial Fields</source>
-        <translation>Dial Fields</translation>
+        <translation>Параметры подключения (Dial)</translation>
     </message>
     <message>
         <source>Connect Timeout</source>
@@ -5505,15 +5938,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Bind Interface</source>
-        <translation>Bind Interface</translation>
+        <translation>Привязка к интерфейсу</translation>
     </message>
     <message>
         <source>IPv4 Bind Address</source>
-        <translation>IPv4 Bind Address</translation>
+        <translation>IPv4-адрес привязки</translation>
     </message>
     <message>
         <source>IPv6 Bind Address</source>
-        <translation>IPv6 Bind Address</translation>
+        <translation>IPv6-адрес привязки</translation>
     </message>
     <message>
         <source>TCP Fast Open</source>
@@ -5525,7 +5958,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Reuse Address</source>
-        <translation>Reuse Address</translation>
+        <translation>Переиспользовать адрес (Reuse Address)</translation>
     </message>
     <message>
         <source>UDP Fragment</source>
@@ -5541,7 +5974,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>ECH Config</source>
-        <translation>ECH Config</translation>
+        <translation>Конфигурация ECH</translation>
     </message>
     <message>
         <source>Not Set</source>
@@ -5549,7 +5982,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Certificate SHA256</source>
-        <translation>Certificate SHA256</translation>
+        <translation>SHA256 сертификата</translation>
     </message>
     <message>
         <source>Client Certificate</source>
@@ -5685,27 +6118,27 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Idle Timeout</source>
-        <translation>Idle Timeout</translation>
+        <translation>Таймаут простоя</translation>
     </message>
     <message>
         <source>Keep Alive Period</source>
-        <translation>Keep Alive Period</translation>
+        <translation>Период Keep-Alive</translation>
     </message>
     <message>
         <source>Stream Receive Window</source>
-        <translation>Stream Receive Window</translation>
+        <translation>Окно приема потока</translation>
     </message>
     <message>
         <source>Connection Receive Window</source>
-        <translation>Connection Receive Window</translation>
+        <translation>Окно приема соединения</translation>
     </message>
     <message>
         <source>Max Concurrent Streams</source>
-        <translation>Max Concurrent Streams</translation>
+        <translation>Макс. параллельных потоков</translation>
     </message>
     <message>
         <source>Initial Packet Size</source>
-        <translation>Initial Packet Size</translation>
+        <translation>Начальный размер пакета</translation>
     </message>
     <message>
         <source>Disable Path MTU Discovery</source>
@@ -5717,7 +6150,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>ECH Query Name / Resolver</source>
-        <translation>ECH Query Name / Resolver</translation>
+        <translation>Домен запроса / резолвер ECH</translation>
     </message>
     <message>
         <source>domain or domain+resolver</source>
@@ -5733,7 +6166,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Public Key SHA256</source>
-        <translation>Public Key SHA256</translation>
+        <translation>SHA256 публичного ключа</translation>
     </message>
     <message>
         <source>AnyTLS does not support TCP Fast Open, so it is turned off when the profile starts.</source>
@@ -5775,6 +6208,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Already set</source>
         <translation>Уже задано</translation>
     </message>
+    <message>
+        <source>QUIC Opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through. It helps HTTP/3 carriers (MASQUE, Hysteria2, TUIC). It does nothing when the profile dials through another profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Отправляет один пакет-приманку перед каждым новым UDP-потоком, чтобы сети, блокирующие QUIC по первому пакету, пропускали настоящее рукопожатие. Помогает протоколам поверх HTTP/3 (MASQUE, Hysteria2, TUIC). Не действует, если профиль подключается через другой профиль.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
 </context>
 <context>
     <name>EditAnyTLS</name>
@@ -5784,15 +6225,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Idle Session Check Interval</source>
-        <translation>Idle Session Check Interval</translation>
+        <translation>Интервал проверки неактивных сессий</translation>
     </message>
     <message>
         <source>Idle Session Timeout</source>
-        <translation>Idle Session Timeout</translation>
+        <translation>Таймаут неактивной сессии</translation>
     </message>
     <message>
         <source>Min Idle Session</source>
-        <translation>Min Idle Session</translation>
+        <translation>Мин. число свободных сессий</translation>
     </message>
 </context>
 <context>
@@ -5887,7 +6328,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source> min</source>
-        <translation> мин</translation>
+        <translation> мин.</translation>
     </message>
     <message>
         <source>always re-test</source>
@@ -6177,6 +6618,168 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
         <translation>Остальные профили будут измерены при запуске: автовыбор заработает, как только наберётся достаточно рабочих профилей, и перейдёт на полный рейтинг, когда измерены все.</translation>
     </message>
+    <message>
+        <source>Ranking uses the average over this many recent checks, so a single bad result cannot demote a good server.</source>
+        <translation>Для ранжирования используется среднее значение по этому числу последних проверок, поэтому один неудачный результат не понизит хороший сервер.</translation>
+    </message>
+    <message>
+        <source>Profiles slower than this are used only when no faster one works.</source>
+        <translation>Профили медленнее этого значения используются, только если ни один более быстрый не работает.</translation>
+    </message>
+    <message>
+        <source>Choose</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fastest: always use the best measured profile out of all of them.
+        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Priority tiers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Names matching</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A profile belongs to the first tier it matches, and profiles that match none come last. The selector uses the highest tier that has a working profile and, inside it, the best measured one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move back up after</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> checks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In priority order: once a profile from a higher tier works again, the selector moves back to it only after it passes this many checks in a row. Cannot be more than the samples kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failure-free for</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In priority order: a profile from a higher tier must also go this long without a failed check or connection before the selector moves back to it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drop connections when moving back up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In priority order. Off: connections that are already open stay on their profile, and only new ones move up to the higher tier. On: everything moves up at once.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Learn from real connections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Also judge profiles by the connections your apps make through them, not only by health checks. A connection counts as failed when it gets no reply at all or cannot connect. When recent connections through a profile fail at least as often as they succeed, three times or more, the profile is set aside even though its checks pass: for a minute, twice as long each time it happens again, up to 16 minutes. Each website also sticks with the profile that last worked for it and avoids one that just failed it. While real traffic flows, fewer health checks are sent.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remember per-site choices for</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>How long a website keeps using the profile that last worked for it, and keeps avoiding a profile that failed it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fastest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In priority order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Any group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>missing group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>any name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Optional regular expression, matched anywhere in the profile name and ignoring case, for example ^DE or germany|nl.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tier %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>In priority order, traffic is only spread over the ready profiles of the tier in use.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 → %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>By tier: %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No usable profile belongs to tier %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No usable profile belongs to tiers %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Too few profiles may run to cover every tier, so tier %1 runs none.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Too few profiles may run to cover every tier, so tiers %1 run none.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>More than %1 profiles match, so only the best-ranked ones of each tier are kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fastest: always use the best measured profile out of all of them.
+        In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EditChain</name>
@@ -6251,6 +6854,122 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     <message>
         <source>Add at least one profile to the chain.</source>
         <translation>Добавьте в цепочку хотя бы один профиль.</translation>
+    </message>
+    <message>
+        <source>Tests each hop on its own and through every hop above it, without saving the chain</source>
+        <translation>Проверяет каждое звено отдельно и через все звенья выше него, не сохраняя цепочку</translation>
+    </message>
+    <message>
+        <source>Test Hops</source>
+        <translation>Проверить звенья</translation>
+    </message>
+    <message>
+        <source>A chain can hold only one auto selector.</source>
+        <translation>В цепочке может быть только один автовыбор.</translation>
+    </message>
+    <message>
+        <source>An auto selector cannot share a chain with an Extra Core profile or a custom config.</source>
+        <translation>Автовыбор не может находиться в одной цепочке с профилем с доп. ядром или пользовательской конфигурацией.</translation>
+    </message>
+    <message>
+        <source>Connect OK</source>
+        <translation>Подключено</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>On its own: %1</source>
+        <translation>Отдельно: %1</translation>
+    </message>
+    <message>
+        <source>On its own: unavailable</source>
+        <translation>Отдельно: недоступен</translation>
+    </message>
+    <message>
+        <source>Invalid</source>
+        <translation>Недействителен</translation>
+    </message>
+    <message>
+        <source>This profile is not valid; the log has the details.</source>
+        <translation>Этот профиль недействителен; подробности в журнале.</translation>
+    </message>
+    <message>
+        <source>Works.</source>
+        <translation>Работает.</translation>
+    </message>
+    <message>
+        <source>Works through every hop above it.</source>
+        <translation>Работает через все звенья выше.</translation>
+    </message>
+    <message>
+        <source>Not reached</source>
+        <translation>Не достигнуто</translation>
+    </message>
+    <message>
+        <source>A hop above already fails, so this says nothing about this hop.</source>
+        <translation>Звено выше уже не работает, поэтому об этом звене ничего сказать нельзя.</translation>
+    </message>
+    <message>
+        <source>Fails through the hops above</source>
+        <translation>Не работает через звенья выше</translation>
+    </message>
+    <message>
+        <source>Works on its own (%1), but not through the hops above it: the hop above may not reach this server, or may not carry its protocol (UDP, for example).</source>
+        <translation>Работает отдельно (%1), но не через звенья выше: звено выше может не достигать этого сервера или не пропускать его протокол (например, UDP).</translation>
+    </message>
+    <message>
+        <source>Unavailable</source>
+        <translation>Недоступен</translation>
+    </message>
+    <message>
+        <source>Tested on its own only: a hop above is not valid.</source>
+        <translation>Проверено только отдельно: одно из звеньев выше недействительно.</translation>
+    </message>
+    <message>
+        <source>Not tested</source>
+        <translation>Не проверено</translation>
+    </message>
+    <message>
+        <source>The test was stopped.</source>
+        <translation>Проверка остановлена.</translation>
+    </message>
+    <message>
+        <source>The chain breaks at hop %1, %2.</source>
+        <translation>Цепочка обрывается на звене %1, %2.</translation>
+    </message>
+    <message>
+        <source>Every hop works, and so does the group&apos;s landing proxy after them (%1).</source>
+        <translation>Все звенья работают, как и выходной прокси группы после них (%1).</translation>
+    </message>
+    <message>
+        <source>Every hop works, but the group&apos;s landing proxy fails through them.</source>
+        <translation>Все звенья работают, но выходной прокси группы через них не работает.</translation>
+    </message>
+    <message>
+        <source>Every hop works, but the group&apos;s landing proxy is unavailable.</source>
+        <translation>Все звенья работают, но выходной прокси группы недоступен.</translation>
+    </message>
+    <message>
+        <source>Every hop works through the ones above it.</source>
+        <translation>Каждое звено работает через звенья выше.</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>Проверка…</translation>
+    </message>
+    <message>
+        <source>Testing each hop on its own and through the hops above it…</source>
+        <translation>Проверка каждого звена отдельно и через звенья выше…</translation>
+    </message>
+    <message>
+        <source>The hops changed during the test; test again.</source>
+        <translation>Звенья изменились во время проверки; проверьте ещё раз.</translation>
+    </message>
+    <message>
+        <source>Another test is running; try again when it finishes.</source>
+        <translation>Выполняется другая проверка; повторите, когда она завершится.</translation>
     </message>
 </context>
 <context>
@@ -6369,15 +7088,15 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Down Mbps</source>
-        <translation>Down Mbps</translation>
+        <translation>Прием (Мбит/с)</translation>
     </message>
     <message>
         <source>Recv window conn</source>
-        <translation>Recv Window Conn</translation>
+        <translation>Окно приема соединения</translation>
     </message>
     <message>
         <source>Hop Interval</source>
-        <translation>Hop Interval</translation>
+        <translation>Интервал смены порта</translation>
     </message>
     <message>
         <source>Server Ports</source>
@@ -6389,19 +7108,19 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Up Mbps</source>
-        <translation>Up Mbps</translation>
+        <translation>Отдача (Мбит/с)</translation>
     </message>
     <message>
         <source>Authentication Payload</source>
-        <translation>Authentication Payload</translation>
+        <translation>Данные аутентификации</translation>
     </message>
     <message>
         <source>Obfuscation Password</source>
-        <translation>Obfuscation Password</translation>
+        <translation>Пароль обфускации</translation>
     </message>
     <message>
         <source>Recv window</source>
-        <translation>Recv Window</translation>
+        <translation>Окно приема потока</translation>
     </message>
     <message>
         <source>Disable Mtu Discovery</source>
@@ -6413,15 +7132,15 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Hop Interval Max</source>
-        <translation>Hop Interval Max</translation>
+        <translation>Макс. интервал смены порта</translation>
     </message>
     <message>
         <source>When set, each hop waits a random duration between Hop Interval and this value. Requires Hop Interval.</source>
-        <translation>Если задано, перед каждой сменой порта ожидается случайное время между «Hop Interval» и этим значением. Требует заданного «Hop Interval».</translation>
+        <translation>Если задано, перед каждой сменой порта ожидается случайное время между «Интервал смены порта» и этим значением. Требует заданного поля «Интервал смены порта».</translation>
     </message>
     <message>
         <source>BBR Profile</source>
-        <translation>BBR Profile</translation>
+        <translation>Профиль BBR</translation>
     </message>
     <message>
         <source>Congestion control aggressiveness. Leave empty to use the default (standard).</source>
@@ -6429,7 +7148,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
     <message>
         <source>Obfuscation</source>
-        <translation>Obfuscation</translation>
+        <translation>Обфускация</translation>
     </message>
     <message>
         <source>salamander</source>
@@ -6452,8 +7171,8 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
 It overrides idle timeout, max concurrent streams,
 initial packet size and the initial receive windows.</source>
         <translation>Мимикрия (parroting) делает хендшейк QUIC похожим на хендшейк Chrome. Включена по умолчанию.
-Она переопределяет «Idle Timeout», «Max Concurrent Streams»,
-«Initial Packet Size» и начальные окна приёма.</translation>
+Она переопределяет «Таймаут простоя», «Макс. параллельных потоков»,
+«Начальный размер пакета» и начальные окна приёма.</translation>
     </message>
     <message>
         <source>Disable Chrome Parrot</source>
@@ -6481,6 +7200,14 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Gecko obfuscation needs a password; without one, obfuscation is off.</source>
         <translation>Для обфускации gecko нужен пароль; без него обфускация выключена.</translation>
     </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Obfuscation needs a password; without one, it is off.</source>
+        <translation>Для обфускации нужен пароль; без него она выключена.</translation>
+    </message>
 </context>
 <context>
     <name>EditJuicity</name>
@@ -6491,6 +7218,14 @@ rendezvous service. Replaces the server address and port.</source>
     <message>
         <source>UUID</source>
         <translation>UUID</translation>
+    </message>
+    <message>
+        <source>Cert Chain SHA256</source>
+        <translation>SHA256 цепочки сертификатов</translation>
+    </message>
+    <message>
+        <source>Certificate chain hash printed by juicity-server; replaces CA verification, even with Allow insecure</source>
+        <translation>Хеш цепочки сертификатов, который выводит juicity-server; заменяет проверку по CA, даже при «Не проверять сертификат (Allow insecure)»</translation>
     </message>
 </context>
 <context>
@@ -6513,7 +7248,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Traffic Pattern</source>
-        <translation>Traffic Pattern</translation>
+        <translation>Шаблон трафика</translation>
     </message>
     <message>
         <source>Server Ports</source>
@@ -6536,7 +7271,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Congestion Control</source>
-        <translation>Congestion Control</translation>
+        <translation>Управление перегрузкой</translation>
     </message>
     <message>
         <source>QUIC</source>
@@ -6667,7 +7402,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Allow insecure</source>
-        <translation>Allow insecure</translation>
+        <translation>Не проверять сертификат (Allow insecure)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server name used for TLS SNI and certificate hostname verification. The hostname from the address is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -6675,7 +7410,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Server Name</source>
-        <translation>Server Name</translation>
+        <translation>Имя сервера (SNI)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Additional trusted CA certificate content in PEM format, added to the system certificate pool.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -6723,7 +7458,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>This protocol does not accept the reported OS &quot;%1&quot; set under Advanced.</source>
-        <translation>Этот протокол не принимает значение «Сообщаемая ОС» &quot;%1&quot;, заданное в разделе «Дополнительно».</translation>
+        <translation>Этот протокол не принимает значение «Сообщаемая ОС» «%1», заданное в разделе «Дополнительно».</translation>
     </message>
     <message>
         <source>The token or form entries under Advanced use %1; select an authenticator entry.</source>
@@ -6913,19 +7648,19 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Private Key</source>
-        <translation>Private Key</translation>
+        <translation>Приватный ключ (Private Key)</translation>
     </message>
     <message>
         <source>Private Key Password</source>
-        <translation>Пароль к Private Key</translation>
+        <translation>Пароль приватного ключа</translation>
     </message>
     <message>
         <source>Host Key</source>
-        <translation>Host Key</translation>
+        <translation>Ключ хоста (Host Key)</translation>
     </message>
     <message>
         <source>Host Key Algorithms</source>
-        <translation>Host Key Algorithms</translation>
+        <translation>Алгоритмы ключа хоста</translation>
     </message>
     <message>
         <source>Client Version</source>
@@ -6933,7 +7668,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Private Key Path</source>
-        <translation>Путь к Private Key</translation>
+        <translation>Путь к приватному ключу</translation>
     </message>
     <message>
         <source>Choose File</source>
@@ -7009,7 +7744,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Control URL</source>
-        <translation>Control URL</translation>
+        <translation>URL сервера управления</translation>
     </message>
     <message>
         <source>Hostname</source>
@@ -7099,7 +7834,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Congestion Control</source>
-        <translation>Congestion Control</translation>
+        <translation>Управление перегрузкой</translation>
     </message>
     <message>
         <source>QUIC</source>
@@ -7129,16 +7864,24 @@ rendezvous service. Replaces the server address and port.</source>
         <source>prefix[/mask] (hex), e.g. a0b0/f0f0</source>
         <translation>префикс[/маска] (hex), например a0b0/f0f0</translation>
     </message>
+    <message>
+        <source>Client Random Key</source>
+        <translation>Ключ Client Random</translation>
+    </message>
+    <message>
+        <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
+        <translation>Ключ в hex из правила client_random_auth_key на сервере; указывается вместо Client Random</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
     <message>
         <source>Heartbeat</source>
-        <translation>Heartbeat</translation>
+        <translation>Интервал Heartbeat</translation>
     </message>
     <message>
         <source>UDP Relay Mode</source>
-        <translation>UDP Relay Mode</translation>
+        <translation>Режим передачи UDP</translation>
     </message>
     <message>
         <source>Password</source>
@@ -7146,7 +7889,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Zero RTT Handshake</source>
-        <translation>Zero RTT Handshake</translation>
+        <translation>Рукопожатие 0-RTT</translation>
     </message>
     <message>
         <source>UUID</source>
@@ -7166,7 +7909,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Congestion Control</source>
-        <translation>Congestion Control</translation>
+        <translation>Управление перегрузкой</translation>
     </message>
     <message>
         <source>native</source>
@@ -7197,7 +7940,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Packet Encoding</source>
-        <translation>Packet Encoding</translation>
+        <translation>Кодирование пакетов UDP</translation>
     </message>
     <message>
         <source>Generate UUID</source>
@@ -7212,14 +7955,18 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Packet Encoding</source>
-        <translation>Packet Encoding</translation>
+        <translation>Кодирование пакетов UDP</translation>
+    </message>
+    <message>
+        <source>Flow</source>
+        <translation>Flow</translation>
     </message>
 </context>
 <context>
     <name>EditWireguard</name>
     <message>
         <source>Reserved</source>
-        <translation>Reserved</translation>
+        <translation>Резерв (Reserved)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds, or an AmneziaWG range such as 22-30&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7251,11 +7998,11 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Public Key</source>
-        <translation>Public Key</translation>
+        <translation>Публичный ключ (Public Key)</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation>Private Key</translation>
+        <translation>Приватный ключ (Private Key)</translation>
     </message>
     <message>
         <source>1420</source>
@@ -7267,7 +8014,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Workers</source>
-        <translation>Workers</translation>
+        <translation>Рабочие потоки (Workers)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7318,67 +8065,67 @@ rendezvous service. Replaces the server address and port.</source>
     <name>EditWireguardAmnezia</name>
     <message>
         <source>Cookie Reply Packet Junk Size (S3)</source>
-        <translation>Cookie Reply Packet Junk Size (S3)</translation>
+        <translation>Размер мусора пакета Cookie Reply (S3)</translation>
     </message>
     <message>
         <source>Cookie Reply Packet Magic Header (H3)</source>
-        <translation>Cookie Reply Packet Magic Header (H3)</translation>
+        <translation>Магический заголовок пакета Cookie Reply (H3)</translation>
     </message>
     <message>
         <source>Junk Packet Count (Jc)</source>
-        <translation>Junk Packet Count (Jc)</translation>
+        <translation>Количество мусорных пакетов (Jc)</translation>
     </message>
     <message>
         <source>Response Packet Magic Header (H2)</source>
-        <translation>Response Packet Magic Header (H2)</translation>
+        <translation>Магический заголовок пакета ответа (H2)</translation>
     </message>
     <message>
         <source>Init Packet Junk Size (S1)</source>
-        <translation>Init Packet Junk Size (S1)</translation>
+        <translation>Размер мусора пакета инициализации (S1)</translation>
     </message>
     <message>
         <source>Junk Packet Min Size (Jmin)</source>
-        <translation>Junk Packet Min Size (Jmin)</translation>
+        <translation>Мин. размер мусорного пакета (Jmin)</translation>
     </message>
     <message>
         <source>Junk Packet Max Size (Jmax)</source>
-        <translation>Junk Packet Max Size (Jmax)</translation>
+        <translation>Макс. размер мусорного пакета (Jmax)</translation>
     </message>
     <message>
         <source>Signature Packet (I4)</source>
-        <translation>Signature Packet (I4)</translation>
+        <translation>Пакет сигнатуры (I4)</translation>
     </message>
     <message>
         <source>Signature Packet (I1)</source>
-        <translation>Signature Packet (I1)</translation>
+        <translation>Пакет сигнатуры (I1)</translation>
     </message>
     <message>
         <source>Response Packet Junk Size (S2)</source>
-        <translation>Response Packet Junk Size (S2)</translation>
+        <translation>Размер мусора пакета ответа (S2)</translation>
     </message>
     <message>
         <source>Transport Packet Magic Header (H4)</source>
-        <translation>Transport Packet Magic Header (H4)</translation>
+        <translation>Магический заголовок транспортного пакета (H4)</translation>
     </message>
     <message>
         <source>Init Packet Magic Header (H1)</source>
-        <translation>Init Packet Magic Header (H1)</translation>
+        <translation>Магический заголовок пакета инициализации (H1)</translation>
     </message>
     <message>
         <source>Transport Packet Junk Size (S4)</source>
-        <translation>Transport Packet Junk Size (S4)</translation>
+        <translation>Размер мусора транспортного пакета (S4)</translation>
     </message>
     <message>
         <source>Signature Packet (I2)</source>
-        <translation>Signature Packet (I2)</translation>
+        <translation>Пакет сигнатуры (I2)</translation>
     </message>
     <message>
         <source>Signature Packet (I3)</source>
-        <translation>Signature Packet (I3)</translation>
+        <translation>Пакет сигнатуры (I3)</translation>
     </message>
     <message>
         <source>Signature Packet (I5)</source>
-        <translation>Signature Packet (I5)</translation>
+        <translation>Пакет сигнатуры (I5)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Base64 key. Requires S1-S4 to be at least 12.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7386,7 +8133,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Header Protection Key</source>
-        <translation>Header Protection Key</translation>
+        <translation>Ключ защиты заголовков</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Bytes of random trailing padding, as a value or range (e.g. 0-64).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7394,7 +8141,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Content Padding Addition</source>
-        <translation>Content Padding Addition</translation>
+        <translation>Дополнение содержимого (Padding)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a rekey is attempted, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7402,7 +8149,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Rekey After Time</source>
-        <translation>Rekey After Time</translation>
+        <translation>Смена ключей через (с)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a handshake is retried, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7410,7 +8157,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Rekey Timeout</source>
-        <translation>Rekey Timeout</translation>
+        <translation>Таймаут смены ключей</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before keys are rejected, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7418,7 +8165,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Reject After Time</source>
-        <translation>Reject After Time</translation>
+        <translation>Отклонять пакеты через (с)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds of idle time before a keepalive is sent, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7426,7 +8173,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Keepalive Timeout</source>
-        <translation>Keepalive Timeout</translation>
+        <translation>Таймаут Keepalive</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Handshake retries before giving up, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7434,7 +8181,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Max Handshake Attempts</source>
-        <translation>Max Handshake Attempts</translation>
+        <translation>Макс. попыток рукопожатия</translation>
     </message>
     <message>
         <source>Amnezia Options</source>
@@ -7446,7 +8193,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Random Trailers</source>
-        <translation>Random Trailers</translation>
+        <translation>Случайные трейлеры пакетов</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.1. Never send cookie replies, so an under-load peer stays silent instead of answering with a fixed-size message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7762,7 +8509,7 @@ rendezvous service. Replaces the server address and port.</source>
     </message>
     <message>
         <source>Routing</source>
-        <translation>Маршрутизация</translation>
+        <translation>Маршруты</translation>
     </message>
     <message>
         <source>%1 → %2</source>
@@ -8318,9 +9065,9 @@ URL: %2</translation>
         <source>The Xray config &quot;%1&quot; needs &quot;%2&quot;, but the installed %3 does not contain it.
 
 Re-downloading from the same source will not fix this — the data file does not include that category. Set the GeoIP/GeoSite asset URL in Settings to a source that provides &quot;%2&quot;, then delete %3 from the app folder and download it again.</source>
-        <translation>В конфигурации Xray &quot;%1&quot; требуется &quot;%2&quot;, но установленный %3 его не содержит.
+        <translation>В конфигурации Xray «%1» требуется «%2», но установленный %3 его не содержит.
 
-Повторная загрузка из того же источника не поможет — в этом файле данных нет такой категории. В настройках укажите в поле «URL GeoIP-ресурса» или «URL GeoSite-ресурса» источник, который содержит &quot;%2&quot;, затем удалите %3 из папки приложения и загрузите его снова.</translation>
+Повторная загрузка из того же источника не поможет — в этом файле данных нет такой категории. В настройках укажите в поле «URL файла GeoIP» или «URL файла GeoSite» источник, который содержит «%2», затем удалите %3 из папки приложения и загрузите его снова.</translation>
     </message>
     <message>
         <source>Geo asset files required</source>
@@ -8330,7 +9077,7 @@ Re-downloading from the same source will not fix this — the data file does not
         <source>The Xray config &quot;%1&quot; uses geoip/geosite routing rules, but the required data files (geoip.dat / geosite.dat) are not installed.
 
 Download them now?</source>
-        <translation>В конфигурации Xray &quot;%1&quot; используются правила маршрутизации geoip/geosite, но необходимые файлы данных (geoip.dat / geosite.dat) не установлены.
+        <translation>В конфигурации Xray «%1» используются правила маршрутизации geoip/geosite, но необходимые файлы данных (geoip.dat / geosite.dat) не установлены.
 
 Загрузить их сейчас?</translation>
     </message>
@@ -8842,7 +9589,7 @@ Please try again.</source>
     </message>
     <message>
         <source>Unable to capture screen</source>
-        <translation>Невозможно захватить экран</translation>
+        <translation>Не удалось сделать снимок экрана</translation>
     </message>
     <message>
         <source>Outbound</source>
@@ -9642,11 +10389,11 @@ Error: %1</source>
     </message>
     <message>
         <source>Removed %1 from the %2 rules of &quot;%3&quot;</source>
-        <translation>Удалено %1 из правил %2 профиля &quot;%3&quot;</translation>
+        <translation>Удалено %1 из правил %2 профиля «%3»</translation>
     </message>
     <message>
         <source>Moved %1 from the %2 to the %3 rules of &quot;%4&quot;</source>
-        <translation>Перемещено %1 из правил %2 в правила %3 профиля &quot;%4&quot;</translation>
+        <translation>Перемещено %1 из правил %2 в правила %3 профиля «%4»</translation>
     </message>
     <message>
         <source>Warp-bypass</source>
@@ -9654,7 +10401,7 @@ Error: %1</source>
     </message>
     <message>
         <source>Modify rules in &quot;%1&quot;</source>
-        <translation>Изменить правила в &quot;%1&quot;</translation>
+        <translation>Изменить правила в «%1»</translation>
     </message>
     <message>
         <source>Modify rules</source>
@@ -9682,11 +10429,11 @@ Error: %1</source>
     </message>
     <message>
         <source>Routing profile &quot;%1&quot;. Checked targets go %2; unchecking one removes its rule.</source>
-        <translation>Профиль маршрутизации &quot;%1&quot;. Отмеченные цели попадают в правила «%2»; снятие флажка удаляет правило.</translation>
+        <translation>Профиль маршрутизации «%1». Отмеченные цели попадают в правила «%2»; снятие флажка удаляет правило.</translation>
     </message>
     <message>
         <source>Routing profile &quot;%1&quot;. Checked targets go through the chosen server; unchecking one removes its rule.</source>
-        <translation>Профиль маршрутизации &quot;%1&quot;. Отмеченные цели идут через выбранный сервер; снятие флажка удаляет правило.</translation>
+        <translation>Профиль маршрутизации «%1». Отмеченные цели идут через выбранный сервер; снятие флажка удаляет правило.</translation>
     </message>
     <message>
         <source>Server (type part of its name to search):</source>
@@ -9792,19 +10539,19 @@ Error: %1</source>
     </message>
     <message>
         <source>Search Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск настроек</translation>
     </message>
     <message>
         <source>Failed to resolve domains: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось разрешить домены: %1</translation>
     </message>
     <message>
         <source>the core did not answer</source>
-        <translation type="unfinished"></translation>
+        <translation>ядро не ответило</translation>
     </message>
     <message>
         <source>Failed to resolve %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось разрешить %1: %2</translation>
     </message>
     <message>
         <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>
@@ -9821,6 +10568,114 @@ Error: %1</source>
     <message>
         <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
         <translation>Группа «%1» использует собственный профиль маршрутизации, поэтому запущенный профиль сохраняет его.</translation>
+    </message>
+    <message>
+        <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Integration Settings &gt; Core APIs.</source>
+        <translation>API sing-box отключен. Укажите прослушиваемый порт в разделе Настройки &gt; Настройки интеграции &gt; API ядра.</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Core &gt; Xray Core.</source>
+        <translation>Конфигурации Xray «%1» нужны неустановленные файлы геоданных: %2. Загрузите их в разделе «Основные настройки → Ядро → Ядро Xray».</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every running profile stopped working through the hops in front of it — rebuilding with the next candidates.</source>
+        <translation>[Автовыбор] Все запущенные профили перестали работать через звенья перед ним — пересборка со следующими кандидатами.</translation>
+    </message>
+    <message>
+        <source>The core did not answer the test</source>
+        <translation>Ядро не ответило на проверку</translation>
+    </message>
+    <message>
+        <source>Service Check</source>
+        <translation>Проверка сервисов</translation>
+    </message>
+    <message>
+        <source>Service Check Group</source>
+        <translation>Проверка сервисов группы</translation>
+    </message>
+    <message>
+        <source>A service check can test up to 100 profiles at a time. Select fewer profiles.</source>
+        <translation>Проверка сервисов охватывает не более 100 профилей за раз. Выберите меньше профилей.</translation>
+    </message>
+    <message>
+        <source>This checks %1 profiles. Each one sends about 20 requests to the checked services. Continue?</source>
+        <translation>Будет проверено профилей: %1. Каждый отправит около 20 запросов к проверяемым сервисам. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Service check finished!</source>
+        <translation>Проверка сервисов завершена!</translation>
+    </message>
+    <message>
+        <source>[%1] service check error: %2</source>
+        <translation>[%1] Ошибка проверки сервисов: %2</translation>
+    </message>
+    <message>
+        <source>Service check failed: %1</source>
+        <translation>Не удалось проверить сервисы: %1</translation>
+    </message>
+    <message>
+        <source>Pin</source>
+        <translation>Закрепить</translation>
+    </message>
+    <message>
+        <source>Unpin</source>
+        <translation>Открепить</translation>
+    </message>
+    <message>
+        <source>Deep Link</source>
+        <translation>Deep Link</translation>
+    </message>
+    <message>
+        <source>Scan DPI evasion settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Route path lookup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core did not get administrator rights, although they were granted. The log shows why.
+        
+        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+        <translation>Ядро не получило права администратора, хотя они были предоставлены. Причина указана в журнале.
+        
+        Перезапустите Throned от имени администратора, чтобы использовать режим TUN и kill switch.</translation>
+    </message>
+    <message>
+        <source>Tun Mode and the kill switch need the core to run with administrator rights.
+        
+        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+        <translation>Для режима TUN и kill switch ядру нужны права администратора.
+        
+        Предоставьте их один раз с подтверждением Windows; сам Throned продолжит работать как обычный пользователь.</translation>
+    </message>
+    <message>
+        <source>Throned can restart as administrator instead.</source>
+        <translation>Вместо этого Throned можно перезапустить от имени администратора.</translation>
+    </message>
+    <message>
+        <source>Windows asks once to let the Throned core run with administrator rights. Choose Yes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restart as administrator was cancelled, Throned keeps running</source>
+        <translation>Перезапуск от имени администратора отменен, Throned продолжает работу</translation>
+    </message>
+    <message>
+        <source>The core did not get administrator rights, although they were granted. The log shows why.
+        
+        Restart Throned as administrator to use Tun Mode and the kill switch.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tun Mode and the kill switch need the core to run with administrator rights.
+        
+        Grant them once with a Windows confirmation; Throned itself keeps running as a standard user.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Turn off the kill switch? Traffic that does not go through Throne will no longer be blocked.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -10332,6 +11187,16 @@ Error: %1</source>
         <source>Enable Filter</source>
         <translation>Включить фильтр</translation>
     </message>
+    <message>
+        <source>Filter by country or service...</source>
+        <translation>Фильтр по стране или сервису...</translation>
+    </message>
+    <message>
+        <source>Countries and working services, e.g. &quot;DE gemini&quot; or &quot;ai&quot;.
+&quot;!netflix&quot; finds profiles Netflix refused.</source>
+        <translation>Страны и работающие сервисы, например «DE gemini» или «ai».
+«!netflix» находит профили, где Netflix отказал.</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -10715,7 +11580,7 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>Download geo asset</source>
-        <translation>Загрузка гео-файла</translation>
+        <translation>Загрузка geo-файла</translation>
     </message>
     <message>
         <source>%1 was downloaded successfully.</source>
@@ -11237,7 +12102,7 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>&quot;%1&quot; is not in the expected format</source>
-        <translation>&quot;%1&quot; не соответствует ожидаемому формату</translation>
+        <translation>«%1» не соответствует ожидаемому формату</translation>
     </message>
     <message>
         <source>Value must be at least %1</source>
@@ -11249,11 +12114,11 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>Unknown field &quot;%1&quot;</source>
-        <translation>Неизвестное поле &quot;%1&quot;</translation>
+        <translation>Неизвестное поле «%1»</translation>
     </message>
     <message>
         <source>Missing required field &quot;%1&quot;</source>
-        <translation>Отсутствует обязательное поле &quot;%1&quot;</translation>
+        <translation>Отсутствует обязательное поле «%1»</translation>
     </message>
     <message>
         <source>Unknown %1 %2 (expected: %3)</source>
@@ -11409,7 +12274,7 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>Skipped &quot;%1&quot;: IKEv2/IPsec is not spoken by the OpenConnect endpoint.</source>
-        <translation>Пропущен &quot;%1&quot;: конечная точка OpenConnect не поддерживает IKEv2/IPsec.</translation>
+        <translation>Пропущен «%1»: конечная точка OpenConnect не поддерживает IKEv2/IPsec.</translation>
     </message>
     <message>
         <source>Skipped an unreadable host address: %1</source>
@@ -11445,7 +12310,7 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>Digits must be between %1 and %2</source>
-        <translation>Значение «Цифры» должно быть от %1 до %2</translation>
+        <translation>Значение «Количество цифр» должно быть от %1 до %2</translation>
     </message>
     <message>
         <source>Period must be between %1 and %2 seconds</source>
@@ -11461,7 +12326,7 @@ Deleted %5 Profiles:
     </message>
     <message>
         <source>Not an otpauth link or secret: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не ссылка otpauth и не секрет: %1</translation>
     </message>
     <message>
         <source>Endpoint</source>
@@ -11645,11 +12510,11 @@ Direct: %2</source>
 Windows then ignores the adapter binding that keeps Throne&apos;s own connections out of the Tun, so they loop back into it and fail.
 
 To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
-        <translation>Для сетевого адаптера &quot;%1&quot; включена пересылка IPv4 — обычно потому, что через него раздаёт интернет мобильный хот-спот или общий доступ к подключению к Интернету (ICS).
+        <translation>Для сетевого адаптера «%1» включена пересылка IPv4 — обычно потому, что через него раздаёт интернет мобильный хот-спот или общий доступ к подключению к Интернету (ICS).
 
 В этом случае Windows игнорирует привязку к адаптеру, которая не пускает собственные подключения Throne в TUN, поэтому они зацикливаются обратно в него и не работают.
 
-Чтобы это исправить, раздавайте хот-спот с адаптера throne-tun вместо &quot;%1&quot; (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или отключайте хот-спот на время работы в режиме TUN.</translation>
+Чтобы это исправить, раздавайте хот-спот с адаптера throne-tun вместо «%1» (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или отключайте хот-спот на время работы в режиме TUN.</translation>
     </message>
     <message>
         <source>Update found: %1
@@ -11733,11 +12598,11 @@ Release note:
     </message>
     <message>
         <source>Skipped the Tun private range &quot;%1&quot;: it is not a valid IP address or CIDR.</source>
-        <translation>Пропущен частный диапазон TUN &quot;%1&quot;: это недопустимый IP-адрес или CIDR.</translation>
+        <translation>Пропущен частный диапазон TUN «%1»: это недопустимый IP-адрес или CIDR.</translation>
     </message>
     <message>
         <source>DNS address &quot;%1&quot; is invalid: %2</source>
-        <translation>Недопустимый адрес DNS &quot;%1&quot;: %2</translation>
+        <translation>Недопустимый адрес DNS «%1»: %2</translation>
     </message>
     <message>
         <source>The profile no longer exists</source>
@@ -11777,11 +12642,11 @@ Release note:
     </message>
     <message>
         <source>IP list &quot;%1&quot;</source>
-        <translation>список IP &quot;%1&quot;</translation>
+        <translation>список IP «%1»</translation>
     </message>
     <message>
         <source>The IP list &quot;%1&quot; is empty</source>
-        <translation>Список IP &quot;%1&quot; пуст</translation>
+        <translation>Список IP «%1» пуст</translation>
     </message>
     <message>
         <source>%1 profiles have no single server address to replace</source>
@@ -11927,7 +12792,7 @@ Release note:
     </message>
     <message>
         <source>Request with proxy but the mixed inbound is disabled and Tun Mode is off.</source>
-        <translation type="unfinished"></translation>
+        <translation>Запрос через прокси, но смешанный входящий порт (Mixed inbound) отключён и режим Tun выключен.</translation>
     </message>
     <message>
         <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
@@ -11939,103 +12804,103 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     </message>
     <message>
         <source>Enter the WebDAV server URL in the WebDAV settings.</source>
-        <translation type="unfinished"></translation>
+        <translation>Укажите URL сервера WebDAV в настройках WebDAV.</translation>
     </message>
     <message>
         <source>The WebDAV server URL must start with http:// or https://.</source>
-        <translation type="unfinished"></translation>
+        <translation>URL сервера WebDAV должен начинаться с http:// или https://.</translation>
     </message>
     <message>
         <source>The server sent more than %1 MB.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сервер отправил более %1 МБ.</translation>
     </message>
     <message>
         <source>Could not write the downloaded backup: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось записать скачанную резервную копию: %1</translation>
     </message>
     <message>
         <source>The server did not answer in time.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сервер не ответил вовремя.</translation>
     </message>
     <message>
         <source>The server could not be reached.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось связаться с сервером.</translation>
     </message>
     <message>
         <source>The server answered with a redirect (HTTP %1); check the server URL.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сервер ответил перенаправлением (HTTP %1); проверьте URL сервера.</translation>
     </message>
     <message>
         <source>The server redirected to %1; check the server URL.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сервер перенаправил на %1; проверьте URL сервера.</translation>
     </message>
     <message>
         <source>Wrong username or password.</source>
-        <translation type="unfinished"></translation>
+        <translation>Неверное имя пользователя или пароль.</translation>
     </message>
     <message>
         <source>Permission denied.</source>
-        <translation type="unfinished"></translation>
+        <translation>Доступ запрещён.</translation>
     </message>
     <message>
         <source>Not found.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не найдено.</translation>
     </message>
     <message>
         <source>Server error (HTTP %1).</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка сервера (HTTP %1).</translation>
     </message>
     <message>
         <source>HTTP %1</source>
-        <translation type="unfinished"></translation>
+        <translation>HTTP %1</translation>
     </message>
     <message>
         <source>The server&apos;s folder listing could not be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось прочитать содержимое папки на сервере.</translation>
     </message>
     <message>
         <source>Could not create the folder on the server: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось создать папку на сервере: %1</translation>
     </message>
     <message>
         <source>The backup list kept changing while it was being updated.</source>
-        <translation type="unfinished"></translation>
+        <translation>Список резервных копий неоднократно изменялся во время обновления.</translation>
     </message>
     <message>
         <source>Could not read the backup file: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось прочитать файл резервной копии: %1</translation>
     </message>
     <message>
         <source>Unknown device</source>
-        <translation type="unfinished"></translation>
+        <translation>Неизвестное устройство</translation>
     </message>
     <message>
         <source>The backup&apos;s file name is not safe to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя файла резервной копии небезопасно для использования.</translation>
     </message>
     <message>
         <source>Could not create a temporary file: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось создать временный файл: %1</translation>
     </message>
     <message>
         <source>The downloaded backup does not match the backup list; it may have been replaced or damaged.</source>
-        <translation type="unfinished"></translation>
+        <translation>Скачанная резервная копия не соответствует списку копий; возможно, она была подменена или повреждена.</translation>
     </message>
     <message>
         <source>Chain &quot;%1&quot; has a hop (profile id %2) that no longer exists, edit the chain to remove it</source>
-        <translation type="unfinished"></translation>
+        <translation>Цепочка «%1» содержит звено (профиль с ID %2), которое больше не существует; отредактируйте цепочку, чтобы удалить его</translation>
     </message>
     <message>
         <source>Group &quot;%1&quot; has a front proxy that has been deleted.</source>
-        <translation type="unfinished"></translation>
+        <translation>В группе «%1» указан входной прокси (front proxy), который был удалён.</translation>
     </message>
     <message>
         <source>Group &quot;%1&quot; has a landing proxy that has been deleted.</source>
-        <translation type="unfinished"></translation>
+        <translation>В группе «%1» указан выходной прокси (landing proxy), который был удалён.</translation>
     </message>
     <message>
         <source>A proxy in the chain can no longer be found.</source>
-        <translation type="unfinished"></translation>
+        <translation>Прокси из цепочки больше не найден.</translation>
     </message>
     <message>
         <source>Changed: %1</source>
@@ -12096,6 +12961,294 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
         <translation>[Маршрутизация] %1: профиль маршрутизации «%2» обновлён из подписки (%3)</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update while running; the change applies on its next start.</source>
+        <translation>%1 изменён при обновлении во время работы; изменения вступят в силу при следующем запуске.</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update; reconnecting with its new settings.</source>
+        <translation>%1 изменён при обновлении; переподключение с новыми настройками.</translation>
+    </message>
+    <message>
+        <source>Choose the DNS tunnel profile to find resolvers for</source>
+        <translation>Выберите профиль DNS-туннеля, для которого нужно найти резолверы</translation>
+    </message>
+    <message>
+        <source>Only DNSTT, MasterDNS and XDNS profiles can be used to find resolvers</source>
+        <translation>Искать резолверы можно только для профилей DNSTT, MasterDNS и XDNS</translation>
+    </message>
+    <message>
+        <source>%1: the resolver &quot;%2&quot; is invalid: %3</source>
+        <translation>%1: резолвер «%2» недопустим: %3</translation>
+    </message>
+    <message>
+        <source>the resolver IP list no longer exists</source>
+        <translation>список IP резолверов больше не существует</translation>
+    </message>
+    <message>
+        <source>the resolver IP list &quot;%1&quot; is empty</source>
+        <translation>список IP резолверов «%1» пуст</translation>
+    </message>
+    <message>
+        <source>the resolver IP list &quot;%1&quot; holds more than %2 entries; the rest were skipped</source>
+        <translation>список IP резолверов «%1» содержит более %2 записей; остальные пропущены</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n entries of the resolver IP list &quot;%1&quot; were skipped: ranges too large or past the resolver limit</source>
+        <translation>
+            <numerusform>пропущена %n запись списка IP резолверов «%1»: слишком большие диапазоны или превышен лимит резолверов</numerusform>
+            <numerusform>пропущено %n записи списка IP резолверов «%1»: слишком большие диапазоны или превышен лимит резолверов</numerusform>
+            <numerusform>пропущено %n записей списка IP резолверов «%1»: слишком большие диапазоны или превышен лимит резолверов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plaintext Replies</source>
+        <translation>Ответы без шифрования</translation>
+    </message>
+    <message>
+        <source>The routing profile sends traffic to %1, which holds an auto selector; such a chain can only be started, not used in routing rules</source>
+        <translation>Профиль маршрутизации направляет трафик в %1, где есть автовыбор; такую цепочку можно только запустить, но не использовать в правилах маршрутизации</translation>
+    </message>
+    <message numerus="yes">
+        <source>[Auto selector] Left out %n profile(s) that cannot be reached through the hops in front of the selector (custom Xray configs, or too many switches between %1 and Xray).</source>
+        <translation>
+            <numerusform>[Автовыбор] Исключён %n профиль, недоступный через звенья перед автовыбором (пользовательские конфигурации Xray или слишком много переключений между %1 и Xray).</numerusform>
+            <numerusform>[Автовыбор] Исключено %n профиля, недоступных через звенья перед автовыбором (пользовательские конфигурации Xray или слишком много переключений между %1 и Xray).</numerusform>
+            <numerusform>[Автовыбор] Исключено %n профилей, недоступных через звенья перед автовыбором (пользовательские конфигурации Xray или слишком много переключений между %1 и Xray).</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>A chain can hold only one auto selector</source>
+        <translation>В цепочке может быть только один автовыбор</translation>
+    </message>
+    <message>
+        <source>Extra Core profiles and custom configs cannot share a chain with an auto selector</source>
+        <translation>Профили с доп. ядром и пользовательские конфигурации не могут находиться в одной цепочке с автовыбором</translation>
+    </message>
+    <message>
+        <source>Chains with an auto selector cannot be scanned</source>
+        <translation>Цепочки с автовыбором нельзя сканировать</translation>
+    </message>
+    <message>
+        <source>The group&apos;s front or landing proxy no longer exists</source>
+        <translation>Фронт-прокси или выходной прокси группы больше не существует</translation>
+    </message>
+    <message>
+        <source>Chains with an auto selector cannot be tested hop by hop; test its members instead</source>
+        <translation>Цепочки с автовыбором нельзя проверить по звеньям; проверьте вместо этого его участников</translation>
+    </message>
+    <message>
+        <source>The group&apos;s front or landing proxy is not valid; the log has the details</source>
+        <translation>Фронт-прокси или выходной прокси группы недействителен; подробности в журнале</translation>
+    </message>
+    <message>
+        <source>Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)</source>
+        <translation>Автовыбор приостановлен — нет подключения к сети или звенья цепочки перед ним не работают (профилей удерживается: %1)</translation>
+    </message>
+    <message>
+        <source>Filters of %1: %2</source>
+        <translation>Фильтры группы %1: %2</translation>
+    </message>
+    <message>
+        <source>The filters of %1 remove all %2 profiles of the subscription, so the group was left unchanged.</source>
+        <translation>Фильтры группы %1 отсеивают все профили подписки (%2), поэтому группа оставлена без изменений.</translation>
+    </message>
+    <message>
+        <source>Filtered out %1 profiles.</source>
+        <translation>Отфильтровано профилей: %1.</translation>
+    </message>
+    <message>
+        <source>The country rules accept none of the %1 tested profiles, so none were removed.</source>
+        <translation>Правила стран не пропускают ни один из проверенных профилей (%1), поэтому ничего не удалено.</translation>
+    </message>
+    <message>
+        <source>Removed %1 profiles outside the country rules:</source>
+        <translation>Удалено профилей вне правил стран (%1):</translation>
+    </message>
+    <message>
+        <source>Testing the exit country of %1 profiles of %2 for its country rules. On a large group this takes a while.</source>
+        <translation>Проверка страны выхода для профилей группы %2 (%1) по её правилам стран. Для большой группы это займёт некоторое время.</translation>
+    </message>
+    <message>
+        <source>%1 profiles without a test result were kept; the next update tests them again.</source>
+        <translation>Профили без результата проверки сохранены (%1); следующее обновление проверит их снова.</translation>
+    </message>
+    <message>
+        <source>After the country test of %1:</source>
+        <translation>После проверки стран группы %1:</translation>
+    </message>
+    <message>
+        <source>Service check, %1</source>
+        <translation>Проверка сервисов, %1</translation>
+    </message>
+    <message>
+        <source>Available</source>
+        <translation>Доступно</translation>
+    </message>
+    <message>
+        <source>Partial</source>
+        <translation>Частично</translation>
+    </message>
+    <message>
+        <source>Restricted</source>
+        <translation>Ограничено</translation>
+    </message>
+    <message>
+        <source>Blocked</source>
+        <translation>Заблокировано</translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation>Сбой</translation>
+    </message>
+    <message>
+        <source>IP</source>
+        <translation>IP</translation>
+    </message>
+    <message>
+        <source>risk %1</source>
+        <translation>риск %1</translation>
+    </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>Выберите профиль, для которого нужно найти рабочие настройки</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>Не удалось скопировать профиль</translation>
+    </message>
+    <message>
+        <source>Datacenter IP</source>
+        <translation>IP дата-центра</translation>
+    </message>
+    <message>
+        <source>Mobile IP</source>
+        <translation>Мобильный IP</translation>
+    </message>
+    <message>
+        <source>Business IP</source>
+        <translation>Корпоративный IP</translation>
+    </message>
+    <message>
+        <source>Residential IP</source>
+        <translation>Домашний IP</translation>
+    </message>
+    <message>
+        <source>listed as %1</source>
+        <translation>отмечен как %1</translation>
+    </message>
+    <message>
+        <source>Failed to generate WARP QUIC signature: %1</source>
+        <translation>Не удалось сгенерировать подпись QUIC для WARP: %1</translation>
+    </message>
+    <message>
+        <source>The core returned an invalid QUIC signature.</source>
+        <translation>Ядро вернуло некорректную подпись QUIC.</translation>
+    </message>
+    <message>
+        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
+        <translation>Tor включён, но ещё не загружен. Откройте «Настройки маршрутизации &gt; Выход» и нажмите OK, чтобы загрузить его.</translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a front or landing proxy that uses an extra core or is a full config, so its profiles cannot be routing rule outbounds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The routing profile no longer exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No profile can be used to build the routing configuration: add a proxy profile first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>everything else</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>names matching %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>any profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not sign %1 (codesign exit code %2).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Tor Project publishes no Tor build for this platform.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not look up the Tor version: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Tor download list names no usable version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not get the Tor checksums: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 is not in the Tor Project&apos;s checksum list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core did not answer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto selector on %1, tier %2 (%3 of %4 working)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>tier %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 suspect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Suspect</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Time to the first reply: %1 ms on average, recent connections counting most.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Time to the first reply: none yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Recently %1 answered and %2 failed, older connections counting less. The profile is set aside once failures reach 3 and are at least as many as the answers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>recovering — %1 of %2 checks passed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>recovering — moving back in %1s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>recovering</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>real connections failing — retried in %1s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>real connections failing — retried soon</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -12183,11 +13336,11 @@ outbound и другие функции Throne могут не работать.
     </message>
     <message>
         <source>Route</source>
-        <translation type="unfinished"></translation>
+        <translation>Маршрутизация</translation>
     </message>
     <message>
         <source>DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS</translation>
     </message>
 </context>
 <context>
@@ -12576,7 +13729,7 @@ Your local edits are overwritten on each update.</source>
         <source>This rule belongs to the endpoint &quot;%1&quot; and cannot be deleted on its own.
 
 Remove that endpoint from this routing profile as well?</source>
-        <translation>Это правило относится к конечной точке &quot;%1&quot; и не может быть удалено отдельно.
+        <translation>Это правило относится к конечной точке «%1» и не может быть удалено отдельно.
 
 Удалить эту конечную точку из данного профиля маршрутизации?</translation>
     </message>
@@ -12602,7 +13755,7 @@ Remove that endpoint from this routing profile as well?</source>
         <source>This rule belongs to &quot;%1&quot;, an inner hop of the endpoint &quot;%2&quot;.
 
 Stop routing to that endpoint&apos;s inner hops?</source>
-        <translation>Это правило относится к &quot;%1&quot; — внутреннему звену конечной точки &quot;%2&quot;.
+        <translation>Это правило относится к «%1» — внутреннему звену конечной точки «%2».
 
 Отключить маршрутизацию на внутренние звенья этой конечной точки?</translation>
     </message>
@@ -12612,10 +13765,18 @@ Stop routing to that endpoint&apos;s inner hops?</source>
     </message>
     <message>
         <source>Disabled: kept in the profile but left out of the generated config.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключено: правило сохраняется в профиле, но не включается в итоговую конфигурацию.</translation>
     </message>
     <message>
         <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>Add Program…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick a program that is running or has used the network, spelled exactly as the core matches it.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -13053,6 +14214,10 @@ goes to the default above.</source>
     <message>
         <source>Kill switch is not active</source>
         <translation>Kill switch не активен</translation>
+    </message>
+    <message>
+        <source>Kill switch: on — traffic only flows through Throne&apos;s Tun</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -13494,7 +14659,7 @@ goes to the default above.</source>
     </message>
     <message>
         <source>Delete &quot;%1&quot;? Its secret cannot be recovered.</source>
-        <translation>Удалить &quot;%1&quot;? Его Secret будет невозможно восстановить.</translation>
+        <translation>Удалить «%1»? Его Secret будет невозможно восстановить.</translation>
     </message>
     <message>
         <source>Failed to store the OTP profile.</source>
@@ -13598,7 +14763,7 @@ goes to the default above.</source>
     </message>
     <message>
         <source>Cannot write to: %1</source>
-        <translation>Не удалось записать файл: %1</translation>
+        <translation>Не удается записать файл: %1</translation>
     </message>
     <message>
         <source>Exported %1 OTP profile(s) to:
@@ -13703,7 +14868,7 @@ goes to the default above.</source>
     </message>
     <message>
         <source>Default Fingerprint</source>
-        <translation>Fingerprint по умолчанию</translation>
+        <translation>Отпечаток (Fingerprint) по умолчанию</translation>
     </message>
     <message>
         <source>TLS Spoof</source>
@@ -13747,23 +14912,23 @@ goes to the default above.</source>
     </message>
     <message>
         <source>Idle Timeout</source>
-        <translation>Idle Timeout</translation>
+        <translation>Таймаут простоя</translation>
     </message>
     <message>
         <source>Keep Alive Period</source>
-        <translation>Keep Alive Period</translation>
+        <translation>Период Keep-Alive</translation>
     </message>
     <message>
         <source>Stream Receive Window</source>
-        <translation>Stream Receive Window</translation>
+        <translation>Окно приема потока</translation>
     </message>
     <message>
         <source>Connection Receive Window</source>
-        <translation>Connection Receive Window</translation>
+        <translation>Окно приема соединения</translation>
     </message>
     <message>
         <source>Max Concurrent Streams</source>
-        <translation>Max Concurrent Streams</translation>
+        <translation>Макс. параллельных потоков</translation>
     </message>
     <message>
         <source>QUIC Parameters</source>
@@ -13771,7 +14936,7 @@ goes to the default above.</source>
     </message>
     <message>
         <source>Initial Packet Size</source>
-        <translation>Initial Packet Size</translation>
+        <translation>Начальный размер пакета</translation>
     </message>
     <message>
         <source>Disable Path MTU Discovery</source>
@@ -13919,6 +15084,26 @@ goes to the default above.</source>
     <message>
         <source>Off</source>
         <translation>Выкл.</translation>
+    </message>
+    <message>
+        <source>Services</source>
+        <translation>Сервисы</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>Проверить</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>Проверка…</translation>
+    </message>
+    <message>
+        <source>Checked just now</source>
+        <translation>Проверено только что</translation>
+    </message>
+    <message>
+        <source>Checked %1 ago</source>
+        <translation>Проверено %1 назад</translation>
     </message>
 </context>
 <context>
@@ -14716,15 +15901,15 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Server Name</source>
-        <translation>Server Name</translation>
+        <translation>Имя сервера (SNI)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Certificate field matched by the server name. name is used by default and matches the common name exactly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Поле сертификата, с которым сравнивается «Server Name». По умолчанию используется name — точное совпадение с common name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Поле сертификата, с которым сравнивается «Имя сервера (SNI)». По умолчанию используется name — точное совпадение с common name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Server Name Type</source>
-        <translation>Server Name Type</translation>
+        <translation>Тип проверки имени сервера</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline CA certificate on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -15167,7 +16352,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>User Key</source>
-        <translation>User Key</translation>
+        <translation>Ключ пользователя</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restrict this outbound to one network. Leave empty to carry both TCP and UDP.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -15179,11 +16364,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Obfuscation</source>
-        <translation>Obfuscation</translation>
+        <translation>Обфускация</translation>
     </message>
     <message>
         <source>Obfuscation Host</source>
-        <translation>Obfuscation Host</translation>
+        <translation>Хост обфускации</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Traffic shaping used by Snell v6. &quot;unsafe-raw&quot; disables padding and is faster but easier to fingerprint.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -15203,7 +16388,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Obfuscation Host is used only with http or tls obfuscation.</source>
-        <translation>«Obfuscation Host» используется только с обфускацией http или tls.</translation>
+        <translation>«Хост обфускации» используется только с обфускацией http или tls.</translation>
     </message>
 </context>
 <context>
@@ -15421,7 +16606,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>&quot;%1&quot; needs Ctrl, Alt or Meta, otherwise it would block typing in other applications.</source>
-        <translation>Для &quot;%1&quot; нужен Ctrl, Alt или Meta, иначе это сочетание будет мешать вводу текста в других приложениях.</translation>
+        <translation>Для «%1» нужен Ctrl, Alt или Meta, иначе это сочетание будет мешать вводу текста в других приложениях.</translation>
     </message>
     <message>
         <source>Enter an IP address or a range such as 192.168.1.0/24 or fd00::/8.</source>
@@ -15429,7 +16614,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>&quot;%1&quot; is also assigned to &quot;%2&quot;.</source>
-        <translation>&quot;%1&quot; также назначено для &quot;%2&quot;.</translation>
+        <translation>«%1» также назначено для «%2».</translation>
     </message>
     <message>
         <source>Hide</source>
@@ -15530,6 +16715,74 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>These work from any application, even while Throned is hidden in the tray.</source>
         <translation>Работают из любого приложения, даже когда Throned свёрнут в трей.</translation>
+    </message>
+    <message>
+        <source>127.0.0.1 (default)</source>
+        <translation>127.0.0.1 (по умолчанию)</translation>
+    </message>
+    <message>
+        <source>Clash API</source>
+        <translation>Clash API</translation>
+    </message>
+    <message>
+        <source>Core APIs</source>
+        <translation>API ядра</translation>
+    </message>
+    <message>
+        <source>DNS server</source>
+        <translation>DNS-сервер</translation>
+    </message>
+    <message>
+        <source>Listen Address</source>
+        <translation>Прослушиваемый адрес</translation>
+    </message>
+    <message>
+        <source>Listen Port</source>
+        <translation>Прослушиваемый порт</translation>
+    </message>
+    <message>
+        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
+        <translation>Только локальный адрес (loopback). Оставьте порт пустым, чтобы отключить веб-панель.</translation>
+    </message>
+    <message>
+        <source>Mixed inbound</source>
+        <translation>Mixed inbound</translation>
+    </message>
+    <message>
+        <source>Port %1 is already used by: %2. Choose a different port.</source>
+        <translation>Порт %1 уже используется: %2. Выберите другой порт.</translation>
+    </message>
+    <message>
+        <source>Regenerate Secret</source>
+        <translation>Сгенерировать Secret</translation>
+    </message>
+    <message>
+        <source>Secret</source>
+        <translation>Secret</translation>
+    </message>
+    <message>
+        <source>sing-box API</source>
+        <translation>API sing-box</translation>
+    </message>
+    <message>
+        <source>sing-box API / Dashboard</source>
+        <translation>sing-box API / Веб-панель</translation>
+    </message>
+    <message>
+        <source>Devices on your network can control Throne with this key. Your firewall may ask to allow Throne.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable the Throne API</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scripts connect with thronectl or the Throne API library.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Throne API</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -15684,6 +16937,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>%1 / %2 · %3%</source>
         <translation>%1 / %2 · %3%</translation>
     </message>
+    <message>
+        <source>Service check</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Engine::CoreSupervisor</name>
@@ -15701,7 +16958,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>The core keeps exiting, so it is no longer restarted. Use Restart Core to try again.</source>
-        <translation>Ядро постоянно завершает работу, поэтому больше не перезапускается. Попробуйте снова через «Перезапуск ядра».</translation>
+        <translation>Ядро постоянно завершает работу, поэтому больше не перезапускается. Попробуйте снова через «Перезапустить ядро».</translation>
     </message>
 </context>
 <context>
@@ -15754,11 +17011,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Search Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск настроек</translation>
     </message>
     <message>
         <source>Search settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск настроек</translation>
     </message>
 </context>
 <context>
@@ -15864,7 +17121,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Unknown rule-set &quot;%1&quot;. Pick a geoip-* name from the list or enter a rule-set URL.</source>
-        <translation>Неизвестный набор правил &quot;%1&quot;. Выберите имя geoip-* из списка или введите URL набора правил.</translation>
+        <translation>Неизвестный набор правил «%1». Выберите имя geoip-* из списка или введите URL набора правил.</translation>
     </message>
     <message>
         <source>IP list</source>
@@ -16045,19 +17302,19 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>&quot;%1&quot; is being refreshed. Delete it when the refresh has finished.</source>
-        <translation>Список &quot;%1&quot; сейчас обновляется. Удалите его, когда обновление завершится.</translation>
+        <translation>Список «%1» сейчас обновляется. Удалите его, когда обновление завершится.</translation>
     </message>
     <message>
         <source>Delete the IP list &quot;%1&quot;?</source>
-        <translation>Удалить список IP &quot;%1&quot;?</translation>
+        <translation>Удалить список IP «%1»?</translation>
     </message>
     <message>
         <source>Scan &quot;%1&quot; is running and stores its results in this list. Pause it first.</source>
-        <translation>Сканирование &quot;%1&quot; выполняется и сохраняет результаты в этот список. Сначала приостановите его.</translation>
+        <translation>Сканирование «%1» выполняется и сохраняет результаты в этот список. Сначала приостановите его.</translation>
     </message>
     <message>
         <source>It holds the results of scan &quot;%1&quot;, which creates a new result list the next time it runs.</source>
-        <translation>В нем хранятся результаты сканирования &quot;%1&quot;, которое при следующем запуске создаст новый список результатов.</translation>
+        <translation>В нем хранятся результаты сканирования «%1», которое при следующем запуске создаст новый список результатов.</translation>
     </message>
     <message>
         <source>These scans use it as their targets: %1</source>
@@ -16189,6 +17446,22 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Failed to store the scan.</source>
         <translation>Не удалось сохранить сканирование.</translation>
+    </message>
+    <message>
+        <source>DNS resolver scan</source>
+        <translation>Сканирование DNS-резолверов</translation>
+    </message>
+    <message>
+        <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
+        <translation>Находит DNS-резолверы, которые пропускают туннель одного из ваших профилей DNSTT, MasterDNS или XDNS.</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Try variants of one profile&apos;s anti-censorship settings several times each and rank them; nothing changes in the profile until you apply a result.</source>
+        <translation>Каждый вариант настроек обхода цензуры одного профиля проверяется несколько раз, и варианты ранжируются; профиль не меняется, пока вы не примените результат.</translation>
     </message>
 </context>
 <context>
@@ -16331,7 +17604,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>No limit</source>
-        <translation>Без ограничения</translation>
+        <translation>Без ограничений</translation>
     </message>
     <message>
         <source>Selects an IP list of Cloudflare&apos;s WARP ranges for the chosen mode, creating it when missing, and sets the matching ports.</source>
@@ -16383,7 +17656,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Path</source>
-        <translation>Path</translation>
+        <translation>Путь (Path)</translation>
     </message>
     <message>
         <source>None (TLS handshake only)</source>
@@ -16423,11 +17696,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>uTLS fingerprint</source>
-        <translation>uTLS fingerprint</translation>
+        <translation>Отпечаток uTLS</translation>
     </message>
     <message>
         <source>Allow insecure certificates</source>
-        <translation>Allow insecure</translation>
+        <translation>Не проверять сертификаты (Allow insecure)</translation>
     </message>
     <message>
         <source>Disable SNI</source>
@@ -16527,15 +17800,15 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Junk packets (Jc)</source>
-        <translation>Junk packets (Jc)</translation>
+        <translation>Мусорные пакеты (Jc)</translation>
     </message>
     <message>
         <source>Junk minimum size (Jmin)</source>
-        <translation>Junk minimum size (Jmin)</translation>
+        <translation>Мин. размер мусорного пакета (Jmin)</translation>
     </message>
     <message>
         <source>Junk maximum size (Jmax)</source>
-        <translation>Junk maximum size (Jmax)</translation>
+        <translation>Макс. размер мусорного пакета (Jmax)</translation>
     </message>
     <message>
         <source>Jmin must not be larger than Jmax.</source>
@@ -16559,7 +17832,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid port (1-65535).</source>
-        <translation>&quot;%1&quot; — недопустимый порт (1-65535).</translation>
+        <translation>«%1» — недопустимый порт (1-65535).</translation>
     </message>
     <message>
         <source>Must be from %1 to %2.</source>
@@ -16579,11 +17852,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>HTTP/2 needs &quot;h2&quot; in the ALPN list; add it or leave ALPN empty.</source>
-        <translation>Для HTTP/2 нужен &quot;h2&quot; в списке ALPN; добавьте его или оставьте ALPN пустым.</translation>
+        <translation>Для HTTP/2 нужен «h2» в списке ALPN; добавьте его или оставьте ALPN пустым.</translation>
     </message>
     <message>
         <source>The method &quot;None&quot; only checks the TLS handshake, so it needs TLS.</source>
-        <translation>Метод &quot;Нет&quot; проверяет только хендшейк TLS, поэтому требует TLS.</translation>
+        <translation>Метод «Нет» проверяет только хендшейк TLS, поэтому требует TLS.</translation>
     </message>
     <message>
         <source>HTTP/3 needs TLS.</source>
@@ -16774,9 +18047,9 @@ Close without saving?</source>
     <message numerus="yes">
         <source>Saved %n entries to the IP list &quot;%1&quot;.</source>
         <translation>
-            <numerusform>Сохранена %n запись в список IP &quot;%1&quot;.</numerusform>
-            <numerusform>Сохранено %n записи в список IP &quot;%1&quot;.</numerusform>
-            <numerusform>Сохранено %n записей в список IP &quot;%1&quot;.</numerusform>
+            <numerusform>Сохранена %n запись в список IP «%1».</numerusform>
+            <numerusform>Сохранено %n записи в список IP «%1».</numerusform>
+            <numerusform>Сохранено %n записей в список IP «%1».</numerusform>
         </translation>
     </message>
     <message numerus="yes">
@@ -16797,7 +18070,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Cannot write to: %1</source>
-        <translation>Невозможно записать в: %1</translation>
+        <translation>Не удается записать файл: %1</translation>
     </message>
     <message>
         <source>Scan from the beginning</source>
@@ -16806,6 +18079,350 @@ Close without saving?</source>
     <message>
         <source>Rescan current results</source>
         <translation>Перепроверить текущие результаты</translation>
+    </message>
+    <message>
+        <source>Ports to scan. Targets without one use 443 (80 for plain HTTP).</source>
+        <translation>Порты для сканирования. Цели без порта используют 443 (80 для обычного HTTP).</translation>
+    </message>
+    <message>
+        <source>WARP port presets</source>
+        <translation>Наборы портов WARP</translation>
+    </message>
+    <message>
+        <source>How these combine with the list&apos;s own ports.</source>
+        <translation>Как эти порты сочетаются с портами из списка.</translation>
+    </message>
+    <message>
+        <source>Stop after this many results. Empty: no limit.</source>
+        <translation>Остановиться после стольких результатов. Пусто: без ограничения.</translation>
+    </message>
+    <message>
+        <source>Targets checked at the same time.</source>
+        <translation>Число целей, проверяемых одновременно.</translation>
+    </message>
+    <message>
+        <source>Copy the selected entries, or all if none are selected.</source>
+        <translation>Копировать выбранные записи или все, если ничего не выбрано.</translation>
+    </message>
+    <message>
+        <source>Entries without a port use 443 (80 for plain HTTP).</source>
+        <translation>Записи без порта используют 443 (80 для обычного HTTP).</translation>
+    </message>
+    <message>
+        <source>Use Cloudflare&apos;s WARP ranges and ports for this mode.</source>
+        <translation>Использовать диапазоны и порты Cloudflare WARP для этого режима.</translation>
+    </message>
+    <message>
+        <source>Poll: relays one tunnel query</source>
+        <translation>Опрос: пропускает один запрос туннеля</translation>
+    </message>
+    <message>
+        <source>Query names: also relays names as long as the profile sends</source>
+        <translation>Имена запросов: также пропускает имена той же длины, что отправляет профиль</translation>
+    </message>
+    <message>
+        <source>Handshake: also opens a tunnel session</source>
+        <translation>Хендшейк: также открывает сеанс туннеля</translation>
+    </message>
+    <message>
+        <source>Quick: relays the smallest packets</source>
+        <translation>Быстрая: пропускает самые маленькие пакеты</translation>
+    </message>
+    <message>
+        <source>Full: also measures the upload and download MTU</source>
+        <translation>Полная: также измеряет MTU отправки и приема</translation>
+    </message>
+    <message>
+        <source>Each address is tried as a resolver; the default port is 53.</source>
+        <translation>Каждый адрес проверяется как резолвер; порт по умолчанию — 53.</translation>
+    </message>
+    <message>
+        <source>Use as resolvers</source>
+        <translation>Использовать как резолверы</translation>
+    </message>
+    <message>
+        <source>Add this list to the profile&apos;s resolvers.</source>
+        <translation>Добавить этот список к резолверам профиля.</translation>
+    </message>
+    <message>
+        <source>DNS resolver scan</source>
+        <translation>Сканирование DNS-резолверов</translation>
+    </message>
+    <message>
+        <source>DNS tunnel test: the timeout must be between %1 and %2 ms.</source>
+        <translation>Проверка DNS-туннеля: таймаут должен быть от %1 до %2 мс.</translation>
+    </message>
+    <message>
+        <source>The scan&apos;s profile was deleted or is no longer a DNS tunnel profile.</source>
+        <translation>Профиль сканирования удален или больше не является профилем DNS-туннеля.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close it and try again.</source>
+        <translation>«%1» открыт в редакторе; закройте его и повторите попытку.</translation>
+    </message>
+    <message>
+        <source>The open editor of &quot;%1&quot; now takes resolvers from the IP list &quot;%2&quot;; press OK there to save it.</source>
+        <translation>Открытый редактор «%1» теперь берет резолверы из списка IP «%2»; нажмите в нем «ОК», чтобы сохранить.</translation>
+    </message>
+    <message>
+        <source>Failed to store the profile.</source>
+        <translation>Не удалось сохранить профиль.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; now takes resolvers from the IP list &quot;%2&quot;.</source>
+        <translation>«%1» теперь берет резолверы из списка IP «%2».</translation>
+    </message>
+    <message>
+        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
+        <translation>Отправляет пакет-приманку перед каждым UDP-потоком, чтобы обойти блокировку QUIC.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; already uses these settings.</source>
+        <translation>«%1» уже использует эти настройки.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>Для «%1» поиск невозможен. %2.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; could not be copied.</source>
+        <translation>Не удалось скопировать «%1».</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close the profile&apos;s editor first, then apply again.</source>
+        <translation>«%1» открыт в редакторе; сначала закройте редактор профиля, затем примените снова.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; now uses: %2.</source>
+        <translation>«%1» теперь использует: %2.</translation>
+    </message>
+    <message>
+        <source>%1 (tuned)</source>
+        <translation>%1 (подобрано)</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Add a copy of the profile with the selected variant.</source>
+        <translation>Добавить копию профиля с выбранным вариантом.</translation>
+    </message>
+    <message>
+        <source>Apply to profile</source>
+        <translation>Применить к профилю</translation>
+    </message>
+    <message>
+        <source>Best: %1 (passed %2/%3, median %4)</source>
+        <translation>Лучший: %1 (успешно %2/%3, медиана %4)</translation>
+    </message>
+    <message>
+        <source>Choose the profile whose settings to search.</source>
+        <translation>Выберите профиль, настройки которого нужно подобрать.</translation>
+    </message>
+    <message>
+        <source>Comma-separated, e.g. 100ms, 500ms, 1s.</source>
+        <translation>Через запятую, например 100ms, 500ms, 1s.</translation>
+    </message>
+    <message>
+        <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
+        <translation>uTLS fingerprint через запятую; «off» проверяет собственный TLS Go.</translation>
+    </message>
+    <message>
+        <source>Confirmed</source>
+        <translation>Подтверждён</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n variant(s)</source>
+        <translation>
+            <numerusform>Скопирован %n вариант</numerusform>
+            <numerusform>Скопировано %n варианта</numerusform>
+            <numerusform>Скопировано %n вариантов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Copies the table as tab-separated text.</source>
+        <translation>Копирует таблицу как текст с разделителями-табуляциями.</translation>
+    </message>
+    <message>
+        <source>Downloaded to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
+        <translation>Загружается для проверки каждого MTU. Пусто: тест скорости Cloudflare.</translation>
+    </message>
+    <message>
+        <source>Dropped early</source>
+        <translation>Отсеян досрочно</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Finds the largest MTU that still works.</source>
+        <translation>Находит наибольший рабочий MTU.</translation>
+    </message>
+    <message>
+        <source>How many bytes each MTU check downloads.</source>
+        <translation>Сколько байт загружает каждая проверка MTU.</translation>
+    </message>
+    <message>
+        <source>Largest working MTU</source>
+        <translation>Наибольший рабочий MTU</translation>
+    </message>
+    <message>
+        <source>MTU probe</source>
+        <translation>Проба MTU</translation>
+    </message>
+    <message>
+        <source>MTU: the download size must be between %1 and %2 bytes.</source>
+        <translation>MTU: размер загрузки должен быть от %1 до %2 байт.</translation>
+    </message>
+    <message>
+        <source>MTU: the largest MTU must be between %1 and %2; leave it empty for the profile&apos;s own.</source>
+        <translation>MTU: наибольший MTU должен быть от %1 до %2; оставьте поле пустым, чтобы использовать значение профиля.</translation>
+    </message>
+    <message>
+        <source>MTU: the smallest MTU must be between %1 and %2.</source>
+        <translation>MTU: наименьший MTU должен быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>MTU: the step must be between %1 and %2.</source>
+        <translation>MTU: шаг должен быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Median latency</source>
+        <translation>Медианная задержка</translation>
+    </message>
+    <message>
+        <source>Needs SNI turned on with a domain name, and no REALITY.</source>
+        <translation>Нужен включённый SNI с доменным именем и без REALITY.</translation>
+    </message>
+    <message>
+        <source>Needs QUIC, MASQUE over HTTP/3 or WireGuard.</source>
+        <translation>Нужен QUIC, MASQUE поверх HTTP/3 или WireGuard.</translation>
+    </message>
+    <message>
+        <source>No variant has passed yet.</source>
+        <translation>Пока ни один вариант не прошёл.</translation>
+    </message>
+    <message>
+        <source>No variant passed.</source>
+        <translation>Ни один вариант не прошёл.</translation>
+    </message>
+    <message>
+        <source>Not usable</source>
+        <translation>Нельзя использовать</translation>
+    </message>
+    <message>
+        <source>Not usable: %1</source>
+        <translation>Нельзя использовать: %1</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>Примечание</translation>
+    </message>
+    <message>
+        <source>Only WireGuard and AmneziaWG profiles have an MTU to search.</source>
+        <translation>MTU можно подбирать только у профилей WireGuard и AmneziaWG.</translation>
+    </message>
+    <message>
+        <source>Only the built-in fragment implementation uses a fallback delay.</source>
+        <translation>Резервную задержку использует только встроенная реализация фрагментации.</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per minute must be between %1 and %2.</source>
+        <translation>Темп: число попыток в минуту должно быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per variant must be between %1 and %2.</source>
+        <translation>Темп: число попыток на вариант должно быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Pacing: the attempt limit must be between %1 and %2.</source>
+        <translation>Темп: лимит попыток должен быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Pacing: the time limit must be between %1 and %2 minutes.</source>
+        <translation>Темп: лимит времени должен быть от %1 до %2 минут.</translation>
+    </message>
+    <message>
+        <source>Pacing: the timeout must be between %1 and %2 ms.</source>
+        <translation>Темп: таймаут должен быть от %1 до %2 мс.</translation>
+    </message>
+    <message>
+        <source>Passed</source>
+        <translation>Успешно</translation>
+    </message>
+    <message>
+        <source>Profile as it is</source>
+        <translation>Профиль без изменений</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>Рекомендуется</translation>
+    </message>
+    <message>
+        <source>Save as new profile</source>
+        <translation>Сохранить как новый профиль</translation>
+    </message>
+    <message>
+        <source>Saved &quot;%1&quot; with: %2.</source>
+        <translation>Сохранён «%1» с настройками: %2.</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Tested through %1</source>
+        <translation>Проверено через %1</translation>
+    </message>
+    <message>
+        <source>Tests through %1</source>
+        <translation>Проверка через %1</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest; leave it empty for the profile&apos;s own.</source>
+        <translation>Наибольший MTU должен быть больше наименьшего; оставьте поле пустым, чтобы использовать значение профиля.</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test.</source>
+        <translation>У профиля нет адреса сервера для проверки.</translation>
+    </message>
+    <message>
+        <source>The profile of this search no longer exists.</source>
+        <translation>Профиль этого поиска больше не существует.</translation>
+    </message>
+    <message>
+        <source>The profile this search was made for no longer exists.</source>
+        <translation>Профиль, для которого создан этот поиск, больше не существует.</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to &quot;%1&quot;: %2.</source>
+        <translation>Не удалось применить настройки к «%1»: %2.</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to the copy: %1.</source>
+        <translation>Не удалось применить настройки к копии: %1.</translation>
+    </message>
+    <message>
+        <source>These results are for another profile; start the search to test the one chosen now.</source>
+        <translation>Эти результаты относятся к другому профилю; запустите поиск, чтобы проверить выбранный сейчас.</translation>
+    </message>
+    <message>
+        <source>This profile does not use TLS over TCP.</source>
+        <translation>Этот профиль не использует TLS поверх TCP.</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint.</source>
+        <translation>У профилей этого типа нет uTLS fingerprint.</translation>
+    </message>
+    <message>
+        <source>Save the selected variant into the profile.</source>
+        <translation>Сохранить выбранный вариант в профиль.</translation>
     </message>
 </context>
 <context>
@@ -16816,7 +18433,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>No scans yet. Create one with &quot;New scan&quot;.</source>
-        <translation>Сканирований пока нет. Создайте первое кнопкой &quot;Новое сканирование&quot;.</translation>
+        <translation>Сканирований пока нет. Создайте первое кнопкой «Новое сканирование».</translation>
     </message>
     <message>
         <source>New scan</source>
@@ -16836,7 +18453,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Delete the scan &quot;%1&quot;?</source>
-        <translation>Удалить сканирование &quot;%1&quot;?</translation>
+        <translation>Удалить сканирование «%1»?</translation>
     </message>
     <message>
         <source>Also delete its result list</source>
@@ -16855,7 +18472,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; already uses it.</source>
-        <translation>Уже используется для &quot;%1&quot;.</translation>
+        <translation>Уже используется для «%1».</translation>
     </message>
     <message>
         <source>KDE&apos;s shortcut service failed: %1</source>
@@ -16872,6 +18489,10 @@ Close without saving?</source>
     <message>
         <source>Another application or a system shortcut already uses it.</source>
         <translation>Это сочетание уже занято другим приложением или системой.</translation>
+    </message>
+    <message>
+        <source>Registration failed: %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -16891,6 +18512,30 @@ Close without saving?</source>
     <message>
         <source>Latency</source>
         <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Max QNAME</source>
+        <translation>Макс. QNAME</translation>
+    </message>
+    <message>
+        <source>Upload MTU</source>
+        <translation>MTU отправки</translation>
+    </message>
+    <message>
+        <source>Download MTU</source>
+        <translation>MTU приема</translation>
+    </message>
+    <message>
+        <source>The longest query name the resolver relays: max_qname_len for DNSTT, lenLimit for XDNS.</source>
+        <translation>Самое длинное имя запроса, которое пропускает резолвер: max_qname_len для DNSTT, lenLimit для XDNS.</translation>
+    </message>
+    <message>
+        <source>The largest payload per query the resolver relays.</source>
+        <translation>Наибольшая полезная нагрузка запроса, которую пропускает резолвер.</translation>
+    </message>
+    <message>
+        <source>The largest payload per answer the resolver relays.</source>
+        <translation>Наибольшая полезная нагрузка ответа, которую пропускает резолвер.</translation>
     </message>
 </context>
 <context>
@@ -16991,27 +18636,27 @@ Close without saving?</source>
     <name>RemoteApi</name>
     <message>
         <source>The request is not valid JSON: %1</source>
-        <translation>The request is not valid JSON: %1</translation>
+        <translation>Запрос не является корректным JSON: %1</translation>
     </message>
     <message>
         <source>The request is not a JSON object</source>
-        <translation>The request is not a JSON object</translation>
+        <translation>Запрос не является объектом JSON</translation>
     </message>
     <message>
         <source>The method must be GET, POST, PUT or DELETE</source>
-        <translation>The method must be GET, POST, PUT or DELETE</translation>
+        <translation>Метод должен быть GET, POST, PUT или DELETE</translation>
     </message>
     <message>
         <source>The path must start with / and carry no query string or fragment</source>
-        <translation>The path must start with / and carry no query string or fragment</translation>
+        <translation>Путь должен начинаться с / и не содержать строки запроса или фрагмента</translation>
     </message>
     <message>
         <source>The query must be an object</source>
-        <translation>The query must be an object</translation>
+        <translation>Параметры запроса (query) должны быть объектом</translation>
     </message>
     <message>
         <source>Query value %1 is not a string</source>
-        <translation>Query value %1 is not a string</translation>
+        <translation>Значение параметра запроса %1 не является строкой</translation>
     </message>
 </context>
 <context>
@@ -17217,6 +18862,66 @@ Close without saving?</source>
     <message>
         <source>Start</source>
         <translation>Запустить</translation>
+    </message>
+    <message>
+        <source>DNS resolvers</source>
+        <translation>DNS-резолверы</translation>
+    </message>
+    <message>
+        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
+        <translation>Искать резолверы можно только для сохраненного профиля DNSTT, MasterDNS или XDNS; сначала сохраните профиль.</translation>
+    </message>
+    <message>
+        <source>Resolvers for %1</source>
+        <translation>Резолверы для %1</translation>
+    </message>
+    <message>
+        <source>Failed to store the scan.</source>
+        <translation>Не удалось сохранить сканирование.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>Для «%1» поиск невозможен. %2.</translation>
+    </message>
+    <message>
+        <source>%1 / %2 attempts (%3%)</source>
+        <translation>%1 / %2 попыток (%3%)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n working variant(s)</source>
+        <translation>
+            <numerusform>%n рабочий вариант</numerusform>
+            <numerusform>%n рабочих варианта</numerusform>
+            <numerusform>%n рабочих вариантов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Only a saved profile can be searched; save the profile first.</source>
+        <translation>Подбирать можно только сохранённый профиль; сначала сохраните профиль.</translation>
+    </message>
+    <message>
+        <source>Settings for %1</source>
+        <translation>Настройки для %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>Start over and discard the %n tested variant(s)?</source>
+        <translation>
+            <numerusform>Начать заново и отбросить %n проверенный вариант?</numerusform>
+            <numerusform>Начать заново и отбросить %n проверенных варианта?</numerusform>
+            <numerusform>Начать заново и отбросить %n проверенных вариантов?</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The profile or the search options changed since this search was paused, so it cannot resume. Start over?</source>
+        <translation>Профиль или параметры поиска изменились после его приостановки, поэтому продолжить нельзя. Начать заново?</translation>
+    </message>
+    <message>
+        <source>Working settings</source>
+        <translation>Рабочие настройки</translation>
     </message>
 </context>
 <context>
@@ -17540,6 +19245,106 @@ Close without saving?</source>
         <source>Checking network</source>
         <translation>Проверка сети</translation>
     </message>
+    <message>
+        <source>%1 relays the DNS tunnel (%2 ms)</source>
+        <translation>%1 пропускает DNS-туннель (%2 мс)</translation>
+    </message>
+    <message>
+        <source>The DNS tunnel profile cannot be used to find resolvers</source>
+        <translation>Профиль DNS-туннеля нельзя использовать для поиска резолверов</translation>
+    </message>
+    <message>
+        <source>A settings search has no results to rescan</source>
+        <translation>У поиска настроек нет результатов для повторного сканирования</translation>
+    </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>Выберите профиль, для которого нужно найти рабочие настройки</translation>
+    </message>
+    <message>
+        <source>Nothing to try: turn on a setting this profile supports</source>
+        <translation>Нечего проверять: включите настройку, которую поддерживает этот профиль</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test</source>
+        <translation>У профиля нет адреса сервера для проверки</translation>
+    </message>
+    <message>
+        <source>Every variant connects to %1</source>
+        <translation>Каждый вариант подключается к %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the time limit of %n minute(s)</source>
+        <translation>
+            <numerusform>Остановлено: достигнут лимит времени в %n минуту</numerusform>
+            <numerusform>Остановлено: достигнут лимит времени в %n минуты</numerusform>
+            <numerusform>Остановлено: достигнут лимит времени в %n минут</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the limit of %n attempt(s)</source>
+        <translation>
+            <numerusform>Остановлено: достигнут лимит в %n попытку</numerusform>
+            <numerusform>Остановлено: достигнут лимит в %n попытки</numerusform>
+            <numerusform>Остановлено: достигнут лимит в %n попыток</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1: cannot be used: %2</source>
+        <translation>%1: нельзя использовать: %2</translation>
+    </message>
+    <message>
+        <source>%1: passed in %2 ms (%3/%4)</source>
+        <translation>%1: успешно за %2 мс (%3/%4)</translation>
+    </message>
+    <message>
+        <source>The network is down, so the search paused; resume it when the connection is back</source>
+        <translation>Сеть недоступна, поэтому поиск приостановлен; продолжите его, когда подключение восстановится</translation>
+    </message>
+    <message>
+        <source>%1: failed (%2/%3): %4</source>
+        <translation>%1: ошибка (%2/%3): %4</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>Не удалось скопировать профиль</translation>
+    </message>
+    <message>
+        <source>This profile cannot be pointed at %1</source>
+        <translation>Этот профиль нельзя направить на %1</translation>
+    </message>
+    <message>
+        <source>The core returned no result</source>
+        <translation>Ядро не вернуло результат</translation>
+    </message>
+    <message>
+        <source>The core did not answer the network check, so the search paused</source>
+        <translation>Ядро не ответило на проверку сети, поэтому поиск приостановлен</translation>
+    </message>
+    <message>
+        <source>Confirming the best variants</source>
+        <translation>Подтверждение лучших вариантов</translation>
+    </message>
+    <message>
+        <source>Testing the profile as it is</source>
+        <translation>Проверка профиля без изменений</translation>
+    </message>
+    <message>
+        <source>Trying one change at a time</source>
+        <translation>Проверка изменений по одному</translation>
+    </message>
+    <message>
+        <source>Combining what helped</source>
+        <translation>Объединение того, что помогло</translation>
+    </message>
+    <message>
+        <source>Trying fragment delays</source>
+        <translation>Проверка задержек фрагментации</translation>
+    </message>
+    <message>
+        <source>Searching for the largest working MTU</source>
+        <translation>Поиск наибольшего рабочего MTU</translation>
+    </message>
 </context>
 <context>
     <name>Sys::KillSwitch</name>
@@ -17623,6 +19428,14 @@ Close without saving?</source>
         <source>[Kill switch] Not active: %1</source>
         <translation>[Kill switch] Не активен: %1</translation>
     </message>
+    <message>
+        <source>The kill switch needs the core to run as administrator.</source>
+        <translation>Для kill switch ядро должно работать от имени администратора.</translation>
+    </message>
+    <message>
+        <source>[Kill switch] On: only traffic through Throne can leave this device.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Validation</name>
@@ -17668,11 +19481,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>The TLS fragment size &quot;%1&quot; in Preset Settings &gt; TLS is invalid. %2</source>
-        <translation>Недопустимый размер фрагмента TLS &quot;%1&quot; в разделе «Предустановленные настройки &gt; TLS». %2</translation>
+        <translation>Недопустимый размер фрагмента TLS «%1» в разделе «Предустановленные настройки &gt; TLS». %2</translation>
     </message>
     <message>
         <source>The TLS fragment sleep &quot;%1&quot; in Preset Settings &gt; TLS is invalid. %2</source>
-        <translation>Недопустимая пауза фрагментации TLS &quot;%1&quot; в разделе «Предустановленные настройки &gt; TLS». %2</translation>
+        <translation>Недопустимая пауза фрагментации TLS «%1» в разделе «Предустановленные настройки &gt; TLS». %2</translation>
     </message>
     <message>
         <source>The server address is missing.</source>
@@ -17720,7 +19533,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unknown fingerprint &quot;%1&quot;. Use chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized or unsafe.</source>
-        <translation>Неизвестный fingerprint &quot;%1&quot;. Используйте chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized или unsafe.</translation>
+        <translation>Неизвестный fingerprint «%1». Используйте chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized или unsafe.</translation>
     </message>
     <message>
         <source>The minimum TLS version is above the maximum.</source>
@@ -17800,7 +19613,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>sing-box does not support the transport &quot;%1&quot;. Use ws, httpupgrade, http, grpc or quic.</source>
-        <translation>sing-box не поддерживает транспорт &quot;%1&quot;. Используйте ws, httpupgrade, http, grpc или quic.</translation>
+        <translation>sing-box не поддерживает транспорт «%1». Используйте ws, httpupgrade, http, grpc или quic.</translation>
     </message>
     <message>
         <source>The QUIC transport needs TLS. Set Security to tls.</source>
@@ -17828,7 +19641,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Must not contain &quot;|&quot;, which separates headers in share links.</source>
-        <translation>Не должно содержать &quot;|&quot;: этот символ разделяет заголовки в ссылках профилей.</translation>
+        <translation>Не должно содержать «|»: этот символ разделяет заголовки в ссылках профилей.</translation>
     </message>
     <message>
         <source>Write Name=value pairs separated by spaces, quoting values that contain spaces, for example User-Agent=&quot;Mozilla/5.0&quot; X-Token=abc.</source>
@@ -17868,7 +19681,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Xray does not support the security &quot;%1&quot;. Use none, tls or reality.</source>
-        <translation>Xray не поддерживает режим безопасности &quot;%1&quot;. Используйте none, tls или reality.</translation>
+        <translation>Xray не поддерживает режим безопасности «%1». Используйте none, tls или reality.</translation>
     </message>
     <message>
         <source>REALITY works only with the raw, xhttp or grpc transport.</source>
@@ -17880,11 +19693,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>Xray does not know the fingerprint &quot;%1&quot;. Use chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized or unsafe.</source>
-        <translation>Xray не знает fingerprint &quot;%1&quot;. Используйте chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized или unsafe.</translation>
+        <translation>Xray не знает fingerprint «%1». Используйте chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized или unsafe.</translation>
     </message>
     <message>
         <source>Xray ignores the unknown cipher suite &quot;%1&quot;.</source>
-        <translation>Xray игнорирует неизвестный набор шифров &quot;%1&quot;.</translation>
+        <translation>Xray игнорирует неизвестный набор шифров «%1».</translation>
     </message>
     <message>
         <source>Cipher suites only take effect with the unsafe fingerprint.</source>
@@ -17908,7 +19721,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Remove the Host header and put the host in the Host field instead.</source>
-        <translation>Удалите заголовок Host и укажите хост в поле «Host».</translation>
+        <translation>Удалите заголовок Host и укажите хост в поле «Хост (Host)».</translation>
     </message>
     <message>
         <source>Both bounds must be greater than 0, for example 100-1000.</source>
@@ -17936,7 +19749,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Set either Max Connections or Max Concurrency, not both.</source>
-        <translation>Укажите либо «Max Connections», либо «Max Concurrency», но не оба.</translation>
+        <translation>Укажите либо «Макс. соединений», либо «Макс. параллельность», но не оба.</translation>
     </message>
     <message>
         <source>The DNS address is empty.</source>
@@ -17948,11 +19761,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid interface name.</source>
-        <translation>&quot;%1&quot; — недопустимое имя интерфейса.</translation>
+        <translation>«%1» — недопустимое имя интерфейса.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; is not a supported DNS scheme; use udp, tcp, tls, quic, https, h3, dhcp or local.</source>
-        <translation>&quot;%1&quot; — неподдерживаемая схема DNS; используйте udp, tcp, tls, quic, https, h3, dhcp или local.</translation>
+        <translation>«%1» — неподдерживаемая схема DNS; используйте udp, tcp, tls, quic, https, h3, dhcp или local.</translation>
     </message>
     <message>
         <source>Only https:// and h3:// DNS addresses take a path.</source>
@@ -17968,11 +19781,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid IPv6 address.</source>
-        <translation>&quot;%1&quot; — недопустимый адрес IPv6.</translation>
+        <translation>«%1» — недопустимый адрес IPv6.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid IPv6 address; put it in brackets to add a port.</source>
-        <translation>&quot;%1&quot; — недопустимый адрес IPv6; чтобы указать порт, заключите адрес в квадратные скобки.</translation>
+        <translation>«%1» — недопустимый адрес IPv6; чтобы указать порт, заключите адрес в квадратные скобки.</translation>
     </message>
     <message>
         <source>The DNS server address is missing.</source>
@@ -17980,11 +19793,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid IPv4 address.</source>
-        <translation>&quot;%1&quot; — недопустимый адрес IPv4.</translation>
+        <translation>«%1» — недопустимый адрес IPv4.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid IP address or host name.</source>
-        <translation>&quot;%1&quot; — недопустимый IP-адрес или имя хоста.</translation>
+        <translation>«%1» — недопустимый IP-адрес или имя хоста.</translation>
     </message>
     <message>
         <source>The port is missing after the colon.</source>
@@ -17992,7 +19805,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a valid port; use a number from 1 to 65535.</source>
-        <translation>&quot;%1&quot; — недопустимый порт; укажите число от 1 до 65535.</translation>
+        <translation>«%1» — недопустимый порт; укажите число от 1 до 65535.</translation>
     </message>
     <message>
         <source>AnyTLS does not support TCP Fast Open, so it was turned off.</source>
@@ -18108,7 +19921,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;outbounds&quot; must be a list, for example &quot;outbounds&quot;: [].</source>
-        <translation>&quot;outbounds&quot; должен быть списком, например &quot;outbounds&quot;: [].</translation>
+        <translation>«outbounds» должен быть списком, например &quot;outbounds&quot;: [].</translation>
     </message>
     <message>
         <source>Must not contain spaces.</source>
@@ -18128,15 +19941,15 @@ Close without saving?</source>
     </message>
     <message>
         <source>Needs a Hop Interval above 0 as well, for example 30s with a maximum of 60s.</source>
-        <translation>Также нужен «Hop Interval» больше 0, например 30s при максимуме 60s.</translation>
+        <translation>Также нужен «Интервал смены порта» больше 0, например 30s при максимуме 60s.</translation>
     </message>
     <message>
         <source>Must not be shorter than Hop Interval.</source>
-        <translation>Не должно быть меньше «Hop Interval».</translation>
+        <translation>Не должно быть меньше значения «Интервал смены порта».</translation>
     </message>
     <message>
         <source>Ignored without a Hop Interval; set one as well, for example 30s with a maximum of 60s.</source>
-        <translation>Игнорируется без «Hop Interval»; задайте и его, например 30s при максимуме 60s.</translation>
+        <translation>Игнорируется без поля «Интервал смены порта»; задайте и его, например 30s при максимуме 60s.</translation>
     </message>
     <message>
         <source>Hysteria v1 needs both Up Mbps and Down Mbps, for example 100.</source>
@@ -18200,7 +20013,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Item %1 (&quot;%2&quot;): %3</source>
-        <translation>Элемент %1 (&quot;%2&quot;): %3</translation>
+        <translation>Элемент %1 («%2»): %3</translation>
     </message>
     <message>
         <source>Must be the base64 key from WARP registration (standard base64 with = padding).</source>
@@ -18228,7 +20041,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Header name &quot;%1&quot;: %2</source>
-        <translation>Имя заголовка &quot;%1&quot;: %2</translation>
+        <translation>Имя заголовка «%1»: %2</translation>
     </message>
     <message>
         <source>A header line without a name and a colon was ignored; write each line as Name: value.</source>
@@ -18348,11 +20161,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; is not a TLS 1.2 cipher suite the core supports, for example ECDHE-RSA-AES256-GCM-SHA384.</source>
-        <translation>Ядро не поддерживает набор шифров TLS 1.2 &quot;%1&quot;. Пример подходящего: ECDHE-RSA-AES256-GCM-SHA384.</translation>
+        <translation>Ядро не поддерживает набор шифров TLS 1.2 «%1». Пример подходящего: ECDHE-RSA-AES256-GCM-SHA384.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; is not a TLS group the core supports. Use X25519, P-256, P-384 or P-521, separated by colons.</source>
-        <translation>Ядро не поддерживает группу TLS &quot;%1&quot;. Используйте X25519, P-256, P-384 или P-521 через двоеточие.</translation>
+        <translation>Ядро не поддерживает группу TLS «%1». Используйте X25519, P-256, P-384 или P-521 через двоеточие.</translation>
     </message>
     <message>
         <source>Must be 0 (off) or at least 68.</source>
@@ -18492,11 +20305,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unknown obfs mode &quot;%1&quot;. Use obfs=http or obfs=tls.</source>
-        <translation>Неизвестный режим obfs &quot;%1&quot;. Используйте obfs=http или obfs=tls.</translation>
+        <translation>Неизвестный режим obfs «%1». Используйте obfs=http или obfs=tls.</translation>
     </message>
     <message>
         <source>Unknown mode &quot;%1&quot;. Use mode=websocket or mode=quic.</source>
-        <translation>Неизвестный режим &quot;%1&quot;. Используйте mode=websocket или mode=quic.</translation>
+        <translation>Неизвестный режим «%1». Используйте mode=websocket или mode=quic.</translation>
     </message>
     <message>
         <source>mux must be a whole number, for example mux=1.</source>
@@ -18864,7 +20677,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>sing-box endpoint &quot;%1&quot;</source>
-        <translation>Конечная точка sing-box &quot;%1&quot;</translation>
+        <translation>Конечная точка sing-box «%1»</translation>
     </message>
     <message>
         <source>sing-box outbound #%1</source>
@@ -18872,7 +20685,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>sing-box outbound &quot;%1&quot;</source>
-        <translation>Outbound sing-box &quot;%1&quot;</translation>
+        <translation>Outbound sing-box «%1»</translation>
     </message>
     <message>
         <source>Xray outbound #%1</source>
@@ -18880,7 +20693,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Xray outbound &quot;%1&quot;</source>
-        <translation>Outbound Xray &quot;%1&quot;</translation>
+        <translation>Outbound Xray «%1»</translation>
     </message>
     <message>
         <source>Xray config #%1</source>
@@ -18888,7 +20701,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Xray config &quot;%1&quot;</source>
-        <translation>Конфигурация Xray &quot;%1&quot;</translation>
+        <translation>Конфигурация Xray «%1»</translation>
     </message>
     <message>
         <source>Clash proxy #%1</source>
@@ -18896,7 +20709,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Clash proxy &quot;%1&quot;</source>
-        <translation>Прокси Clash &quot;%1&quot;</translation>
+        <translation>Прокси Clash «%1»</translation>
     </message>
     <message>
         <source>A VLESS profile cannot store this setting, so it was ignored. Such an outbound is kept as written only when nothing else in it needs fixing.</source>
@@ -18924,11 +20737,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>Missing &quot;type&quot;.</source>
-        <translation>Отсутствует &quot;type&quot;.</translation>
+        <translation>Отсутствует «type».</translation>
     </message>
     <message>
         <source>Unsupported sing-box type &quot;%1&quot;.</source>
-        <translation>Неподдерживаемый тип sing-box &quot;%1&quot;.</translation>
+        <translation>Неподдерживаемый тип sing-box «%1».</translation>
     </message>
     <message>
         <source>Imported as a custom Xray outbound to keep %1, which a VLESS profile would drop.</source>
@@ -18968,7 +20781,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unsupported Clash type &quot;%1&quot;.</source>
-        <translation>Неподдерживаемый тип Clash &quot;%1&quot;.</translation>
+        <translation>Неподдерживаемый тип Clash «%1».</translation>
     </message>
     <message>
         <source>The [Interface] section has no PrivateKey.</source>
@@ -18992,11 +20805,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>Write the link type in lower case: &quot;%1://&quot;, not &quot;%2://&quot;.</source>
-        <translation>Пишите тип ссылки строчными буквами: &quot;%1://&quot;, а не &quot;%2://&quot;.</translation>
+        <translation>Пишите тип ссылки строчными буквами: «%1://», а не «%2://».</translation>
     </message>
     <message>
         <source>Unsupported link type &quot;%1://&quot;.</source>
-        <translation>Неподдерживаемый тип ссылки &quot;%1://&quot;.</translation>
+        <translation>Неподдерживаемый тип ссылки «%1://».</translation>
     </message>
     <message>
         <source>The link is damaged: it is not a valid URL.</source>
@@ -19012,7 +20825,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unsupported profile type &quot;%1&quot;.</source>
-        <translation>Неподдерживаемый тип профиля &quot;%1&quot;.</translation>
+        <translation>Неподдерживаемый тип профиля «%1».</translation>
     </message>
     <message>
         <source>The vpn:// link could not be decoded.</source>
@@ -19028,43 +20841,43 @@ Close without saving?</source>
     </message>
     <message>
         <source>%1 (&quot;%2&quot;): %3</source>
-        <translation>%1 (&quot;%2&quot;): %3</translation>
+        <translation>%1 («%2»): %3</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot;: %2</source>
-        <translation>Правило &quot;%1&quot;: %2</translation>
+        <translation>Правило «%1»: %2</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot; was dropped: %2</source>
-        <translation>Правило &quot;%1&quot; отброшено: %2</translation>
+        <translation>Правило «%1» отброшено: %2</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot;: removed the item %2</source>
-        <translation>Правило &quot;%1&quot;: удален элемент %2</translation>
+        <translation>Правило «%1»: удален элемент %2</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot; now uses the proxy outbound: %2</source>
-        <translation>Правило &quot;%1&quot; теперь использует outbound proxy: %2</translation>
+        <translation>Правило «%1» теперь использует outbound proxy: %2</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot;: %2 was cleared: %3</source>
-        <translation>Правило &quot;%1&quot;: поле %2 очищено: %3</translation>
+        <translation>Правило «%1»: поле %2 очищено: %3</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot;: the outbound is neither a profile name nor an id, so it uses proxy.</source>
-        <translation>Правило &quot;%1&quot;: outbound не является ни именем, ни ID профиля, поэтому используется proxy.</translation>
+        <translation>Правило «%1»: outbound не является ни именем, ни ID профиля, поэтому используется proxy.</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot; was dropped: %2 holds something other than text, numbers or booleans.</source>
-        <translation>Правило &quot;%1&quot; отброшено: %2 содержит что-то кроме текста, чисел и логических значений.</translation>
+        <translation>Правило «%1» отброшено: %2 содержит что-то кроме текста, чисел и логических значений.</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot;: %2 holds something other than text, numbers or booleans, so it was ignored.</source>
-        <translation>Правило &quot;%1&quot;: %2 содержит что-то кроме текста, чисел и логических значений, поэтому проигнорировано.</translation>
+        <translation>Правило «%1»: %2 содержит что-то кроме текста, чисел и логических значений, поэтому проигнорировано.</translation>
     </message>
     <message>
         <source>Rule &quot;%1&quot;: %2 takes one value, so only &quot;%3&quot; was kept.</source>
-        <translation>Правило &quot;%1&quot;: %2 принимает одно значение, поэтому оставлено только &quot;%3&quot;.</translation>
+        <translation>Правило «%1»: %2 принимает одно значение, поэтому оставлено только «%3».</translation>
     </message>
     <message>
         <source>%1 Shared endpoints arrive without their keys and passwords.</source>
@@ -19080,7 +20893,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>The default outbound &quot;%1&quot; is unknown, so proxy is used.</source>
-        <translation>Outbound по умолчанию &quot;%1&quot; неизвестен, поэтому используется proxy.</translation>
+        <translation>Outbound по умолчанию «%1» неизвестен, поэтому используется proxy.</translation>
     </message>
     <message>
         <source>Rule #%1 is not a JSON object and was skipped.</source>
@@ -19088,7 +20901,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Line %1 of the %2 rules (&quot;%3&quot;): %4</source>
-        <translation>Строка %1 в правилах %2 (&quot;%3&quot;): %4</translation>
+        <translation>Строка %1 в правилах %2 («%3»): %4</translation>
     </message>
     <message>
         <source>Start the line with domain:, suffix:, keyword:, regex:, ruleset:, ip:, processName: or processPath:.</source>
@@ -19096,7 +20909,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Add a value after &quot;%1:&quot;.</source>
-        <translation>Добавьте значение после &quot;%1:&quot;.</translation>
+        <translation>Добавьте значение после «%1:».</translation>
     </message>
     <message>
         <source>Start the line with domain:, suffix:, keyword:, regex:, ruleset: or ip:.</source>
@@ -19152,15 +20965,15 @@ Close without saving?</source>
     </message>
     <message>
         <source>Routing rules cannot use &quot;%1&quot;: extra core profiles and full configs are not supported. Pick another outbound.</source>
-        <translation>В правилах маршрутизации нельзя использовать &quot;%1&quot;: профили с дополнительным ядром и полные конфигурации не поддерживаются. Выберите другой outbound.</translation>
+        <translation>В правилах маршрутизации нельзя использовать «%1»: профили с дополнительным ядром и полные конфигурации не поддерживаются. Выберите другой outbound.</translation>
     </message>
     <message>
         <source>The chain &quot;%1&quot; has no hops; pick another outbound.</source>
-        <translation>В цепочке &quot;%1&quot; нет звеньев; выберите другой outbound.</translation>
+        <translation>В цепочке «%1» нет звеньев; выберите другой outbound.</translation>
     </message>
     <message>
         <source>Routing rules cannot use the chain &quot;%1&quot;: a hop of it is missing, another chain, an extra core profile or a full config. Pick another outbound.</source>
-        <translation>В правилах маршрутизации нельзя использовать цепочку &quot;%1&quot;: одно из ее звеньев отсутствует, является другой цепочкой, профилем с дополнительным ядром или полной конфигурацией. Выберите другой outbound.</translation>
+        <translation>В правилах маршрутизации нельзя использовать цепочку «%1»: одно из ее звеньев отсутствует, является другой цепочкой, профилем с дополнительным ядром или полной конфигурацией. Выберите другой outbound.</translation>
     </message>
     <message>
         <source>A range goes in port_range, written like 1000:2000.</source>
@@ -19216,7 +21029,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>%1: algorithm &quot;%2&quot; is not supported (only SHA1, SHA256 and SHA512), so its codes would be wrong.</source>
-        <translation>%1: алгоритм &quot;%2&quot; не поддерживается (только SHA1, SHA256 и SHA512), поэтому коды будут неверными.</translation>
+        <translation>%1: алгоритм «%2» не поддерживается (только SHA1, SHA256 и SHA512), поэтому коды будут неверными.</translation>
     </message>
     <message>
         <source>%1: %2 digits are not supported (use %3 to %4).</source>
@@ -19224,15 +21037,15 @@ Close without saving?</source>
     </message>
     <message>
         <source>%1: a period of &quot;%2&quot; seconds is not supported (use %3 to %4).</source>
-        <translation>%1: период &quot;%2&quot; (в секундах) не поддерживается (допустимо от %3 до %4).</translation>
+        <translation>%1: период «%2» (в секундах) не поддерживается (допустимо от %3 до %4).</translation>
     </message>
     <message>
         <source>%1: the counter &quot;%2&quot; is not a whole number of 0 or more.</source>
-        <translation>%1: счетчик &quot;%2&quot; не является целым неотрицательным числом.</translation>
+        <translation>%1: счетчик «%2» не является целым неотрицательным числом.</translation>
     </message>
     <message>
         <source>%1: type &quot;%2&quot; is not supported (only totp and hotp).</source>
-        <translation>%1: тип &quot;%2&quot; не поддерживается (только totp и hotp).</translation>
+        <translation>%1: тип «%2» не поддерживается (только totp и hotp).</translation>
     </message>
     <message>
         <source>%1: there is no secret.</source>
@@ -19296,7 +21109,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>The core&apos;s regex engine (RE2) does not support &quot;%1&quot;.</source>
-        <translation>Движок регулярных выражений ядра (RE2) не поддерживает &quot;%1&quot;.</translation>
+        <translation>Движок регулярных выражений ядра (RE2) не поддерживает «%1».</translation>
     </message>
     <message>
         <source>The core&apos;s regex engine (RE2) allows at most 1000 repetitions, counting nested repeats multiplied together.</source>
@@ -19324,11 +21137,11 @@ Close without saving?</source>
     </message>
     <message>
         <source>&quot;%1&quot; is a single port; write it as %1:%1.</source>
-        <translation>&quot;%1&quot; — это один порт; запишите его как %1:%1.</translation>
+        <translation>«%1» — это один порт; запишите его как %1:%1.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; is a single port; write it as %1-%1.</source>
-        <translation>&quot;%1&quot; — это один порт; запишите его как %1-%1.</translation>
+        <translation>«%1» — это один порт; запишите его как %1-%1.</translation>
     </message>
     <message>
         <source>The range starts after it ends, so it matches nothing.</source>
@@ -19384,7 +21197,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unknown unit &quot;%1&quot;. Use b, k, kb, m, mb, g or gb.</source>
-        <translation>Неизвестная единица измерения &quot;%1&quot;. Используйте b, k, kb, m, mb, g или gb.</translation>
+        <translation>Неизвестная единица измерения «%1». Используйте b, k, kb, m, mb, g или gb.</translation>
     </message>
     <message>
         <source>Use an address with a prefix length, for example 10.0.0.0/8 or fd00::/8.</source>
@@ -19476,7 +21289,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Unknown value &quot;%1&quot;. Use one of: %2.</source>
-        <translation>Неизвестное значение &quot;%1&quot;. Используйте одно из: %2.</translation>
+        <translation>Неизвестное значение «%1». Используйте одно из: %2.</translation>
     </message>
     <message>
         <source>Must not contain spaces or special characters.</source>
@@ -19496,7 +21309,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>Line %1 (&quot;%2&quot;): %3</source>
-        <translation>Строка %1 (&quot;%2&quot;): %3</translation>
+        <translation>Строка %1 («%2»): %3</translation>
     </message>
     <message>
         <source>Fix these before saving:</source>
@@ -19552,152 +21365,524 @@ Close without saving?</source>
     </message>
     <message>
         <source>Remote DNS &quot;%1&quot;: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалённый DNS «%1»: %2</translation>
     </message>
     <message>
         <source>Direct DNS &quot;%1&quot;: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS для прямых запросов «%1»: %2</translation>
     </message>
     <message>
         <source>The default DNS server must be remote or direct, not &quot;%1&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS-сервером по умолчанию должен быть «remote» или «direct», а не «%1».</translation>
     </message>
     <message>
         <source>The profile&apos;s own DNS settings were dropped, so it uses the global ones: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Собственные настройки DNS профиля были сброшены, поэтому используются глобальные: %1</translation>
     </message>
     <message>
         <source>TCP Brutal only works with a custom multiplex. Set Multiplex to Custom.</source>
-        <translation type="unfinished"></translation>
+        <translation>TCP Brutal работает только при настраиваемом мультиплексировании. Установите для параметра «Мультиплексирование» значение «Настраиваемое».</translation>
     </message>
     <message>
         <source>Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.</source>
-        <translation>Для Hysteria v1 нужны и «Up Mbps», и «Down Mbps»; вместо отсутствующего значения используется %1 на отдачу и %2 на загрузку. Для лучшего результата укажите реальную скорость канала.</translation>
+        <translation>Для Hysteria v1 нужны и «Отдача (Мбит/с)», и «Прием (Мбит/с)»; вместо отсутствующего значения используется %1 на отдачу и %2 на загрузку. Для лучшего результата укажите реальную скорость канала.</translation>
     </message>
     <message>
         <source>Use two-letter country codes separated by commas, for example DE,NL,FR; put ! before a code to exclude that country, for example !RU.</source>
         <translation>Используйте двухбуквенные коды стран через запятую, например DE,NL,FR; поставьте ! перед кодом, чтобы исключить страну, например !RU.</translation>
+    </message>
+    <message>
+        <source>Must be google-drive, s3, template or local.</source>
+        <translation>Должно быть google-drive, s3, template или local.</translation>
+    </message>
+    <message>
+        <source>Enter the key prefix both ends share in the bucket.</source>
+        <translation>Укажите префикс ключей в бакете, общий для обеих сторон.</translation>
+    </message>
+    <message>
+        <source>The key prefix must be relative, without empty, &quot;.&quot; or &quot;..&quot; parts, backslashes or control characters.</source>
+        <translation>Префикс ключей должен быть относительным, без пустых частей, «.» и «..», обратных косых черт и управляющих символов.</translation>
+    </message>
+    <message>
+        <source>S3 needs the access key ID and the secret access key; the session token is optional.</source>
+        <translation>Для S3 нужны access key ID и secret access key; session token необязателен.</translation>
+    </message>
+    <message>
+        <source>The S3 keys cannot contain control characters.</source>
+        <translation>Ключи S3 не могут содержать управляющие символы.</translation>
+    </message>
+    <message>
+        <source>The access key ID cannot contain spaces, commas or slashes.</source>
+        <translation>Access key ID не может содержать пробелы, запятые или косые черты.</translation>
+    </message>
+    <message>
+        <source>Enter the S3 endpoint URL, such as https://s3.example.com.</source>
+        <translation>Укажите URL эндпоинта S3, например https://s3.example.com.</translation>
+    </message>
+    <message>
+        <source>The endpoint must be an http or https URL without credentials, query or fragment.</source>
+        <translation>Эндпоинт должен быть URL http или https без учётных данных, параметров запроса и фрагмента.</translation>
+    </message>
+    <message>
+        <source>The signing region cannot contain spaces, commas, slashes or control characters.</source>
+        <translation>Регион подписи не может содержать пробелы, запятые, косые черты или управляющие символы.</translation>
+    </message>
+    <message>
+        <source>Enter the bucket both ends share.</source>
+        <translation>Укажите бакет, общий для обеих сторон.</translation>
+    </message>
+    <message>
+        <source>The bucket name cannot be &quot;.&quot; or &quot;..&quot;, nor contain slashes, backslashes or control characters.</source>
+        <translation>Имя бакета не может быть «.» или «..» и не может содержать косые и обратные косые черты или управляющие символы.</translation>
+    </message>
+    <message>
+        <source>Virtual-hosted addressing needs a DNS-compatible bucket name: lowercase letters, digits, dots and hyphens.</source>
+        <translation>Для адресации virtual-hosted нужно совместимое с DNS имя бакета: строчные буквы, цифры, точки и дефисы.</translation>
+    </message>
+    <message>
+        <source>Virtual-hosted addressing needs a DNS endpoint, not an IP address. Turn on path-style addressing instead.</source>
+        <translation>Для адресации virtual-hosted нужен DNS-эндпоинт, а не IP-адрес. Включите вместо этого адресацию path-style.</translation>
+    </message>
+    <message>
+        <source>Xray does not know the mKCP header type &quot;%1&quot;, so it was ignored.</source>
+        <translation>Xray не знает тип заголовка mKCP «%1», поэтому он проигнорирован.</translation>
+    </message>
+    <message>
+        <source>Add the tunnel domain the server answers for, for example &quot;domains&quot;: [{&quot;names&quot;: [&quot;t.example.com&quot;]}].</source>
+        <translation>Добавьте домен туннеля, на который отвечает сервер, например &quot;domains&quot;: [{&quot;names&quot;: [&quot;t.example.com&quot;]}].</translation>
+    </message>
+    <message>
+        <source>Use udp://, tcp:// or https:// resolver addresses.</source>
+        <translation>Используйте адреса резолверов udp://, tcp:// или https://.</translation>
+    </message>
+    <message>
+        <source>A DoH resolver needs &quot;tlsConfig&quot;, for example &quot;tlsConfig&quot;: {&quot;serverName&quot;: &quot;dns.google&quot;}.</source>
+        <translation>Для DoH-резолвера нужен «tlsConfig», например &quot;tlsConfig&quot;: {&quot;serverName&quot;: &quot;dns.google&quot;}.</translation>
+    </message>
+    <message>
+        <source>Over h3 the brutal congestion control crashes Xray; use bbr, reno or force-brutal.</source>
+        <translation>При h3 управление перегрузкой brutal приводит к сбою Xray; используйте bbr, reno или force-brutal.</translation>
+    </message>
+    <message>
+        <source>Set &quot;serverName&quot; in tlsConfig: over HTTP/2 Xray does not take it from the URL, so the TLS handshake fails.</source>
+        <translation>Укажите «serverName» в tlsConfig: при HTTP/2 Xray не берет его из URL, поэтому TLS-хендшейк не удается.</translation>
+    </message>
+    <message>
+        <source>Add a DNS resolver to send the tunnel&apos;s queries through, for example &quot;resolvers&quot;: [{&quot;addrs&quot;: [&quot;udp://8.8.8.8:53&quot;]}]; without one Xray cannot connect.</source>
+        <translation>Добавьте DNS-резолвер, через который пойдут запросы туннеля, например &quot;resolvers&quot;: [{&quot;addrs&quot;: [&quot;udp://8.8.8.8:53&quot;]}]; без него Xray не сможет подключиться.</translation>
+    </message>
+    <message>
+        <source>The resolver IP list belongs to another installation, so it was not imported.</source>
+        <translation>Список IP резолверов принадлежит другой установке, поэтому он не импортирован.</translation>
+    </message>
+    <message>
+        <source>Must be at least the MTU (%1).</source>
+        <translation>Должно быть не меньше MTU (%1).</translation>
+    </message>
+    <message>
+        <source>The xdns mask must be the last udp mask: it sends the DNS queries itself, so Xray skips the masks after it.</source>
+        <translation>Маска xdns должна быть последней маской udp: она сама отправляет DNS-запросы, поэтому Xray пропускает маски после нее.</translation>
+    </message>
+    <message>
+        <source>The link is too long.</source>
+        <translation>Ссылка слишком длинная.</translation>
+    </message>
+    <message>
+        <source>Not a dnst:// link.</source>
+        <translation>Это не ссылка dnst://.</translation>
+    </message>
+    <message>
+        <source>The link does not name the tunnel type.</source>
+        <translation>В ссылке не указан тип туннеля.</translation>
+    </message>
+    <message>
+        <source>The SSH private key in the link could not be read; it was ignored.</source>
+        <translation>Не удалось прочитать закрытый ключ SSH из ссылки; он проигнорирован.</translation>
+    </message>
+    <message>
+        <source>Enter the tunnel domain, for example t.example.com.</source>
+        <translation>Введите домен туннеля, например t.example.com.</translation>
+    </message>
+    <message>
+        <source>Use the domain name delegated to the tunnel server, for example t.example.com.</source>
+        <translation>Укажите доменное имя, делегированное серверу туннеля, например t.example.com.</translation>
+    </message>
+    <message>
+        <source>Use system, an IP address with an optional port, a range such as 192.0.2.0/24, or a udp://, tcp://, tls:// or https:// address.</source>
+        <translation>Укажите system, IP-адрес с необязательным портом, диапазон вида 192.0.2.0/24 или адрес udp://, tcp://, tls:// или https://.</translation>
+    </message>
+    <message>
+        <source>Use system, an IP address or a range such as 192.0.2.0/24, each with an optional :port.</source>
+        <translation>Укажите system, IP-адрес или диапазон вида 192.0.2.0/24, каждый с необязательным :port.</translation>
+    </message>
+    <message>
+        <source>Use an IP address with an optional port, or a udp://, tcp:// or https:// address.</source>
+        <translation>Укажите IP-адрес с необязательным портом или адрес udp://, tcp:// или https://.</translation>
+    </message>
+    <message>
+        <source>Only https:// addresses take a path.</source>
+        <translation>Путь допускается только в адресах https://.</translation>
+    </message>
+    <message>
+        <source>XDNS has no system resolver: enter the address of a DNS resolver.</source>
+        <translation>У XDNS нет системного резолвера: введите адрес DNS-резолвера.</translation>
+    </message>
+    <message>
+        <source>Enter single addresses here; a range works only from an IP list.</source>
+        <translation>Здесь указывайте отдельные адреса; диапазон работает только из списка IP.</translation>
+    </message>
+    <message>
+        <source>Put an IPv6 address in brackets, for example [2001:db8::1]:53.</source>
+        <translation>Заключите адрес IPv6 в квадратные скобки, например [2001:db8::1]:53.</translation>
+    </message>
+    <message>
+        <source>A range may hold at most %1 addresses: use /%2 or longer for IPv4 and /%3 or longer for IPv6.</source>
+        <translation>Диапазон может содержать не более %1 адресов: используйте /%2 или длиннее для IPv4 и /%3 или длиннее для IPv6.</translation>
+    </message>
+    <message>
+        <source>Only system, udp, tcp, tls and https resolvers with a server are supported.</source>
+        <translation>Поддерживаются только system и резолверы udp, tcp, tls и https с указанным сервером.</translation>
+    </message>
+    <message>
+        <source>A TLS server name other than the resolver&apos;s own host is not kept.</source>
+        <translation>Имя TLS-сервера, отличное от хоста самого резолвера, не сохраняется.</translation>
+    </message>
+    <message>
+        <source>Only the first %1 resolvers were kept.</source>
+        <translation>Сохранены только первые %1 резолверов.</translation>
+    </message>
+    <message>
+        <source>Use true or false.</source>
+        <translation>Укажите true или false.</translation>
+    </message>
+    <message>
+        <source>This DNS tunnel type is not supported.</source>
+        <translation>Этот тип DNS-туннеля не поддерживается.</translation>
+    </message>
+    <message>
+        <source>The link does not name the service behind the tunnel.</source>
+        <translation>В ссылке не указан сервис за туннелем.</translation>
+    </message>
+    <message>
+        <source>This service behind the tunnel is not supported.</source>
+        <translation>Этот сервис за туннелем не поддерживается.</translation>
+    </message>
+    <message>
+        <source>The resolver&apos;s transport is unknown, so it is used over UDP.</source>
+        <translation>Транспорт резолвера неизвестен, поэтому используется UDP.</translation>
+    </message>
+    <message>
+        <source>This SlipNet link version is not supported.</source>
+        <translation>Эта версия ссылки SlipNet не поддерживается.</translation>
+    </message>
+    <message>
+        <source>The link is damaged: it is shorter than its version allows.</source>
+        <translation>Ссылка повреждена: она короче, чем допускает ее версия.</translation>
+    </message>
+    <message>
+        <source>This link comes from a newer SlipNet version; check the imported settings.</source>
+        <translation>Ссылка создана более новой версией SlipNet; проверьте импортированные настройки.</translation>
+    </message>
+    <message>
+        <source>NoizDNS was imported as plain DNSTT: its server accepts that, but without NoizDNS&apos;s DPI evasion.</source>
+        <translation>NoizDNS импортирован как обычный DNSTT: его сервер это принимает, но без обхода DPI, который дает NoizDNS.</translation>
+    </message>
+    <message>
+        <source>This SlipNet profile type is not supported.</source>
+        <translation>Этот тип профиля SlipNet не поддерживается.</translation>
+    </message>
+    <message>
+        <source>Use the server&apos;s public key: 64 hexadecimal digits, as the server prints it.</source>
+        <translation>Укажите публичный ключ сервера: 64 шестнадцатеричные цифры, как его выводит сервер.</translation>
+    </message>
+    <message>
+        <source>The classic dnstt wire only uses TXT records.</source>
+        <translation>Классический протокол dnstt использует только записи TXT.</translation>
+    </message>
+    <message>
+        <source>The classic dnstt wire always uses 8-byte client IDs.</source>
+        <translation>Классический протокол dnstt всегда использует 8-байтовые ID клиента.</translation>
+    </message>
+    <message>
+        <source>Each query would carry %1 bytes, fewer than the %2 the tunnel needs: use a shorter domain or a longer maximum QNAME length.</source>
+        <translation>Каждый запрос нес бы %1 байт — меньше %2, нужных туннелю: используйте более короткий домен или увеличьте максимальную длину QNAME.</translation>
+    </message>
+    <message>
+        <source>The keepalive interval must be shorter than the idle timeout.</source>
+        <translation>Значение «Интервал Keepalive» должно быть меньше «Таймаут простоя».</translation>
+    </message>
+    <message>
+        <source>Without a backend, only a profile chained over this one can use the tunnel.</source>
+        <translation>Без бэкенда туннелем может пользоваться только профиль, подключенный цепочкой через этот.</translation>
+    </message>
+    <message>
+        <source>Encrypted SlipNet links cannot be read: export the profile from SlipNet without encryption.</source>
+        <translation>Зашифрованные ссылки SlipNet прочитать нельзя: экспортируйте профиль из SlipNet без шифрования.</translation>
+    </message>
+    <message>
+        <source>Use only one of socks, shadowsocks and ssh.</source>
+        <translation>Используйте только что-то одно: socks, shadowsocks или ssh.</translation>
+    </message>
+    <message>
+        <source>Unknown encryption method: use a number from 0 to 5.</source>
+        <translation>Неизвестный метод шифрования: используйте число от 0 до 5.</translation>
+    </message>
+    <message>
+        <source>MasterDNS only carries a SOCKS or a custom service.</source>
+        <translation>MasterDNS переносит только SOCKS или пользовательский сервис.</translation>
+    </message>
+    <message>
+        <source>The link also carries a proxy to run over the tunnel; import that proxy separately and chain it over this profile.</source>
+        <translation>Ссылка также содержит прокси для работы через туннель; импортируйте этот прокси отдельно и подключите его цепочкой через этот профиль.</translation>
+    </message>
+    <message>
+        <source>This MasterDNS link format is not supported.</source>
+        <translation>Этот формат ссылки MasterDNS не поддерживается.</translation>
+    </message>
+    <message>
+        <source>This MasterDNS link version is not supported.</source>
+        <translation>Эта версия ссылки MasterDNS не поддерживается.</translation>
+    </message>
+    <message>
+        <source>The link is damaged: its client configuration cannot be read.</source>
+        <translation>Ссылка повреждена: не удается прочитать ее клиентскую конфигурацию.</translation>
+    </message>
+    <message>
+        <source>Unknown protocol type: use SOCKS5 or TCP.</source>
+        <translation>Неизвестный тип протокола: используйте SOCKS5 или TCP.</translation>
+    </message>
+    <message>
+        <source>Use a number of seconds above 0.</source>
+        <translation>Укажите число секунд больше 0.</translation>
+    </message>
+    <message>
+        <source>Settings this profile does not support were ignored.</source>
+        <translation>Настройки, которые этот профиль не поддерживает, проигнорированы.</translation>
+    </message>
+    <message>
+        <source>Enter the encryption key the server uses.</source>
+        <translation>Введите ключ шифрования, который использует сервер.</translation>
+    </message>
+    <message>
+        <source>The minimum MTU %1 is above the maximum %2.</source>
+        <translation>Минимальный MTU %1 больше максимального %2.</translation>
+    </message>
+    <message>
+        <source>Must be a number.</source>
+        <translation>Должно быть числом.</translation>
+    </message>
+    <message>
+        <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
+        <translation>В правилах маршрутизации нельзя использовать цепочку &quot;%1&quot;: в ней есть автовыбор, поэтому ее можно только запустить. Выберите другой outbound.</translation>
+    </message>
+    <message>
+        <source>Not a valid regular expression: %1 (at character %2).</source>
+        <translation>Некорректное регулярное выражение: %1 (символ %2).</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code: %1. Use codes such as HK,JP to keep only those countries, or !RU to remove one.</source>
+        <translation>Не двухбуквенный код страны: %1. Укажите коды вроде HK,JP, чтобы оставить только эти страны, или !RU, чтобы убрать одну.</translation>
+    </message>
+    <message>
+        <source>%1 is not a valid regular expression, so it was ignored: %2</source>
+        <translation>«%1»: некорректное регулярное выражение, поле пропущено: %2</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>Оставлять только совпадающие</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>Удалять совпадающие</translation>
+    </message>
+    <message>
+        <source>Unknown protocol in Remove types, ignored: %1</source>
+        <translation>Неизвестный протокол в «Удалять типы» пропущен: %1</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code, ignored: %1</source>
+        <translation>Пропущено (не двухбуквенный код страны): %1</translation>
+    </message>
+    <message>
+        <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
+        <translation>Укажите 32-байтовый хеш цепочки сертификатов в base64 (44 символа, в конце =), как его выводит juicity-server.</translation>
+    </message>
+    <message>
+        <source>Use either Client Random or Client Random Key, not both.</source>
+        <translation>Укажите либо Client Random, либо ключ Client Random, но не оба.</translation>
+    </message>
+    <message>
+        <source>Client Random Key cannot be combined with Disable SNI.</source>
+        <translation>Ключ Client Random нельзя совмещать с «Отключить SNI».</translation>
+    </message>
+    <message>
+        <source>Client Random Key cannot be combined with mixed-case SNI.</source>
+        <translation>Ключ Client Random нельзя совмещать с SNI в смешанном регистре.</translation>
+    </message>
+    <message>
+        <source>Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.</source>
+        <translation>Для ключа Client Random в SNI нужно доменное имя; укажите пользовательский SNI или имя сервера TLS.</translation>
+    </message>
+    <message>
+        <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
+        <translation>Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</translation>
+    </message>
+    <message>
+        <source>Throned does not support the Xray transport &quot;%1&quot;. Use raw, xhttp, ws, httpupgrade, grpc, kcp or xdrive.</source>
+        <translation>Throned не поддерживает транспорт Xray «%1». Используйте raw, xhttp, ws, httpupgrade, grpc, kcp или xdrive.</translation>
+    </message>
+    <message>
+        <source>Server %1 (&quot;%2&quot;): %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick a group or enter a name pattern for this tier.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add at least one tier to choose in priority order.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot require more checks in a row than are kept (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core reports this program as %1 and compares names letter for letter, case included, so this never matches.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Windows reports program paths with \, so a path written with / never matches.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core reports this path as %1 and compares it letter for letter, case included, so this never matches.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
     <message>
         <source>Protocol</source>
-        <translation type="unfinished"></translation>
+        <translation>Протокол</translation>
     </message>
     <message>
         <source>Max Streams</source>
-        <translation type="unfinished"></translation>
+        <translation>Макс. потоков</translation>
     </message>
     <message>
         <source>Max Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>Макс. соединений</translation>
     </message>
     <message>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Режим</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;b&gt;Max Streams&lt;/b&gt;: reuse a connection until it carries this many streams, then open another.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Max Connections&lt;/b&gt;: keep at most this many connections, and open a new one only while the least busy connection already carries Min Streams streams.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;b&gt;Макс. потоков&lt;/b&gt;: повторно использовать соединение, пока число потоков в нём не достигнет этого значения, затем открывать новое.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Макс. соединений&lt;/b&gt;: держать не более указанного числа соединений и открывать новое только тогда, когда наименее загруженное соединение уже несёт не менее «Мин. потоков».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Min Streams</source>
-        <translation type="unfinished"></translation>
+        <translation>Мин. потоков</translation>
     </message>
     <message>
         <source>Padding</source>
-        <translation type="unfinished"></translation>
+        <translation>Дополнение (Padding)</translation>
     </message>
     <message>
         <source>TCP Brutal</source>
-        <translation type="unfinished"></translation>
+        <translation>TCP Brutal</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TCP Brutal congestion control at the speeds below; the server must support it. Every stream then shares one connection, so the mode is ignored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Управление перегрузкой TCP Brutal с указанными ниже скоростями (сервер должен его поддерживать). При этом все потоки используют одно общее соединение, поэтому выбранный режим игнорируется.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Upload (Mb/s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Отдача (Мбит/с)</translation>
     </message>
     <message>
         <source>Download (Mb/s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Приём (Мбит/с)</translation>
     </message>
     <message>
         <source>Custom Multiplex</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройка мультиплексирования</translation>
     </message>
 </context>
 <context>
     <name>RouteDnsEditor</name>
     <message>
         <source>Use the global DNS settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Использовать глобальные настройки DNS</translation>
     </message>
     <message>
         <source>The servers set in Routing Settings &gt; DNS.</source>
-        <translation type="unfinished"></translation>
+        <translation>Серверы, указанные в «Настройки маршрутизации → DNS».</translation>
     </message>
     <message>
         <source>Use custom DNS settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Использовать собственные настройки DNS</translation>
     </message>
     <message>
         <source>These servers replace the global ones while this routing profile is in use.</source>
-        <translation type="unfinished"></translation>
+        <translation>Эти серверы заменяют глобальные, пока используется данный профиль маршрутизации.</translation>
     </message>
     <message>
         <source>Routing Settings use a custom DNS object, so that object applies instead of the values below.</source>
-        <translation type="unfinished"></translation>
+        <translation>В «Настройках маршрутизации» используется собственный объект DNS, поэтому он применяется вместо значений ниже.</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;localhost&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Примеры:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;localhost&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Remote DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалённый DNS</translation>
     </message>
     <message>
         <source>Disable IPv6</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключить IPv6</translation>
     </message>
     <message>
         <source>Answer AAAA queries sent to this server with an empty result.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отвечать на запросы AAAA, отправленные на этот сервер, пустым результатом.</translation>
     </message>
     <message>
         <source>Direct DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS для прямых запросов</translation>
     </message>
     <message>
         <source>Default DNS server</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS-сервер по умолчанию</translation>
     </message>
     <message>
         <source>Enable DNS Routing</source>
-        <translation type="unfinished"></translation>
+        <translation>Включить DNS-маршрутизацию</translation>
     </message>
     <message>
         <source>Domains this profile sends direct are resolved with the direct DNS too.</source>
-        <translation type="unfinished"></translation>
+        <translation>Домены, которые этот профиль направляет напрямую, также разрешаются через DNS для прямых запросов.</translation>
     </message>
     <message>
         <source>Enable FakeIP</source>
-        <translation type="unfinished"></translation>
+        <translation>Включить FakeIP</translation>
     </message>
     <message>
         <source>FakeIP Disable IPv6</source>
-        <translation type="unfinished"></translation>
+        <translation>FakeIP: отключить IPv6</translation>
     </message>
     <message>
         <source>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не выдавать FakeIP-адреса IPv6; на запросы AAAA даются пустые ответы.</translation>
     </message>
     <message>
         <source>Local Override, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
+        <translation>Переопределение локального DNS, файл hosts, предопределённые ответы и дополнительные настройки DNS всегда берутся из «Настройки маршрутизации → DNS».</translation>
+    </message>
+    <message>
+        <source>Separate several servers with commas: they are queried together and the first answer wins.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -19705,30 +21890,1130 @@ Close without saving?</source>
     <name>XrayMuxSettingsWidget</name>
     <message>
         <source>Concurrency</source>
-        <translation type="unfinished"></translation>
+        <translation>Кол-во потоков</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Streams one connection carries before another opens. 0 uses Xray&apos;s 8, and -1 sends TCP outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Число потоков в одном соединении до открытия следующего. 0 — стандартное значение Xray (8), а -1 отправляет TCP в обход mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>No limit</source>
-        <translation type="unfinished"></translation>
+        <translation>Без ограничений</translation>
     </message>
     <message>
         <source>Max Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>Макс. соединений</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Keep at most this many connections, for TCP and for XUDP each. Once every one carries Concurrency streams, new streams join the least busy one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Держать не более указанного числа соединений (отдельно для TCP и для XUDP). Когда в каждом соединении набрано «Кол-во потоков», новые потоки добавляются в наименее загруженное соединение.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>XUDP Concurrency</source>
-        <translation type="unfinished"></translation>
+        <translation>Кол-во потоков XUDP</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP streams per connection, on connections of their own. 0 carries UDP on the TCP connections, and -1 sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Число потоков UDP на одно отдельное соединение. 0 передаёт UDP внутри соединений TCP, а -1 отправляет UDP в обход mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation>Отклонять</translation>
+    </message>
+    <message>
+        <source>Allow</source>
+        <translation>Разрешать</translation>
+    </message>
+    <message>
+        <source>Skip</source>
+        <translation>Пропускать</translation>
+    </message>
+    <message>
+        <source>UDP/443</source>
+        <translation>UDP/443</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP to port 443, mostly QUIC. &lt;b&gt;Reject&lt;/b&gt; makes browsers fall back to TCP (Xray&apos;s default), &lt;b&gt;Allow&lt;/b&gt; carries it through the mux, and &lt;b&gt;Skip&lt;/b&gt; sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Трафик UDP на порт 443 (в основном QUIC). &lt;b&gt;Отклонять&lt;/b&gt; заставляет браузеры переходить на TCP (по умолчанию в Xray), &lt;b&gt;Разрешать&lt;/b&gt; передаёт его через mux, а &lt;b&gt;Пропускать&lt;/b&gt; отправляет в обход mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Custom Mux</source>
+        <translation>Настройка Mux</translation>
+    </message>
+</context>
+<context>
+    <name>EditDnstt</name>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation>Домен</translation>
+    </message>
+    <message>
+        <source>Public Key</source>
+        <translation>Публичный ключ (Public Key)</translation>
+    </message>
+    <message>
+        <source>Record Type</source>
+        <translation>Тип записи</translation>
+    </message>
+    <message>
+        <source>Client ID Size</source>
+        <translation>Размер ID клиента</translation>
+    </message>
+    <message>
+        <source>Max QNAME Length</source>
+        <translation>Макс. длина QNAME</translation>
+    </message>
+    <message>
+        <source>Payload per Query</source>
+        <translation>Полезная нагрузка на запрос</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>Резолверы</translation>
+    </message>
+    <message>
+        <source>Strategy</source>
+        <translation>Стратегия</translation>
+    </message>
+    <message>
+        <source>Retry truncated replies over TCP</source>
+        <translation>Повторять усеченные ответы через TCP</translation>
+    </message>
+    <message>
+        <source>Backend</source>
+        <translation>Бэкенд</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Username</source>
+        <translation>Имя пользователя</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>Пароль</translation>
+    </message>
+    <message>
+        <source>UDP over TCP</source>
+        <translation>UDP over TCP</translation>
+    </message>
+    <message>
+        <source>Encryption</source>
+        <translation>Шифрование</translation>
+    </message>
+    <message>
+        <source>User</source>
+        <translation>Пользователь</translation>
+    </message>
+    <message>
+        <source>Private Key</source>
+        <translation>Приватный ключ (Private Key)</translation>
+    </message>
+    <message>
+        <source>Private Key Path</source>
+        <translation>Путь к приватному ключу</translation>
+    </message>
+    <message>
+        <source>Choose File</source>
+        <translation>Выбрать файл</translation>
+    </message>
+    <message>
+        <source>Private Key Password</source>
+        <translation>Пароль приватного ключа</translation>
+    </message>
+    <message>
+        <source>Host Keys</source>
+        <translation>Ключи хоста (Host Keys)</translation>
+    </message>
+    <message>
+        <source>One per line</source>
+        <translation>По одному в строке</translation>
+    </message>
+    <message>
+        <source>Host Key Algorithms</source>
+        <translation>Алгоритмы ключа хоста</translation>
+    </message>
+    <message>
+        <source>Client Version</source>
+        <translation>Версия клиента</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
+        <source>Idle Timeout</source>
+        <translation>Таймаут простоя</translation>
+    </message>
+    <message>
+        <source>Keepalive Interval</source>
+        <translation>Интервал Keepalive</translation>
+    </message>
+    <message>
+        <source>Queries per Second</source>
+        <translation>Запросов в секунду</translation>
+    </message>
+    <message>
+        <source>VayDNS (dnstt-compatible)</source>
+        <translation>VayDNS (совместимый с dnstt)</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>None (chain only)</source>
+        <translation>Нет (только для цепочки)</translation>
+    </message>
+    <message>
+        <source>Tunnel data each query carries; a longer domain leaves less room.</source>
+        <translation>Сколько данных туннеля несет каждый запрос; чем длиннее домен, тем меньше места.</translation>
+    </message>
+    <message>
+        <source>%1 bytes</source>
+        <translation>%1 байт</translation>
+    </message>
+</context>
+<context>
+    <name>EditMasterDns</name>
+    <message>
+        <source>Domains</source>
+        <translation>Домены</translation>
+    </message>
+    <message>
+        <source>One per line</source>
+        <translation>По одному в строке</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>Encryption</source>
+        <translation>Шифрование</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Ключ</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>Резолверы</translation>
+    </message>
+    <message>
+        <source>Strategy</source>
+        <translation>Стратегия</translation>
+    </message>
+    <message>
+        <source>Transfer</source>
+        <translation>Передача</translation>
+    </message>
+    <message>
+        <source>Duplication</source>
+        <translation>Дублирование</translation>
+    </message>
+    <message>
+        <source>Setup Duplication</source>
+        <translation>Дублирование при подключении</translation>
+    </message>
+    <message>
+        <source>Upload Compression</source>
+        <translation>Сжатие отправки</translation>
+    </message>
+    <message>
+        <source>Download Compression</source>
+        <translation>Сжатие приема</translation>
+    </message>
+    <message>
+        <source>Base64-encoded replies</source>
+        <translation>Ответы в Base64</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>Min Upload</source>
+        <translation>Мин. отправка</translation>
+    </message>
+    <message>
+        <source>Max Upload</source>
+        <translation>Макс. отправка</translation>
+    </message>
+    <message>
+        <source>Min Download</source>
+        <translation>Мин. прием</translation>
+    </message>
+    <message>
+        <source>Max Download</source>
+        <translation>Макс. прием</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
+        <source>MTU Test Retries</source>
+        <translation>Повторы проверки MTU</translation>
+    </message>
+    <message>
+        <source>MTU Test Timeout</source>
+        <translation>Таймаут проверки MTU</translation>
+    </message>
+    <message>
+        <source>MTU Test Parallelism</source>
+        <translation>Параллельность проверки MTU</translation>
+    </message>
+    <message>
+        <source>Drop resolvers below the minimum MTU</source>
+        <translation>Отбрасывать резолверы с MTU ниже минимального</translation>
+    </message>
+    <message>
+        <source>TCP / custom chain</source>
+        <translation>TCP / пользовательская цепочка</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Выкл.</translation>
+    </message>
+</context>
+<context>
+    <name>ResolverSourceWidget</name>
+    <message>
+        <source>IP list</source>
+        <translation>Список IP</translation>
+    </message>
+    <message>
+        <source>Its addresses are used after the lines above; an entry without a port uses port 53.</source>
+        <translation>Его адреса используются после строк выше; запись без порта использует порт 53.</translation>
+    </message>
+    <message>
+        <source>Find resolvers…</source>
+        <translation>Найти резолверы…</translation>
+    </message>
+    <message>
+        <source>One per line. Replaces the resolvers in Finalmask; empty keeps them.</source>
+        <translation>По одному в строке. Заменяют резолверы в Finalmask; если пусто, они сохраняются.</translation>
+    </message>
+    <message>
+        <source>One per line. Empty uses the system resolver.</source>
+        <translation>По одному в строке. Если пусто, используется системный резолвер.</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Missing list</source>
+        <translation>Список не найден</translation>
+    </message>
+    <message>
+        <source>Opens a scan that finds the resolvers relaying this profile&apos;s tunnel, as last saved.</source>
+        <translation>Открывает сканирование, которое ищет резолверы, пропускающие туннель этого профиля в последней сохраненной версии.</translation>
+    </message>
+    <message>
+        <source>Save the profile first; the scan tests the saved profile.</source>
+        <translation>Сначала сохраните профиль: сканирование проверяет сохраненный профиль.</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>Резолверы</translation>
+    </message>
+    <message>
+        <source>This IP list no longer exists, so it adds no resolvers.</source>
+        <translation>Этот список IP больше не существует, поэтому резолверы из него не добавляются.</translation>
+    </message>
+</context>
+<context>
+    <name>ScanPhases</name>
+    <message>
+        <source>ICMP (ping)</source>
+        <translation>ICMP (ping)</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>Таймаут (мс)</translation>
+    </message>
+    <message>
+        <source>Echo requests</source>
+        <translation>Число эхо-запросов</translation>
+    </message>
+    <message>
+        <source>TCP connect</source>
+        <translation>TCP-подключение</translation>
+    </message>
+    <message>
+        <source>Attempts</source>
+        <translation>Число попыток</translation>
+    </message>
+    <message>
+        <source>TLS / HTTP</source>
+        <translation>TLS / HTTP</translation>
+    </message>
+    <message>
+        <source>Use TLS</source>
+        <translation>Использовать TLS</translation>
+    </message>
+    <message>
+        <source>SNI</source>
+        <translation>SNI</translation>
+    </message>
+    <message>
+        <source>The target address</source>
+        <translation>Адрес цели</translation>
+    </message>
+    <message>
+        <source>Host header</source>
+        <translation>Заголовок Host</translation>
+    </message>
+    <message>
+        <source>The SNI, or the target address</source>
+        <translation>SNI или адрес цели</translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation>Path</translation>
+    </message>
+    <message>
+        <source>Method</source>
+        <translation>Метод</translation>
+    </message>
+    <message>
+        <source>Only a 200 OK answer passes.</source>
+        <translation>Успешен только ответ 200 OK.</translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>ALPN</source>
+        <translation>ALPN</translation>
+    </message>
+    <message>
+        <source>From the HTTP version</source>
+        <translation>По версии HTTP</translation>
+    </message>
+    <message>
+        <source>Minimum TLS version</source>
+        <translation>Минимальная версия TLS</translation>
+    </message>
+    <message>
+        <source>Maximum TLS version</source>
+        <translation>Максимальная версия TLS</translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation>uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Allow insecure certificates</source>
+        <translation>Allow insecure</translation>
+    </message>
+    <message>
+        <source>Disable SNI</source>
+        <translation>Отключить SNI</translation>
+    </message>
+    <message>
+        <source>Fragment the TLS handshake</source>
+        <translation>Фрагментировать хендшейк TLS</translation>
+    </message>
+    <message>
+        <source>Fragment fallback delay (ms)</source>
+        <translation>Резервная задержка фрагментации (мс)</translation>
+    </message>
+    <message>
+        <source>Fragment TLS records</source>
+        <translation>Фрагментировать записи TLS</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation>SNI в смешанном регистре</translation>
+    </message>
+    <message>
+        <source>Config test</source>
+        <translation>Тест конфигурации</translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested through a copy of this profile pointed at each of them.</source>
+        <translation>Кандидаты, прошедшие проверки, тестируются через копию этого профиля, направленную на каждый из них.</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>URL проверки</translation>
+    </message>
+    <message>
+        <source>Report warm latency (two requests per target)</source>
+        <translation>Измерять задержку на прогретом соединении (два запроса на цель)</translation>
+    </message>
+    <message>
+        <source>WARP test</source>
+        <translation>Тест WARP</translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested by connecting to WARP through them.</source>
+        <translation>Кандидаты, прошедшие проверки, тестируются подключением к WARP через них.</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>MASQUE transport</source>
+        <translation>Транспорт MASQUE</translation>
+    </message>
+    <message>
+        <source>Identity</source>
+        <translation>Идентификатор</translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation>Устройство</translation>
+    </message>
+    <message>
+        <source>Register</source>
+        <translation>Зарегистрировать</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
+        <translation>Отправляет пакет-приманку перед каждым UDP-потоком, чтобы обойти блокировку QUIC.</translation>
+    </message>
+    <message>
+        <source>Junk packets (Jc)</source>
+        <translation>Junk packets (Jc)</translation>
+    </message>
+    <message>
+        <source>Junk minimum size (Jmin)</source>
+        <translation>Junk minimum size (Jmin)</translation>
+    </message>
+    <message>
+        <source>Junk maximum size (Jmax)</source>
+        <translation>Junk maximum size (Jmax)</translation>
+    </message>
+    <message>
+        <source>DNS tunnel test</source>
+        <translation>Проверка DNS-туннеля</translation>
+    </message>
+    <message>
+        <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
+        <translation>Каждый адрес проверяется как единственный резолвер этого профиля; сохраняются те, что пропускают его туннель.</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>Проверка</translation>
+    </message>
+    <message>
+        <source>Time limit per resolver. Empty: the test&apos;s default.</source>
+        <translation>Ограничение времени на один резолвер. Пусто: значение по умолчанию для проверки.</translation>
+    </message>
+</context>
+<context>
+    <name>ScanTuneSettings</name>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
+        <translation>Варианты настроек обхода цензуры этого профиля проверяются через ядро, по одной попытке за раз. Сам профиль меняется, только когда вы применяете результат.</translation>
+    </message>
+    <message>
+        <source>What to try</source>
+        <translation>Что проверять</translation>
+    </message>
+    <message>
+        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
+        <translation>Сначала каждая настройка проверяется отдельно: переключатель — в обратном положении, список — значение за значением; затем полезные изменения объединяются.</translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation>uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Fingerprints to try</source>
+        <translation>Проверяемые fingerprint</translation>
+    </message>
+    <message>
+        <source>TLS fragment</source>
+        <translation>Фрагментация TLS</translation>
+    </message>
+    <message>
+        <source>Fallback delays to try</source>
+        <translation>Резервные задержки для проверки</translation>
+    </message>
+    <message>
+        <source>TLS record fragment</source>
+        <translation>Фрагментация записи TLS</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation>SNI в смешанном регистре</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>MTU (WireGuard)</source>
+        <translation>MTU (WireGuard)</translation>
+    </message>
+    <message>
+        <source>Smallest MTU</source>
+        <translation>Наименьший MTU</translation>
+    </message>
+    <message>
+        <source>Largest MTU</source>
+        <translation>Наибольший MTU</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own</source>
+        <translation>Значение профиля</translation>
+    </message>
+    <message>
+        <source>MTU step</source>
+        <translation>Шаг MTU</translation>
+    </message>
+    <message>
+        <source>Download URL</source>
+        <translation>URL загрузки</translation>
+    </message>
+    <message>
+        <source>Download size (bytes)</source>
+        <translation>Размер загрузки (байт)</translation>
+    </message>
+    <message>
+        <source>Pacing</source>
+        <translation>Темп</translation>
+    </message>
+    <message>
+        <source>Attempts per variant</source>
+        <translation>Попыток на вариант</translation>
+    </message>
+    <message>
+        <source>More attempts tell a working variant from a lucky one.</source>
+        <translation>Больше попыток помогает отличить рабочий вариант от случайно удачного.</translation>
+    </message>
+    <message>
+        <source>Attempts per minute</source>
+        <translation>Попыток в минуту</translation>
+    </message>
+    <message>
+        <source>At most this many attempts start in any minute.</source>
+        <translation>Не больше стольких попыток начинается за любую минуту.</translation>
+    </message>
+    <message>
+        <source>Attempt limit</source>
+        <translation>Лимит попыток</translation>
+    </message>
+    <message>
+        <source>The search stops after this many attempts in all.</source>
+        <translation>Поиск останавливается после стольких попыток в сумме.</translation>
+    </message>
+    <message>
+        <source>Time limit (minutes)</source>
+        <translation>Лимит времени (минуты)</translation>
+    </message>
+    <message>
+        <source>The search stops after this many minutes.</source>
+        <translation>Поиск останавливается через столько минут.</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>URL проверки</translation>
+    </message>
+    <message>
+        <source>Requested through the profile on every attempt.</source>
+        <translation>Запрашивается через профиль при каждой попытке.</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>Таймаут (мс)</translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::Tune</name>
+    <message>
+        <source>The profile could not be read</source>
+        <translation>Не удалось прочитать профиль</translation>
+    </message>
+    <message>
+        <source>A chain cannot be searched as a whole; run the search on the profiles of its hops</source>
+        <translation>Цепочку нельзя проверить целиком; запустите поиск для профилей её звеньев</translation>
+    </message>
+    <message>
+        <source>Xray profiles are not supported yet: the search changes sing-box settings</source>
+        <translation>Профили Xray пока не поддерживаются: поиск меняет настройки sing-box</translation>
+    </message>
+    <message>
+        <source>This profile has no setting the search can change: that needs TLS over TCP, QUIC or WireGuard</source>
+        <translation>У этого профиля нет настроек, которые может менять поиск: для этого нужен TLS поверх TCP, QUIC или WireGuard</translation>
+    </message>
+    <message>
+        <source>The MTU applies only to WireGuard profiles</source>
+        <translation>MTU применяется только к профилям WireGuard</translation>
+    </message>
+    <message>
+        <source>The profile no longer uses TLS over TCP</source>
+        <translation>Профиль больше не использует TLS поверх TCP</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint</source>
+        <translation>У профилей этого типа нет uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Unknown setting “%1”</source>
+        <translation>Неизвестная настройка «%1»</translation>
+    </message>
+    <message>
+        <source>The profile as it is</source>
+        <translation>Профиль без изменений</translation>
+    </message>
+    <message>
+        <source>uTLS off</source>
+        <translation>uTLS выкл.</translation>
+    </message>
+    <message>
+        <source>Fingerprint %1</source>
+        <translation>Fingerprint %1</translation>
+    </message>
+    <message>
+        <source>TLS fragment on</source>
+        <translation>Фрагментация TLS вкл.</translation>
+    </message>
+    <message>
+        <source>TLS fragment off</source>
+        <translation>Фрагментация TLS выкл.</translation>
+    </message>
+    <message>
+        <source>Fragment delay %1</source>
+        <translation>Задержка фрагментации %1</translation>
+    </message>
+    <message>
+        <source>default</source>
+        <translation>по умолчанию</translation>
+    </message>
+    <message>
+        <source>Record fragment on</source>
+        <translation>Фрагментация записи вкл.</translation>
+    </message>
+    <message>
+        <source>Record fragment off</source>
+        <translation>Фрагментация записи выкл.</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI on</source>
+        <translation>SNI в смешанном регистре вкл.</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI off</source>
+        <translation>SNI в смешанном регистре выкл.</translation>
+    </message>
+    <message>
+        <source>QUIC opener on</source>
+        <translation>QUIC-приманка вкл.</translation>
+    </message>
+    <message>
+        <source>QUIC opener off</source>
+        <translation>QUIC-приманка выкл.</translation>
+    </message>
+    <message>
+        <source>MTU %1</source>
+        <translation>MTU %1</translation>
+    </message>
+    <message>
+        <source>“%1” changes from one start to the next, so it cannot be tried</source>
+        <translation>«%1» меняется при каждом запуске, поэтому его нельзя проверить</translation>
+    </message>
+    <message>
+        <source>“%1” is not a uTLS fingerprint</source>
+        <translation>«%1» — не uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Fragment delay “%1”: %2</source>
+        <translation>Задержка фрагментации «%1»: %2</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest</source>
+        <translation>Наибольший MTU должен быть больше наименьшего</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::CoreElevation</name>
+    <message>
+        <source>The Windows administrator prompt was declined or could not be shown.</source>
+        <translation>Запрос администратора Windows был отклонён или не может быть показан.</translation>
+    </message>
+    <message>
+        <source>Done.</source>
+        <translation>Готово.</translation>
+    </message>
+    <message>
+        <source>The helper did not receive administrator rights.</source>
+        <translation>Вспомогательный процесс не получил права администратора.</translation>
+    </message>
+    <message>
+        <source>Windows asked for a different administrator account; the grant must come from your own account.</source>
+        <translation>Windows запросил другую учётную запись администратора; права должны быть предоставлены из вашей собственной учётной записи.</translation>
+    </message>
+    <message>
+        <source>The helper was started with invalid arguments.</source>
+        <translation>Вспомогательный процесс запущен с неверными аргументами.</translation>
+    </message>
+    <message>
+        <source>Could not prepare or start the updater.</source>
+        <translation>Не удалось подготовить или запустить программу обновления.</translation>
+    </message>
+    <message>
+        <source>The helper failed with exit code 0x%1.</source>
+        <translation>Вспомогательный процесс завершился с кодом 0x%1.</translation>
+    </message>
+    <message>
+        <source>Could not copy ThronedCore into its protected folder.</source>
+        <translation>Не удалось скопировать ThronedCore в защищённую папку.</translation>
+    </message>
+    <message>
+        <source>Could not register the scheduled task that starts ThronedCore as administrator.</source>
+        <translation>Не удалось зарегистрировать задачу планировщика, запускающую ThronedCore от имени администратора.</translation>
+    </message>
+    <message>
+        <source>Could not remove the scheduled task or the protected copy of ThronedCore.</source>
+        <translation>Не удалось удалить задачу планировщика или защищённую копию ThronedCore.</translation>
+    </message>
+</context>
+<context>
+    <name>DialogRuleTester</name>
+    <message>
+        <source>Route path lookup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Routing profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Nothing is running, so the test builds the configuration this routing profile would start with. Outbounds are not dialed, endpoint rules are skipped and domains resolve with the system resolver.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>chrome.exe or full path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose from running programs and the ones seen connecting, or browse for a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Process</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>example.com</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1.1.1.1 or 2606:4700::1111</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto (by port)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>What a sniff rule finds in the connection&apos;s first packets.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sniffed protocol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Action</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Testing the running configuration, routing profile “%1”.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Testing the running configuration. It is a custom configuration, so rules are shown as sing-box describes them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Testing the running configuration.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a process, a domain or an IP address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“%1” is an IP address: enter it under IP address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“%1” is not a valid domain.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“%1” is not an IP address.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a routing profile to test.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not build the configuration: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>the core did not answer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The test failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rejected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rejected by %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handled as DNS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Handled as DNS by %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unknown error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The connection would be closed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No rule matched: the default outbound applies.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Matched %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbound: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Destination: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Domain: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Addresses: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Built with %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown outbound</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direct (L3 bridge)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>“%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Raw rule %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xray bridge (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extra core goes direct (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>System DNS (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tun DNS guard (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tun loop guard (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Service inbound (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sniff (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Onion sites via Tor (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Domain resolve (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNS hijack (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>DNS inbound guard (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>AdBlock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Endpoint: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L3 bridge direct (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>raw rule %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>rule %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L3 bridge copy of %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tunnel gate (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Block the rest (Throned)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Route</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Route to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bypass</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bypass to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Route options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -19736,23 +23021,230 @@ Close without saving?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Allow</source>
+        <source>Hijack DNS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Skip</source>
+        <source>Sniff</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>UDP/443</source>
+        <source>Resolve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP to port 443, mostly QUIC. &lt;b&gt;Reject&lt;/b&gt; makes browsers fall back to TCP (Xray&apos;s default), &lt;b&gt;Allow&lt;/b&gt; carries it through the mux, and &lt;b&gt;Skip&lt;/b&gt; sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>Found nothing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Custom Mux</source>
+        <source>Found %1, no domain</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Found %1, domain %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>a protocol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Resolved to %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Error: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ProcessPicker</name>
+    <message>
+        <source>just now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n min ago</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n h ago</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n d ago</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Service: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Chosen file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connected now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Seen %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Running (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core is not connected, so running programs are not listed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core did not answer, so running programs are not listed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Some programs could not be listed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apps like %1 often connect from helper programs inside the bundle; match by app folder to catch them too.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 is a script: what connects is the interpreter that runs it, which other scripts share.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Program</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Activity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core could not read where this program is.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose a Program</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add Programs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search by name or path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Everything, with services and system programs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Match by:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Program name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Matches the program wherever it is installed (process_name).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Exact path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Matches only this file (process_path).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>App folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Matches every program in the app&apos;s folder, helpers and later versions included (process_path_regex).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Looking for programs…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Programs (*.exe);;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Applications (*.app);;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a program, or browse for one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select one or more programs, or browse for one.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>and %n more</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Adds: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 runs many unrelated programs, so the rule catches all of them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The core could not read where %1 is, so it can only be matched by name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The path of %1 has a version number in it, so the rule stops matching after an update.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 holds many other programs, and the rule catches all of them.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>More warnings for the other selected programs.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

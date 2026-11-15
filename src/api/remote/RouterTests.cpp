@@ -25,8 +25,8 @@ void Router::postTest(const Request &request, const Responder &respond, int) {
         respond(error);
         return;
     }
-    if (kind != QStringLiteral("latency") && kind != QStringLiteral("ip") && kind != QStringLiteral("speed")) {
-        respond(badRequest(QStringLiteral("\"kind\" must be latency, ip or speed")));
+    if (kind != QStringLiteral("latency") && kind != QStringLiteral("ip") && kind != QStringLiteral("speed") && kind != QStringLiteral("services")) {
+        respond(badRequest(QStringLiteral("\"kind\" must be latency, ip, speed or services")));
         return;
     }
     QList<int> ids;
@@ -64,6 +64,8 @@ void Router::postTest(const Request &request, const Responder &respond, int) {
         testKind = Engine::TestKind::Latency;
     else if (kind == QStringLiteral("ip"))
         testKind = Engine::TestKind::Ip;
+    else if (kind == QStringLiteral("services"))
+        testKind = Engine::TestKind::Service;
     if (!engine_->runTests(testKind, ids, onFinished)) {
         respond(busy);
         return;

@@ -1,12 +1,16 @@
 #pragma once
 
+#include <QHash>
+#include <QMap>
 #include <QSet>
+
+#include "include/configs/RouteRuleOrigin.h"
 
 namespace Configs {
 // Includes the started profile, every chain hop, route outbound, endpoint and auto-selector member.
 void SetRunningProfiles(const QSet<int> &profileIDs);
 
-// Clears the running route too.
+// Clears the running route and its rule info too.
 void ClearRunningProfiles();
 
 bool RunningUsesProfile(int profileID);
@@ -15,6 +19,17 @@ bool RunningUsesProfile(int profileID);
 void SetRunningRoute(int routeId);
 
 int RunningRouteId();
+
+// What names the running config's route rules and outbounds, from its BuildConfigResult.
+struct RunningRouteRules {
+    QList<RouteRuleOrigin> origins;
+    QHash<QString, QString> outboundNames;
+    QMap<QString, int> vpnEndpointProfiles;
+};
+
+void SetRunningRouteRules(const RunningRouteRules &rules);
+
+RunningRouteRules GetRunningRouteRules();
 
 // A group override naming a routing profile that still exists, else the global one (current_route_id).
 int ResolveRouteId(int groupRouteId);

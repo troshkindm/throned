@@ -41,4 +41,6 @@ private:
     bool realmOn() const;
 
     bool hopping() const;
+
+    QString obfsType() const;
 };

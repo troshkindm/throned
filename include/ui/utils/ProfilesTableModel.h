@@ -16,7 +16,8 @@ class ProfilesTableModel : public QAbstractTableModel {
     Q_OBJECT
 public:
     enum { ProfileIdRole = Qt::UserRole,
-           RowVisualRole };
+           RowVisualRole,
+           PinnedRole };
 
     enum Column {
         ColType = 0,
@@ -26,6 +27,13 @@ public:
         ColTraffic,
         ColUDP,
         ColumnCount,
+    };
+
+    // One service check result; names and words are lowercase.
+    struct ServiceFilterKey {
+        QStringList names; // check id and name, category id and name
+        QStringList words;
+        int state = 0; // 1 available or partial, -1 restricted or blocked, 0 inconclusive
     };
 
     // Comfortable rows fold type, address, country and exit IP into one Server
@@ -79,6 +87,7 @@ public:
         QString effectiveAddress;
         QString name;
         QString country;
+        QList<ServiceFilterKey> services;
         int port = 0;
     };
 
@@ -93,16 +102,27 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
-    void refreshTable(const QList<int> &ids = {}, bool mayNeedReset = false);
+    // The first pinnedCount ids are the group's pinned profiles.
+    void refreshTable(const QList<int> &ids, int pinnedCount, bool mayNeedReset = false);
 
     void refreshProfileId(int profileId);
 
     // Re-resolves the Address column after IP lists or group endpoints change.
     void invalidateAddresses();
 
-    void emplaceProfiles(int row1, int row2);
+    // `to` is the row's index after the move.
+    void moveProfile(int from, int to, int pinnedCount);
 
     int indexOfProfile(int id);
+
+    bool isStartedRow(int sourceRow) const;
+
+    int pinnedCount() const { return m_pinnedCount; }
+
+    bool isPinnedRow(int sourceRow) const { return sourceRow >= 0 && sourceRow < m_pinnedCount; }
+
+    // A pinned row followed by an unpinned one in `index`'s model (this one or a proxy over it): the divider goes under it.
+    static bool endsPinnedBlock(const QModelIndex &index);
 
     QString rowLabel(int sourceRow, int displayRow) const;
 
@@ -115,14 +135,19 @@ public:
     // Raw for a column that does not sort.
     GroupSortMethod::GroupSortMethod sortOfColumn(int column) const;
 
+signals:
+    void pinnedCountChanged();
+
 private:
     RowVisual buildRowVisual(const std::shared_ptr<Configs::Profile> &profile, bool isRunning) const;
     void ensureCached(int profileId) const;
     void evictOne() const;
-    void setProfileIds(const QList<int> &ids);
+    void setProfileIds(const QList<int> &ids, int pinnedCount);
+    void setPinnedCount(int count);
     void ensureFilterIndex() const;
 
     QList<int> m_profileIds;
+    int m_pinnedCount = 0;
     mutable QHash<int, int> id2row;
     mutable QHash<int, std::shared_ptr<Configs::Profile>> m_cache;
     mutable QList<int> m_lruOrder;

@@ -10,6 +10,28 @@
 #include <QFontMetrics>
 #include <QItemSelectionModel>
 
+namespace {
+int pinSide(const QFontMetrics &fm) {
+    return qMax(8, fm.height() * 3 / 4);
+}
+
+// A push pin on a 12-unit grid.
+void paintPin(QPainter *painter, const QRectF &box, const QColor &color) {
+    painter->save();
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->translate(box.topLeft());
+    painter->scale(box.width() / 12.0, box.height() / 12.0);
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(color);
+    painter->drawRoundedRect(QRectF(3.4, 0.6, 5.2, 1.7), 0.6, 0.6);
+    painter->drawPolygon(QPolygonF{{4.4, 2.3}, {7.6, 2.3}, {8.4, 6.4}, {3.6, 6.4}});
+    painter->drawRoundedRect(QRectF(2.0, 6.0, 8.0, 1.6), 0.6, 0.6);
+    painter->setPen(QPen(color, 1.3, Qt::SolidLine, Qt::RoundCap));
+    painter->drawLine(QPointF(6.0, 7.6), QPointF(6.0, 11.3));
+    painter->restore();
+}
+} // namespace
+
 ProfilesTableVerticalHeader::ProfilesTableVerticalHeader(QWidget *parent)
     : QHeaderView(Qt::Vertical, parent) {
     setSectionsClickable(true);
@@ -43,6 +65,10 @@ void ProfilesTableVerticalHeader::setProfilesModel(ProfilesTableModel *model, Pr
             updateWidthFromRowCount();
             update();
         });
+        connect(m_model, &ProfilesTableModel::pinnedCountChanged, this, [this]() {
+            updateWidthFromRowCount();
+            update();
+        });
     }
     if (m_proxy) {
         connect(m_proxy, &QAbstractItemModel::rowsInserted, this, [this] { update(); });
@@ -60,9 +86,13 @@ void ProfilesTableVerticalHeader::updateWidthFromRowCount() {
     constexpr int wCheck = 16;
     // Keep a real, stable index column instead of manufacturing its width with
     // trailing spaces in the label. Three digits can still grow it naturally.
-    const int w = qMax(30, qMax(wNum, wCheck) + 14);
+    const int w = qMax(30, qMax(wNum, wCheck) + 14) + pinRoom();
     setMinimumWidth(w);
     setMaximumWidth(w);
+}
+
+int ProfilesTableVerticalHeader::pinRoom() const {
+    return m_model && m_model->pinnedCount() > 0 ? pinSide(QFontMetrics(font())) + 4 : 0;
 }
 
 void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const {
@@ -94,18 +124,30 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
                                   : (running
                                          ? colors.success
                                          : (m_sectionForeground.isValid() ? m_sectionForeground : palette().color(QPalette::Text)));
+    // Every row's label shifts right while the group has pins, so the numbers stay in one column.
+    const int room = pinRoom();
+    const QRect content = rect.adjusted(room, 0, 0, 0);
+    if (m_model && m_model->isPinnedRow(sourceRow)) {
+        const int side = pinSide(QFontMetrics(font()));
+        paintPin(painter, QRectF(rect.left() + 3, rect.top() + (rect.height() - side) / 2.0, side, side),
+                 selected ? foreground : colors.accent);
+    }
     if (running) {
         constexpr int iconSize = 18;
         const QPixmap check = MaterialIcon::pixmap(MaterialIcon::Glyph::Check, foreground, iconSize);
-        painter->drawPixmap(QPoint(rect.center().x() - iconSize / 2,
-                                   rect.center().y() - iconSize / 2),
+        painter->drawPixmap(QPoint(content.center().x() - iconSize / 2,
+                                   content.center().y() - iconSize / 2),
                             check);
     } else {
         const QString text = m_model
                                  ? m_model->rowLabel(sourceRow, logicalIndex)
                                  : QString::number(logicalIndex + 1);
         painter->setPen(foreground);
-        painter->drawText(rect, Qt::AlignCenter, text);
+        painter->drawText(content, Qt::AlignCenter, text);
+    }
+    const QAbstractItemModel *rows = m_proxy ? static_cast<QAbstractItemModel *>(m_proxy) : m_model;
+    if (rows != nullptr && ProfilesTableModel::endsPinnedBlock(rows->index(logicalIndex, 0))) {
+        painter->fillRect(QRect(rect.left(), rect.bottom() - 1, rect.width(), 2), colors.textMuted);
     }
     painter->restore();
 }

@@ -37,6 +37,7 @@
 #include "include/engine/headless/HeadlessInstance.h"
 #include "include/global/Configs.hpp"
 #include "include/global/Validation.hpp"
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/HostPresence.hpp"
 #include "include/sys/HostTun.hpp"
 #include "include/sys/Process.hpp"
@@ -130,6 +131,18 @@ QStringList preflightElevationFixes(const QStringList &fixes) {
 #else
     return fixes;
 #endif
+}
+#endif
+
+#ifdef Q_OS_WIN
+bool preflightCoreGranted() {
+    return Sys::CoreElevation::CurrentStatus() == Sys::CoreElevation::Status::Granted;
+}
+
+QString preflightGrantState() {
+    return Sys::CoreElevation::CurrentStatus() == Sys::CoreElevation::Status::Stale
+               ? QStringLiteral(" (the core's grant predates an update and must be renewed)")
+               : QString();
 }
 #endif
 
@@ -828,10 +841,12 @@ void preflightTun(PreflightReport &report, const PreflightCore &core, const Pref
     Q_UNUSED(corePath)
     if (Configs::KnownAdmin().value_or(false)) {
         report.ok(QStringLiteral("Tun: available (Throned runs elevated)"));
+    } else if (preflightCoreGranted()) {
+        report.ok(QStringLiteral("Tun: available (the core runs elevated through its scheduled task)"));
     } else {
-        report.warn(QStringLiteral("Tun: unavailable: Throned does not run elevated") + remembered,
-                    {QStringLiteral("run Throned from an elevated prompt, as a task with the highest privileges, or as a Windows "
-                                    "service (Throned --headless --service)")});
+        report.warn(QStringLiteral("Tun: unavailable: neither Throned nor its core runs elevated") + preflightGrantState() + remembered,
+                    {QStringLiteral("grant the core administrator rights once from the Throned window (Tun Mode asks for it), run "
+                                    "Throned from an elevated prompt, or as a Windows service (Throned --headless --service)")});
     }
 #else
     Q_UNUSED(core)
@@ -919,9 +934,13 @@ void preflightKillSwitch(PreflightReport &report, const PreflightCore &core, con
     Q_UNUSED(corePath)
     if (Configs::KnownAdmin().value_or(false)) {
         report.ok(QStringLiteral("kill switch: available (Throned runs elevated); ") + setting);
+    } else if (preflightCoreGranted()) {
+        report.ok(QStringLiteral("kill switch: available (the core runs elevated through its scheduled task); ") + setting);
     } else {
-        report.warn(QStringLiteral("kill switch: unavailable: Throned does not run elevated; ") + setting,
-                    {QStringLiteral("run Throned elevated, or as a Windows service (Throned --headless --service)")});
+        report.warn(QStringLiteral("kill switch: unavailable: neither Throned nor its core runs elevated") + preflightGrantState() +
+                        QStringLiteral("; ") + setting,
+                    {QStringLiteral("grant the core administrator rights once from the Throned window, run Throned elevated, or "
+                                    "as a Windows service (Throned --headless --service)")});
     }
 #else
     Q_UNUSED(core)

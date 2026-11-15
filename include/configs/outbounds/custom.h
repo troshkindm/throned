@@ -136,6 +136,6 @@ namespace Checks {
 QString CustomConfig(const QString &subtype, const QString &text);
 } // namespace Checks
 
-// Removes every spelling of masterKeyLog from an Xray stream's TLS and REALITY settings and its XHTTP download legs; true when any went.
+// Removes every spelling of masterKeyLog from an Xray stream's TLS and REALITY settings, its xdns resolvers and its XHTTP download legs; true when any went.
 bool StripXrayStreamKeyLog(QJsonObject &stream, const QString &at, Validation::Issues &issues);
 } // namespace Configs

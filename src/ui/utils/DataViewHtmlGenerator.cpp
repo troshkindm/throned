@@ -229,9 +229,10 @@ DataViewHtmlGenerator::TestPanelState DataViewHtmlGenerator::testPanelState() co
             state.server += speedtest_.serverName;
         }
     } else {
-        state.kind = latencyTest_.kind == LatencyTestPanelState::Kind::Url   ? TestPanelState::Kind::Url
-                     : latencyTest_.kind == LatencyTestPanelState::Kind::Udp ? TestPanelState::Kind::Udp
-                                                                             : TestPanelState::Kind::Ip;
+        state.kind = latencyTest_.kind == LatencyTestPanelState::Kind::Url       ? TestPanelState::Kind::Url
+                     : latencyTest_.kind == LatencyTestPanelState::Kind::Udp     ? TestPanelState::Kind::Udp
+                     : latencyTest_.kind == LatencyTestPanelState::Kind::Service ? TestPanelState::Kind::Service
+                                                                                 : TestPanelState::Kind::Ip;
         state.total = qMax(0, latencyTest_.totalProfiles);
     }
     state.completed = cappedProgress(state.total);

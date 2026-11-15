@@ -53,7 +53,6 @@ bool tailscale::ParseFromLink(const QString& link) {
 
     outbound::ParseFromLink(link);
 
-    if (query.hasQueryItem("state_directory")) state_directory = query.queryItemValue("state_directory", QUrl::FullyDecoded);
     if (query.hasQueryItem("auth_key")) auth_key = query.queryItemValue("auth_key", QUrl::FullyDecoded);
     if (query.hasQueryItem("control_url")) control_url = query.queryItemValue("control_url", QUrl::FullyDecoded);
     if (query.hasQueryItem("ephemeral")) ephemeral = query.queryItemValue("ephemeral") == "true";
@@ -74,7 +73,6 @@ bool tailscale::ParseFromLink(const QString& link) {
 bool tailscale::ParseFromJson(const QJsonObject& object) {
     if (object.isEmpty() || object["type"].toString() != "tailscale") return false;
     outbound::ParseFromJson(object);
-    if (object.contains("state_directory")) state_directory = object["state_directory"].toString();
     if (object.contains("auth_key")) auth_key = object["auth_key"].toString();
     if (object.contains("control_url")) control_url = object["control_url"].toString();
     if (object.contains("ephemeral")) ephemeral = object["ephemeral"].toBool();
@@ -96,7 +94,6 @@ QString tailscale::ExportToLink() {
     url.setHost("tailscale");
     if (!name.isEmpty()) url.setFragment(name);
 
-    if (!state_directory.isEmpty()) query.addQueryItem("state_directory", QUrl::toPercentEncoding(state_directory));
     if (!auth_key.isEmpty()) query.addQueryItem("auth_key", QUrl::toPercentEncoding(auth_key));
     if (!control_url.isEmpty()) query.addQueryItem("control_url", QUrl::toPercentEncoding(control_url));
     if (ephemeral) query.addQueryItem("ephemeral", "true");
@@ -116,7 +113,6 @@ QJsonObject tailscale::ExportToJson() {
     QJsonObject object;
     object["type"] = "tailscale";
     object["tag"] = name;
-    if (!state_directory.isEmpty()) object["state_directory"] = state_directory;
     if (!auth_key.isEmpty()) object["auth_key"] = auth_key;
     if (!control_url.isEmpty()) object["control_url"] = control_url;
     if (ephemeral) object["ephemeral"] = ephemeral;
@@ -133,7 +129,6 @@ QJsonObject tailscale::ExportToJson() {
 BuildResult tailscale::Build() {
     QJsonObject object;
     object["type"] = "tailscale";
-    if (!state_directory.isEmpty()) object["state_directory"] = state_directory;
     if (!auth_key.isEmpty()) object["auth_key"] = auth_key;
     if (!control_url.isEmpty()) object["control_url"] = control_url;
     if (ephemeral) object["ephemeral"] = ephemeral;

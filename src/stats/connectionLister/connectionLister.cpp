@@ -35,7 +35,7 @@ void ConnectionLister::Loop() {
         bool forced = false;
         {
             QMutexLocker wlk(&waitMu_);
-            if (!forced_) waitCond_.wait(&waitMu_, inView_.load() ? kActivePollMs : kRelaxedPollMs);
+            if (!forced_) waitCond_.wait(&waitMu_, inView_.load() || apiWatch_.load() ? kActivePollMs : kRelaxedPollMs);
             forced = forced_;
             forced_ = false;
         }
@@ -45,7 +45,7 @@ void ConnectionLister::Loop() {
         if (!forced && (suspend || !Configs::dataManager->settingsRepo->enable_stats)) continue;
 
         mu.lock();
-        update(forced || inView_.load());
+        update(forced || inView_.load(), apiWatch_.load());
         mu.unlock();
     }
 }
@@ -56,6 +56,18 @@ void ConnectionLister::SetInView(bool inView) {
         QMutexLocker wlk(&waitMu_);
         waitCond_.wakeAll();
     }
+}
+
+void ConnectionLister::SetApiWatch(bool watch) {
+    const bool was = apiWatch_.exchange(watch);
+    if (watch && !was) {
+        QMutexLocker wlk(&waitMu_);
+        waitCond_.wakeAll();
+    }
+}
+
+void ConnectionLister::SetApiSink(ApiSink sink) {
+    apiSink_ = std::move(sink);
 }
 
 QString EndpointHost(const QString& endpoint) {
@@ -94,7 +106,8 @@ static ConnectionMetadata metaFromProto(const libcore::ConnectionMetaData& conn,
     c.source = QString::fromStdString(conn.source.value());
     // In tun mode our own traffic enters with the tun's (or this machine's LAN) address, so a loopback-only test would label it a LAN client.
     const QString host = EndpointHost(c.source);
-    c.sourceDisplay = host.isEmpty() || LocalNetwork::IsOwnAddress(host) ? localLabel : host;
+    c.sourceLocal = host.isEmpty() || LocalNetwork::IsOwnAddress(host);
+    c.sourceDisplay = c.sourceLocal ? localLabel : host;
     return c;
 }
 
@@ -120,6 +133,14 @@ void sortSmallestFirst(QList<ConnectionMetadata>& list, bool asc, Key key) {
         return asc ? ka > kb : ka < kb;
     });
 }
+
+void sortApiSnapshot(QList<ConnectionMetadata>& list) {
+    std::sort(list.begin(), list.end(), [](const ConnectionMetadata& a, const ConnectionMetadata& b) {
+        if ((a.closedAtMs == 0) != (b.closedAtMs == 0)) return a.closedAtMs == 0;
+        if (a.createdAtMs != b.createdAtMs) return a.createdAtMs > b.createdAtMs;
+        return a.id < b.id;
+    });
+}
 } // namespace
 
 bool SortIsDescending(const ConnectionSort sort, const bool ascending) {
@@ -136,7 +157,7 @@ bool SortIsDescending(const ConnectionSort sort, const bool ascending) {
     }
 }
 
-void ConnectionLister::update(const bool pushToUi) {
+void ConnectionLister::update(const bool pushToUi, const bool pushToApi) {
     libcore::QueryConnectionsResp resp = API::defaultClient->QueryConnections();
     const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
     const QString localLabel = QObject::tr("Local");
@@ -220,6 +241,23 @@ void ConnectionLister::update(const bool pushToUi) {
         }
         lastBytes_ = newLast;             // drop evicted / now-closed live ids
         accountedClosed_ = currentClosed; // everything in the ring is accounted
+    }
+
+    if (pushToApi) {
+        QList<ConnectionMetadata> apiRows = rows;
+        QSet<QString> openIds;
+        openIds.reserve(rows.size());
+        for (const auto& row: rows) openIds.insert(row.id);
+        for (const auto& conn: resp.closed) {
+            auto c = metaFromProto(conn, localLabel, outboundNames);
+            // A connection that closed while the core listed it shows up in both lists.
+            if (!openIds.contains(c.id)) apiRows.append(std::move(c));
+        }
+        sortApiSnapshot(apiRows);
+        if (apiRows.size() > kSnapshotMaxRows) apiRows.resize(kSnapshotMaxRows);
+        runOnUiThread([this, apiRows = std::move(apiRows), nowMs] {
+            if (apiSink_) apiSink_(apiRows, nowMs);
+        });
     }
 
     if (!pushToUi) return;

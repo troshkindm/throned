@@ -29,6 +29,8 @@
 #include "include/configs/outbounds/vless.h"
 #include "include/configs/outbounds/vmess.h"
 #include "include/configs/outbounds/xrayVless.h"
+#include "include/configs/outbounds/dnstt.h"
+#include "include/configs/outbounds/masterdns.h"
 
 #include "include/database/entities/EndpointSource.h"
 #include "include/global/CountryHelper.hpp"
@@ -62,6 +64,8 @@ public:
     // Starred by the user. Lives on the profile row, so a subscription update that
     // rewrites an outbound in place keeps it.
     bool favorite = false;
+    // The last service check as JSON (ServiceChecks::ResultJson); empty = never checked.
+    QString service_checks;
 
     QString runningCountryInfo; // volatile, not saved to db
 
@@ -87,6 +91,8 @@ public:
     int udp_loss = 0;   // percent
     QString udp_error;  // runtime-only; explains timeout vs an explicit server rejection
     [[nodiscard]] QString DisplayUDPResult() const;
+    // Epoch seconds of the stored service check; 0 without one.
+    [[nodiscard]] qint64 ServiceCheckedAt() const;
 
     [[nodiscard]] QColor DisplayLatencyColor() const;
 
@@ -199,6 +205,14 @@ public:
 
     [[nodiscard]] Configs::extracore *ExtraCore() const {
         return dynamic_cast<Configs::extracore *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::dnstt *Dnstt() const {
+        return dynamic_cast<Configs::dnstt *>(outbound.get());
+    };
+
+    [[nodiscard]] Configs::masterdns *MasterDns() const {
+        return dynamic_cast<Configs::masterdns *>(outbound.get());
     };
 };
 class ProfileFilter {

@@ -5,6 +5,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/ui/setting/ProcessPicker.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/RouteProfileSimpleEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -48,6 +49,7 @@
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QTabBar>
+#include <QTextCursor>
 #include <QTextEdit>
 #include <QToolButton>
 
@@ -158,6 +160,35 @@ QString actionFilterTitle(int action) {
 } // namespace
 
 static bool routeItemIsEndpointRule(const std::shared_ptr<Configs::RouteRule> &rule);
+
+// Through the cursor, so the user can undo it.
+static void routeItemAppendLines(QPlainTextEdit *editor, const QStringList &lines) {
+    const QString text = editor->toPlainText();
+    QSet<QString> present;
+    for (const auto &line: text.split(u'\n')) present.insert(line.trimmed());
+    QStringList added;
+    for (const auto &line: lines) {
+        if (present.contains(line)) continue;
+        present.insert(line);
+        added << line;
+    }
+    if (added.isEmpty()) return;
+    QTextCursor cursor = editor->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    const bool needsBreak = !text.isEmpty() && !text.endsWith(u'\n');
+    cursor.insertText((needsBreak ? QStringLiteral("\n") : QString()) + added.join(u'\n'));
+    editor->setTextCursor(cursor);
+}
+
+static QPushButton *routeItemAddProgramButton(QWidget *parent, QBoxLayout *layout) {
+    auto *button = new QPushButton(RouteItem::tr("Add Program…"), parent);
+    button->setToolTip(RouteItem::tr("Pick a program that is running or has used the network, spelled exactly as the core matches it."));
+    auto *row = new QHBoxLayout;
+    row->addStretch(1);
+    row->addWidget(button);
+    layout->addLayout(row);
+    return button;
+}
 
 static void routeItemShowDisabled(QListWidgetItem *row, bool disabled) {
     // Cleared rather than set to an empty brush, which the delegate would paint the text with.
@@ -308,14 +339,21 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
 
-    QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
+    QStringList ruleSetLines;
     for (const auto &item: ruleSetList) {
-        ruleItems.append("ruleset:" + QString::fromUtf8(item.first.data(), item.first.size()));
+        ruleSetLines.append("ruleset:" + QString::fromUtf8(item.first.data(), item.first.size()));
     }
-    simpleDirect = new AutoCompleteTextEdit("", ruleItems, this);
-    simpleBlock = new AutoCompleteTextEdit("", ruleItems, this);
-    simpleProxy = new AutoCompleteTextEdit("", ruleItems, this);
-    simpleWarpBypass = new AutoCompleteTextEdit("", ruleItems, this);
+    auto *simpleRuleModel = new ProcessCompletionModel({.head = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"},
+                                                        .names = true,
+                                                        .namePrefix = QStringLiteral("processName:"),
+                                                        .paths = true,
+                                                        .pathPrefix = QStringLiteral("processPath:"),
+                                                        .tail = ruleSetLines},
+                                                       this);
+    simpleDirect = new AutoCompleteTextEdit("", simpleRuleModel, this);
+    simpleBlock = new AutoCompleteTextEdit("", simpleRuleModel, this);
+    simpleProxy = new AutoCompleteTextEdit("", simpleRuleModel, this);
+    simpleWarpBypass = new AutoCompleteTextEdit("", simpleRuleModel, this);
 
     ui->simple_direct_box->layout()->replaceWidget(ui->simple_direct, simpleDirect);
     ui->simple_block_box->layout()->replaceWidget(ui->simple_block, simpleBlock);
@@ -695,7 +733,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     // Restyled in place: rebuilding the list here would delete the item the view is still handling the click for.
     connect(ui->route_items, &QListWidget::itemChanged, this, [this](QListWidgetItem *item) {
         const int row = ui->route_items->row(item);
-        if (row < 0 || row >= chain->Rules.size() || !(item->flags() & Qt::ItemIsUserCheckable)) return;
+        // Any setIcon/setFont lands here too, and an endpoint row has no check state, so it would read as unchecked.
+        if (row < 0 || row >= chain->Rules.size() || chain->Rules[row]->type == Configs::endpointPreferredBy) return;
         const bool disabled = item->checkState() != Qt::Checked;
         if (chain->Rules[row]->disabled == disabled) return;
         chain->Rules[row]->disabled = disabled;
@@ -1487,6 +1526,8 @@ void RouteItem::updateRouteItemsView() {
             routeItemShowDisabled(row, item->disabled);
             continue;
         }
+        // QListWidgetItem starts out user-checkable.
+        row->setFlags(row->flags() & ~Qt::ItemIsUserCheckable);
         QFont font = row->font();
         font.setItalic(true);
         row->setFont(font);
@@ -1590,7 +1631,15 @@ QWidget *RouteItem::makeAttributeEditorPage(const QString &attr) {
                 addDisabled(ed);
                 lay->addWidget(ed, 1);
             } else {
-                auto *te = new QPlainTextEdit(container);
+                QPlainTextEdit *te = nullptr;
+                if (attr == QStringLiteral("process_name") || attr == QStringLiteral("process_path")) {
+                    const bool names = attr == QStringLiteral("process_name");
+                    auto *programs = new AutoCompleteTextEdit("", new ProcessCompletionModel({.names = names, .paths = !names}, container), container);
+                    programs->setSpacesAllowed(true);
+                    te = programs;
+                } else {
+                    te = new QPlainTextEdit(container);
+                }
                 te->setPlainText(rule->get_current_value_string(attr).join('\n'));
                 te->setMinimumHeight(100);
                 te->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1601,6 +1650,17 @@ QWidget *RouteItem::makeAttributeEditorPage(const QString &attr) {
                 });
                 addDisabled(te);
                 lay->addWidget(te, 1);
+                if (attr == QStringLiteral("process_name") || attr == QStringLiteral("process_path") || attr == QStringLiteral("process_path_regex")) {
+                    const auto match = attr == QStringLiteral("process_name")   ? ProcessPicker::Match::Name
+                                       : attr == QStringLiteral("process_path") ? ProcessPicker::Match::Path
+                                                                                : ProcessPicker::Match::Folder;
+                    auto *pick = routeItemAddProgramButton(container, lay);
+                    pick->setEnabled(editable);
+                    connect(pick, &QPushButton::clicked, this, [this, match, target = QPointer<QPlainTextEdit>(te)] {
+                        const QStringList values = ProcessPicker::Pick(this, {match});
+                        if (target) routeItemAppendLines(target, values);
+                    });
+                }
             }
             break;
         }

@@ -186,6 +186,7 @@ EngineHost::~EngineHost() {
     engineHostInstance = nullptr;
     detachFrontEnd();
     Subscription::updater()->SetUrlTester(nullptr);
+    Subscription::updater()->SetCountryTester(nullptr);
     Lifecycle::SetStopHandler({});
     delete m_router;
     m_autoSelector.reset();
@@ -245,6 +246,7 @@ void EngineHost::construct() {
         if (connectionState() != ConnectionState::Idle) return;
         start(StartRequest{profileId, false});
     });
+    connect(EngineEvents::instance(), &EngineEvents::routingRestartNeeded, this, [this] { noteRestartNeeded(RestartReason::Routing); });
     // Queued and connected before the window's model refresh, so posted-event order clears the cache first.
     auto *ipLists = Scanner::IpListUpdater::instance();
     connect(ipLists, &Scanner::IpListUpdater::listsChanged, this, [] { Configs::InvalidateEndpointDisplayCache(); }, Qt::QueuedConnection);
@@ -256,6 +258,9 @@ void EngineHost::construct() {
 
     Subscription::updater()->SetUrlTester([this](const QList<int> &profileIDs, bool interactive, const Subscription::GroupUpdater::Finish &done) {
         m_tests->queueUrlTests(profileIDs, done, interactive);
+    });
+    Subscription::updater()->SetCountryTester([this](const QList<int> &profileIDs, bool interactive, const Subscription::GroupUpdater::Finish &done) {
+        m_tests->queueIpTests(profileIDs, done, interactive);
     });
 
     Dashboard::SeedClashUi();
@@ -441,6 +446,18 @@ std::optional<LiveRates> EngineHost::freshLiveRates(qint64 maxAgeMs) const {
     return m_stats->freshLiveRates(maxAgeMs);
 }
 
+void EngineHost::watchConnections() {
+    m_stats->watchConnections();
+}
+
+ConnectionSnapshot EngineHost::connectionSnapshot() const {
+    return m_stats->connectionSnapshot();
+}
+
+void EngineHost::closeConnections(const QStringList &ids, const std::function<void(const ConnectionCloseResult &)> &done) {
+    StatsService::closeConnections(ids, done);
+}
+
 bool EngineHost::testsRunning() {
     return m_tests->isRunning();
 }
@@ -455,6 +472,8 @@ bool EngineHost::runTests(TestKind kind, const QList<int> &profileIds, const std
             return m_tests->runUrlTests(profileIds, onFinished, false);
         case Engine::TestKind::Ip:
             return m_tests->runIpTests(profileIds, onFinished, false);
+        case Engine::TestKind::Service:
+            return m_tests->runServiceChecks(profileIds, onFinished, false);
         case Engine::TestKind::Speed:
             break;
     }

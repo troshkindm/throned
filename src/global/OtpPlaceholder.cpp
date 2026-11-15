@@ -4,8 +4,16 @@
 #include "include/database/OtpProfilesRepo.h"
 
 namespace Configs {
+namespace {
+thread_local int otpSuppressionDepth = 0;
+}
+
+ScopedOtpSuppression::ScopedOtpSuppression() { otpSuppressionDepth++; }
+
+ScopedOtpSuppression::~ScopedOtpSuppression() { otpSuppressionDepth--; }
+
 QString ResolveOtpCode(int otpProfileId) {
-    if (otpProfileId < 0 || dataManager == nullptr || dataManager->otpProfilesRepo == nullptr) return {};
+    if (otpSuppressionDepth > 0 || otpProfileId < 0 || dataManager == nullptr || dataManager->otpProfilesRepo == nullptr) return {};
     auto profile = dataManager->otpProfilesRepo->GetOtpProfile(otpProfileId);
     if (profile == nullptr || !profile->Validate().isEmpty()) return {};
     return profile->CurrentCode();
@@ -13,7 +21,7 @@ QString ResolveOtpCode(int otpProfileId) {
 
 QString OtpCodeSession::Resolve(int otpProfileId) {
     if (codes.contains(otpProfileId)) return codes.value(otpProfileId);
-    if (otpProfileId < 0 || dataManager == nullptr || dataManager->otpProfilesRepo == nullptr) return {};
+    if (otpSuppressionDepth > 0 || otpProfileId < 0 || dataManager == nullptr || dataManager->otpProfilesRepo == nullptr) return {};
 
     const auto profile = dataManager->otpProfilesRepo->GetOtpProfile(otpProfileId);
     if (profile == nullptr || !profile->Validate().isEmpty()) return {};

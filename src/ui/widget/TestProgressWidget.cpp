@@ -99,6 +99,7 @@ void TestProgressWidget::setSnapshot(const DataViewHtmlGenerator::TestPanelState
     const QString title = state.kind == Kind::Url       ? tr("TCP latency")
                           : state.kind == Kind::Udp     ? tr("UDP latency")
                           : state.kind == Kind::Ip      ? tr("IP check")
+                          : state.kind == Kind::Service ? tr("Service check")
                           : state.kind == Kind::Country ? tr("Country test")
                                                         : tr("Speed test");
     title_->setText(stopping_ ? tr("Stopping tests…") : title);

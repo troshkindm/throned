@@ -84,6 +84,9 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles) {
         case Engine::TestKind::Ip:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
             break;
+        case Engine::TestKind::Service:
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Service, totalProfiles);
+            break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             break;
@@ -91,6 +94,7 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles) {
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Udp, totalProfiles);
             break;
     }
+    runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
 }
 
 void MainWindow::testProgressed() {
@@ -99,6 +103,7 @@ void MainWindow::testProgressed() {
 
 void MainWindow::testPanelsCleared() {
     dataViewHtmlGenerator_.clearTestSections();
+    runOnUiThread([this] { ui->menu_stop_testing->setEnabled(false); });
 }
 
 void MainWindow::testViewChanged(bool force) {
@@ -189,7 +194,7 @@ bool MainWindow::searchesEveryGroup() const {
 
 void MainWindow::applyProfileFilters() {
     if (!profilesFilterModel) return;
-    profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, countryFilterString);
+    profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, testFilterString);
     profilesFilterModel->setSearch(globalFilterString);
     const bool wide = searchesEveryGroup();
     // A cross-group result set has no single meaningful order.  The drop handler
@@ -427,6 +432,28 @@ void MainWindow::refresh_startstop_button() {
     }
 }
 
+void MainWindow::refresh_action_states() {
+    qsizetype selectedRows = 0;
+    if (const auto *selection = ui->profilesTableView->selectionModel()) {
+        // The view selects whole rows and the ranges never overlap, so their heights add up to the row count.
+        for (const auto &range: selection->selection()) {
+            selectedRows += range.height();
+            if (selectedRows > 1) break;
+        }
+    }
+    const bool anySelected = selectedRows > 0;
+    ui->actionSpeedtest_Selected->setEnabled(anySelected);
+    ui->actionUrl_Test_Selected->setEnabled(anySelected);
+    ui->menu_resolve_selected->setEnabled(anySelected);
+    ui->actionResolve_Selected_Out_IP->setEnabled(anySelected);
+    ui->actionService_Check_Selected->setEnabled(anySelected);
+    ui->menu_find_settings->setEnabled(selectedRows == 1);
+
+    const bool running = runningSnapshot() != nullptr;
+    ui->actionSpeedtest_Current->setEnabled(running);
+    ui->actionUpdate_Rule_Sets->setEnabled(running);
+}
+
 void MainWindow::set_traffic_lines(const QList<Stats::TrafficLine> &lines) {
     m_trafficLines = lines;
 }
@@ -582,7 +609,7 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int> &ids, boo
         profilesTableModel->refreshTable(
             Configs::dataManager->profilesRepo->GetAllProfileIds(), mayNeedReset);
     } else {
-        profilesTableModel->refreshTable(currentGroup->profiles, mayNeedReset);
+        profilesTableModel->refreshTable(currentGroup->profiles, currentGroup->PinnedCount(), mayNeedReset);
     }
 }
 

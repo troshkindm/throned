@@ -5,16 +5,19 @@
 #include "include/engine/EngineHost.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
+#include "include/engine/tests/TestRunner.h"
 #include "include/engine/vpn/VpnEndpoints.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/database/DatabaseManager.h"
+#include "include/database/ProfilesRepo.h"
 #include "include/database/SettingsRepo.h"
 #include "include/global/Utils.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/CountryHelper.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/global/ExitLookup.hpp"
+#include "include/ui/utils/ServiceCheckHtml.h"
 
 #include <QBrush>
 #include <QColor>
@@ -39,6 +42,15 @@ QString runningConfigName() {
     const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
     if (running == nullptr || running->outbound == nullptr) return {};
     return running->outbound->DisplayTypeAndName();
+}
+
+std::shared_ptr<Configs::Profile> runningProfile() {
+    auto* engine = Engine::host();
+    const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
+    if (running == nullptr) return nullptr;
+    // The repo's copy is the one a finished service check writes to.
+    const auto stored = Configs::dataManager->profilesRepo->GetProfile(running->id);
+    return stored != nullptr ? stored : running;
 }
 
 QString formatCpu(const Sys::ProcessMetrics::Sample& s) {
@@ -95,7 +107,8 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
                           "QLabel { background: transparent; border: none; color: %3; }"
                           "QLabel#cpuChartTitle, QLabel#ramChartTitle, QLabel#runningTitle { color: %4; font-weight: 600; }"
                           "QLabel#vThroneCpu, QLabel#vThroneRam, QLabel#vCfgName { color: %3; font-weight: 600; }"
-                          "QLabel#labelPing, QLabel#labelOutIp, QLabel#labelCountry, QWidget#runtimeFooter QLabel { color: %4; }")
+                          "QLabel#labelPing, QLabel#labelOutIp, QLabel#labelCountry, QLabel#labelServices, QLabel#vServiceChecked,"
+                          " QWidget#runtimeFooter QLabel { color: %4; }")
                           .arg(colors.window.name(), colors.border.name(), colors.text.name(), colors.textMuted.name()));
         for (auto* label: {ui->labelThroneName, ui->labelRamThroneName})
             label->setText(QStringLiteral("<span style=\"color:%1\">●</span> Throned").arg(colors.accent.name()));
@@ -107,6 +120,18 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
     // A lookup service's answer: as AutoText a tag in it would render as HTML.
     ui->vOutIp->setTextFormat(Qt::PlainText);
     ui->vCountry->setTextFormat(Qt::PlainText);
+    // Rich text built by ServiceCheckHtml::summary, which escapes everything it did not write itself.
+    ui->vServices->setTextFormat(Qt::RichText);
+    ui->vServices->setWordWrap(true);
+    ui->vServiceChecked->setTextFormat(Qt::PlainText);
+    ui->vServiceChecked->setCursor(Qt::WhatsThisCursor);
+    connect(ui->btnServiceCheck, &QPushButton::clicked, this, [this] {
+        auto* engine = Engine::host();
+        if (engine == nullptr) return;
+        serviceChecking_->store(true);
+        engine->tests()->runCurrentServiceCheck([checking = serviceChecking_] { checking->store(false); });
+        refreshServices();
+    });
 
     ui->groupEndpoints->setVisible(false);
     ui->runtimeEndpoints->hide();
@@ -191,6 +216,33 @@ void RuntimeStatsWidget::hideEvent(QHideEvent* event) {
     timer_->stop();
     // Nothing refreshes it while the panel is away, and it would sit there showing a frozen endpoint.
     if (details_) details_->close();
+}
+
+void RuntimeStatsWidget::refreshServices() {
+    auto* engine = Engine::host();
+    const auto running = runningProfile();
+    const QString summary = running != nullptr ? ServiceCheckHtml::summary(*running) : QString();
+    ui->vServices->setText(summary.isEmpty() ? QStringLiteral("—") : summary);
+    const QString details = running != nullptr ? ServiceCheckHtml::details(*running) : QString();
+    ui->vServices->setToolTip(details);
+
+    QString checked;
+    if (serviceChecking_->load()) {
+        checked = tr("Checking…");
+    } else if (!details.isEmpty()) {
+        const qint64 age = qMax<qint64>(0, QDateTime::currentSecsSinceEpoch() - running->ServiceCheckedAt());
+        if (age < 60)
+            checked = tr("Checked just now");
+        else
+            checked = tr("Checked %1 ago").arg(age < 3600 ? QStringLiteral("%1m").arg(age / 60) : age < 86400 ? QStringLiteral("%1h").arg(age / 3600)
+                                                                                                              : QStringLiteral("%1d").arg(age / 86400));
+    }
+    ui->vServiceChecked->setText(checked);
+    ui->vServiceChecked->setToolTip(details);
+    ui->vServiceChecked->setVisible(!checked.isEmpty());
+
+    // The runner skips auto selectors, so the button would do nothing for one.
+    ui->btnServiceCheck->setEnabled(running != nullptr && running->type != QStringLiteral("autoselector") && engine != nullptr && !engine->tests()->isRunning());
 }
 
 void RuntimeStatsWidget::refreshLive() {
@@ -284,6 +336,8 @@ void RuntimeStatsWidget::refreshLive() {
             probeEgress();
         }
     }
+
+    refreshServices();
 
     if (!connBusy_.exchange(true)) {
         QPointer<RuntimeStatsWidget> self(this);

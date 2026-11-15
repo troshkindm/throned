@@ -23,6 +23,8 @@ public:
     static void ExtraCoreExited();
     static void GroupsChanged();
     static void ProfilesRemoved(const QList<int> &profileIds);
+    static void ProfilesChanged(const QList<int> &profileIds);
+    static void RoutesChanged();
     static void SettingsChanged(const QStringList &keys);
 
 signals:
@@ -31,7 +33,8 @@ signals:
     void subscriptionFinished(int importedCount, bool quiet);
     void subscriptionGroupChanged(int groupId, const QList<int> &disturbedProfileIds);
     void subscriptionDiff(const QString &title, const QString &body);
-    // A refresh deleted the running profile; profileId is its only same-name successor in the group.
+    // A refresh stopped the running profile: profileId is its only same-name successor after a delete,
+    // or the profile itself after a name match updated it in place.
     void subscriptionReplacedRunning(int profileId);
     // A refresh changed the routing profile the running config was built with.
     void routingRestartNeeded();
@@ -40,6 +43,10 @@ signals:
     // Groups were added, deleted or repaired outside the window.
     void groupsChanged();
     void profilesRemoved(const QList<int> &profileIds);
+    // Profiles were edited outside the window.
+    void profilesChanged(const QList<int> &profileIds);
+    // Routing profiles were added, edited or deleted outside the window.
+    void routesChanged();
     // API names of the settings (Engine::SettingsRegistry) that changed outside the window.
     void settingsChanged(const QStringList &keys);
 

@@ -37,6 +37,7 @@
 #include "include/api/RPC.h"
 
 #ifdef Q_OS_WIN
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/windows/MiniDump.h"
 #include <windows.h>
 #endif
@@ -152,6 +153,10 @@ int RunControlClient(const QStringList &arguments, int cliAt) {
 } // namespace
 
 int main(int argc, char *argv[]) {
+#ifdef Q_OS_WIN
+    // The elevated grant helper: no logging, settings or UI.
+    if (Sys::CoreElevation::IsHelperInvocation(argc, argv)) return Sys::CoreElevation::RunHelper(argc, argv);
+#endif
     // The screenshot harness reads a failed preview assertion off stderr, and its log lives in a temporary dir that is gone by then.
     const bool uiPreviewRun = std::any_of(argv, argv + argc, [](const char *a) { return qstrcmp(a, "-ui-preview") == 0; });
     if (!uiPreviewRun) Logging::InstallQtMessageHandler();

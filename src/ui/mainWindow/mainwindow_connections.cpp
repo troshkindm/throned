@@ -92,7 +92,7 @@ QList<RoutableServer> RoutableServers() {
         const auto* chain = profile->Chain();
         const bool usable = chain && !chain->list.isEmpty() && std::all_of(chain->list.cbegin(), chain->list.cend(), [&hops](int hopID) {
                                 const auto hop = hops.value(hopID);
-                                return !UnroutableProfile(hop) && hop->type != "chain";
+                                return !UnroutableProfile(hop) && hop->type != "chain" && hop->type != "autoselector";
                             });
         if (!usable) names.remove(profile->id);
     }
@@ -441,6 +441,7 @@ void MainWindow::UpdateConnectionList(const QList<Stats::ConnectionMetadata>& co
     if (connectionsModel == nullptr) return;
     connectionsModel->setConnections(connections, Stats::connection_lister->getSort(), Stats::connection_lister->isSortAscending());
     syncConnectionExpansion();
+    ui->connections->doItemsLayout();
     for (const int column: {ConnectionsTreeModel::ColTraffic, ConnectionsTreeModel::ColSpeed})
         connectionFilterHeader->growSection(column);
     refreshStatsPanelLabels();

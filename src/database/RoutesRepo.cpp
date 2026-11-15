@@ -200,7 +200,8 @@ std::shared_ptr<RouteRule> RoutesRepo::routeRuleFromJson(const QJsonObject& json
 
     rule->name = json["name"].toString();
     rule->type = json["type"].toInt();
-    rule->disabled = json["disabled"].toBool();
+    // The editor used to switch endpoint rules off by accident; they cannot be disabled.
+    rule->disabled = json["disabled"].toBool() && rule->type != endpointPreferredBy;
     rule->ip_version = json["ip_version"].toString();
     rule->network = json["network"].toString();
     rule->protocol = json["protocol"].toString();

@@ -246,9 +246,6 @@
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label_xray_finalmask">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
                <string>Finalmask</string>
               </property>
@@ -259,9 +256,6 @@
             </item>
             <item row="2" column="1">
              <widget class="QPushButton" name="xray_finalmask_edit">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
                <string>Not set</string>
               </property>
@@ -548,10 +542,10 @@
          <item row="2" column="0">
           <widget class="QLabel" name="path_l">
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string notr="true">Path</string>
+            <string>Path</string>
            </property>
            <property name="buddy">
             <cstring>path</cstring>
@@ -561,7 +555,7 @@
          <item row="5" column="0">
           <widget class="QLabel" name="ws_early_data_name_l">
            <property name="text">
-            <string notr="true">EarlyData Name</string>
+            <string>EarlyData Name</string>
            </property>
            <property name="buddy">
             <cstring>ws_early_data_name</cstring>
@@ -583,13 +577,13 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space seperated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space separated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="whatsThis">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string notr="true">header</string>
+            <string>Headers</string>
            </property>
            <property name="buddy">
             <cstring>headers</cstring>
@@ -599,7 +593,7 @@
          <item row="4" column="0">
           <widget class="QLabel" name="ws_early_data_length_l">
            <property name="text">
-            <string notr="true">EarlyData Length</string>
+            <string>EarlyData Length</string>
            </property>
            <property name="buddy">
             <cstring>ws_early_data_length</cstring>
@@ -609,10 +603,10 @@
          <item row="3" column="0">
           <widget class="QLabel" name="host_l">
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string notr="true">Host</string>
+            <string>Host</string>
            </property>
            <property name="buddy">
             <cstring>host</cstring>
@@ -713,7 +707,7 @@
            <item>
             <widget class="QPushButton" name="certificate_edit">
              <property name="text">
-              <string notr="true">Edit</string>
+              <string>Edit</string>
              </property>
             </widget>
            </item>
@@ -950,7 +944,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string notr="true">Fingerprint</string>
+               <string>Fingerprint</string>
               </property>
               <property name="buddy">
                <cstring>utlsFingerprint</cstring>
@@ -987,7 +981,7 @@
                <string>Reality public key. If not empty, turn TLS into REALITY.</string>
               </property>
               <property name="text">
-               <string notr="true">Reality Pbk</string>
+               <string>Reality Pbk</string>
               </property>
               <property name="buddy">
                <cstring>reality_pbk</cstring>
@@ -1868,6 +1862,94 @@
                     <widget class="QLineEdit" name="xray_xdrive_refresh_token"/>
                    </item>
                    <item row="3" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_endpoint_l">
+                     <property name="text">
+                      <string>Endpoint</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_endpoint</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_endpoint"/>
+                   </item>
+                   <item row="3" column="2">
+                    <widget class="QLabel" name="xray_xdrive_s3_region_l">
+                     <property name="text">
+                      <string>Region</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_region</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="3">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_region"/>
+                   </item>
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_bucket_l">
+                     <property name="text">
+                      <string>Bucket</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_bucket</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="1">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_bucket"/>
+                   </item>
+                   <item row="4" column="2" colspan="2">
+                    <widget class="QCheckBox" name="xray_xdrive_s3_path_style">
+                     <property name="text">
+                      <string>Path-Style Addressing</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_access_key_l">
+                     <property name="text">
+                      <string>Access Key ID</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_access_key</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="1">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_access_key"/>
+                   </item>
+                   <item row="5" column="2">
+                    <widget class="QLabel" name="xray_xdrive_s3_secret_key_l">
+                     <property name="text">
+                      <string>Secret Access Key</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_secret_key</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="3">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_secret_key"/>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_session_token_l">
+                     <property name="text">
+                      <string>Session Token</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_session_token</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1" colspan="3">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_session_token"/>
+                   </item>
+                   <item row="7" column="0">
                     <widget class="QLabel" name="xray_xdrive_secrets_l">
                      <property name="text">
                       <string>Secrets</string>
@@ -1877,10 +1959,10 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="1" colspan="3">
+                   <item row="7" column="1" colspan="3">
                     <widget class="QLineEdit" name="xray_xdrive_secrets"/>
                    </item>
-                   <item row="4" column="0">
+                   <item row="8" column="0">
                     <widget class="QLabel" name="xray_xdrive_template_l">
                      <property name="text">
                       <string>Template</string>
@@ -1890,14 +1972,14 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="1" colspan="3">
+                   <item row="8" column="1" colspan="3">
                     <widget class="QPushButton" name="xray_xdrive_template_edit">
                      <property name="text">
                       <string>Edit</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="0">
+                   <item row="9" column="0">
                     <widget class="QLabel" name="xray_xdrive_front_l">
                      <property name="text">
                       <string>Front Address</string>
@@ -1907,10 +1989,10 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="1">
+                   <item row="9" column="1">
                     <widget class="QLineEdit" name="xray_xdrive_front"/>
                    </item>
-                   <item row="5" column="2">
+                   <item row="9" column="2">
                     <widget class="QLabel" name="xray_xdrive_front_port_l">
                      <property name="text">
                       <string>Front Port</string>
@@ -1920,7 +2002,7 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="3">
+                   <item row="9" column="3">
                     <widget class="QLineEdit" name="xray_xdrive_front_port"/>
                    </item>
                   </layout>
@@ -2052,6 +2134,118 @@
               </widget>
              </item>
              <item>
+              <widget class="QWidget" name="xray_kcp_box" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_xray_kcp">
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_xray_kcp">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="xray_kcp_mtu_l">
+                    <property name="text">
+                     <string>MTU</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>xray_kcp_mtu</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="xray_kcp_mtu"/>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLabel" name="xray_kcp_tti_l">
+                    <property name="text">
+                     <string>TTI</string>
+                    </property>
+                    <property name="buddy">
+                     <cstring>xray_kcp_tti</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="3">
+                   <widget class="QLineEdit" name="xray_kcp_tti"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="xray_kcp_tuning_box">
+                  <property name="uiLevel" stdset="0">
+                   <string notr="true">advanced</string>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="title">
+                   <string>Tuning</string>
+                  </property>
+                  <layout class="QGridLayout" name="gridLayout_xray_kcp_tuning">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="xray_kcp_uplink_capacity_l">
+                     <property name="text">
+                      <string>Uplink Capacity</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_kcp_uplink_capacity</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLineEdit" name="xray_kcp_uplink_capacity"/>
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QLabel" name="xray_kcp_downlink_capacity_l">
+                     <property name="text">
+                      <string>Downlink Capacity</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_kcp_downlink_capacity</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="3">
+                    <widget class="QLineEdit" name="xray_kcp_downlink_capacity"/>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="xray_kcp_cwnd_multiplier_l">
+                     <property name="text">
+                      <string>CWND Multiplier</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_kcp_cwnd_multiplier</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLineEdit" name="xray_kcp_cwnd_multiplier"/>
+                   </item>
+                   <item row="1" column="2">
+                    <widget class="QLabel" name="xray_kcp_max_sending_window_l">
+                     <property name="text">
+                      <string>Max Sending Window</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_kcp_max_sending_window</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="3">
+                    <widget class="QLineEdit" name="xray_kcp_max_sending_window"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
               <spacer name="verticalSpacer_xray_network">
                <property name="orientation">
                 <enum>Qt::Orientation::Vertical</enum>
@@ -2175,6 +2369,13 @@
   <tabstop>xray_xdrive_client_id</tabstop>
   <tabstop>xray_xdrive_client_secret</tabstop>
   <tabstop>xray_xdrive_refresh_token</tabstop>
+  <tabstop>xray_xdrive_s3_endpoint</tabstop>
+  <tabstop>xray_xdrive_s3_region</tabstop>
+  <tabstop>xray_xdrive_s3_bucket</tabstop>
+  <tabstop>xray_xdrive_s3_path_style</tabstop>
+  <tabstop>xray_xdrive_s3_access_key</tabstop>
+  <tabstop>xray_xdrive_s3_secret_key</tabstop>
+  <tabstop>xray_xdrive_s3_session_token</tabstop>
   <tabstop>xray_xdrive_secrets</tabstop>
   <tabstop>xray_xdrive_template_edit</tabstop>
   <tabstop>xray_xdrive_front</tabstop>
@@ -2187,6 +2388,12 @@
   <tabstop>xray_xdrive_hole_timeout</tabstop>
   <tabstop>xray_xdrive_session_ttl</tabstop>
   <tabstop>xray_xdrive_concurrency</tabstop>
+  <tabstop>xray_kcp_mtu</tabstop>
+  <tabstop>xray_kcp_tti</tabstop>
+  <tabstop>xray_kcp_uplink_capacity</tabstop>
+  <tabstop>xray_kcp_downlink_capacity</tabstop>
+  <tabstop>xray_kcp_cwnd_multiplier</tabstop>
+  <tabstop>xray_kcp_max_sending_window</tabstop>
  </tabstops>
  <resources/>
  <connections>

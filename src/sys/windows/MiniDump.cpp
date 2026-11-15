@@ -468,3 +468,10 @@ void Windows_ConfigureWER(bool onlyIfAbsent) {
         LOG_INFO(QStringLiteral("WER LocalDumps registered for %1 and ThronedCore.exe").arg(selfName));
     }
 }
+
+bool Windows_RegisterWerDumps(const wchar_t *guiExeName, const wchar_t *folder) {
+    if (guiExeName == nullptr || *guiExeName == L'\0' || folder == nullptr || *folder == L'\0') return false;
+    const bool gui = RegisterWerApp(guiExeName, folder, false) == WerRegistration::Written;
+    const bool core = RegisterWerApp(L"ThroneCore.exe", folder, false) == WerRegistration::Written;
+    return gui && core;
+}

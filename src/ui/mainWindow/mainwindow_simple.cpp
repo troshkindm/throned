@@ -20,6 +20,7 @@
 #include "include/configs/sub/SubInfo.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/sys/CoreElevation.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/utils/ProfileRowDelegate.h"
 #include "include/ui/widget/HoverMarqueeLabel.h"
@@ -471,8 +472,12 @@ void MainWindow::openSimpleModeSheet() {
     const auto *settings = Configs::dataManager->settingsRepo.get();
     QString note;
 #if defined(Q_OS_WIN) && !defined(NKR_ELEVATION_HINT)
-    if (!settings->disable_privilege_req && !Configs::IsAdmin())
-        note = tr("Throned restarts with administrator rights for this, and Windows asks for permission. Choose Yes.");
+    if (!settings->disable_privilege_req && !Configs::IsAdmin() &&
+        Sys::CoreElevation::CurrentStatus() != Sys::CoreElevation::Status::Granted) {
+        note = Sys::CoreElevation::CanGrant()
+                   ? tr("Windows asks once to let the Throned core run with administrator rights. Choose Yes.")
+                   : tr("Throned restarts with administrator rights for this, and Windows asks for permission. Choose Yes.");
+    }
 #endif
     simpleModeSheet->setState(currentSimpleMode(), !settings->disable_mixed_inbound, note);
     simpleModeSheet->open();

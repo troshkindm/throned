@@ -32,6 +32,7 @@ void ProfilesRepo::createTables() const {
                 traffic_dl INTEGER NOT NULL DEFAULT 0,
                 traffic_up INTEGER NOT NULL DEFAULT 0,
                 endpoint_json TEXT NOT NULL DEFAULT '{}',
+                service_checks TEXT NOT NULL DEFAULT '',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 FOREIGN KEY(gid) REFERENCES groups(id) ON DELETE CASCADE
@@ -42,11 +43,14 @@ void ProfilesRepo::createTables() const {
         db.exec("ALTER TABLE profiles ADD COLUMN latency_at INTEGER NOT NULL DEFAULT 0");
     if (!profilesColumnExists("endpoint_json"))
         db.exec("ALTER TABLE profiles ADD COLUMN endpoint_json TEXT NOT NULL DEFAULT '{}'");
+    if (!profilesColumnExists("service_checks"))
+        db.exec("ALTER TABLE profiles ADD COLUMN service_checks TEXT NOT NULL DEFAULT ''");
 
     if (!profilesColumnExists("favorite"))
         db.exec("ALTER TABLE profiles ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0");
 
     db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_name ON profiles(name)");
+    db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_type ON profiles(type)");
 }
 
 bool ProfilesRepo::profilesColumnExists(const char* columnName) const {
@@ -71,6 +75,7 @@ std::shared_ptr<Profile> ProfilesRepo::profileFromJson(const QJsonObject& json) 
     profile->ul_speed = json["ul_speed"].toString();
     profile->test_country = json["test_country"].toString();
     profile->ip_out = json["ip_out"].toString();
+    profile->service_checks = json["service_checks"].toString();
     profile->endpoint = EndpointSource::FromJson(json["endpoint"].toObject());
 
     QString type = profile->type;
@@ -108,8 +113,8 @@ void ProfilesRepo::saveToDatabase(const Profile* profile, int id) const {
     db.exec(R"(
             INSERT INTO profiles
             (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country,
-            ip_out, outbound_json, traffic_dl, traffic_up, favorite, endpoint_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ip_out, outbound_json, traffic_dl, traffic_up, favorite, endpoint_json, service_checks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 type = excluded.type, name = excluded.name, gid = excluded.gid,
                 latency = excluded.latency, latency_at = excluded.latency_at,
@@ -118,7 +123,7 @@ void ProfilesRepo::saveToDatabase(const Profile* profile, int id) const {
                 outbound_json = excluded.outbound_json,
                 traffic_dl = excluded.traffic_dl, traffic_up = excluded.traffic_up,
                 favorite = excluded.favorite,
-                endpoint_json = excluded.endpoint_json,
+                endpoint_json = excluded.endpoint_json, service_checks = excluded.service_checks,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -135,7 +140,8 @@ void ProfilesRepo::saveToDatabase(const Profile* profile, int id) const {
             static_cast<long long>(profile->traffic_downlink),
             static_cast<long long>(profile->traffic_uplink),
             profile->favorite ? 1 : 0,
-            endpointJson.toStdString());
+            endpointJson.toStdString(),
+            profile->service_checks.toStdString());
 }
 
 ProfileInsertRow ProfilesRepo::profileToInsertRow(const Profile* profile, int id, int gid) const {
@@ -160,6 +166,7 @@ ProfileInsertRow ProfilesRepo::profileToInsertRow(const Profile* profile, int id
     row.traffic_up = static_cast<long long>(profile->traffic_uplink);
     row.favorite = profile->favorite;
     row.endpoint_json = QJsonDocument(profile->endpoint.ToJson()).toJson(QJsonDocument::Compact).toStdString();
+    row.service_checks = profile->service_checks.toStdString();
     return row;
 }
 
@@ -189,6 +196,7 @@ std::shared_ptr<Profile> ProfilesRepo::profileFromRow(SQLite::Statement& stmt) c
         endpointDoc.isObject()) {
         json["endpoint"] = endpointDoc.object();
     }
+    json["service_checks"] = QString::fromStdString(stmt.getColumn(15).getText());
 
     return profileFromJson(json);
 }
@@ -196,7 +204,7 @@ std::shared_ptr<Profile> ProfilesRepo::profileFromRow(SQLite::Statement& stmt) c
 std::shared_ptr<Profile> ProfilesRepo::loadFromDatabase(int id) const {
     auto query = db.query(R"(
             SELECT id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country,
-                   ip_out, outbound_json, traffic_dl, traffic_up, favorite, endpoint_json
+                   ip_out, outbound_json, traffic_dl, traffic_up, favorite, endpoint_json, service_checks
             FROM profiles WHERE id = ?
         )",
                           id);
@@ -298,7 +306,7 @@ std::map<int, std::shared_ptr<Profile>> ProfilesRepo::loadProfilesByIdsChunk(con
     }
     std::string sql =
         "SELECT id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, "
-        "ip_out, outbound_json, traffic_dl, traffic_up, favorite, endpoint_json FROM profiles WHERE id IN (" +
+        "ip_out, outbound_json, traffic_dl, traffic_up, favorite, endpoint_json, service_checks FROM profiles WHERE id IN (" +
         idList.toStdString() + ") ORDER BY id";
     auto query = db.query(sql);
     if (!query) return result;
@@ -494,6 +502,16 @@ QList<int> ProfilesRepo::GetProfileIdsByType(const QString& type) const {
         while (query->executeStep()) {
             ids.append(query->getColumn(0).getInt());
         }
+    }
+    return ids;
+}
+
+QList<int> ProfilesRepo::GetProfileIdsByTypeContaining(const QString& type, const QString& needle) const {
+    QList<int> ids;
+    auto query = db.query("SELECT id FROM profiles WHERE type = ? AND instr(lower(outbound_json), ?) > 0 ORDER BY id",
+                          type.toStdString(), needle.toLower().toStdString());
+    if (query) {
+        while (query->executeStep()) ids.append(query->getColumn(0).getInt());
     }
     return ids;
 }
