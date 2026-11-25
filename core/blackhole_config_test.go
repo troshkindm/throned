@@ -18,7 +18,6 @@ func TestBlackholeConfig(t *testing.T) {
 			"interface_name": "throned-tun",
 			"auto_route": true,
 			"mtu": 9000,
-			"stack": "mixed",
 			"strict_route": true,
 			"address": ["172.19.0.1/30"],
 			"route_exclude_address": [

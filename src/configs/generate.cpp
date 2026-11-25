@@ -296,7 +296,6 @@ std::shared_ptr<BuildConfigResult> BuildBlackholeConfig() {
         {"interface_name", genTunName()},
         {"auto_route", true},
         {"mtu", settings.vpn_mtu},
-        {"stack", "gvisor"},
         {"strict_route", settings.vpn_strict_route},
     };
     if (getOS() == Linux && settings.vpn_auto_redirect) tun["auto_redirect"] = true;
