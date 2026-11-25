@@ -32,8 +32,8 @@ func TestDispatchDiagnoseSiteUsesRunningOutbound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer env.close()
-	setBoxInstance(env.box, nil, nil)
+	defer env.Close()
+	setBoxInstance(env.Box, nil, nil)
 	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusForbidden) }))
 	defer site.Close()
 	for _, tag := range []string{"", "diagnostic-direct"} {
@@ -71,8 +71,8 @@ func TestDispatchPreviewRouteReplaysTheRunningRules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer env.close()
-	setBoxInstance(env.box, nil, nil)
+	defer env.Close()
+	setBoxInstance(env.Box, nil, nil)
 
 	preview := func(url string) *gen.PreviewRouteResponse {
 		t.Helper()
@@ -114,8 +114,8 @@ func TestDispatchHealthNeedsARunningInstanceAndListsOutbounds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer env.close()
-	setBoxInstance(env.box, nil, nil)
+	defer env.Close()
+	setBoxInstance(env.Box, nil, nil)
 	// A domain nothing can resolve keeps the test off the network while still
 	// exercising the whole path; only the outbound inventory is asserted.
 	payload, _ = proto.Marshal(&gen.HealthRequest{DnsProbeDomain: To("invalid.")})

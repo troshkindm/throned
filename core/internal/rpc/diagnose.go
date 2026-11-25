@@ -118,9 +118,9 @@ func (s *server) Diagnose(ctx context.Context, in *gen.TestReq) (*gen.TestResp, 
 		step("start core", time.Now(), err)
 		return &gen.TestResp{Results: steps}, nil
 	}
-	defer env.close()
+	defer env.Close()
 
-	outbound, exists := env.box.Outbound().Outbound(tag)
+	outbound, exists := env.Box.Outbound().Outbound(tag)
 	if !exists {
 		step("start core", time.Now(), fmt.Errorf("no outbound with tag %s", tag))
 		return &gen.TestResp{Results: steps}, nil

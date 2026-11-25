@@ -19,11 +19,11 @@ func (s *server) UDPTest(ctx context.Context, in *gen.UDPTestRequest) (*gen.UDPT
 	if err != nil {
 		return nil, err
 	}
-	defer env.close()
+	defer env.Close()
 
-	tags := env.tags
+	tags := env.Tags
 	if in.GetViaDirect() {
-		if _, exists := env.box.Outbound().Outbound("direct"); !exists {
+		if _, exists := env.Box.Outbound().Outbound("direct"); !exists {
 			return nil, E.New("this profile has no direct outbound to measure")
 		}
 		tags = []string{"direct"}
@@ -31,7 +31,7 @@ func (s *server) UDPTest(ctx context.Context, in *gen.UDPTestRequest) (*gen.UDPT
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
 	testCtx := udpTestLogContext(probe.TestContext(), in.GetQuiet())
-	results := probe.BatchUDPTest(testCtx, env.box, tags,
+	results := probe.BatchUDPTest(testCtx, env.Box, tags,
 		in.GetTarget(), int(in.GetProbeCount()), int(in.GetMaxConcurrency()), timeout)
 
 	res := make([]*gen.UDPTestRes, 0, len(results))
@@ -74,10 +74,10 @@ func (s *server) SiteTest(ctx context.Context, in *gen.SiteTestRequest) (*gen.Si
 	if err != nil {
 		return nil, err
 	}
-	defer env.close()
+	defer env.Close()
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
-	results := probe.BatchSiteTest(probe.TestContext(), env.box, env.tags, targets,
+	results := probe.BatchSiteTest(probe.TestContext(), env.Box, env.Tags, targets,
 		int(in.GetMaxConcurrency()), timeout)
 	res := make([]*gen.SiteTestRes, 0, len(results))
 	for _, result := range results {
