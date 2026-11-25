@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"ThroneCore/internal/boxbox"
-
 	"github.com/sagernet/sing-box/adapter"
 )
 
@@ -35,7 +33,7 @@ type SiteTestResult struct {
 	Error  error
 }
 
-func BatchSiteTest(ctx context.Context, i *boxbox.Box, outboundTags []string, targets []SiteTarget,
+func BatchSiteTest(ctx context.Context, i Box, outboundTags []string, targets []SiteTarget,
 	maxConcurrency int, timeout time.Duration) []*SiteTestResult {
 	if timeout <= 0 {
 		timeout = SiteTestTimeout

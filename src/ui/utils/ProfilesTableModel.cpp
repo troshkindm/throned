@@ -19,6 +19,14 @@
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/Lifecycle.h"
+
+namespace {
+bool showsServices(const Configs::Profile &profile) {
+    const auto group = Configs::dataManager->groupsRepo->GetGroup(profile.gid);
+    return group == nullptr || group->show_services;
+}
+} // namespace
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
@@ -63,7 +71,7 @@ Qt::DropActions ProfilesTableModel::supportedDropActions() const {
 }
 
 QStringList ProfilesTableModel::mimeTypes() const {
-    return {"application/profile-row-number"};
+    return {"application/profile-id"};
 }
 
 QMimeData *ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
@@ -73,10 +81,10 @@ QMimeData *ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
     if (!indexes.isEmpty()) {
-        stream << indexes.at(0).row();
+        stream << indexes.at(0).data(ProfileIdRole).toInt();
     }
 
-    mimeData->setData("application/profile-row-number", encodedData);
+    mimeData->setData("application/profile-id", encodedData);
     return mimeData;
 }
 
@@ -118,13 +126,8 @@ ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
         visual.address = profile->outbound->DisplayAddress();
     }
 
-    const auto group = Configs::dataManager->groupsRepo->GetGroup(profile->gid);
-    const auto shown = group ? group->test_items_to_show : Configs::testShowItems::all;
-    const bool showSpeed = shown == Configs::testShowItems::all || shown == Configs::testShowItems::speedOnly;
-    const bool showIP = shown == Configs::testShowItems::all || shown == Configs::testShowItems::ipOnly;
-
     visual.country = profile->test_country.toUpper();
-    if (showIP) visual.exitIp = profile->ip_out;
+    visual.exitIp = profile->ip_out;
 
     visual.latencyMs = profile->latency;
     if (profile->latency == Configs::kLatencyConnectOnly)
@@ -138,12 +141,10 @@ ProfilesTableModel::RowVisual ProfilesTableModel::buildRowVisual(
     visual.udp = profile->DisplayUDPResult();
     visual.udpDegraded = profile->udp_loss > 0 || profile->udp_jitter >= 10 || profile->udp_avg < 0;
 
-    if (showSpeed) {
-        if (!profile->dl_speed.isEmpty() && profile->dl_speed != QStringLiteral("N/A"))
-            visual.speedDown = profile->dl_speed;
-        if (!profile->ul_speed.isEmpty() && profile->ul_speed != QStringLiteral("N/A"))
-            visual.speedUp = profile->ul_speed;
-    }
+    if (!profile->dl_speed.isEmpty() && profile->dl_speed != QStringLiteral("N/A"))
+        visual.speedDown = profile->dl_speed;
+    if (!profile->ul_speed.isEmpty() && profile->ul_speed != QStringLiteral("N/A"))
+        visual.speedUp = profile->ul_speed;
     if (profile->traffic_downlink + profile->traffic_uplink != 0) {
         visual.trafficDown = ReadableSize(profile->traffic_downlink);
         visual.trafficUp = ReadableSize(profile->traffic_uplink);
@@ -167,8 +168,12 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (it == m_cache.constEnd()) return {};
     const std::shared_ptr<Configs::Profile> &profile = it.value();
     if (!profile) return {};
+    if (role == ServiceItemsRole) {
+        if (m_rowStyle == RowStyle::Comfortable || index.column() != ColExitIP || !showsServices(*profile)) return {};
+        return QVariant::fromValue(ServiceCheckHtml::items(*profile));
+    }
 
-    const int startedId = Configs::dataManager->settingsRepo->started_id;
+    const int startedId = Engine::Lifecycle::ResumeTargetId();
     const bool isRunning = (profile->id == startedId);
     const QColor runningColor = isRunning ? themeManager()->Colors().success : QColor();
 
@@ -195,7 +200,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         if (role == Qt::ToolTipRole && index.column() == ColcPing && !profile->udp_error.isEmpty()) {
             return tr("UDP probe error: %1").arg(profile->udp_error);
         }
-        if (role == Qt::ToolTipRole && index.column() == ColcPing && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
+        if (role == Qt::ToolTipRole && index.column() == ColcPing && !profile->service_checks.isEmpty()) return ServiceCheckHtml::summaryLine(*profile);
         return {};
     }
 
@@ -217,8 +222,12 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             }
             case ColName:
                 return profile->outbound ? profile->outbound->name : QString();
-            case ColTestResult:
-                return profile->DisplayTestResult();
+            case ColLatency:
+                return profile->DisplayLatency();
+            case ColExitIP:
+                return profile->DisplayExitIP();
+            case ColSpeed:
+                return profile->DisplaySpeed();
             case ColTraffic:
                 return profile->DisplayTraffic();
             case ColUDP:
@@ -231,24 +240,32 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         if (index.column() == ColUDP && !profile->udp_error.isEmpty()) {
             return tr("UDP probe error: %1").arg(profile->udp_error);
         }
+        if (index.column() == ColType && profile->outbound && profile->outbound->invalid)
+            return QCoreApplication::translate("Validation", "Unsupported profile type \"%1\".").arg(profile->type);
         if (index.column() == ColType && Configs::dataManager->settingsRepo->show_config_security && profile->outbound) {
             const auto security = profile->outbound->EffectiveSecurity();
-            if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
+            if (security.compromised) return tr(
+                "Certificate checks off: \"Skip TLS certificate authentication\" is "
+                "set.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
+        if (index.column() == ColExitIP && !profile->service_checks.isEmpty() && showsServices(*profile)) {
+            return ServiceCheckHtml::summaryLine(*profile);
+        }
         return {};
     }
     if (role == Qt::TextAlignmentRole) {
         // Numbers line up on their right edge so latencies and traffic totals
         // can be compared down the column instead of being read one by one.
-        if (index.column() == ColTestResult || index.column() == ColTraffic)
+        // A flag alone sits lost at the edge of a column the header keeps wider.
+        if (index.column() == ColExitIP) return static_cast<int>(Qt::AlignCenter);
+        if (index.column() == ColLatency || index.column() == ColSpeed || index.column() == ColTraffic)
             return static_cast<int>(Qt::AlignRight | Qt::AlignVCenter);
         return static_cast<int>(Qt::AlignLeft | Qt::AlignVCenter);
     }
     if (role == Qt::ForegroundRole) {
-        if (index.column() == ColTestResult) {
-            QColor latencyColor = profile->DisplayLatencyColor();
+        if (index.column() == ColLatency) {
+            const QColor latencyColor = profile->DisplayLatencyColor();
             if (latencyColor.isValid()) return latencyColor;
         }
         if (isRunning && runningColor.isValid()) return runningColor;
@@ -289,7 +306,8 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
     if (role == Qt::TextAlignmentRole && orientation == Qt::Horizontal) {
         // A header centred over left-aligned text reads as a third alignment;
         // each one now sits over its own column's edge.
-        const bool numeric = section == ColTestResult || section == ColTraffic;
+        if (section == ColExitIP) return static_cast<int>(Qt::AlignCenter);
+        const bool numeric = section == ColLatency || section == ColSpeed || section == ColTraffic;
         return static_cast<int>((numeric ? Qt::AlignRight : Qt::AlignLeft) | Qt::AlignVCenter);
     }
     if (role != Qt::DisplayRole) return {};
@@ -301,8 +319,12 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
                 return marked(tr("Address"));
             case ColName:
                 return marked(tr("Name"));
-            case ColTestResult:
-                return marked(tr("Test Result"));
+            case ColLatency:
+                return marked(tr("Latency"));
+            case ColExitIP:
+                return marked(tr("Exit IP"));
+            case ColSpeed:
+                return marked(tr("Speed"));
             case ColTraffic:
                 return marked(tr("Traffic"));
             case ColUDP:
@@ -351,14 +373,17 @@ QList<ProfilesTableModel::ServiceFilterKey> serviceFilterKeys(const QString &ser
         categoryNames.insert(category["id"].toString(), category["name"].toString());
     }
     static const QRegularExpression separators(QStringLiteral("[^\\p{L}\\p{N}]+"));
+    const auto &disabled = Configs::dataManager->settingsRepo->service_check_disabled;
     QList<ProfilesTableModel::ServiceFilterKey> services;
     for (const auto &value: root["checks"].toArray()) {
         const auto check = value.toObject();
+        if (disabled.contains(check["id"].toString())) continue;
         const auto category = check["cat"].toString();
         const auto status = check["status"].toString();
         ProfilesTableModel::ServiceFilterKey service;
         service.state = status == "available" || status == "partial" ? 1 : status == "restricted" || status == "blocked" ? -1
                                                                                                                          : 0;
+        service.region = check["region"].toString().toLower();
         for (const auto &name: {check["id"].toString(), check["name"].toString(), category, categoryNames.value(category)}) {
             if (name.isEmpty()) continue;
             service.names << name.toLower();
@@ -389,9 +414,19 @@ void ProfilesTableModel::ensureFilterIndex() const {
     m_filterIndexBuilt = true;
     m_filterKeys.clear();
     m_filterKeys.reserve(m_profileIds.size());
+    m_serviceNames.clear();
+    m_serviceWords.clear();
     for (const auto &profile: Configs::dataManager->profilesRepo->GetProfileBatch(m_profileIds)) {
-        if (profile) m_filterKeys.insert(profile->id, makeFilterKey(profile));
+        if (profile) insertFilterKey(profile->id, makeFilterKey(profile));
     }
+}
+
+void ProfilesTableModel::insertFilterKey(int profileId, FilterKey key) const {
+    for (const auto &service: key.services) {
+        for (const auto &name: service.names) m_serviceNames.insert(name);
+        for (const auto &word: service.words) m_serviceWords.insert(word);
+    }
+    m_filterKeys.insert(profileId, std::move(key));
 }
 
 const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) const {
@@ -399,6 +434,11 @@ const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) co
     ensureFilterIndex();
     auto it = m_filterKeys.constFind(m_profileIds[row]);
     return it == m_filterKeys.constEnd() ? nullptr : &it.value();
+}
+
+bool ProfilesTableModel::termPicksAnyService(const QString &term) const {
+    ensureFilterIndex();
+    return termPicksService(m_serviceNames, m_serviceWords, term);
 }
 
 void ProfilesTableModel::refreshTable(const QList<int> &ids, int pinnedCount, bool mayNeedReset) {
@@ -427,7 +467,7 @@ void ProfilesTableModel::refreshProfileId(int profileId) {
     // Keep the filter key in step before dataChanged makes the proxy re-test the row.
     if (m_filterIndexBuilt) {
         if (auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) {
-            m_filterKeys.insert(profileId, makeFilterKey(profile));
+            insertFilterKey(profileId, makeFilterKey(profile));
         }
     }
     auto r = id2row.value(profileId);
@@ -442,24 +482,6 @@ void ProfilesTableModel::invalidateAddresses() {
     m_filterIndexBuilt = false;
     if (m_profileIds.isEmpty()) return;
     emit dataChanged(index(0, ColAddress), index(static_cast<int>(m_profileIds.size()) - 1, ColAddress), {Qt::DisplayRole});
-}
-
-void ProfilesTableModel::moveProfile(int from, int to, int pinnedCount) {
-    const auto count = static_cast<int>(m_profileIds.size());
-    if (from < 0 || to < 0 || from >= count || to >= count) return;
-    m_profileIds.move(from, to);
-    int first = std::min(from, to);
-    int last = std::max(from, to);
-    for (int i = first; i <= last; ++i) id2row[m_profileIds[i]] = i;
-
-    const int oldPinned = m_pinnedCount;
-    setPinnedCount(pinnedCount);
-    if (m_pinnedCount != oldPinned) {
-        // The divider under the last pinned row moves with the count.
-        first = std::max(std::min({first, oldPinned - 1, m_pinnedCount - 1}), 0);
-        last = std::max({last, oldPinned - 1, m_pinnedCount - 1});
-    }
-    emit dataChanged(index(first, 0), index(last, ColumnCount - 1));
 }
 
 int ProfilesTableModel::indexOfProfile(int id) {
@@ -489,11 +511,26 @@ int ProfilesTableModel::columnOfSort(GroupSortMethod::GroupSortMethod method) co
             return ColAddress;
         case GroupSortMethod::ByName:
             return ColName;
-        case GroupSortMethod::ByTestResult:
         case GroupSortMethod::ByLatency:
-            return ColTestResult;
+        case GroupSortMethod::ByTestResult:
+            return ColLatency;
         case GroupSortMethod::ByTraffic:
             return ColTraffic;
+        default:
+            return -1;
+    }
+}
+
+int ProfilesTableModel::columnOfSort(const Configs::Group &group) const {
+    if (m_rowStyle == RowStyle::Comfortable || group.sort.method != GroupSortMethod::ByTestResult) return columnOfSort(group.sort.method);
+    switch (group.test_sort_by) {
+        case Configs::testBy::latency:
+            return ColLatency;
+        case Configs::testBy::ipOut:
+            return ColExitIP;
+        case Configs::testBy::dlSpeed:
+        case Configs::testBy::ulSpeed:
+            return ColSpeed;
         default:
             return -1;
     }
@@ -519,7 +556,10 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) co
             return GroupSortMethod::ByAddress;
         case ColName:
             return GroupSortMethod::ByName;
-        case ColTestResult:
+        case ColLatency:
+            return GroupSortMethod::ByLatency;
+        case ColExitIP:
+        case ColSpeed:
             return GroupSortMethod::ByTestResult;
         case ColTraffic:
             return GroupSortMethod::ByTraffic;
@@ -529,7 +569,7 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) co
 }
 
 bool ProfilesTableModel::isStartedRow(int sourceRow) const {
-    return sourceRow >= 0 && sourceRow < m_profileIds.size() && m_profileIds[sourceRow] == Configs::dataManager->settingsRepo->started_id;
+    return sourceRow >= 0 && sourceRow < m_profileIds.size() && m_profileIds[sourceRow] == Engine::Lifecycle::ResumeTargetId();
 }
 
 bool ProfilesTableModel::endsPinnedBlock(const QModelIndex &index) {

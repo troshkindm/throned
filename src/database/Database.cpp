@@ -242,8 +242,8 @@ void Database::execDeleteByIdInThrow(const std::string& table, const std::string
     }
 }
 
-void Database::execBatchSettingsReplaceChunk(const std::vector<std::pair<std::string, std::string>>& keyValues) {
-    if (keyValues.empty()) return;
+bool Database::execBatchSettingsReplaceChunk(const std::vector<std::pair<std::string, std::string>>& keyValues) {
+    if (keyValues.empty()) return true;
     std::string sql = "INSERT OR REPLACE INTO settings (key, value) VALUES ";
     for (size_t i = 0; i < keyValues.size(); ++i) {
         if (i > 0) sql += ",";
@@ -257,8 +257,10 @@ void Database::execBatchSettingsReplaceChunk(const std::vector<std::pair<std::st
         }
         stmt.exec();
         maybeCheckpoint(1);
+        return true;
     } catch (std::exception& e) {
         NotifyError("execBatchSettingsReplace", e);
+        return false;
     }
 }
 

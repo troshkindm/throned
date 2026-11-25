@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"ThroneCore/gen"
-	"ThroneCore/internal/boxbox"
+	"ThroneCore/internal/boxmain"
 	"ThroneCore/internal/probe"
 	"context"
 	"fmt"
@@ -49,7 +49,7 @@ func (s *server) DiagnoseSite(ctx context.Context, in *gen.DiagnoseSiteRequest) 
 
 // Resolution runs beside the probe, never in front of it: the dial still hands the
 // name to the outbound so the proxy resolves it exactly as it does for real traffic.
-func annotateDNS(ctx context.Context, box *boxbox.Box, rawURL string, result *gen.DiagnoseSiteResponse) {
+func annotateDNS(ctx context.Context, box *boxmain.Box, rawURL string, result *gen.DiagnoseSiteResponse) {
 	target, err := url.Parse(rawURL)
 	if err != nil || target.Hostname() == "" || net.ParseIP(target.Hostname()) != nil {
 		return

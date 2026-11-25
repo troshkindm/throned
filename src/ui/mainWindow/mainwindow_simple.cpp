@@ -282,7 +282,7 @@ QWidget#simpleMode { background: transparent; }
 QWidget#simpleMode QLabel { background: transparent; }
 QLabel#simpleState { font-size: 19px; font-weight: 600; color: #F1F3F5; }
 QLabel#simpleSubstate { color: #A4ABB4; }
-QFrame#simpleOptions { background: #222529; border: 1px solid #2F3136; border-radius: 14px; }
+QFrame#simpleOptions { background: #222529; border: none; border-radius: 14px; }
 )"));
 
     auto *clock = new QTimer(simpleModeContent);

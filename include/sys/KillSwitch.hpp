@@ -29,6 +29,9 @@ public:
 
     static KillSwitch *instance();
 
+    // Any thread: a guard is armed or re-arming, so the app's own direct requests are dropped.
+    static bool BlocksAppTraffic();
+
     [[nodiscard]] State state() const { return state_.load(); }
     [[nodiscard]] bool allowsStart() const;
     [[nodiscard]] QString failureCode() const { return failureCode_; }

@@ -34,7 +34,6 @@ void GroupsRepo::createTables() const {
                 auto_clear_unavailable INTEGER NOT NULL DEFAULT 0,
                 test_sort_by INTEGER NOT NULL DEFAULT 0,
                 traffic_sort_by INTEGER NOT NULL DEFAULT 0,
-                test_items_to_show INTEGER NOT NULL DEFAULT 0,
                 type_sort_by INTEGER NOT NULL DEFAULT 0,
                 provider_json TEXT NOT NULL DEFAULT '',
                 sub_options_json TEXT NOT NULL DEFAULT '{}',
@@ -45,6 +44,9 @@ void GroupsRepo::createTables() const {
                 route_id INTEGER NOT NULL DEFAULT -1,
                 import_sub_route INTEGER NOT NULL DEFAULT 0,
                 pinned_json TEXT NOT NULL DEFAULT '[]',
+                show_services INTEGER NOT NULL DEFAULT 1,
+                visible_columns INTEGER NOT NULL DEFAULT 79,
+                custom_order_json TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -68,8 +70,18 @@ void GroupsRepo::createTables() const {
         db.exec("ALTER TABLE groups ADD COLUMN route_id INTEGER NOT NULL DEFAULT -1");
     if (!groupsColumnExists("import_sub_route"))
         db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
+    if (!groupsColumnExists("custom_order_json"))
+        db.exec("ALTER TABLE groups ADD COLUMN custom_order_json TEXT NOT NULL DEFAULT '[]'");
+    if (!groupsColumnExists("visible_columns")) {
+        db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 79");
+        // The old combined column always showed latency, plus the exit IP and speed test_items_to_show kept.
+        if (groupsColumnExists("test_items_to_show"))
+            db.exec("UPDATE groups SET visible_columns = CASE test_items_to_show WHEN 0 THEN 127 WHEN 2 THEN 95 WHEN 3 THEN 111 ELSE 79 END");
+    }
     if (!groupsColumnExists("pinned_json"))
         db.exec("ALTER TABLE groups ADD COLUMN pinned_json TEXT NOT NULL DEFAULT '[]'");
+    if (!groupsColumnExists("show_services"))
+        db.exec("ALTER TABLE groups ADD COLUMN show_services INTEGER NOT NULL DEFAULT 1");
 
     db.exec(R"(
             CREATE TABLE IF NOT EXISTS groups_order (
@@ -169,7 +181,9 @@ QJsonObject GroupsRepo::groupToJson(const Group* group) const {
     json["route_id"] = group->route_id;
     json["import_sub_route"] = group->import_sub_route;
     json["column_width"] = QListInt2QJsonArray(group->column_width);
+    json["visible_columns"] = group->visible_columns;
     json["profiles"] = QListInt2QJsonArray(group->profiles);
+    json["custom_order"] = QListInt2QJsonArray(group->custom_order);
     json["pinned"] = QListInt2QJsonArray(group->pinned);
     json["scroll_last_profile"] = group->scroll_last_profile;
     json["test_sort_by"] = static_cast<int>(group->test_sort_by);
@@ -177,7 +191,7 @@ QJsonObject GroupsRepo::groupToJson(const Group* group) const {
     json["type_sort_by"] = static_cast<int>(group->type_sort_by);
     json["sort_method"] = static_cast<int>(group->sort.method);
     json["sort_descending"] = group->sort.descending;
-    json["test_items_to_show"] = static_cast<int>(group->test_items_to_show);
+    json["show_services"] = group->show_services;
     json["provider"] = providerToJson(group->provider);
 
     return json;
@@ -204,7 +218,13 @@ std::shared_ptr<Group> GroupsRepo::groupFromJson(const QJsonObject& json) const 
     group->route_id = json["route_id"].toInt(-1);
     group->import_sub_route = json["import_sub_route"].toBool();
     group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
+    group->visible_columns = json["visible_columns"].toInt(group->visible_columns);
+    if (group->column_width.size() == 5) {
+        group->column_width = {group->column_width[0], group->column_width[1], group->column_width[2],
+                               0, 0, 0, group->column_width[4]};
+    }
     group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
+    group->custom_order = QJsonArray2QListInt(json["custom_order"].toArray());
     group->pinned = QJsonArray2QListInt(json["pinned"].toArray());
     group->scroll_last_profile = json["scroll_last_profile"].toInt(-1);
     group->test_sort_by = static_cast<testBy>(json["test_sort_by"].toInt(0));
@@ -214,7 +234,7 @@ std::shared_ptr<Group> GroupsRepo::groupFromJson(const QJsonObject& json) const 
         group->sort.method = static_cast<GroupSortMethod::GroupSortMethod>(method);
         group->sort.descending = json["sort_descending"].toBool();
     }
-    group->test_items_to_show = static_cast<testShowItems>(json["test_items_to_show"].toInt(0));
+    group->show_services = json["show_services"].toBool(true);
     group->provider = providerFromJson(json["provider"].toObject());
 
     return group;
@@ -234,16 +254,17 @@ void GroupsRepo::saveToDatabase(const Group* group, int id) const {
     QString subOptionsJson = QString::fromUtf8(QJsonDocument(group->sub_options.ToJson()).toJson(QJsonDocument::Compact));
     QString subMetadataJson = QString::fromUtf8(QJsonDocument(group->sub_info.toJson()).toJson(QJsonDocument::Compact));
     QString endpointJson = QString::fromUtf8(QJsonDocument(group->endpoint.ToJson()).toJson(QJsonDocument::Compact));
+    const auto customOrderJson = QJsonDocument(QListInt2QJsonArray(group->custom_order)).toJson(QJsonDocument::Compact);
     QString pinnedJson = QString::fromUtf8(QJsonDocument(QListInt2QJsonArray(group->pinned)).toJson(QJsonDocument::Compact));
 
     db.exec(R"(
             INSERT INTO groups
             (id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
              front_proxy_id, landing_proxy_id,
-             column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
+             column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, provider_json, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, pinned_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -251,13 +272,14 @@ void GroupsRepo::saveToDatabase(const Group* group, int id) const {
                 front_proxy_id = excluded.front_proxy_id, landing_proxy_id = excluded.landing_proxy_id,
                 column_width_json = excluded.column_width_json, profiles_json = excluded.profiles_json,
                 scroll_last_profile = excluded.scroll_last_profile, test_sort_by = excluded.test_sort_by,
-                traffic_sort_by = excluded.traffic_sort_by, test_items_to_show = excluded.test_items_to_show,
+                traffic_sort_by = excluded.traffic_sort_by,
                 type_sort_by = excluded.type_sort_by, provider_json = excluded.provider_json,
                 sub_options_json = excluded.sub_options_json,
                 sub_metadata_json = excluded.sub_metadata_json, endpoint_json = excluded.endpoint_json,
                 sort_method = excluded.sort_method, sort_descending = excluded.sort_descending,
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
-                pinned_json = excluded.pinned_json,
+                pinned_json = excluded.pinned_json, show_services = excluded.show_services,
+                visible_columns = excluded.visible_columns, custom_order_json = excluded.custom_order_json,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -275,7 +297,6 @@ void GroupsRepo::saveToDatabase(const Group* group, int id) const {
             group->scroll_last_profile,
             static_cast<int>(group->test_sort_by),
             static_cast<int>(group->traffic_sort_by),
-            static_cast<int>(group->test_items_to_show),
             static_cast<int>(group->type_sort_by),
             providerJson.toStdString(),
             subOptionsJson.toStdString(),
@@ -285,16 +306,19 @@ void GroupsRepo::saveToDatabase(const Group* group, int id) const {
             group->sort.descending ? 1 : 0,
             group->route_id,
             group->import_sub_route ? 1 : 0,
-            pinnedJson.toStdString());
+            pinnedJson.toStdString(),
+            group->show_services ? 1 : 0,
+            group->visible_columns,
+            customOrderJson.toStdString());
 }
 
 std::shared_ptr<Group> GroupsRepo::loadFromDatabase(int id) const {
     auto query = db.query(R"(
             SELECT id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
                    front_proxy_id, landing_proxy_id,
-                   column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
+                   column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, provider_json, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, pinned_json
+                   route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json
             FROM groups WHERE id = ?
         )",
                           id);
@@ -333,31 +357,36 @@ std::shared_ptr<Group> GroupsRepo::loadFromDatabase(int id) const {
     json["scroll_last_profile"] = query->getColumn(12).getInt();
     json["test_sort_by"] = query->getColumn(13).getInt();
     json["traffic_sort_by"] = query->getColumn(14).getInt();
-    json["test_items_to_show"] = query->getColumn(15).getInt();
-    json["type_sort_by"] = query->getColumn(16).getInt();
-    if (const QString providerJsonStr = QString::fromStdString(query->getColumn(17).getText());
+    json["type_sort_by"] = query->getColumn(15).getInt();
+    if (const QString providerJsonStr = QString::fromStdString(query->getColumn(16).getText());
         !providerJsonStr.isEmpty()) {
         json["provider"] = QJsonDocument::fromJson(providerJsonStr.toUtf8()).object();
     }
-    if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
+    if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(17).getText()));
         subOptionsDoc.isObject()) {
         json["sub_options"] = subOptionsDoc.object();
     }
-    if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(19).getText()));
+    if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
         subMetaDoc.isObject()) {
         json["sub_metadata"] = subMetaDoc.object();
     }
-    if (const auto endpointDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(20).getText()));
+    if (const auto endpointDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(19).getText()));
         endpointDoc.isObject()) {
         json["endpoint"] = endpointDoc.object();
     }
-    json["sort_method"] = query->getColumn(21).getInt();
-    json["sort_descending"] = query->getColumn(22).getInt() != 0;
-    json["route_id"] = query->getColumn(23).getInt();
-    json["import_sub_route"] = query->getColumn(24).getInt() != 0;
-    if (const auto pinnedDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(25).getText()));
+    json["sort_method"] = query->getColumn(20).getInt();
+    json["sort_descending"] = query->getColumn(21).getInt() != 0;
+    json["route_id"] = query->getColumn(22).getInt();
+    json["import_sub_route"] = query->getColumn(23).getInt() != 0;
+    if (const auto pinnedDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(24).getText()));
         pinnedDoc.isArray()) {
         json["pinned"] = pinnedDoc.array();
+    }
+    json["show_services"] = query->getColumn(25).getInt() != 0;
+    json["visible_columns"] = query->getColumn(26).getInt();
+    if (const auto customOrderDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(27).getText()));
+        customOrderDoc.isArray()) {
+        json["custom_order"] = customOrderDoc.array();
     }
 
     auto group = groupFromJson(json);
@@ -372,7 +401,7 @@ std::shared_ptr<Group> GroupsRepo::loadFromDatabase(int id) const {
     }
     bool repaired = unique.size() != group->profiles.size();
     if (repaired) group->profiles = std::move(unique);
-    // A save between a wholesale rewrite of the order and its NormalizePins leaves the pins apart from the head.
+    // A wholesale rewrite can remove profiles that were pinned.
     if (group->NormalizePins()) repaired = true;
     // The caller (GetGroup) already holds the mutex, so write straight through.
     if (repaired) saveToDatabase(group.get(), group->id);
@@ -426,10 +455,10 @@ std::shared_ptr<Group> GroupsRepo::CurrentGroup() const {
 bool GroupsRepo::DeleteGroup(int id) {
     const auto group = GetGroup(id);
     const QList<int> listed = group != nullptr ? group->Profiles() : QList<int>{};
+    QSet<int> profileIds(listed.cbegin(), listed.cend());
     // Runs under ProfilesRepo's lock, so no profile Save lands between the delete and the tombstones.
-    return dataManager->profilesRepo->DeleteAndForget([&](QList<int>& deletedIds) {
+    const bool deleted = dataManager->profilesRepo->DeleteAndForget([&](QList<int>& deletedIds) {
         QMutexLocker locker(&mutex);
-        QSet<int> profileIds(listed.cbegin(), listed.cend());
         const bool ok = db.transaction("GroupsRepo::DeleteGroup", [&] {
             {
                 const auto owned = db.queryThrow("SELECT id FROM profiles WHERE gid = ?", id);
@@ -449,6 +478,8 @@ bool GroupsRepo::DeleteGroup(int id) {
         ++revision;
         return true;
     });
+    if (deleted) ClearHopReferences(profileIds);
+    return deleted;
 }
 
 QList<int> GroupsRepo::GetAllGroupIds() const {
@@ -520,6 +551,36 @@ bool GroupsRepo::Save(const std::shared_ptr<Group>& group) {
     return false;
 }
 
+QList<HopReference> GroupsRepo::HopReferences(const QSet<int>& profileIds, int exceptGroup) const {
+    QList<HopReference> refs;
+    if (profileIds.isEmpty()) return refs;
+    for (const int gid: GetAllGroupIds()) {
+        if (gid == exceptGroup) continue;
+        const auto group = GetGroup(gid);
+        if (group == nullptr) continue;
+        if (profileIds.contains(group->front_proxy_id)) refs.append({gid, group->name, HopRole::Front, group->front_proxy_id});
+        if (profileIds.contains(group->landing_proxy_id)) refs.append({gid, group->name, HopRole::Landing, group->landing_proxy_id});
+    }
+    return refs;
+}
+
+QList<HopReference> GroupsRepo::ClearHopReferences(const QSet<int>& deletedProfileIds) {
+    QList<HopReference> cleared;
+    for (const auto& ref: HopReferences(deletedProfileIds)) {
+        const auto group = GetGroup(ref.groupId);
+        if (group == nullptr) continue;
+        int& proxyId = ref.role == HopRole::Front ? group->front_proxy_id : group->landing_proxy_id;
+        if (proxyId != ref.profileId) continue;
+        proxyId = -1;
+        if (!Save(group)) continue;
+        MW_show_log(ref.role == HopRole::Front
+                        ? QStringLiteral("[Groups] %1: front proxy removed (its profile was deleted)").arg(ref.groupName)
+                        : QStringLiteral("[Groups] %1: landing proxy removed (its profile was deleted)").arg(ref.groupName));
+        cleared << ref;
+    }
+    return cleared;
+}
+
 namespace {
 struct PendingSort {
     QSet<int> changed;
@@ -546,9 +607,8 @@ void drainSorts() {
             const auto group = dataManager->groupsRepo->GetGroup(it.key());
             if (group == nullptr) continue;
             const bool reordered = it->full ? group->Resort() : group->Reposition(it->changed.values());
-            if (!reordered) continue;
-            dataManager->groupsRepo->Save(group);
-            moved << it.key();
+            if (reordered) dataManager->groupsRepo->Save(group);
+            if (reordered || it->full) moved << it.key();
         }
         if (!moved.isEmpty()) Engine::EngineEvents::GroupOrderChanged(moved);
     }

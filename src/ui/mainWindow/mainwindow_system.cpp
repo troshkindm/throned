@@ -34,16 +34,17 @@
 #include "include/configs/generate.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineHost.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/app/ExitController.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/services/Dashboard.h"
+#include "include/engine/services/RouteService.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Logger.hpp"
-#include "include/global/RunningProfiles.hpp"
 #include "include/scanner/ScanManager.h"
 #include "include/sys/HostPresence.hpp"
 #include "include/sys/KillSwitch.hpp"
@@ -108,10 +109,8 @@ void MainWindow::openRouteProfileEditor(int routeId) {
     if (profile == nullptr) return;
     setDialogInUse(true);
 
-    const auto onSaved = [this](const std::shared_ptr<Configs::RouteProfile> &chain) {
-        if (!Configs::dataManager->routesRepo->Save(chain)) return;
-        if (chain->id == Configs::ActiveRouteId())
-            connection()->noteRestartNeeded(Engine::RestartReason::Routing);
+    const auto onSaved = [](const std::shared_ptr<Configs::RouteProfile> &chain) {
+        if (const auto error = Engine::RouteService::Save(chain)) MW_show_log(error->message);
     };
     QDialog *editor;
     if (profile->isRaw) {
@@ -308,7 +307,7 @@ bool MainWindow::StopVPNProcess() {
 void MainWindow::show_startstop_menu() {
     if (!Configs::dataManager->settingsRepo->kill_switch) return;
     QMenu menu(this);
-    connect(menu.addAction(tr("Disable Kill Switch")), &QAction::triggered, this, [this] { confirm_disable_kill_switch(); });
+    connect(menu.addAction(tr("Disable kill switch")), &QAction::triggered, this, [this] { confirm_disable_kill_switch(); });
     auto *button = ui->toolButton_startstop;
     menu.exec(button->mapToGlobal(QPoint(0, button->height())));
 }
@@ -318,7 +317,7 @@ void MainWindow::confirm_disable_kill_switch() {
                                 tr("Turn off the kill switch? Traffic that does not go through Throne will no longer be blocked."),
                                 QMessageBox::NoButton, this);
     box->setAttribute(Qt::WA_DeleteOnClose);
-    auto *disable = box->addButton(tr("Disable Kill Switch"), QMessageBox::DestructiveRole);
+    auto *disable = box->addButton(tr("Disable kill switch"), QMessageBox::DestructiveRole);
     auto *cancel = box->addButton(QMessageBox::Cancel);
     // Cancel is the default, so a stray Enter cannot complete the two-step disable.
     box->setDefaultButton(cancel);
@@ -400,10 +399,10 @@ void MainWindow::OpenDashboard() {
     const auto &settings = *Configs::dataManager->settingsRepo;
     const auto port = settings.core_box_api_port;
     if (port <= 0) {
-        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Integration Settings > Core APIs."));
+        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Settings > Integration Settings > Core APIs."));
         return;
     }
-    if (settings.started_id < 0) {
+    if (Engine::Lifecycle::RunningProfileId() < 0) {
         MessageBoxWarning(software_name, tr("Start a profile first; the dashboard is served by the running core."));
         return;
     }
@@ -498,14 +497,14 @@ void MainWindow::CheckUpdate(bool silent) {
         return;
     }
 
-    const bool requestUsedProfile = Configs::dataManager->settingsRepo->started_id >= 0;
+    const bool requestUsedProfile = Engine::Lifecycle::ResumeTargetId() >= 0;
     const auto rememberDirectFailure = [this, requestUsedProfile] {
         if (requestUsedProfile) return;
         updateCheckRetryAfterConnect_.store(true);
         // Covers the race where the profile came up while the direct request was
         // still timing out: there may be no later profile-start event to wake us.
         runOnUiThread([this] {
-            if (Configs::dataManager->settingsRepo->started_id >= 0)
+            if (Engine::Lifecycle::ResumeTargetId() >= 0)
                 retryPendingUpdateCheck();
         });
     };
@@ -627,7 +626,7 @@ void MainWindow::startUpdateDownload(const QString &url, const QString &assetNam
             });
         };
 
-        const bool proxyAvailable = Configs::dataManager->settingsRepo->started_id >= 0;
+        const bool proxyAvailable = Engine::Lifecycle::ResumeTargetId() >= 0;
         const QString error = NetworkRequestHelper::DownloadAsset(
             url, QStringLiteral("Throned.zip"), proxyAvailable, progress, true);
         runOnUiThread([this, assetName, error] {
@@ -645,7 +644,7 @@ void MainWindow::startUpdateDownload(const QString &url, const QString &assetNam
 void MainWindow::retryPendingUpdateCheck() {
     if (!updateCheckRetryAfterConnect_.exchange(false)) return;
     QTimer::singleShot(1200, this, [this] {
-        if (Configs::dataManager->settingsRepo->started_id < 0) {
+        if (Engine::Lifecycle::ResumeTargetId() < 0) {
             updateCheckRetryAfterConnect_.store(true);
             return;
         }

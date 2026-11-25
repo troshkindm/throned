@@ -76,7 +76,7 @@ Everything Throne does, plus:
 ## Recent upstream updates
 
 - Encrypted remote API compatible with thronectl and the Throne API library.
-- IP scanner and reusable IP lists, with per-profile and per-group endpoint overrides.
+- WARP endpoint and DNS resolver scans, and reusable IP lists with per-profile and per-group endpoint overrides.
 - Experimental kill switch and native global hotkeys, including KDE Wayland.
 
 Legacy Hijack and System DNS settings have been removed. Use TUN mode for application traffic.
@@ -242,19 +242,23 @@ problem.
 
 | Component | Version |
 | --- | --- |
-| sing-box | v1.14.0-rc.5 (throneproj fork) |
+| sing-box | v1.15.0-alpha.13 (throneproj fork) |
 | Xray-core | throneproj fork |
 | sing-tun | v0.9.0-beta.4 |
 | Qt | 6.11.1–6.11.2 (target-dependent) |
-| Go | 1.26.7 |
+| Go | 1.27 (1.26 for the legacy Windows and macOS builds) |
 
 Exact build stamps are printed in the log at startup. Protocols come from
 sing-box and Xray: VLESS, VMess, Trojan, Shadowsocks, SOCKS, HTTP(S), TUIC,
 Hysteria, Hysteria2, AnyTLS, ShadowTLS, Snell, WireGuard/AmneziaWG, MASQUE, SSH, Mieru,
-NaiveProxy, Juicity, TrustTunnel, custom outbounds and configs, chains, and
+NaiveProxy, TrustTunnel, custom outbounds and configs, chains, and
 extra cores.
 
 Built on [Throne](https://github.com/throneproj/Throne),
 [sing-box](https://github.com/SagerNet/sing-box),
 [Xray-core](https://github.com/XTLS/Xray-core), Qt, and the other projects listed
-in the source tree. Licensed under [GPL-3.0](LICENSE).
+in the source tree. Service logos come from
+[Simple Icons](https://github.com/simple-icons/simple-icons),
+[theSVG](https://github.com/glincker/thesvg) and
+[selfh.st/icons](https://github.com/selfhst/icons) (CC BY 4.0). Licensed under
+[GPL-3.0](LICENSE).

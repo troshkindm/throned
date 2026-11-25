@@ -18,14 +18,18 @@
 #include <QStyle>
 
 #include <algorithm>
+#include <array>
 
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
 #include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/services/AssetUpdates.h"
+#include "include/engine/services/GroupService.h"
+#include "include/engine/services/SettingsService.h"
 #include "include/engine/services/StatsService.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/engine/vpn/VpnAuthController.h"
@@ -34,7 +38,6 @@
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanManager.h"
 #include "include/ui/stats/dialog_auto_selector.h"
-#include "include/ui/setting/dialog_rule_tester.h"
 #include "include/sys/KillSwitch.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
@@ -64,11 +67,11 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
+#include "include/database/SettingsSchema.h"
 #include "include/global/Common.h"
 
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
-#include "include/ui/utils/UiMode.h"
 
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/utils/NativeFileDialog.h"
@@ -78,6 +81,7 @@
 #include <QDBusReply>
 #endif
 
+#include <QCheckBox>
 #include <QClipboard>
 #include <QFrame>
 #include <QHBoxLayout>
@@ -85,12 +89,15 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QDialogButtonBox>
+#include <QFormLayout>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QPointer>
 #include <QRandomGenerator>
 #include <QScreen>
+#include <QStackedWidget>
 #include <QDesktopServices>
 #include <QTimer>
 #include <QMessageBox>
@@ -413,9 +420,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(host, &Engine::EngineHost::statusChanged, this, [this] { refresh_status(); });
     connect(host, &Engine::EngineHost::testResultsCleared, this, [this](const QList<int> &groupIds) {
         for (const int gid: groupIds) {
-            if (auto group = Configs::dataManager->groupsRepo->GetGroup(gid); group &&
-                                                                              group->calculated_column_width.size() > ProfilesTableModel::ColTestResult)
-                group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
+            if (auto group = Configs::dataManager->groupsRepo->GetGroup(gid)) group->clearCalculatedColumnWidth();
         }
         refresh_proxy_list();
     });
@@ -470,7 +475,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (groupIds.contains(Configs::dataManager->settingsRepo->current_group)) refresh_proxy_list({}, true);
     });
     connect(engineEvents, &Engine::EngineEvents::groupsChanged, this, [this] {
-        dialog_message_impl(MwMessage::GroupsChanged, {});
+        refresh_groups();
+        profilesTableModel->invalidateAddresses();
     });
     connect(engineEvents, &Engine::EngineEvents::profilesRemoved, this, [this](const QList<int> &) {
         refresh_proxy_list({}, true, RefreshAnchor::Removal);
@@ -478,7 +484,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(engineEvents, &Engine::EngineEvents::profilesChanged, this, [this](const QList<int> &) { refresh_proxy_list({}, true); });
     // The title and tray tooltip name the routing profile in effect.
     connect(engineEvents, &Engine::EngineEvents::routesChanged, this, [this] { refresh_status(); });
-    connect(engineEvents, &Engine::EngineEvents::settingsChanged, this, [this, syncSettingsMirrors](const QStringList &) {
+    connect(engineEvents, &Engine::EngineEvents::settingsChanged, this, [this, syncSettingsMirrors](const QStringList &keys) {
+        applySettingsUi(Configs::SettingsSchema::EffectsOf(keys));
         refresh_status();
         syncSettingsMirrors();
     });
@@ -887,13 +894,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(diagnosticsAction, &QAction::triggered, this, [this] { copyDiagnostics(); });
 
     auto *udpTestAction = new QAction(tr("UDP Latency Test Selected"), this);
-    ui->menu_test_item->insertAction(ui->actionSpeedtest_Selected, udpTestAction);
+    ui->menu_test_selected->insertAction(ui->actionSpeedtest_Selected, udpTestAction);
     connect(udpTestAction, &QAction::triggered, this, [=, this] {
         tests()->runUdpTests(get_now_selected_list());
     });
 
     auto *siteTestAction = new QAction(tr("Site Reachability Selected"), this);
-    ui->menu_test_item->insertAction(ui->actionSpeedtest_Selected, siteTestAction);
+    ui->menu_test_selected->insertAction(ui->actionSpeedtest_Selected, siteTestAction);
     connect(siteTestAction, &QAction::triggered, this, [=, this] {
         runSiteReachability(get_now_selected_list());
     });
@@ -942,7 +949,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     updateStatusWidget = new UpdateStatusWidget(redesignedCentral);
     pendingRestartNotice = new PendingRestartNotice(updateStatusWidget, [this, uiPreviewMode] {
         if (uiPreviewMode) return;
-        const int startedID = Configs::dataManager->settingsRepo->started_id;
+        const int startedID = Engine::Lifecycle::ResumeTargetId();
         if (startedID >= 0) profile_start(startedID);
     });
     hijackDeprecationNotice = new HijackDeprecationNotice(
@@ -1038,7 +1045,7 @@ QLabel#titleContext { font-size: 14px; font-weight: 650; color: #D8DCE1; }
 QFrame#titleBar QToolButton { background: transparent; border: none; }
 QFrame#titleBar QToolButton:hover { background: #292D33; }
 QFrame#titleBar QToolButton#titleClose:hover { background: #C42B35; }
-QFrame#vSeparator { background: #2F3136; border: none; }
+QFrame#vSeparator { background: transparent; border: none; }
 QFrame#commandBar {
     background: #1B1E23; border: none;
 }
@@ -1073,7 +1080,7 @@ QProgressBar#updateProgress {
 }
 QProgressBar#updateProgress::chunk { background: #237AE9; border-radius: 1px; }
 QFrame#commandBar QToolButton {
-    background: transparent; border: none; border-radius: 6px; font-weight: 550; padding: 7px 9px;
+    background: transparent; border: none; border-radius: 8px; font-weight: 550; padding: 7px 9px;
 }
 QFrame#commandBar QToolButton:hover { background: #292D33; }
 QFrame#commandBar QToolButton::menu-indicator { image: none; width: 0px; }
@@ -1082,22 +1089,22 @@ QWidget#logTools { background: transparent; }
 /* The frame is the visible box. Its bottom margin is what lifts it onto the
    same baseline as the tabs; the widget grows by that margin on its own. */
 QFrame#serverSearchFrame {
-    background: #171B21; border: 1px solid #3E454F; border-radius: 7px;
+    background: #171B21; border: 1px solid #2F3136; border-radius: 8px;
     margin-bottom: 5px;
 }
 QToolButton#groupAddButton {
-    background: #222529; border: 1px solid #3E454F; border-radius: 7px;
+    background: #222529; border: 1px solid transparent; border-radius: 8px;
     margin-bottom: 5px;
 }
-QToolButton#groupAddButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#groupAddButton:hover { background: #292D33; }
 QToolButton#groupOverflowButton, QToolButton#diagnosticsButton {
-    background: #222529; border: 1px solid #3E454F; border-radius: 7px; margin-bottom: 5px;
+    background: #222529; border: 1px solid transparent; border-radius: 8px; margin-bottom: 5px;
 }
-QToolButton#groupOverflowButton:hover, QToolButton#diagnosticsButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#groupOverflowButton:hover, QToolButton#diagnosticsButton:hover { background: #292D33; }
 QToolButton#groupOverflowButton:pressed, QToolButton#diagnosticsButton:pressed { background: #182530; border-color: #237AE9; }
 QToolButton#groupAddButton:pressed { background: #182530; border-color: #237AE9; }
 QPushButton#logToolButton {
-    background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
+    background: #222529; border: 1px solid transparent; border-radius: 7px; padding: 6px 10px;
 }
 QPushButton#logToolButton:hover { background: #292D33; border-color: #4A4F57; }
 QLineEdit#serverSearch {
@@ -1105,24 +1112,24 @@ QLineEdit#serverSearch {
     padding: 6px 9px 6px 4px;
 }
 QLineEdit#serverSearch:focus { background: #1B222A; }
-QFrame#subAnnounceStrip { background: #193452; border: 1px solid #193452; border-radius: 7px; }
+QFrame#subAnnounceStrip { background: #193452; border: 1px solid #193452; border-radius: 8px; }
 QLabel#subAnnounceText { color: #F1F3F5; background: transparent; font-size: 12px; }
 QToolButton#subAnnounceClose { background: transparent; border: none; border-radius: 4px; }
 QToolButton#subAnnounceClose:hover { background: #263B55; }
-QFrame#logsStrip { background: #171B21; border: 1px solid #2F3136; border-radius: 7px; }
+QFrame#logsStrip { background: #171B21; border: 1px solid #2F3136; border-radius: 10px; }
 QFrame#logsStrip QToolButton#stripTab {
     background: transparent; border: none; color: #A4ABB4;
     padding: 4px 11px; border-radius: 5px; font-weight: 500;
 }
 QFrame#logsStrip QToolButton#stripTab:hover { color: #F1F3F5; background: #222529; }
 QFrame#logsStrip QLabel#stripHint { color: #747C86; background: transparent; font-size: 11px; }
-QToolButton#selectionClear { background: transparent; border: 1px solid #2F3136; border-radius: 6px; }
+QToolButton#selectionClear { background: transparent; border: 1px solid transparent; border-radius: 7px; }
 QToolButton#selectionClear:hover { background: #222529; border-color: #4A4F57; }
-QToolButton#statusCellButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; }
+QToolButton#statusCellButton { background: transparent; border: 1px solid transparent; border-radius: 7px; }
 QToolButton#statusCellButton:hover { background: #222529; border-color: #4A4F57; }
-QToolButton#panelIconButton { background: transparent; border: 1px solid #2F3136; border-radius: 5px; padding: 3px; }
+QToolButton#panelIconButton { background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 3px; }
 QToolButton#panelIconButton:hover { background: #222529; }
-QToolButton#panelIconButton:checked { background: #182530; border-color: #237AE9; }
+QToolButton#panelIconButton:checked { background: #193452; }
 QToolButton#panelIconButton::menu-indicator { image: none; width: 0px; }
 QToolButton#connectionRowCloseButton { background: transparent; border: none; border-radius: 4px; padding: 2px; }
 QToolButton#connectionRowCloseButton:hover { background: #3A2227; }
@@ -1133,12 +1140,12 @@ QTabWidget#groupsCard::pane { background: transparent; border: none; top: 7px; }
 QTabWidget#groupsCard::tab-bar { left: 6px; }
 QTabWidget#groupsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
 QTabWidget#groupsCard QTabBar::tab {
-    background: #222529; border: 1px solid #3E454F; border-radius: 5px;
-    padding: 6px 11px; margin: 1px 6px 5px 0;
-    color: #C2C7CE; font-weight: 500;
+    background: transparent; border: 1px solid transparent; border-radius: 8px;
+    padding: 6px 12px; margin: 1px 4px 5px 0;
+    color: #A4ABB4; font-weight: 500;
 }
-QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
-QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #182530; border-color: #237AE9; }
+QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #222529; }
+QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #193452; font-weight: 600; }
 /* The scroll buttons exist only so Qt can slide an overflowing strip; the mouse
    wheel drives them (GroupTabBar::wheelEvent), so they occupy no space. */
 QTabWidget#groupsCard QTabBar QToolButton {
@@ -1147,11 +1154,11 @@ QTabWidget#groupsCard QTabBar QToolButton {
 /* Same pill as a group tab, square: the fixed height carries the bottom margin
    so the painted box comes out square and lines up with the tabs. */
 QToolButton#favoritesTabButton {
-    background: #222529; border: 1px solid #3E454F; border-radius: 5px;
+    background: transparent; border: 1px solid transparent; border-radius: 8px;
     margin: 0 10px 19px 0;
 }
-QToolButton#favoritesTabButton:hover { background: #292D33; border-color: #4A4F57; }
-QToolButton#favoritesTabButton:checked { background: #182530; border-color: #237AE9; }
+QToolButton#favoritesTabButton:hover { background: #222529; }
+QToolButton#favoritesTabButton:checked { background: #193452; }
 QWidget#profilesEmptyState { background: transparent; }
 QLabel#emptyStateTitle { color: #F1F3F5; font-size: 15px; font-weight: 600; background: transparent; }
 QLabel#emptyStateSub { color: #A4ABB4; font-size: 13px; background: transparent; }
@@ -1162,17 +1169,17 @@ QPushButton#emptyStateAction {
 QPushButton#emptyStateAction:hover { background: #292D33; border-color: #4A4F57; }
 QPushButton#emptyStateAction:pressed { background: #182530; border-color: #237AE9; }
 QWidget#statsPanelHost {
-    background: #171B21; border: 1px solid #3E454F; border-radius: 8px;
+    background: #171B21; border: 1px solid #2F3136; border-radius: 10px;
 }
 QTabWidget#logsCard::pane { background: transparent; border: none; top: 0px; }
 QTabWidget#logsCard::tab-bar { left: 5px; }
 QTabWidget#logsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
 QTabWidget#logsCard QTabBar::tab {
     background: transparent; border: 1px solid transparent; border-radius: 5px;
-    padding: 5px 11px; margin: 4px 2px 4px 0; color: #A4ABB4; font-weight: 500;
+    padding: 5px 12px; margin: 4px 2px 4px 0; color: #A4ABB4; font-weight: 500;
 }
 QTabWidget#logsCard QTabBar::tab:hover { color: #F1F3F5; background: #222529; }
-QTabWidget#logsCard QTabBar::tab:selected { color: #F1F3F5; background: #182530; border-color: #237AE9; }
+QTabWidget#logsCard QTabBar::tab:selected { color: #F1F3F5; background: #193452; }
 QTabWidget#logsCard QTabBar QLabel#tabCountBadge {
     color: #747C86; background: transparent; border: none; font-weight: 550;
 }
@@ -1186,7 +1193,7 @@ QMenu#logToolsMenu::item:selected { background: #2D333B; }
 QMenu#logToolsMenu::item:disabled { color: #747C86; }
 QMenu#logToolsMenu::separator { height: 1px; background: #3A414A; margin: 4px 7px; }
 QWidget[thronedCard="true"] {
-    background: #171B21; border: 1px solid #3E454F; border-radius: 8px;
+    background: #171B21; border: 1px solid #2F3136; border-radius: 10px;
 }
 QWidget[thronedPanelPage="true"] { background: transparent; border: none; }
 /* The group page paints the card; the table and its headers stay transparent so
@@ -1196,8 +1203,8 @@ QTableView, QTableWidget, QTreeView, QTextBrowser {
     selection-color: #F1F3F5; selection-background-color: #143C48;
 }
 QHeaderView::section {
-    background: transparent; color: #C2C7CE; border: none; border-right: 1px solid #2F3136;
-    border-bottom: 1px solid #2F3136; padding: 5px 8px; font-weight: 500;
+    background: transparent; color: #A4ABB4; border: none;
+    border-bottom: 1px solid #2F3136; padding: 6px 8px; font-weight: 500;
 }
 QHeaderView { background: transparent; }
 /* Something above the table (the subscription notice) takes the card's top border
@@ -1222,14 +1229,13 @@ ProfilesTableVerticalHeader {
 }
 /* Opaque, so it hides the card border underneath: it has to draw that edge itself. */
 QTableCornerButton::section {
-    background: #171B21; border: none; border-top: 1px solid #3E454F;
+    background: #171B21; border: none; border-top: 1px solid #2F3136;
     border-right: 1px solid #2F3136; border-bottom: 1px solid #2F3136;
-    border-top-left-radius: 8px;
+    border-top-left-radius: 10px;
 }
 QTableView::item, QTableWidget::item, QTreeView::item { border-bottom: 1px solid #2F3136; padding: 3px 7px; }
 QTableView::item:selected, QTableWidget::item:selected, QTreeView::item:selected {
     color: white; background: #143C48;
-    border-top: 1px solid #1D7585; border-bottom: 1px solid #1D7585;
 }
 QSplitter::handle { background: transparent; height: 8px; }
 QTextBrowser#masterLogBrowser { padding: 8px 10px; font-family: "Cascadia Mono", "Consolas", monospace; font-size: 13px; }
@@ -1247,18 +1253,18 @@ QFrame#statusCard QFrame#routingStatusButton:hover { background: #222529; border
 QFrame#statusCard QLabel#routingStatus { color: #DDE2E7; background: transparent; border: none; font-size: 13px; }
 QFrame#selectionCard QLabel#selectionText { color: #F1F3F5; font-weight: 600; }
 QFrame#selectionCard QPushButton#selectionAction {
-    background: #222529; border: 1px solid #2F3136; border-radius: 5px; padding: 6px 10px;
+    background: #222529; border: 1px solid transparent; border-radius: 7px; padding: 6px 10px;
 }
 QFrame#selectionCard QPushButton#selectionAction:hover { background: #292D33; border-color: #4A4F57; }
 QTextBrowser#selectionStatus {
     color: #E5E8EB; background: #1B1E23; border: none;
     border-top: 1px solid #2F3136; padding: 8px 15px;
 }
-QScrollBar:vertical { background: transparent; width: 12px; margin: 7px 3px 7px 0; }
-QScrollBar::handle:vertical { background: #3B4C5E; border-radius: 6px; min-height: 36px; }
+QScrollBar:vertical { background: transparent; width: 10px; margin: 7px 3px 7px 0; }
+QScrollBar::handle:vertical { background: #3B4C5E; border-radius: 3px; min-height: 36px; }
 QScrollBar::handle:vertical:hover { background: #4B6076; }
-QScrollBar:horizontal { background: transparent; height: 12px; margin: 0 7px 3px 7px; }
-QScrollBar::handle:horizontal { background: #3B4C5E; border-radius: 6px; min-width: 36px; }
+QScrollBar:horizontal { background: transparent; height: 10px; margin: 0 7px 3px 7px; }
+QScrollBar::handle:horizontal { background: #3B4C5E; border-radius: 3px; min-width: 36px; }
 QScrollBar::handle:horizontal:hover { background: #4B6076; }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
 QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }
@@ -1308,7 +1314,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=, this](const Qt::ColorScheme &scheme) {
         setLogHighlighter(scheme == Qt::ColorScheme::Dark);
-        themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme, true);
+        // The shown theme, not the stored one: an open settings window may be previewing another.
+        themeManager()->ApplyTheme(themeManager()->current_theme, true);
     });
 #endif
     connect(themeManager(), &ThemeManager::themeChanged, this, [=, this](const QString &theme) {
@@ -1343,8 +1350,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->menu_start, &QAction::triggered, this, [=, this]() { profile_start(); });
     connect(ui->menu_stop, &QAction::triggered, this, [=, this]() { profile_stop(false, false, true); });
     connect(ui->toolButton_startstop, &QAbstractButton::clicked, this, [=, this]() {
-        // The button is disabled while Connecting, so a click is stop-running or start-selected.
-        if (runningSnapshot() != nullptr)
+        // During Connecting the stop waits for the start, which a first start has not made running yet.
+        const bool stops = runningSnapshot() != nullptr || connection()->connectionState() == ConnectionState::Connecting;
+        if (stops)
             profile_stop(false, false, true);
         else
             profile_start();
@@ -1574,6 +1582,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         setStatsPanelOpen(true);
     });
     ui->actionTraffic_Stats->setVisible(!Configs::dataManager->settingsRepo->disable_traffic_aggregation);
+    ui->menu_open_dashboard->setVisible(Configs::dataManager->settingsRepo->core_box_api_port > 0);
     connect(ui->actionTraffic_Stats, &QAction::triggered, this, [=, this]() {
         USE_DIALOG(DialogTrafficStats)
     });
@@ -1599,16 +1608,16 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->actionUpdate_Rule_Sets, &QAction::triggered, this, [] {
         Engine::AssetUpdates::UpdateRuleSets([](const Engine::AssetUpdates::RuleSetResult &result) {
             if (!result.coreReachable) {
-                MessageBoxWarning(tr("Update Rule-Sets"), result.error);
+                MessageBoxWarning(tr("Update rule-sets"), result.error);
                 return;
             }
             QStringList problems = result.failures;
             if (!result.error.isEmpty()) problems.prepend(result.error);
             const auto summary = tr("%n remote rule-set(s) refreshed", nullptr, result.updated);
             if (!problems.isEmpty()) {
-                MessageBoxWarning(tr("Update Rule-Sets"), summary + "\n\n" + problems.join("\n"));
+                MessageBoxWarning(tr("Update rule-sets"), summary + "\n\n" + problems.join("\n"));
             } else {
-                MessageBoxInfo(tr("Update Rule-Sets"), summary);
+                MessageBoxInfo(tr("Update rule-sets"), summary);
             }
         });
     });
@@ -1622,6 +1631,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ui->stats_widget->tabBar()->setCurrentIndex(Configs::dataManager->settingsRepo->stats_tab);
     connect(ui->stats_widget->tabBar(), &QTabBar::currentChanged, this, [=, this](int index) {
         Configs::dataManager->settingsRepo->stats_tab = ui->stats_widget->tabBar()->currentIndex();
+        Configs::dataManager->settingsRepo->Save();
         syncConnectionViewState();
     });
     syncConnectionViewState();
@@ -1797,34 +1807,69 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     ui->profilesTableView->rowDropped = [this](int from, int target, bool below) {
         // A drop position in a filtered list says nothing about the group's real order.
         if (profilesFilterModel->hasActiveFilter()) return;
-        auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        // A hand-placed row among the unpinned ones is a manual order, so MoveProfile also stops a kept sort.
-        const int to = group->MoveProfile(from, target, below);
-        if (to < 0) return;
-        refresh_sort_indicator();
-        profilesTableModel->moveProfile(from, to, group->PinnedCount());
-        Configs::dataManager->groupsRepo->Save(group);
+        const auto displayed = group->DisplayedProfiles();
+        const auto rows = static_cast<int>(displayed.size());
+        if (from < 0 || from >= rows || target < 0 || target > rows) return;
+        // A background sort may have finished before the table received its refresh.
+        if (profilesTableModel->rowCount() != rows) return;
+        for (int row = 0; row < rows; ++row) {
+            if (profilesTableModel->index(row, 0).data(ProfilesTableModel::ProfileIdRole).toInt() != displayed[row]) return;
+        }
+        const int pinnedRows = group->PinnedCount();
+        const bool toPinned = target < pinnedRows;
+        int to = below && target < rows ? target + 1 : target;
+        if (from < to) --to;
+        if (to == from && (from < pinnedRows) == toPinned) return;
+        const auto move = [this, group, from, target, below] {
+            if (group->MoveProfile(from, target, below) < 0) return;
+            Configs::dataManager->groupsRepo->Save(group);
+            refresh_proxy_list({}, true);
+        };
+        // Only a drop among the unpinned rows of a sorted group replaces the order saved when the sort started.
+        if (!group->KeepsSorted() || toPinned) {
+            move();
+            return;
+        }
+        // Asked once the drop has returned, outside the platform's drag loop.
+        QTimer::singleShot(0, this, [this, group, displayed, pins = group->pinned, sort = group->sort, move] {
+            if (QMessageBox::question(this, tr("Confirmation"),
+                                      tr("Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?"),
+                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;
+            // The dialog's event loop can deliver test results or refreshes that move the rows.
+            if (group != Configs::dataManager->groupsRepo->CurrentGroup() || profilesFilterModel->hasActiveFilter() || group->DisplayedProfiles() != displayed || group->pinned != pins || group->sort != sort) return;
+            move();
+        });
     };
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int logicalIndex) {
         const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         const auto method = profilesTableModel->sortOfColumn(logicalIndex);
         if (group == nullptr || method == GroupSortMethod::Raw) return;
         GroupSortAction action{method, false};
-        if (profilesTableModel->columnOfSort(group->sort.method) == logicalIndex) action.descending = !group->sort.descending;
+        const bool sameColumn = profilesTableModel->columnOfSort(*group) == logicalIndex;
+        if (profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Compact) {
+            if (logicalIndex == ProfilesTableModel::ColExitIP)
+                group->test_sort_by = Configs::testBy::ipOut;
+            else if (logicalIndex == ProfilesTableModel::ColSpeed &&
+                     group->test_sort_by != Configs::testBy::dlSpeed && group->test_sort_by != Configs::testBy::ulSpeed)
+                group->test_sort_by = Configs::testBy::dlSpeed;
+        }
+        if (sameColumn) action.descending = !group->sort.descending;
         sortCurrentGroup(action);
     });
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int, int, int) {
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-        if (Configs::dataManager->settingsRepo->refreshing_group || group == nullptr) return;
+        if (m_adjustingColumns || Configs::dataManager->settingsRepo->refreshing_group || group == nullptr) return;
         // Comfortable rows size themselves: the Server column stretches and the metric
         // columns are fixed, so every window resize emits this. Recording it would pin
         // the table to the width it happened to have when the layout first ran.
-        if (m_adjustingColumns) return;
         if (profilesTableModel != nullptr && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Comfortable) return;
+        const auto savedWidths = group->column_width;
         group->column_width.clear();
-        for (int i = 0; i < ui->profilesTableView->horizontalHeader()->count(); i++) {
-            group->column_width.push_back(ui->profilesTableView->horizontalHeader()->sectionSize(i));
+        auto *header = ui->profilesTableView->horizontalHeader();
+        for (int i = 0; i < header->count(); i++) {
+            group->column_width.push_back(header->isSectionHidden(i) ? savedWidths.value(i, 0) : header->sectionSize(i));
         }
         Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
@@ -1834,22 +1879,102 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         int columnIndex = header->logicalIndexAt(pos);
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        // The column-widths action carries its shortcut id as data, so it must never be read as a sort key.
+        const int previousSortColumn = profilesTableModel->columnOfSort(*group);
+        const bool compactRows = profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Compact;
+        // Handle utility actions here so callers never interpret their data as a sort key.
         auto execHeaderMenu = [&](QMenu &menu) -> QAction * {
+            QAction *clearResults = nullptr;
+            QAction *runTest = nullptr;
+            std::optional<Engine::TestKind> testKind;
+            QString testLabel;
+            switch (compactRows ? columnIndex : -1) {
+                case ProfilesTableModel::ColLatency:
+                    testKind = Engine::TestKind::Latency;
+                    testLabel = tr("Test latency");
+                    break;
+                case ProfilesTableModel::ColExitIP:
+                    testKind = Engine::TestKind::Ip;
+                    testLabel = tr("Test exit IP");
+                    break;
+                case ProfilesTableModel::ColSpeed:
+                    testKind = Engine::TestKind::Speed;
+                    testLabel = tr("Test speed");
+                    break;
+                default:
+                    break;
+            }
+            if (testKind) {
+                if (!menu.isEmpty()) menu.addSeparator();
+                runTest = menu.addAction(testLabel);
+                runTest->setEnabled(!tests()->isRunning() && !group->Profiles().isEmpty());
+                clearResults = menu.addAction(tr("Clear results"));
+                // Results still arriving from the test worker would immediately refill the column.
+                clearResults->setEnabled(!tests()->isRunning());
+            }
             if (!menu.isEmpty()) menu.addSeparator();
-            QAction *stopSorting = group->KeepsSorted() ? menu.addAction(tr("Stop Sorting")) : nullptr;
+            QAction *restoreOrder = group->KeepsSorted() ? menu.addAction(tr("Restore original order")) : nullptr;
             menu.addAction(ui->actionRefresh_Column_Widths);
+            // UDP follows show_udp_column, and comfortable rows have their own Columns menu.
+            std::array<QAction *, ProfilesTableModel::ColUDP> visibilityActions{};
+            if (compactRows) {
+                menu.addSeparator();
+                auto *showLabel = menu.addAction(tr("Show:"));
+                showLabel->setEnabled(false);
+            }
+            for (int column = 0; compactRows && column < ProfilesTableModel::ColUDP; ++column) {
+                auto *action = menu.addAction(profilesTableModel->headerData(column, Qt::Horizontal).toString());
+                action->setCheckable(true);
+                action->setChecked(group->visible_columns & (1 << column));
+                visibilityActions[column] = action;
+            }
             auto *chosen = menu.exec(header->mapToGlobal(pos));
-            if (chosen != nullptr && chosen == stopSorting) {
-                stopSortingCurrentGroup();
+            if (chosen == nullptr) return nullptr;
+            for (int column = 0; column < ProfilesTableModel::ColUDP; ++column) {
+                if (visibilityActions[column] == nullptr || chosen != visibilityActions[column]) continue;
+                if (chosen->isChecked())
+                    group->visible_columns |= 1 << column;
+                else
+                    group->visible_columns &= ~(1 << column);
+                Configs::dataManager->groupsRepo->Save(group);
+                if (group == Configs::dataManager->groupsRepo->CurrentGroup()) refresh_proxy_list_column_size();
+                return nullptr;
+            }
+            if (chosen == runTest) {
+                const auto profileIds = group->DisplayedProfiles();
+                switch (*testKind) {
+                    case Engine::TestKind::Latency:
+                        tests()->runUrlTests(profileIds);
+                        break;
+                    case Engine::TestKind::Ip:
+                        tests()->runIpTests(profileIds);
+                        break;
+                    case Engine::TestKind::Speed:
+                        tests()->runSpeedTests(profileIds);
+                        break;
+                    case Engine::TestKind::Service:
+                        break;
+                }
+                return nullptr;
+            }
+            if (chosen == clearResults) {
+                const auto profileIds = group->Profiles();
+                Engine::host()->clearTestResults(profileIds, testKind);
+                // The service icons share the Exit IP column.
+                if (testKind == Engine::TestKind::Ip && group->show_services) {
+                    Engine::host()->clearTestResults(profileIds, Engine::TestKind::Service);
+                }
+                return nullptr;
+            }
+            if (chosen == restoreOrder) {
+                restoreOriginalOrder();
                 return nullptr;
             }
             return chosen == ui->actionRefresh_Column_Widths ? nullptr : chosen;
         };
         // Picking a key keeps the direction of a sort already on this column.
-        const auto sortColumn = [this, group](int column, bool descendingByDefault) {
+        const auto sortColumn = [this, group, previousSortColumn](int column, bool descendingByDefault) {
             GroupSortAction action{profilesTableModel->sortOfColumn(column), descendingByDefault};
-            if (profilesTableModel->columnOfSort(group->sort.method) == column) action.descending = group->sort.descending;
+            if (previousSortColumn == column) action.descending = group->sort.descending;
             sortCurrentGroup(action);
         };
 
@@ -1900,7 +2025,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (columnIndex == ProfilesTableModel::ColType) {
             if (!Configs::dataManager->settingsRepo->show_config_security) return;
             QMenu menu(this);
-            auto *sortByLabel = menu.addAction(tr("Sort By:"));
+            auto *sortByLabel = menu.addAction(tr("Sort by:"));
             sortByLabel->setEnabled(false);
 
             struct TypeSortOption {
@@ -1925,44 +2050,24 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             sortColumn(ProfilesTableModel::ColType, false);
             return;
         }
-        if (columnIndex == ProfilesTableModel::ColTestResult) {
+        if (columnIndex == ProfilesTableModel::ColExitIP) {
             QMenu menu(this);
             auto *includeLabel = menu.addAction(tr("Include:"));
             includeLabel->setEnabled(false);
+            auto *actionShowServices = menu.addAction(tr("Services"));
+            actionShowServices->setCheckable(true);
+            actionShowServices->setChecked(group->show_services);
+            if (execHeaderMenu(menu) != actionShowServices) return;
 
-            auto *actionShowOutIP = menu.addAction(tr("Out IP"));
-            actionShowOutIP->setCheckable(true);
-            actionShowOutIP->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
-                                        group->test_items_to_show == Configs::testShowItems::ipOnly);
-
-            auto *actionShowSpeed = menu.addAction(tr("Speed"));
-            actionShowSpeed->setCheckable(true);
-            actionShowSpeed->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
-                                        group->test_items_to_show == Configs::testShowItems::speedOnly);
-
-            auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed] {
-                const bool ip = actionShowOutIP->isChecked();
-                const bool speed = actionShowSpeed->isChecked();
-                if (ip && speed)
-                    group->test_items_to_show = Configs::testShowItems::all;
-                else if (ip)
-                    group->test_items_to_show = Configs::testShowItems::ipOnly;
-                else if (speed)
-                    group->test_items_to_show = Configs::testShowItems::speedOnly;
-                else
-                    group->test_items_to_show = Configs::testShowItems::none;
-                Configs::dataManager->groupsRepo->Save(group);
-                if (group->calculated_column_width.size() > ProfilesTableModel::ColTestResult) {
-                    group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
-                }
-                refresh_proxy_list();
-            };
-
-            connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
-            connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
-
-            menu.addSeparator();
-            auto *sortByLabel = menu.addAction(tr("Sort By:"));
+            group->show_services = actionShowServices->isChecked();
+            Configs::dataManager->groupsRepo->Save(group);
+            group->clearCalculatedColumnWidth();
+            refresh_proxy_list();
+            return;
+        }
+        if (columnIndex == ProfilesTableModel::ColSpeed) {
+            QMenu menu(this);
+            auto *sortByLabel = menu.addAction(tr("Sort by:"));
             sortByLabel->setEnabled(false);
 
             struct SortOption {
@@ -1970,10 +2075,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
                 QString label;
             };
             QList<SortOption> options = {
-                {static_cast<int>(Configs::testBy::latency), tr("Latency")},
-                {static_cast<int>(Configs::testBy::dlSpeed), tr("Download Speed")},
-                {static_cast<int>(Configs::testBy::ulSpeed), tr("Upload Speed")},
-                {static_cast<int>(Configs::testBy::ipOut), tr("IP Out")}};
+                {static_cast<int>(Configs::testBy::dlSpeed), tr("Download speed")},
+                {static_cast<int>(Configs::testBy::ulSpeed), tr("Upload speed")}};
             for (const auto &opt: options) {
                 auto *act = menu.addAction(opt.label);
                 act->setData(opt.value);
@@ -1985,12 +2088,12 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             if (chosen == nullptr || !chosen->data().isValid()) return;
 
             group->test_sort_by = static_cast<Configs::testBy>(chosen->data().toInt());
-            sortColumn(ProfilesTableModel::ColTestResult, true);
+            sortColumn(ProfilesTableModel::ColSpeed, true);
             return;
         }
         if (columnIndex == ProfilesTableModel::ColTraffic) {
             QMenu menu(this);
-            auto *sortByLabel = menu.addAction(tr("Sort By:"));
+            auto *sortByLabel = menu.addAction(tr("Sort by:"));
             sortByLabel->setEnabled(false);
 
             struct TrafficSortOption {
@@ -2116,54 +2219,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     tray = new TrayIcon(this);
     tray->setIcon(Icon::GetTrayIcon(Icon::TrayIconStatus::None));
     QApplication::setWindowIcon(Icon::GetTaskbarIcon(Icon::TrayIconStatus::None));
-    trayMenu = new QMenu();
-    trayMenu->addAction(ui->actionShow_window);
-    trayMenu->addSeparator();
-
-    trayConnectAction = new QAction(tr("Connect"), trayMenu);
-    connect(trayConnectAction, &QAction::triggered, this, [this]() {
-        if (runningSnapshot() != nullptr)
-            profile_stop(false, false, true);
-        else
-            profile_start();
-    });
-    trayMenu->addAction(trayConnectAction);
-    trayMenu->addSeparator();
-
-    trayMenu->addAction(ui->actionStart_with_system);
-    trayMenu->addAction(ui->actionRemember_last_proxy);
-    trayMenu->addMenu(startPickMenu);
-    trayMenu->addAction(ui->actionAllow_LAN);
-    trayMenu->addSeparator();
-
-    auto *actSelectServer = new QAction(tr("Select Profile"), trayMenu);
-    connect(actSelectServer, &QAction::triggered, this, [this]() { openTraySelector(false); });
-    trayMenu->addAction(actSelectServer);
-    auto *actSelectRouting = new QAction(tr("Select Routing"), trayMenu);
-    connect(actSelectRouting, &QAction::triggered, this, [this]() { openTraySelector(true); });
-    trayMenu->addAction(actSelectRouting);
-    auto *actOtpCodes = new QAction(tr("OTP Codes"), trayMenu);
-    connect(actOtpCodes, &QAction::triggered, this, [this]() { openTrayOtpCodes(); });
-    UiMode::MarkAdvanced(actOtpCodes);
-    trayMenu->addAction(actOtpCodes);
-    // MacOS cannot reuse menus across different parents properly
-    if (getOS() == Darwin) {
-        auto *traySpmodeMenu = new QMenu(ui->menu_spmode->title(), trayMenu);
-        traySpmodeMenu->addAction(ui->menu_spmode_system_proxy);
-        traySpmodeMenu->addAction(ui->menu_spmode_vpn);
-        connect(traySpmodeMenu, &QMenu::aboutToShow, this, [=, this]() {
-            ui->menu_spmode_system_proxy->setChecked(Configs::dataManager->settingsRepo->spmode_system_proxy);
-            ui->menu_spmode_vpn->setChecked(Configs::dataManager->settingsRepo->spmode_vpn);
-        });
-        trayMenu->addMenu(traySpmodeMenu);
-    } else {
-        trayMenu->addMenu(ui->menu_spmode);
-    }
-    trayMenu->addSeparator();
-
-    trayMenu->addAction(ui->actionRestart_Proxy);
-    trayMenu->addAction(ui->actionRestart_Program);
-    trayMenu->addAction(ui->menu_exit);
+    setupTrayMenu();
     tray->setVisible(!Configs::dataManager->settingsRepo->disable_tray);
     tray->setContextMenu(trayMenu);
     connect(tray, &TrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
@@ -2184,10 +2240,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=, this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=, this] { ActivateWindow(this); });
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=, this](bool checked) {
-        Configs::dataManager->settingsRepo->remember_enable = checked;
-        ui->actionRemember_last_proxy->setChecked(checked);
-        if (startPickMenu != nullptr) startPickMenu->setEnabled(checked);
-        Configs::dataManager->settingsRepo->Save();
+        Engine::SettingsService::Update([checked](Configs::SettingsValues &values) { values.remember_enable = checked; }, {.interactive = true});
+        syncSettingsMirrors();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=, this](bool checked) {
         if (QString error; !AutoRun_SetEnabled(checked, &error)) {
@@ -2196,12 +2250,15 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
     });
     connect(ui->actionAllow_LAN, &QAction::triggered, this, [=, this](bool checked) {
-        Configs::dataManager->settingsRepo->inbound_address = checked ? "::" : "127.0.0.1";
-        ui->actionAllow_LAN->setChecked(checked);
-        MW_dialog_message(MwMessage::UpdateSettings, {});
+        if (Engine::IsBeingEdited(Engine::EditTarget::Settings)) {
+            syncSettingsMirrors();
+            MessageBoxWarning(ui->actionAllow_LAN->text(), tr("A settings window is open; close it and try again."));
+            return;
+        }
+        const QString address = checked ? QStringLiteral("::") : QStringLiteral("127.0.0.1");
+        Engine::SettingsService::Update([&address](Configs::SettingsValues &values) { values.inbound_address = address; }, {.interactive = true});
+        syncSettingsMirrors();
     });
-    connect(ui->actionAdvanced_Mode, &QAction::triggered, this, [=, this](bool checked) { setSimpleInterface(!checked); });
-    applyUiMode();
     // toggled, not clicked: the visible ThronedToggle drives these hidden boxes with setChecked.
     connect(ui->checkBox_VPN, &QCheckBox::toggled, this, [=, this](bool checked) {
         if (checked != Configs::dataManager->settingsRepo->spmode_vpn) connection()->setTun(checked);
@@ -2221,27 +2278,26 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         // Everything in the Test submenu acts on the selection, so it follows it as a
         // whole -- entries added later do not have to be remembered here.
         const bool hasSelection = !get_now_selected_list().empty();
-        for (auto *action: ui->menu_test_item->actions()) action->setEnabled(hasSelection);
-        ui->menu_test_item->setEnabled(hasSelection);
+        for (auto *action: ui->menu_test_selected->actions()) {
+            // Shared with the group's Test menu and driven by the test session.
+            if (action != ui->menu_stop_testing) action->setEnabled(hasSelection);
+        }
         ui->menu_resolve_selected->setEnabled(hasSelection);
         ui->actionResolve_Selected_Out_IP->setEnabled(hasSelection);
         refresh_action_states();
         refresh_pin_action();
-        if (tests()->isRunning()) {
-            ui->menu_server->addAction(ui->menu_stop_testing);
-        } else {
-            ui->menu_server->removeAction(ui->menu_stop_testing);
-        }
     });
 
     connect(ui->menuTesting, &QMenu::aboutToShow, this, [=, this]() {
         ui->actionDelete_Group->setEnabled(Configs::dataManager->groupsRepo->GetAllGroupIds().size() > 1);
-        if (tests()->isRunning()) {
-            ui->menuTesting->addAction(ui->menu_stop_testing);
-        } else {
-            ui->menuTesting->removeAction(ui->menu_stop_testing);
-        }
+        const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        ui->menu_update_subscription->setVisible(group != nullptr && !group->url.isEmpty());
+        // The command palette emits aboutToShow without opening the menu, and a hidden action's own shortcut is dead.
+        QTimer::singleShot(0, this, [this] {
+            if (ui->menuTesting->isHidden()) ui->menu_update_subscription->setVisible(true);
+        });
     });
+    connect(ui->menuTesting, &QMenu::aboutToHide, this, [this] { ui->menu_update_subscription->setVisible(true); });
 
     connect(ui->menuTools, &QMenu::aboutToShow, this, &MainWindow::refresh_action_states);
 
@@ -2252,8 +2308,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         dialog->deleteLater();
 
         if (ret == QDialog::Accepted) {
-            Configs::dataManager->groupsRepo->AddGroup(ent);
-            MW_dialog_message(MwMessage::GroupsChanged, {});
+            if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
         }
     });
 
@@ -2263,11 +2318,10 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         auto dialog = new DialogEditGroup(ent, this);
         connect(dialog, &QDialog::finished, this, [=, this] {
             if (dialog->result() == QDialog::Accepted) {
-                if (Configs::dataManager->groupsRepo->Save(ent)) {
-                    MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
+                if (!Engine::GroupService::Save(ent, dialog->RestartNeeded())) {
                     if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
                 } else {
-                    MessageBoxWarning(tr("Edit current Group"), tr("This group was deleted while you were editing it."));
+                    MessageBoxWarning(tr("Edit group"), tr("This group was deleted while you were editing it."));
                 }
             }
             dialog->deleteLater();
@@ -2279,9 +2333,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() <= 1) return;
         const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name)) ==
+        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name) + HopReferenceWarning(group->Profiles(), group->id)) ==
             QMessageBox::StandardButton::Yes) {
-            delete_group(group->id, tr("Delete current Group"));
+            delete_group(group->id, tr("Delete group"));
         }
     });
 
@@ -2299,93 +2353,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         show_group(ent->id);
     });
 
-    // A shortcut triggers these without the menu's aboutToShow resync, so the checked state may be stale.
-    connect(ui->actionAdblock, &QAction::triggered, this, [this] {
-        const bool enable = !Configs::dataManager->settingsRepo->adblock_enable;
-        Configs::dataManager->settingsRepo->adblock_enable = enable;
-        ui->actionAdblock->setChecked(enable);
-        Configs::dataManager->settingsRepo->Save();
-        connection()->restartStartedProfile();
-    });
-
-    connect(ui->actionWarp, &QAction::triggered, this, [this] {
-        const bool enable = !Configs::dataManager->settingsRepo->enable_warp;
-        Configs::dataManager->settingsRepo->enable_warp = enable;
-        if (enable) Configs::dataManager->settingsRepo->enable_tor = false;
-        ui->actionWarp->setChecked(enable);
-        Configs::dataManager->settingsRepo->Save();
-        connection()->restartStartedProfile();
-    });
-
-    auto *profilesMenu = new QMenu(QObject::tr("Download Profiles"), ui->menuRouting_Menu);
-    for (const QString &country: QStringList{"China", "Iran", "Russia"}) {
-        auto *action = new QAction(profilesMenu);
-        action->setText(country);
-        connect(action, &QAction::triggered, this, [=, this]() {
-            auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link("https://raw.githubusercontent.com/throneproj/routeprofiles/profile/Profile_" + country));
-            if (!resp.error.isEmpty()) {
-                runOnUiThread([=] {
-                    MessageBoxWarning(QObject::tr("Download Profiles"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
-                });
-                return;
-            }
-            handle_add_remote_routes(resp.data);
-        });
-        profilesMenu->addAction(action);
-    }
-
-    ui->menuRouting_Menu->addAction(ui->menu_routing_settings);
-    ui->menuRouting_Menu->addAction(ui->actionAdblock);
-    ui->menuRouting_Menu->addAction(ui->actionWarp);
-    ui->menuRouting_Menu->addMenu(profilesMenu);
-    ui->menuRouting_Menu->addAction(ui->actionUpdate_Rule_Sets);
-    connect(ui->actionRule_Tester, &QAction::triggered, this, [this] {
-        const auto selected = get_now_selected_list();
-        const int preferred = selected.size() == 1 ? selected.first() : -1;
-        if (m_ruleTesterDialog == nullptr) {
-            m_ruleTesterDialog = new DialogRuleTester(connection(), preferred, this);
-            m_ruleTesterDialog->setAttribute(Qt::WA_DeleteOnClose);
-        } else {
-            m_ruleTesterDialog->setPreferredProfile(preferred);
-        }
-        ActivateWindow(m_ruleTesterDialog);
-    });
-    ui->menuRouting_Menu->addAction(ui->actionRule_Tester);
-    ui->menuRouting_Menu->addSeparator();
-
-    connect(ui->menuRouting_Menu, &QMenu::aboutToShow, this, [=, this]() {
-        ui->actionAdblock->setChecked(Configs::dataManager->settingsRepo->adblock_enable);
-        ui->actionWarp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
-        refresh_action_states();
-
-        // Kept across shows unless the profiles' ids or names changed: the command palette holds on to these actions.
-        QList<QAction *> routeActions;
-        for (auto *action: ui->menuRouting_Menu->actions()) {
-            if (action->property("routeProfileId").isValid()) routeActions.append(action);
-        }
-        const auto routes = Configs::dataManager->routesRepo->GetAllRouteProfiles();
-        bool changed = routes.size() != routeActions.size();
-        for (int i = 0; !changed && i < routes.size(); ++i) {
-            changed = routeActions[i]->data().toInt() != routes[i]->id || routeActions[i]->text() != routes[i]->name;
-        }
-        if (changed) {
-            for (auto *action: routeActions) delete action;
-            routeActions.clear();
-            for (const auto &route: routes) {
-                auto *action = new QAction(ui->menuRouting_Menu);
-                action->setText(route->name);
-                action->setData(route->id);
-                action->setProperty("routeProfileId", route->id);
-                action->setCheckable(true);
-                connect(action, &QAction::triggered, this, [=, this]() { connection()->chooseRoute(action->data().toInt()); });
-                ui->menuRouting_Menu->addAction(action);
-                routeActions.append(action);
-            }
-        }
-        for (auto *action: routeActions) {
-            action->setChecked(Configs::dataManager->settingsRepo->current_route_id == action->data().toInt());
-        }
-    });
+    setupRoutingMenu();
     connect(ui->actionClear_Test_Result, &QAction::triggered, this, [=, this]() { clear_test_results(get_now_selected_list()); });
     connect(ui->actionUrl_Test_Selected, &QAction::triggered, this, [=, this]() {
         tests()->runUrlTests(get_now_selected_list());
@@ -2393,7 +2361,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     // A url test only reports that something timed out. This walks the same path
     // stage by stage, so the one that broke names itself.
     auto *diagnoseAction = new QAction(tr("Diagnose Selected"), this);
-    ui->menu_test_item->insertAction(ui->actionClear_Test_Result, diagnoseAction);
+    ui->menu_test_selected->insertAction(ui->actionClear_Test_Result, diagnoseAction);
     connect(diagnoseAction, &QAction::triggered, this, [=, this]() {
         const auto selected = get_now_selected_list();
         if (selected.isEmpty()) return;
@@ -2408,7 +2376,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         });
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=, this]() {
-        tests()->runUrlTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        tests()->runUrlTests(Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles());
     });
     connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=, this]() {
         if (runningSnapshot() != nullptr) {
@@ -2419,20 +2387,20 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         tests()->runSpeedTests(get_now_selected_list());
     });
     connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=, this]() {
-        tests()->runSpeedTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        tests()->runSpeedTests(Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles());
     });
     connect(ui->actionResolve_Selected_Out_IP, &QAction::triggered, this, [=, this]() {
         tests()->runIpTests(get_now_selected_list());
     });
     connect(ui->actionResolve_Out_IP, &QAction::triggered, this, [=, this]() {
-        tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles());
     });
     const auto startServiceChecks = [this](const QList<int> &ids) {
         if (ids.size() > Engine::TestRunner::kMaxServiceCheckProfiles) {
-            MessageBoxWarning(tr("Service Check"), tr("A service check can test up to 100 profiles at a time. Select fewer profiles."));
+            MessageBoxWarning(tr("Service check"), tr("A service check can test up to 100 profiles at a time. Select fewer profiles."));
             return;
         }
-        if (ids.size() > 20 && QMessageBox::question(this, tr("Service Check"),
+        if (ids.size() > 20 && QMessageBox::question(this, tr("Service check"),
                                                      tr("This checks %1 profiles. Each one sends about 20 requests to the checked services. Continue?").arg(ids.size())) != QMessageBox::StandardButton::Yes) {
             return;
         }
@@ -2442,7 +2410,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         startServiceChecks(get_now_selected_list());
     });
     connect(ui->actionService_Check_Group, &QAction::triggered, this, [startServiceChecks] {
-        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) startServiceChecks(group->Profiles());
+        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) startServiceChecks(group->DisplayedProfiles());
     });
     ui->menu_stop_testing->setEnabled(false);
     // Kept on the window so Ctrl+. works while no menu holds it; the menus add it only to show it.
@@ -2465,7 +2433,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
         QString name;
         auto selected = get_now_selected_list();
 
-        UiMode::SetVisible(ui->menu_export_config, false);
+        ui->menu_export_config->setVisible(false);
         if (selected.isEmpty()) return;
 
         auto profile = Configs::dataManager->profilesRepo->GetProfile(selected.first());
@@ -2477,7 +2445,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
             ui->actionCopy_Test_Result->setVisible(true);
         }
 
-        UiMode::SetVisible(ui->menu_export_config, true);
+        ui->menu_export_config->setVisible(true);
     });
     connect(ui->actionCopy_Test_Result, &QAction::triggered, this, [=, this]() {
         auto ents = get_now_selected_list();
@@ -2510,9 +2478,17 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     connect(qApp, &QGuiApplication::commitDataRequest, this, &MainWindow::on_commitDataRequest);
 
     if (!uiPreviewMode) {
-        auto *timer = new QTimer(this);
-        connect(timer, &QTimer::timeout, this, [this] { refresh_status(); });
-        timer->start(2000);
+        auto *statusTimer = new QTimer(this);
+        // Hidden or minimized, the window is not seen, so the poll keeps only the tray current.
+        connect(statusTimer, &QTimer::timeout, this, [this] {
+            if (isVisible() && !isMinimized()) {
+                refresh_status();
+            } else {
+                refresh_tray_tooltip();
+                refresh_startstop_button();
+            }
+        });
+        statusTimer->start(2000);
     }
 
     m_proxyListRefreshDebounce = new QTimer(this);
@@ -2565,8 +2541,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: trans
     };
     ThronedControl::hooks.applyRoutingChange = [this] {
         refreshRoutingStatus();
-        if (Configs::dataManager->settingsRepo->started_id >= 0)
-            profile_start(Configs::dataManager->settingsRepo->started_id);
+        if (Engine::Lifecycle::ResumeTargetId() >= 0)
+            profile_start(Engine::Lifecycle::ResumeTargetId());
     };
 
     connect(tray, &TrayIcon::messageClicked, this, [this] {

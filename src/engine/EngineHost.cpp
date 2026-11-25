@@ -11,6 +11,7 @@
 #include "include/configs/generate.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/database/SettingsSchema.h"
 #include "include/engine/EngineEvents.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
@@ -19,6 +20,7 @@
 #include "include/engine/app/ExitController.h"
 #include "include/engine/autoselector/AutoSelectorController.h"
 #include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/connection/EngineState.h"
 #include "include/engine/headless/HeadlessPolicy.h"
 #include "include/engine/services/AssetUpdates.h"
 #include "include/engine/services/Dashboard.h"
@@ -49,8 +51,8 @@ public:
         target(__func__)->geoAssetMissingCategory(contextName, needed, whichFile);
     }
 
-    bool confirmGeoAssetDownload(const QString &contextName) override {
-        return target(__func__)->confirmGeoAssetDownload(contextName);
+    void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override {
+        target(__func__)->confirmGeoAssetDownload(contextName, std::move(answered));
     }
 
     void geoAssetDownloadFinished(const QString &error) override {
@@ -77,12 +79,12 @@ public:
         target(__func__)->strictRouteUnavailable(error);
     }
 
-    bool offerCoreReset(const QString &error) override {
-        return target(__func__)->offerCoreReset(error);
+    void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) override {
+        target(__func__)->offerCoreReset(error, std::move(answered));
     }
 
-    bool offerLeftoverTunAdapterRetry(const QString &error) override {
-        return target(__func__)->offerLeftoverTunAdapterRetry(error);
+    void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) override {
+        target(__func__)->offerLeftoverTunAdapterRetry(error, std::move(answered));
     }
 
     void stopFailed(const QString &error) override {
@@ -114,6 +116,11 @@ public:
         target(__func__)->vpnCredentialsRejected(profileId, challenge, retryWith);
     }
 
+    void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                               std::function<void(bool restart)> answered) override {
+        target(__func__)->offerVpnSignInRestart(endpointName, error, std::move(answered));
+    }
+
     void vpnChallengesCleared() override {
         target(__func__)->vpnChallengesCleared();
     }
@@ -128,6 +135,10 @@ public:
 
     void testSessionBusy(const QString &text) override {
         target(__func__)->testSessionBusy(text);
+    }
+
+    void testsInconclusive(const QList<int> &profileIds) override {
+        target(__func__)->testsInconclusive(profileIds);
     }
 
     void exitProgram(ExitReason reason, bool unattended) override {
@@ -152,8 +163,8 @@ class EngineHost::ObserverRelay final : public TestObserver {
 public:
     void bind(TestObserver *observer) { m_target.store(observer); }
 
-    void testPanelSeeded(TestKind kind, int totalProfiles) override {
-        if (auto *target = m_target.load()) target->testPanelSeeded(kind, totalProfiles);
+    void testPanelSeeded(TestKind kind, int totalProfiles, const QList<int> &profileIds) override {
+        if (auto *target = m_target.load()) target->testPanelSeeded(kind, totalProfiles, profileIds);
     }
 
     void testProgressed() override {
@@ -188,6 +199,7 @@ EngineHost::~EngineHost() {
     Subscription::updater()->SetUrlTester(nullptr);
     Subscription::updater()->SetCountryTester(nullptr);
     Lifecycle::SetStopHandler({});
+    Lifecycle::SetStateHooks({});
     delete m_router;
     m_autoSelector.reset();
     m_tests.reset();
@@ -226,6 +238,16 @@ void EngineHost::construct() {
     connect(m_connection, &ConnectionManager::connectionStateChanged, this, &EngineControl::connectionStateChanged, Qt::DirectConnection);
     m_vpnAuth = new VpnAuthController(policy(), this, this);
     Lifecycle::SetStopHandler([c = m_connection](bool crash, bool block, bool manual, bool interactive) { c->stop({crash, block, manual, interactive}); });
+    const auto state = m_connection->state();
+    Lifecycle::SetStateHooks({
+        [state] { return state->resumeTarget(); },
+        [state](int profileId, bool persist) { state->setResumeTarget(profileId, persist); },
+        [state](int profileId, bool persist) { return state->clearResumeTargetIf(profileId, persist); },
+        [state] {
+            const auto running = state->running();
+            return running ? running->id : Configs::NoProfileId;
+        },
+    });
     m_tests = std::make_unique<TestRunner>(policy(), m_observer.get(), [c = m_connection] { return c->runningSnapshot(); });
     m_autoSelector = std::make_unique<AutoSelectorController>(this, m_tests.get());
     m_connection->attach(m_tests.get(), m_autoSelector.get(), m_vpnAuth);
@@ -348,44 +370,38 @@ void EngineHost::shutdown(bool interactive) {
     m_exit->shutdown(interactive);
 }
 
-void EngineHost::applySettingsChange(const QStringList &flags, bool interactive) {
+void EngineHost::applySettingsEffects(const QStringList &changedKeys, quint32 effects, bool interactive) {
     ENGINE_CHECK_MAIN_THREAD();
-    const auto changed = [&](const QString &flag) { return flags.contains(flag); };
-    auto &settings = Configs::dataManager->settingsRepo;
+    namespace Schema = Configs::SettingsSchema;
+    const auto has = [effects](quint32 bit) { return (effects & bit) != 0; };
+    const auto &settings = Configs::dataManager->settingsRepo;
+    // SettingsService picked the new random port before the save.
+    const bool portPicked = settings->random_inbound_port && changedKeys.contains(QStringLiteral("random_inbound_port"));
 
-    if (changed(MwArg::ChoosePort)) {
-        settings->inbound_socks_port = MkPort(settings->inbound_address);
-        if (settings->spmode_system_proxy) {
-            const ModeChange change{.interactive = interactive};
-            m_connection->setSystemProxy(false, change);
-            m_connection->setSystemProxy(true, change);
-        }
+    if (portPicked && settings->spmode_system_proxy) {
+        const ModeChange change{.interactive = interactive};
+        m_connection->setSystemProxy(false, change);
+        m_connection->setSystemProxy(true, change);
     }
-    if (changed(MwArg::DisableAdmin)) {
-        AutoRun_FixTaskIfNeeded();
-    }
-    auto suggestRestartProxy = settings->Save();
-    Throne::PeriodicRunner::instance()->CheckNow();
-    if (changed(MwArg::KillSwitch) || changed(MwArg::Vpn)) Sys::KillSwitch::instance()->apply();
-    if (changed(MwArg::RemoteApi)) RemoteApi::Server::instance()->apply(RemoteApi::EffectiveConfig().config);
-    if (changed(MwArg::Route)) {
-        settings->Save();
-        suggestRestartProxy = true;
-    }
-    if (changed(MwArg::NeedRestart)) {
-        suggestRestartProxy = false;
-    }
-    if (changed(MwArg::Vpn) && settings->spmode_vpn) {
+    if (has(Schema::AutoRun)) AutoRun_FixTaskIfNeeded();
+    if (has(Schema::Periodic)) Throne::PeriodicRunner::instance()->CheckNow();
+    if (has(Schema::KillSwitch)) Sys::KillSwitch::instance()->apply();
+    if (has(Schema::RemoteApi)) RemoteApi::Server::instance()->apply(RemoteApi::EffectiveConfig().config);
+    const bool tunRestart = has(Schema::RestartTun) && settings->spmode_vpn;
+    if (tunRestart) {
         if (interactive)
             policy()->settingsNeedTunRestart();
         else
             MW_show_log(MainWindowTr::tr("Tun Settings changed") + ": " + MainWindowTr::tr("Restart Tun to take effect."));
     }
-    if (changed(MwArg::ChoosePort) || suggestRestartProxy) {
-        m_connection->noteRestartNeeded(changed(MwArg::Route) ? Engine::RestartReason::Routing : Engine::RestartReason::Settings);
+    // A program restart applies everything, so it alone is asked for; a new random port keeps its hint in case it is declined.
+    const bool programRestart = has(Schema::RestartProgram);
+    if (portPicked || (!programRestart && (has(Schema::RestartProfile) || tunRestart))) {
+        m_connection->noteRestartNeeded(RestartReason::Settings);
     }
+    if (!programRestart && has(Schema::RestartRouting)) m_connection->noteRestartNeeded(RestartReason::Routing);
     emit statusChanged();
-    if (changed(MwArg::NeedRestart)) {
+    if (programRestart) {
         if (!interactive) {
             MW_show_log(MainWindowTr::tr("Settings changed") + ": " + MainWindowTr::tr("Restart the program to take effect."));
         } else if (policy()->confirmRestartProgram()) {
@@ -434,9 +450,9 @@ bool EngineHost::chooseRoute(int routeId, bool interactive, quint64 serial) {
     return m_connection->chooseRoute(routeId, interactive, serial);
 }
 
-int EngineHost::clearTestResults(const QList<int> &profileIds) {
+int EngineHost::clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind) {
     QList<int> gids;
-    const int n = ProfileService::ClearTestResults(profileIds, &gids);
+    const int n = ProfileService::ClearTestResults(profileIds, &gids, kind);
     if (n > 0) emit testResultsCleared(gids);
     return n;
 }
@@ -579,10 +595,10 @@ void EngineHost::registerPeriodicJobs() {
     auto *runner = Throne::PeriodicRunner::instance();
     // Interval is sign-encoded in settings (negative = disabled); < 30 min counts as off.
     const auto minutesOf = [](int v) { return v >= 30 ? v : 0; };
-    // Every poll while enabled: each group keeps its own schedule, persisted as its sub_last_update.
+    // Every poll while any group has a schedule: each keeps its own, persisted as its sub_last_update.
     runner->Add({
         {},
-        [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->sub_auto_update) > 0 ? 1 : 0; },
+        [] { return Subscription::updater()->NextAutoUpdate() >= 0 ? 1 : 0; },
         nullptr,
         nullptr,
         [] { Subscription::updater()->CheckAutoUpdate(); },

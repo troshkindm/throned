@@ -6,6 +6,10 @@
 #include "include/ui/profile/edit_wireguard_amnezia.h"
 #include "ui_edit_wireguard.h"
 
+namespace Configs {
+struct IpListEntry;
+}
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class EditWireguard;
@@ -26,9 +30,17 @@ public:
 
     void bindValidation(Validation::Form &form) override;
 
+    bool retarget(const std::shared_ptr<Configs::Profile> &profile) override;
+
 private:
     Ui::EditWireguard *ui;
     std::shared_ptr<Configs::Profile> ent;
     WireguardAmneziaOptions amneziaOptions;
     QPointer<Validation::Form> form;
+
+    void updateWarpFind();
+
+    void findWarpEndpoint();
+
+    void applyWarpEndpoint(const Configs::IpListEntry &entry, bool junk, bool ownAddress);
 };

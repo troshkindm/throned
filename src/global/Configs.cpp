@@ -54,6 +54,7 @@ void initDB(const std::string& dbPath) {
         dataManager->markersRepo->Mark(Markers::DefaultIpLists);
         dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
         dataManager->markersRepo->Mark(Markers::WarpMasqueRanges);
+        dataManager->markersRepo->Mark(Markers::ListSeedsNov2026);
     } else {
         if (!dataManager->markersRepo->IsMarked(Markers::DefaultResolverLists)) {
             Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kIranResolversName);
@@ -62,6 +63,8 @@ void initDB(const std::string& dbPath) {
         }
         if (!dataManager->markersRepo->IsMarked(Markers::WarpMasqueRanges) && Scanner::DefaultIpLists::MigrateWarpMasqueRanges())
             dataManager->markersRepo->Mark(Markers::WarpMasqueRanges);
+        if (!dataManager->markersRepo->IsMarked(Markers::ListSeedsNov2026) && Scanner::DefaultIpLists::MigrateListSeedsNov2026())
+            dataManager->markersRepo->Mark(Markers::ListSeedsNov2026);
     }
 }
 

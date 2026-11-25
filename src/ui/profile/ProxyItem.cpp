@@ -8,6 +8,7 @@
 #include <QStyle>
 
 #include "include/configs/generate.h"
+#include "include/ui/utils/ThemedIcon.hpp"
 
 // Throned themes keep no app-wide sheet matching colorRole, so the role is painted through the palette here.
 void ProxyItem::setColorRole(QWidget *widget, const QString &role) {
@@ -27,6 +28,8 @@ void ProxyItem::setColorRole(QWidget *widget, const QString &role) {
 ProxyItem::ProxyItem(QWidget *parent, const std::shared_ptr<Configs::Profile> &ent, QListWidgetItem *item)
     : QWidget(parent), ui(new Ui::ProxyItem) {
     ui->setupUi(this);
+    ui->change->setIcon(ThemedIcon(QStringLiteral("arrow-left-right")));
+    ui->remove->setIcon(ThemedIcon(QStringLiteral("trash")));
     this->setLayoutDirection(Qt::LeftToRight);
     const auto iconColor = palette().color(QPalette::ButtonText);
     ui->change->setIcon(MaterialIcon::icon(MaterialIcon::Glyph::SwapHorizontal, iconColor));

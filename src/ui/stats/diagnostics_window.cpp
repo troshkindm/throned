@@ -658,12 +658,12 @@ QFrame#diagnosticRailPanel { background: #171B21; border: 0; border-right: 1px s
 /* Scoped through the dialog so it outweighs the generic button rule below, which
    otherwise fills every rail entry and makes the whole rail look like a keypad. */
 QDialog#diagnosticsWindow QPushButton#diagnosticRail {
-    text-align: left; padding: 9px 10px; border: 1px solid transparent; border-radius: 6px;
+    text-align: left; padding: 9px 10px; border: 1px solid transparent; border-radius: 8px;
     background: transparent; color: #A4ABB4;
 }
-QDialog#diagnosticsWindow QPushButton#diagnosticRail:hover { background: #222529; border-color: #2F3136; }
+QDialog#diagnosticsWindow QPushButton#diagnosticRail:hover { background: #222529; }
 QDialog#diagnosticsWindow QPushButton#diagnosticRail:checked {
-    background: #193452; border-color: #237AE9; color: #F1F3F5; font-weight: 600;
+    background: #193452; color: #F1F3F5; font-weight: 600;
 }
 QLabel#diagnosticStamp { padding: 6px 10px; }
 QStackedWidget#diagnosticPages { background: #1B1E23; }

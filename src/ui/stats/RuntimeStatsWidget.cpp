@@ -12,11 +12,14 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/SettingsRepo.h"
+#include "include/global/Configs.hpp"
 #include "include/global/Utils.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/CountryHelper.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/global/ExitLookup.hpp"
+#include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/ItemViewFit.h"
 #include "include/ui/utils/ServiceCheckHtml.h"
 
 #include <QBrush>
@@ -36,7 +39,39 @@
 
 #include <algorithm>
 
+#ifdef Q_OS_WIN
+#include "include/sys/windows/guihelper.h"
+#else
+#include <unistd.h>
+#endif
+
 namespace {
+QString runtimeProcessName(const QColor& color, const QString& name, const QString& privilege) {
+    const QString text = privilege.isEmpty() ? name : QStringLiteral("%1 (%2)").arg(name, privilege);
+    return QStringLiteral("<span style=\"color:%1\">●</span> %2").arg(color.name(), text.toHtmlEscaped());
+}
+
+QString runtimeThronePrivilege() {
+#ifdef Q_OS_WIN
+    return Windows_IsInAdmin() ? RuntimeStatsWidget::tr("Admin") : QString();
+#else
+    return ::geteuid() == 0 ? QStringLiteral("root") : QString();
+#endif
+}
+
+QString runtimeCorePrivilege() {
+    const auto report = Configs::KnownCapabilities();
+    if (!report || !report->privileged) return {};
+#ifdef Q_OS_WIN
+    return RuntimeStatsWidget::tr("Admin");
+#elif defined(Q_OS_MACOS)
+    return QStringLiteral("root");
+#else
+    // A Linux core can hold the Tun capabilities as the user; only a root one may run the kill switch.
+    return report->killSwitch.value_or(true) ? QStringLiteral("root") : RuntimeStatsWidget::tr("capabilities");
+#endif
+}
+
 QString runningConfigName() {
     auto* engine = Engine::host();
     const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
@@ -109,17 +144,16 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
                           "QLabel#vThroneCpu, QLabel#vThroneRam, QLabel#vCfgName { color: %3; font-weight: 600; }"
                           "QLabel#labelPing, QLabel#labelOutIp, QLabel#labelCountry, QWidget#runtimeFooter QLabel { color: %4; }")
                           .arg(colors.window.name(), colors.border.name(), colors.text.name(), colors.textMuted.name()));
-        for (auto* label: {ui->labelThroneName, ui->labelRamThroneName})
-            label->setText(QStringLiteral("<span style=\"color:%1\">●</span> Throned").arg(colors.accent.name()));
+        ui->labelThroneName->setText(runtimeProcessName(colors.accent, QStringLiteral("Throned"), runtimeThronePrivilege()));
+        ui->labelRamThroneName->setText(runtimeProcessName(colors.accent, QStringLiteral("Throned"), {}));
         for (auto* label: {ui->labelCoreName, ui->labelRamCoreName})
-            label->setText(QStringLiteral("<span style=\"color:%1\">●</span> %2").arg(colors.textMuted.name(), tr("Core")));
+            label->setText(runtimeProcessName(colors.textMuted, tr("Core"), {}));
     };
     connect(themeManager(), &ThemeManager::themeChanged, this, applyTheme);
     applyTheme();
     // A lookup service's answer: as AutoText a tag in it would render as HTML.
     ui->vOutIp->setTextFormat(Qt::PlainText);
     ui->vCountry->setTextFormat(Qt::PlainText);
-    // Rich text built by ServiceCheckHtml::summary, which escapes everything it did not write itself.
     connect(ui->btnServiceCheck, &QToolButton::clicked, this, [this] {
         auto* engine = Engine::host();
         if (engine == nullptr) return;
@@ -133,6 +167,7 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
     ui->runtimeEndpoints->setToolTip(tr("VPN Endpoints"));
     connect(ui->runtimeEndpoints, &QToolButton::toggled, ui->groupEndpoints, &QWidget::setVisible);
     auto* endpoints = ui->endpointsTable;
+    endpoints->setItemDelegate(new ItemViewFit::Delegate(endpoints));
     endpoints->verticalHeader()->setVisible(false);
     endpoints->setEditTriggers(QAbstractItemView::NoEditTriggers);
     endpoints->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -216,14 +251,17 @@ void RuntimeStatsWidget::hideEvent(QHideEvent* event) {
 void RuntimeStatsWidget::refreshServices() {
     auto* engine = Engine::host();
     const auto running = runningProfile();
-    const QString summary = running != nullptr ? ServiceCheckHtml::summary(*running) : QString();
-    const QString details = running != nullptr ? ServiceCheckHtml::details(*running) : QString();
+    const QString summary = running != nullptr ? ServiceCheckHtml::summaryLine(*running) : QString();
+    const QString failure = running != nullptr ? ServiceCheckHtml::failure(*running) : QString();
+    const QString ipKind = running != nullptr ? ServiceCheckHtml::ipKind(*running, true) : QString();
+    const auto items = running != nullptr ? ServiceCheckHtml::items(*running) : QList<ServiceIcons::Item>();
 
     QString checked;
+    const qint64 checkedAt = running != nullptr ? running->ServiceCheckedAt() : 0;
     if (serviceChecking_->load()) {
         checked = tr("Checking…");
-    } else if (!details.isEmpty()) {
-        const qint64 age = qMax<qint64>(0, QDateTime::currentSecsSinceEpoch() - running->ServiceCheckedAt());
+    } else if (checkedAt > 0) {
+        const qint64 age = qMax<qint64>(0, QDateTime::currentSecsSinceEpoch() - checkedAt);
         if (age < 60)
             checked = tr("Checked just now");
         else
@@ -234,9 +272,30 @@ void RuntimeStatsWidget::refreshServices() {
     ui->btnServiceCheck->setText(serviceChecking_->load() ? tr("Checking…") : tr("Services"));
     QString tip = tr("Check which services work through the running profile");
     if (!summary.isEmpty()) {
-        QString body = details;
-        body.remove(QStringLiteral("<qt>")).remove(QStringLiteral("</qt>"));
-        tip = QStringLiteral("<qt><p>%1</p>%2").arg(summary, body);
+        const auto colors = themeManager()->Colors();
+        const auto stateColor = [&colors](ServiceIcons::State state) {
+            switch (state) {
+                case ServiceIcons::State::Access:
+                    return colors.success;
+                case ServiceIcons::State::Partial:
+                    return colors.warning;
+                case ServiceIcons::State::NoAccess:
+                    return colors.danger;
+                default:
+                    return colors.textMuted;
+            }
+        };
+        tip = QStringLiteral("<qt><p>%1</p>").arg(summary.toHtmlEscaped());
+        if (!failure.isEmpty()) {
+            tip += QStringLiteral("<p style=\"color:%1\">%2</p>").arg(colors.danger.name(), failure.toHtmlEscaped());
+        } else {
+            // ipKind is rich text that escapes everything it did not write itself.
+            if (!ipKind.isEmpty()) tip += QStringLiteral("<p>%1</p>").arg(ipKind);
+            for (const auto& item: items) {
+                tip += QStringLiteral("<div style=\"color:%1; white-space:nowrap\">%2</div>")
+                           .arg(stateColor(item.state).name(), item.toolTip.toHtmlEscaped());
+            }
+        }
         if (!checked.isEmpty() && !serviceChecking_->load()) tip += QStringLiteral("<p>%1</p>").arg(checked.toHtmlEscaped());
         tip += QStringLiteral("</qt>");
     }
@@ -258,6 +317,8 @@ void RuntimeStatsWidget::refreshLive() {
     const auto coreSample = corePid > 0 ? metrics_.sample(corePid) : Sys::ProcessMetrics::Sample{};
     ui->vCoreRam->setText(formatRam(coreSample));
     ui->vCoreCpu->setText(formatCpu(coreSample));
+    // The core's report comes in after each start; a restarted core can hold other rights.
+    ui->labelCoreName->setText(runtimeProcessName(themeManager()->Colors().textMuted, tr("Core"), corePid > 0 ? runtimeCorePrivilege() : QString()));
 
     ui->cpuChart->push(selfSample.ok ? selfSample.cpuPercent : 0.0,
                        coreSample.ok ? coreSample.cpuPercent : 0.0);
@@ -343,20 +404,14 @@ void RuntimeStatsWidget::refreshLive() {
     if (!connBusy_.exchange(true)) {
         QPointer<RuntimeStatsWidget> self(this);
         runOnNewThread([self]() {
-            const auto conns = API::defaultClient->QueryConnections();
-            int tcp = 0, udp = 0, total = 0;
-            for (const auto& c: conns.active) {
-                ++total;
-                const QString net = QString::fromStdString(c.network.value());
-                if (net == QStringLiteral("tcp"))
-                    ++tcp;
-                else if (net == QStringLiteral("udp"))
-                    ++udp;
-            }
-            runOnUiThread([self, tcp, udp, total]() {
+            bool ok = false;
+            const auto count = API::defaultClient->QueryConnectionCount(&ok);
+            const int tcp = count.tcp.value_or(0);
+            const int udp = count.udp.value_or(0);
+            runOnUiThread([self, tcp, udp]() {
                 if (!self) return;
                 self->ui->vConns->setText(
-                    RuntimeStatsWidget::tr("%1 active   ·   %2 TCP   ·   %3 UDP").arg(total).arg(tcp).arg(udp));
+                    RuntimeStatsWidget::tr("%1 active   ·   %2 TCP   ·   %3 UDP").arg(tcp + udp).arg(tcp).arg(udp));
                 self->connBusy_.store(false);
             });
         });

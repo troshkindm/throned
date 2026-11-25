@@ -23,12 +23,6 @@ private:
     mutable std::map<int, std::weak_ptr<RouteProfile>> identityMap;
     std::atomic<quint64> revision{0};
 
-    QJsonObject routeRuleToJson(const RouteRule* rule) const;
-
-    std::shared_ptr<RouteRule> routeRuleFromJson(const QJsonObject& json) const;
-
-    QJsonObject routeProfileToJson(const RouteProfile* routeProfile) const;
-
     std::shared_ptr<RouteProfile> routeProfileFromJson(const QJsonObject& json) const;
 
     void saveToDatabase(const RouteProfile* routeProfile, int id) const;
@@ -42,7 +36,7 @@ private:
     std::shared_ptr<RouteProfile> routeProfileFromProfileRow(SQLite::Statement& stmt) const;
 
     // baseCol is the column index the rule name sits at.
-    QJsonObject ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) const;
+    std::shared_ptr<RouteRule> ruleFromRow(SQLite::Statement& stmt, int baseCol) const;
 
     // Appends to byId[profileId]->Rules rather than replacing.
     void loadRulesForProfileIdsChunk(const QList<int>& profileIds, std::map<int, std::shared_ptr<RouteProfile>>& byId) const;
@@ -72,6 +66,9 @@ public:
     // Without loading the rules; nullopt when the profile follows the global DNS settings or does not exist.
     std::optional<RouteDns> GetCustomDns(int id) const;
 
+    // Without loading the rules; nullopt when the profile does not exist.
+    std::optional<QString> GetRouteProfileName(int id) const;
+
     // Without loading it.
     bool HasRouteProfile(int id) const;
 
@@ -86,9 +83,13 @@ public:
     // Saves the list and deletes removedIds; a profile created elsewhere meanwhile is left alone.
     void UpdateRouteProfiles(const QList<std::shared_ptr<RouteProfile>>& routeProfiles, const QList<int>& removedIds);
 
+    // In the user's order, which every list and menu of routing profiles follows.
     QList<int> GetAllRouteProfileIds() const;
 
     QList<std::shared_ptr<RouteProfile>> GetAllRouteProfiles() const;
+
+    // Unknown ids are skipped and unlisted profiles follow in their current order; returns whether the order changed.
+    bool SetRouteProfilesOrder(const QList<int>& ids);
 
     // No-op unless id >= 0.
     bool Save(const std::shared_ptr<RouteProfile>& routeProfile);

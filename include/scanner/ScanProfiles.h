@@ -4,35 +4,39 @@
 #include <QString>
 #include <memory>
 
-#include "include/configs/sub/warp.h"
+#include "include/database/entities/IpList.h"
 #include "include/database/entities/IpScan.h"
 #include "include/database/entities/Profile.h"
 
 namespace Scanner {
-[[nodiscard]] bool IsScanBaseType(const QString &type);
-
 // dnstt | masterdns | xdns for a profile a DNS resolver scan can probe for; "" otherwise.
 [[nodiscard]] QString DnsTunnelProtocol(const Configs::Profile &profile);
 
 [[nodiscard]] bool IsDnsTunnelBase(const Configs::Profile &profile);
 
-// An XDNS profile dials its resolvers, never its server address, so only a resolver scan can use it.
-[[nodiscard]] bool IsGenericScanBase(const Configs::Profile &profile);
+// True for the public key every Cloudflare WARP WireGuard peer uses.
+[[nodiscard]] bool IsWarpPeerKey(const QString &publicKey);
 
-// The probe levels of a protocol, cheapest first; the default is ResolverScanDefaultLevel.
-[[nodiscard]] QStringList ResolverScanLevels(const QString &protocol);
+// A WireGuard or AmneziaWG profile whose peer is Cloudflare WARP, or a MASQUE profile.
+[[nodiscard]] bool IsWarpScanProfile(const Configs::Profile &profile);
 
-[[nodiscard]] QString ResolverScanDefaultLevel(const QString &protocol);
+// The AmneziaWG junk WARP accepts (WarpPresets::kJunk*), with the rest of the AmneziaWG set cleared.
+void ApplyWarpJunk(Configs::wireguard &outbound);
 
-[[nodiscard]] int ResolverScanDefaultTimeoutMs(const QString &protocol, const QString &level);
+// Points a WARP profile at entry with the junk (unless it has AmneziaWG) or the HTTP/2 fallback (unless it is on
+// HTTP/2 alone) the run needed; an endpoint source that would replace the address becomes Own. False for a non-WARP
+// profile or an entry that is not one address.
+bool ApplyWarpEndpoint(Configs::Profile &profile, const Configs::IpListEntry &entry, bool junk, bool http2);
 
-// Always a deep copy, never the live repo object.
+// "wireguard" | "masque" for a WARP scan profile; "" otherwise.
+[[nodiscard]] QString WarpCarrier(const Configs::Profile &profile);
+
+// The profile's own sing-box endpoint object for the core's WARP probe; nothing is overridden.
+[[nodiscard]] QJsonObject WarpProbeEndpoint(const Configs::Profile &profile, QString *error);
+
+// A resolver scan's DNS tunnel profile; always a deep copy, never the live repo object.
 std::shared_ptr<Configs::Profile> ResolveScanBase(const Configs::IpScan &scan, QString *error);
 
-std::shared_ptr<Configs::Profile> BuildWarpTemplate(const Configs::ScanWarpOptions &opt, QString *error);
-
-// transport: "wireguard" | "masque".
-QJsonObject WarpIdentityToBeanJson(const QString &transport, const Configs_network::WarpIdentity &identity);
-
-[[nodiscard]] QString WarpTransportOf(const QString &mode);
+// A deep copy of a WARP profile, an editor's unsaved draft too; nullptr with *error set otherwise.
+std::shared_ptr<Configs::Profile> CloneWarpScanBase(const std::shared_ptr<Configs::Profile> &profile, QString *error);
 } // namespace Scanner

@@ -70,7 +70,7 @@ func TestEnrollMASQUEUsesTLSCapableEndpoint(t *testing.T) {
 		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewReader(content))}, nil
 	})}}
 	identity := &Identity{}
-	if err := enrollMASQUE(context.Background(), apiClient, defaultAPIHost,
+	if err := enrollMASQUE(context.Background(), apiClient, defaultAPIHosts[0],
 		&device{ID: "test-device", Token: "test-token"}, identity); err != nil {
 		t.Fatal(err)
 	}

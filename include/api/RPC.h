@@ -90,6 +90,8 @@ public:
     // Empty checks describes the core's embedded definitions; a non-empty reply.error rejects the document.
     libcore::ParseServiceChecksResponse ParseServiceChecks(bool *rpcOK, const QByteArray &checks, QString *coreError = nullptr);
 
+    [[nodiscard]] libcore::QueryConnectionCountResp QueryConnectionCount(bool *rpcOK) const;
+
     // Ids already gone are a no-op; closedCount (optional) receives how many were actually live.
     QString CloseConnections(bool *rpcOK, const QStringList &ids, int *closedCount = nullptr) const;
 
@@ -105,11 +107,9 @@ public:
     // IsPrivileged with the core's capability fields (IsPrivilegedResponse 2-5).
     PrivilegeInfo Privileges(bool *rpcOK, int timeoutMs = 0) const;
 
-    libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError = nullptr);
+    libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError = nullptr, int timeoutMs = 0);
 
     libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
-
-    libcore::QueryCountryTestResponse QueryCountryTestResults(bool *rpcOK);
 
     libcore::GenWgKeyPairResponse GenWgKeyPair(bool *rpcOK);
 
@@ -120,8 +120,6 @@ public:
     libcore::GenQuicSignatureResponse GenQuicSignature(bool *rpcOK, const QString &domain);
 
     QString InstallDashboard(bool *rpcOK, const QString &archivePath, const QString &targetDir) const;
-
-    QString InstallTor(bool *rpcOK, const QString &archivePath, const QString &sha256) const;
 
     // Empty name = the OS has no default route.
     [[nodiscard]] libcore::GetDefaultInterfaceResponse GetDefaultInterface(bool *rpcOK) const;
@@ -161,8 +159,8 @@ public:
     // Up when any target accepts a TCP connection through the default interface.
     [[nodiscard]] bool ScanCheckNetwork(bool *rpcOK, const QStringList &targets, int timeoutMs, QString *error = nullptr) const;
 
-    // Returns the error text; empty on success.
-    QString ParseRuleSet(bool *rpcOK, const QByteArray &content, QStringList *cidrs, int *skippedRules = nullptr) const;
+    // Up when a resolver of the physical network answers, or none is known; systemResolvers receives the ones asked.
+    [[nodiscard]] bool ScanCheckNetworkDns(bool *rpcOK, int timeoutMs, QStringList *systemResolvers, QString *error = nullptr) const;
 
     // Through the core's dns-direct; config is the probe box it starts when the running profile has none.
     libcore::ResolveDomainsResponse ResolveDomains(bool *rpcOK, const QStringList &domains, const QString &config,

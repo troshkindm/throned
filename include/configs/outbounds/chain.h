@@ -8,7 +8,7 @@ class chain : public outbound {
 public:
     QList<int> list; // from in to out
 
-    QString DisplayType() override { return QObject::tr("Chain Proxy"); };
+    QString DisplayType() override { return QObject::tr("Proxy Chain"); };
 
     QString DisplayAddress() override { return ""; };
 

@@ -127,17 +127,18 @@ struct DeleteOutcome {
     QList<int> kept;
     // The running profile this delete stopped (allow_stopping_active_profile).
     std::shared_ptr<Configs::Profile> stopped;
+    QList<Configs::HopReference> clearedHops;
 };
 
 DeleteOutcome deleteProfiles(QList<int> ids) {
     DeleteOutcome outcome;
     const QSet<int> requested(ids.begin(), ids.end());
     const auto &settings = Configs::dataManager->settingsRepo;
-    const int startedId = settings->started_id;
+    const int startedId = Engine::Lifecycle::ResumeTargetId();
     const auto running = settings->allow_stopping_active_profile && requested.contains(startedId)
                              ? Configs::dataManager->profilesRepo->GetProfile(startedId)
                              : nullptr;
-    outcome.ok = Configs::dataManager->profilesRepo->BatchDeleteProfiles(ids, settings->allow_stopping_active_profile, false);
+    outcome.ok = Configs::dataManager->profilesRepo->BatchDeleteProfiles(ids, settings->allow_stopping_active_profile, false, &outcome.clearedHops);
     const QSet<int> deleted(ids.begin(), ids.end());
     outcome.deleted = std::move(ids);
     for (int id: requested) {
@@ -168,7 +169,7 @@ void reconnectSuccessor(const QList<int> &ids, const std::shared_ptr<Configs::Pr
 void reconnectUpdated(int id) {
     const auto &settings = Configs::dataManager->settingsRepo;
     const auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
-    if (ent == nullptr || settings->started_id != id || !Configs::RunningUsesProfile(id)) return;
+    if (ent == nullptr || Engine::Lifecycle::ResumeTargetId() != id || !Configs::RunningUsesProfile(id)) return;
     const auto display = ent->outbound->DisplayTypeAndName();
     if (!settings->allow_stopping_active_profile) {
         MW_show_log(QObject::tr("%1 was changed by the update while running; the change applies on its next start.").arg(display));
@@ -372,6 +373,15 @@ QString notice(const QStringList &names, const QString &prefix, const QString &a
         result += '\n';
     }
     return result;
+}
+
+QString hopNotice(const QList<Configs::HopReference> &cleared) {
+    if (cleared.isEmpty()) return {};
+    QString text = "\n" + QObject::tr("These groups used a deleted profile as their front or landing proxy. It was removed from them, so they connect without it:");
+    for (const auto &ref: cleared) {
+        text += "\n" + (ref.role == Configs::HopRole::Front ? QObject::tr("%1 (front proxy)") : QObject::tr("%1 (landing proxy)")).arg(ref.groupName);
+    }
+    return text;
 }
 
 QString groupLabel(int gid) {
@@ -587,16 +597,19 @@ DeleteOutcome removeFlagged(const QList<int> &ids, const Configs::SubscriptionOp
     }
     report += sections;
     if (!outcome.kept.isEmpty()) report += "\n" + QObject::tr("The running profile was kept.");
+    report += hopNotice(outcome.clearedHops);
     return outcome;
 }
 
-QList<int> removeUnavailableAndSort(const std::shared_ptr<Configs::Group> &group, const Configs::SubscriptionOptions &options, QString &report) {
+QList<int> removeUnavailableAndSort(const std::shared_ptr<Configs::Group> &group, const Configs::SubscriptionOptions &options,
+                                    qint64 testedSince, QString &report) {
     QList<int> deleted;
     if (options.remove_unavailable) {
         QList<int> doomed;
         QStringList names;
         forEachProfile(withoutSelectors(group->Profiles()), [&](const std::shared_ptr<Configs::Profile> &ent) {
-            if (!ent->IsUnavailable()) return;
+            // Only this test's failures: an inconclusive or aborted test leaves the earlier result in place.
+            if (!ent->IsUnavailable() || ent->latency_at < testedSince) return;
             doomed << ent->id;
             names << ent->outbound->DisplayTypeAndName();
         });
@@ -608,6 +621,7 @@ QList<int> removeUnavailableAndSort(const std::shared_ptr<Configs::Group> &group
             deleted = outcome.deleted;
             report += "\n" + QObject::tr("Removed %1 unavailable profiles:").arg(names.size()) + "\n" + notice(names, "[-]", "removed");
             if (!outcome.kept.isEmpty()) report += "\n" + QObject::tr("The running profile was kept.");
+            report += hopNotice(outcome.clearedHops);
         }
     }
     if (options.sort_by_latency) {
@@ -667,6 +681,7 @@ CountryOutcome applyCountryRules(const std::shared_ptr<Configs::Group> &group, c
         for (const auto &[key, country]: refusedVerdicts) verdicts.insert(key, country);
         report += "\n" + QObject::tr("Removed %1 profiles outside the country rules:").arg(refusedNames.size()) + "\n" + notice(refusedNames, "[-]", "removed");
         if (!deleted.kept.isEmpty()) report += "\n" + QObject::tr("The running profile was kept.");
+        report += hopNotice(deleted.clearedHops);
     }
     Configs::dataManager->groupsRepo->SetCountryVerdicts(group->id, verdicts);
     return outcome;
@@ -675,10 +690,12 @@ CountryOutcome applyCountryRules(const std::shared_ptr<Configs::Group> &group, c
 
 AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group) {
     const auto &settings = Configs::dataManager->settingsRepo;
-    if (group.url.isEmpty() || group.archive || group.skip_auto_update || settings->sub_auto_update < 30) return {};
+    if (group.url.isEmpty() || group.archive || group.skip_auto_update) return {};
     const auto &options = group.sub_options;
+    // A group's own choices stand alone; inherited ones follow the global switch.
+    const bool globalOn = settings->sub_auto_update >= 30;
     const bool respectServer = options.respect_server_interval.value_or(
-        group.provider.intervalFromProvider || settings->sub_respect_server_interval);
+        group.provider.intervalFromProvider || (globalOn && settings->sub_respect_server_interval));
     const int serverMinutes = group.sub_info.server_interval > 0    ? group.sub_info.server_interval * 60
                               : group.provider.intervalFromProvider ? group.provider.updateIntervalMinutes
                                                                     : 0;
@@ -688,6 +705,7 @@ AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group) {
         return {static_cast<qint64>(std::max(options.update_interval, 30)) * 60, AutoUpdatePlan::Source::group};
     if (!group.provider.intervalFromProvider && group.provider.updateIntervalMinutes > 0)
         return {static_cast<qint64>(group.provider.updateIntervalMinutes) * 60, AutoUpdatePlan::Source::group};
+    if (!globalOn) return {};
     return {static_cast<qint64>(settings->sub_auto_update) * 60, AutoUpdatePlan::Source::global};
 }
 
@@ -1321,8 +1339,9 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
     bool cleared = false;
     std::shared_ptr<Configs::Profile> stoppedRunning;
     int updatedRunning = -1;
+    QList<Configs::HopReference> clearedHops;
     if (settings->sub_clear) {
-        MW_show_log(QObject::tr("Clearing servers..."));
+        MW_show_log(QObject::tr("Clearing profiles..."));
         auto doomed = members();
         if (options.keep_working) {
             QSet<int> working;
@@ -1341,6 +1360,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
         }
         disturbed = outcome.deleted;
         stoppedRunning = outcome.stopped;
+        clearedHops = outcome.clearedHops;
         result.removed = static_cast<int>(outcome.deleted.size());
         // A survivor still belongs to the subscription: fall through to the diff.
         cleared = members().isEmpty();
@@ -1428,7 +1448,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
                     oldEnt->type = newEnt->type;
                     oldEnt->ClearTestResults();
                     oldEnt->test_country = newEnt->test_country;
-                    if (oldId == settings->started_id) updatedRunning = oldId;
+                    if (oldId == Engine::Lifecycle::ResumeTargetId()) updatedRunning = oldId;
                 }
                 profilesRepo->Save(oldEnt);
             }
@@ -1453,6 +1473,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
         }
         disturbed << outcome.deleted;
         if (outcome.stopped != nullptr) stoppedRunning = outcome.stopped;
+        clearedHops << outcome.clearedHops;
         // stale also lists the fresh rows that only carried an update into an old id.
         const QSet<int> deletedIds(outcome.deleted.begin(), outcome.deleted.end());
         for (const auto &entry: old) {
@@ -1482,7 +1503,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
             if (!restore(id)) continue;
             if (const auto ent = profilesRepo->GetProfile(id); ent != nullptr) workingNames << ent->outbound->DisplayTypeAndName();
         }
-        // plan.order knows nothing of pins: surviving pinned profiles return to the head, deleted ones drop out.
+        // Deleted profiles leave the pins and the custom arrangement; the rest keep their order there.
         group->NormalizePins();
         if (!outcome.kept.isEmpty() || !keptWorking.isEmpty()) groupsRepo->Save(group);
 
@@ -1512,6 +1533,7 @@ void GroupUpdater::applyRefresh(const std::shared_ptr<Configs::Group> &group, co
             change_text = QObject::tr("Nothing");
         }
     }
+    change_text += hopNotice(clearedHops);
     if (filteredOut > 0) change_text += "\n" + QObject::tr("Filtered out %1 profiles.").arg(filteredOut);
 
     const auto flagged = removeFlagged(members(), options, change_text);
@@ -1591,8 +1613,9 @@ void GroupUpdater::startUrlTest(int gid, const QList<int> &profileIDs, bool inte
         tester = urlTester;
     }
     if (tester == nullptr) return;
+    const qint64 testedSince = QDateTime::currentSecsSinceEpoch();
     // Back through the queue, so the follow-up never races another job over the group.
-    tester(profileIDs, interactive, [=, this] { enqueue({-1, false, [=, this] { afterUrlTest(gid); }, nullptr}); });
+    tester(profileIDs, interactive, [=, this] { enqueue({-1, false, [=, this] { afterUrlTest(gid, testedSince); }, nullptr}); });
 }
 
 void GroupUpdater::afterCountryTest(int gid, bool interactive) {
@@ -1614,14 +1637,14 @@ void GroupUpdater::afterCountryTest(int gid, bool interactive) {
     if (options.url_test) startUrlTest(gid, withoutSelectors(group->Profiles()), interactive);
 }
 
-void GroupUpdater::afterUrlTest(int gid) {
+void GroupUpdater::afterUrlTest(int gid, qint64 testedSince) {
     const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
     if (group == nullptr || group->archive) return;
     const auto options = group->sub_options;
     if (!options.url_test || (!options.remove_unavailable && !options.sort_by_latency)) return;
 
     QString report;
-    const auto deleted = removeUnavailableAndSort(group, options, report);
+    const auto deleted = removeUnavailableAndSort(group, options, testedSince, report);
     if (!report.isEmpty()) MW_show_log("<<<<<<<< " + QObject::tr("After the URL test of %1:").arg(group->name) + report);
 
     Engine::EngineEvents::SubscriptionGroupChanged(gid, deleted);

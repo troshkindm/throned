@@ -1,10 +1,12 @@
 #include "include/engine/vpn/VpnEndpoints.h"
 
 #include "include/api/RPC.h"
+#include "include/configs/common/Protocols.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/SettingsRepo.h"
 #include "include/engine/EngineTr.h"
+#include "include/engine/Lifecycle.h"
 
 #include <QMutex>
 #include <QObject>
@@ -113,7 +115,7 @@ std::shared_ptr<Configs::Profile> VpnExitEndpoint(const std::shared_ptr<Configs:
         hop = Configs::dataManager->profilesRepo->GetProfile(chain->list.back());
     }
     if (hop == nullptr) return nullptr;
-    if (hop->type != "openvpn" && hop->type != "openconnect") return nullptr;
+    if (!Configs::Protocols::Is(hop->type, Configs::Protocols::VpnEndpoint)) return nullptr;
     return hop;
 }
 
@@ -130,7 +132,7 @@ QString VpnExitStateText(const QString &state, const QString &error) {
 
 QString LiveVpnStateText(bool *connected) {
     if (connected != nullptr) *connected = false;
-    const int startedID = Configs::dataManager->settingsRepo->started_id;
+    const int startedID = Engine::Lifecycle::RunningProfileId();
     if (startedID < 0) return {};
     if (VpnExitEndpoint(Configs::dataManager->profilesRepo->GetProfile(startedID)) == nullptr) return {};
 

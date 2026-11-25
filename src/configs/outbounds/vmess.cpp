@@ -27,6 +27,9 @@ QString vmessImportPacketEncoding(const QString& raw) {
     ParseDiag::Warn("packet_encoding", QCoreApplication::translate("Validation", "Unknown packet encoding, so none was used. Use packetaddr or xudp."), value);
     return {};
 }
+
+// The TLS::ExportToLink items the V2RayN fields already carry; the rest travels in throneExtra.
+const QStringList v2rayNTlsKeys = {"security", "sni", "allowInsecure", "alpn", "cs", "fp"};
 } // namespace
 
 bool vmess::ParseFromLink(const QString& link) {
@@ -85,6 +88,9 @@ bool vmess::ParseFromLink(const QString& link) {
                 const QString extraLink = "vmess://x@127.0.0.1:1?" + extra;
                 transport->ParseFromLink(extraLink);
                 multiplex->ParseFromLink(extraLink);
+                // Only under the V2RayN tls switch, so the extra never turns TLS on by itself.
+                if (tls->enabled) tls->ParseFromLink(extraLink);
+                dialFields->ParseFromLink(extraLink);
                 const auto extraQuery = QUrlQuery(extra);
                 if (extraQuery.hasQueryItem("globalPadding")) global_padding = extraQuery.queryItemValue("globalPadding") == "true";
                 if (extraQuery.hasQueryItem("authenticatedLength")) authenticated_length = extraQuery.queryItemValue("authenticatedLength") == "true";
@@ -172,6 +178,10 @@ QString vmess::ExportToLink() {
     if (packet_encoding != "xudp") {
         extra.addQueryItem("packetEncoding", packet_encoding.isEmpty() ? "none" : packet_encoding);
     }
+    for (const auto& item: QUrlQuery(tls->ExportToLink()).queryItems()) {
+        if (!v2rayNTlsKeys.contains(item.first)) extra.addQueryItem(item.first, item.second);
+    }
+    mergeUrlQuery(extra, outbound::ExportToLink());
 
     QJsonObject object{
         {"v", "2"},

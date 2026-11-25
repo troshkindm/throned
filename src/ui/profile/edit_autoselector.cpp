@@ -24,11 +24,24 @@
 
 #include <algorithm>
 
+namespace {
+constexpr int kPlanDebounceMs = 250;
+}
+
 EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui::EditAutoSelector) {
     ui->setupUi(this);
 
-    ui->balance_mode->addItem(tr("Rotate on a timer (keeps sessions stable)"), "rotate");
-    ui->balance_mode->addItem(tr("Per connection (widest spread)"), "connection");
+    m_planTimer = new QTimer(this);
+    m_planTimer->setSingleShot(true);
+    m_planTimer->setInterval(kPlanDebounceMs);
+    connect(m_planTimer, &QTimer::timeout, this, [this] { planNow(); });
+
+    ui->balance_mode->addItem(tr("Rotate every %1 s").arg(Configs::autoSelector::kBalanceIntervalSec), "rotate");
+    ui->balance_mode->setItemData(0, tr("New connections switch to the next ready profile every rotation."),
+                                  Qt::ToolTipRole);
+    ui->balance_mode->addItem(tr("Per connection"), "connection");
+    ui->balance_mode->setItemData(1, tr("Each new connection may use a different profile and exit IP."),
+                                  Qt::ToolTipRole);
 
     ui->strategy->addItem(tr("Fastest"), "latency");
     ui->strategy->addItem(tr("In priority order"), "priority");
@@ -41,7 +54,7 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     ui->advanced_area->setVisible(false);
     connect(ui->advanced_toggle, &QPushButton::toggled, this, [this](bool on) {
         ui->advanced_area->setVisible(on);
-        ui->advanced_toggle->setText(on ? tr("Advanced ▴") : tr("Advanced…"));
+        ui->advanced_toggle->setText(on ? tr("Advanced ▴") : tr("Advanced ▾"));
         resizeDialogToContent();
     });
 
@@ -64,11 +77,9 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     });
 
     connect(ui->balance, &QCheckBox::toggled, this, [this] { updateBalanceEnabled(); });
-    connect(ui->balance_mode, &QComboBox::currentIndexChanged, this, [this] { updateBalanceEnabled(); });
 
     connect(ui->strategy, &QComboBox::currentIndexChanged, this, [this] {
         updateStrategyControls();
-        updateBalanceEnabled();
         if (!m_loading) resizeDialogToContent();
         refreshPlanSummary();
     });
@@ -90,10 +101,6 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     connect(ui->tier_up, &QPushButton::clicked, this, [this] { moveTier(-1); });
     connect(ui->tier_down, &QPushButton::clicked, this, [this] { moveTier(1); });
     connect(ui->tiers, &QTableWidget::currentCellChanged, this, [this] { updateTierButtons(); });
-    connect(ui->passive, &QCheckBox::toggled, this, [this](bool on) {
-        ui->site_memory_l->setEnabled(on);
-        ui->site_memory->setEnabled(on);
-    });
 
     connect(ui->groups, &QListWidget::itemChanged, this, [this] {
         if (form) form->revalidate(ui->groups);
@@ -101,10 +108,8 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     });
     connect(ui->name_filter, &QLineEdit::textChanged, this, [this] { refreshPlanSummary(); });
     connect(ui->country_filter, &QLineEdit::textChanged, this, [this] { refreshPlanSummary(); });
-    connect(ui->exclude_unavailable, &QCheckBox::toggled, this, [this] { refreshPlanSummary(); });
-    connect(ui->pool_cap, &QSpinBox::valueChanged, this, [this] { refreshPlanSummary(); });
+    connect(ui->build_limit, &QSpinBox::valueChanged, ui->expected, &QSpinBox::setMaximum);
     connect(ui->build_limit, &QSpinBox::valueChanged, this, [this] { refreshPlanSummary(); });
-    connect(ui->result_validity, &QSpinBox::valueChanged, this, [this] { refreshPlanSummary(); });
 }
 
 EditAutoSelector::~EditAutoSelector() {
@@ -197,45 +202,32 @@ void EditAutoSelector::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
     ui->name_filter->setText(outbound->nameFilter);
     ui->country_filter->setText(outbound->countryFilter);
-    ui->exclude_unavailable->setChecked(outbound->excludeUnavailable);
-    ui->pool_cap->setMaximum(Configs::autoSelector::kMaxPoolCap);
-    ui->pool_cap->setValue(outbound->poolCap);
     ui->build_limit->setMaximum(Configs::autoSelector::kMaxBuildLimit);
     ui->build_limit->setValue(outbound->buildLimit);
-    ui->result_validity->setValue(outbound->resultValidityMins);
+    ui->expected->setMaximum(ui->build_limit->value());
 
     ui->test_url->setText(outbound->testURL);
     ui->connectivity_url->setText(outbound->connectivityURL);
     ui->interval->setValue(outbound->intervalSec);
     m_pinnedID = outbound->pinnedID;
     refreshPinnedRow();
-    ui->bench_interval->setValue(outbound->benchIntervalSec);
-    ui->watch_interval->setValue(outbound->watchIntervalSec);
-    ui->active_size->setValue(outbound->activeSize);
-    ui->sampling->setValue(outbound->sampling);
     ui->tolerance->setValue(outbound->toleranceMs);
     ui->max_rtt->setValue(outbound->maxRTTms);
-    ui->dial_retries->setValue(outbound->dialRetries);
     ui->interrupt_on_switch->setChecked(outbound->interruptOnSwitch);
 
     ui->balance->setChecked(outbound->balance);
     ui->expected->setValue(outbound->expected);
     if (const int idx = ui->balance_mode->findData(outbound->balanceMode); idx >= 0)
         ui->balance_mode->setCurrentIndex(idx);
-    ui->balance_interval->setValue(outbound->balanceIntervalSec);
 
     if (const int idx = ui->strategy->findData(outbound->strategy); idx >= 0) ui->strategy->setCurrentIndex(idx);
     setTierRows(outbound->tiers);
-    ui->failback_checks->setValue(outbound->failbackChecks);
-    ui->failback_delay->setValue(outbound->failbackDelaySec);
-    ui->failback_interrupt->setChecked(outbound->failbackInterrupt);
     ui->passive->setChecked(outbound->passive);
-    ui->site_memory->setValue(outbound->siteMemoryMins);
 
     m_loading = false;
     updateStrategyControls();
     updateBalanceEnabled();
-    refreshPlanSummary();
+    planNow();
 
     // Fields of a collapsed section are not checked, so a stored bad value has to be shown.
     using namespace Configs::Checks;
@@ -261,36 +253,23 @@ bool EditAutoSelector::onEnd() {
     outbound->gids = gids;
     outbound->nameFilter = ui->name_filter->text().trimmed();
     outbound->countryFilter = ui->country_filter->text().trimmed();
-    outbound->excludeUnavailable = ui->exclude_unavailable->isChecked();
-    outbound->poolCap = ui->pool_cap->value();
     outbound->buildLimit = ui->build_limit->value();
-    outbound->resultValidityMins = ui->result_validity->value();
 
     outbound->testURL = ui->test_url->text().trimmed();
     outbound->connectivityURL = ui->connectivity_url->text().trimmed();
     outbound->intervalSec = ui->interval->value();
     outbound->pinnedID = m_pinnedID;
-    outbound->benchIntervalSec = ui->bench_interval->value();
-    outbound->watchIntervalSec = ui->watch_interval->value();
-    outbound->activeSize = ui->active_size->value();
-    outbound->sampling = ui->sampling->value();
     outbound->toleranceMs = ui->tolerance->value();
     outbound->maxRTTms = ui->max_rtt->value();
-    outbound->dialRetries = ui->dial_retries->value();
     outbound->interruptOnSwitch = ui->interrupt_on_switch->isChecked();
 
     outbound->balance = ui->balance->isChecked();
     outbound->expected = ui->expected->value();
     outbound->balanceMode = ui->balance_mode->currentData().toString();
-    outbound->balanceIntervalSec = ui->balance_interval->value();
     outbound->strategy = ui->strategy->currentData().toString();
     outbound->tiers = tierRows();
-    outbound->failbackChecks = ui->failback_checks->value();
-    outbound->failbackDelaySec = ui->failback_delay->value();
-    outbound->failbackInterrupt = ui->failback_interrupt->isChecked();
     outbound->passive = ui->passive->isChecked();
-    outbound->siteMemoryMins = ui->site_memory->value();
-    // The cross-field rules have passed, so this only clamps what the spin boxes cannot produce.
+    // Only clamps what the spin boxes cannot produce.
     outbound->Normalize();
 
     // The pool is a ranking, so a filter change can leave entries that no longer qualify.
@@ -313,16 +292,7 @@ void EditAutoSelector::bindValidation(Validation::Form &form) {
     form.bind(ui->country_filter, AutoSelectorCountries, this);
     form.bind(ui->test_url, AutoSelectorUrl, this);
     form.bind(ui->connectivity_url, AutoSelectorUrl, this);
-    form.addRule({ui->build_limit, ui->pool_cap}, [this] { return AutoSelectorBuildLimit(ui->build_limit->value(), ui->pool_cap->value()); }, this);
-    form.addRule({ui->bench_interval, ui->interval}, [this] { return AutoSelectorBenchInterval(ui->bench_interval->value(), ui->interval->value()); }, this);
-    form.addRule({ui->watch_interval, ui->interval}, [this] { return AutoSelectorWatchInterval(ui->watch_interval->value(), ui->interval->value()); }, this);
-    form.addRule({ui->active_size, ui->expected}, [this] { return AutoSelectorReadyCount(ui->active_size->value(), ui->expected->value()); }, this);
-    form.addRule({ui->active_size, ui->build_limit}, [this] { return AutoSelectorCloseCount(ui->active_size->value(), ui->build_limit->value()); }, this);
     form.addRule({ui->tiers}, [this] { return tierIssue(); }, this);
-    // Sampling stays checkable in latency mode, where failback is not used.
-    form.addRule({ui->failback_checks, ui->sampling}, [this] {
-        if (!prioritySelected()) return QString();
-        return AutoSelectorFailbackChecks(ui->failback_checks->value(), ui->sampling->value()); }, this);
 
     // The rules above skip a collapsed section, so its problems are reported here and expand it when revealed.
     form.addIssueSource([this] {
@@ -338,14 +308,6 @@ void EditAutoSelector::bindValidation(Validation::Form &form) {
         add(ui->country_filter, AutoSelectorCountries(ui->country_filter->text().trimmed()));
         add(ui->test_url, AutoSelectorUrl(ui->test_url->text().trimmed()));
         add(ui->connectivity_url, AutoSelectorUrl(ui->connectivity_url->text().trimmed()));
-        add(ui->build_limit, AutoSelectorBuildLimit(ui->build_limit->value(), ui->pool_cap->value()));
-        add(ui->bench_interval, AutoSelectorBenchInterval(ui->bench_interval->value(), ui->interval->value()));
-        add(ui->watch_interval, AutoSelectorWatchInterval(ui->watch_interval->value(), ui->interval->value()));
-        add(ui->active_size, AutoSelectorReadyCount(ui->active_size->value(), ui->expected->value()));
-        add(ui->active_size, AutoSelectorCloseCount(ui->active_size->value(), ui->build_limit->value()));
-        if (prioritySelected()) {
-            add(ui->failback_checks, AutoSelectorFailbackChecks(ui->failback_checks->value(), ui->sampling->value()));
-        }
         return issues;
     },
                         this);
@@ -359,10 +321,6 @@ void EditAutoSelector::updateStrategyControls() const {
     const bool prioritized = prioritySelected();
     ui->tiers_l->setVisible(prioritized);
     ui->tiers_area->setVisible(prioritized);
-    for (QWidget *widget: std::initializer_list<QWidget *>{ui->failback_checks_l, ui->failback_checks, ui->failback_delay_l,
-                                                           ui->failback_delay, ui->failback_interrupt}) {
-        widget->setEnabled(prioritized);
-    }
 }
 
 void EditAutoSelector::setTierRows(const QList<Configs::autoSelector::Tier> &tiers) {
@@ -386,14 +344,14 @@ void EditAutoSelector::appendTierRow(const Configs::autoSelector::Tier &tier) {
     // Kept selectable so saving never turns a tier for an unlisted group into "any group".
     if (tier.gid >= 0 && group->findData(tier.gid) < 0) {
         const auto stored = Configs::dataManager->groupsRepo->GetGroup(tier.gid);
-        group->addItem(stored != nullptr ? stored->name : tr("missing group"), tier.gid);
+        group->addItem(stored != nullptr ? stored->name : tr("Missing group"), tier.gid);
     }
     group->setCurrentIndex(std::max(0, group->findData(tier.gid)));
     ui->tiers->setCellWidget(row, 0, group);
 
     auto *names = new QLineEdit(tier.nameFilter, ui->tiers);
     names->setPlaceholderText(tr("any name"));
-    names->setToolTip(tr("Optional regular expression, matched anywhere in the profile name and ignoring case, for example ^DE or germany|nl."));
+    names->setToolTip(tr("Optional regular expression over the profile name, e.g. ^DE or germany|nl."));
     ui->tiers->setCellWidget(row, 1, names);
 
     connect(group, &QComboBox::currentIndexChanged, this, [this] { onTiersChanged(true); });
@@ -500,35 +458,20 @@ void EditAutoSelector::refreshPinnedRow() const {
 }
 
 void EditAutoSelector::updateBalanceEnabled() const {
-    const bool on = ui->balance->isChecked();
-    ui->balance_mode->setEnabled(on);
-    ui->balance_mode_l->setEnabled(on);
-    const bool rotating = on && ui->balance_mode->currentData().toString() == "rotate";
-    ui->balance_interval->setEnabled(rotating);
-    ui->balance_interval_l->setEnabled(rotating);
-
-    if (!on) {
-        ui->balance_hint->setText(tr(
-            "The best profile carries all traffic; the other ready profiles are "
-            "kept verified so one can take over instantly."));
-        return;
-    }
-    QString hint = rotating ? tr("New connections move to another good profile on each rotation; open ones are "
-                                 "left alone and finish where they started. Traffic is counted exactly.")
-                            : tr("Every new connection may take a different profile. Widest spread, but your "
-                                 "exit IP changes mid-session and per-profile traffic becomes approximate.");
-    if (prioritySelected()) {
-        hint += QLatin1Char(' ') + tr("In priority order, traffic is only spread over the ready profiles of the tier in use.");
-    }
-    ui->balance_hint->setText(hint);
+    ui->balance_mode->setVisible(ui->balance->isChecked());
 }
 
 void EditAutoSelector::refreshPlanSummary() {
     if (m_loading) return;
+    m_planTimer->start();
+}
+
+void EditAutoSelector::planNow() {
+    m_planTimer->stop();
     auto outbound = this->ent == nullptr ? nullptr : this->ent->AutoSelector();
     if (outbound == nullptr) return;
 
-    // Throwaway copy: PlanAutoSelector normalises, which would clamp fields the form hasn't written yet.
+    // A copy with the form's unsaved values: the worker reads it while the form keeps changing.
     auto probe = std::make_shared<Configs::Profile>(new Configs::autoSelector(*outbound),
                                                     QStringLiteral("autoselector"));
     probe->id = this->ent->id;
@@ -538,15 +481,23 @@ void EditAutoSelector::refreshPlanSummary() {
     preview->gids = checked.isEmpty() ? checked : checked + m_missingGids;
     preview->nameFilter = ui->name_filter->text().trimmed();
     preview->countryFilter = ui->country_filter->text().trimmed();
-    preview->excludeUnavailable = ui->exclude_unavailable->isChecked();
-    preview->poolCap = ui->pool_cap->value();
     preview->buildLimit = ui->build_limit->value();
-    preview->resultValidityMins = ui->result_validity->value();
     preview->strategy = ui->strategy->currentData().toString();
     preview->tiers = tierRows();
+    const bool prioritized = preview->Prioritized();
 
-    const auto plan = Configs::PlanAutoSelector(probe);
+    const quint64 generation = ++m_planGeneration;
+    const QPointer<EditAutoSelector> self(this);
+    runOnNewThread([probe, prioritized, generation, self] {
+        const auto plan = Configs::PlanAutoSelector(probe);
+        runOnUiThread([plan, prioritized, generation, self] {
+            if (self == nullptr || self->m_planGeneration != generation) return;
+            self->showPlan(plan, prioritized);
+        });
+    });
+}
 
+void EditAutoSelector::showPlan(const Configs::AutoSelectorPlan &plan, bool prioritized) {
     if (!plan.error.isEmpty()) {
         ui->plan_summary->setText(plan.error);
         return;
@@ -557,7 +508,7 @@ void EditAutoSelector::refreshPlanSummary() {
                  .arg(plan.eligible)
                  .arg(plan.membersInGroups)
                  .arg(plan.build.size());
-    if (preview->Prioritized() && !plan.tierBuilt.isEmpty()) {
+    if (prioritized && !plan.tierBuilt.isEmpty()) {
         const int rest = static_cast<int>(plan.tierBuilt.size()) - 1;
         QStringList counts;
         QStringList empty;
@@ -589,13 +540,8 @@ void EditAutoSelector::refreshPlanSummary() {
         }
         lines << tr("Skipped: %1.").arg(reasons.join(tr(", ")));
     }
-    if (plan.keptUnavailable > 0) {
-        lines << tr("Every profile's last test failed, which usually means the network was down "
-                    "rather than the servers, so all %1 are kept and will be re-checked.")
-                     .arg(plan.keptUnavailable);
-    }
     if (plan.truncated) {
-        lines << (preview->Prioritized()
+        lines << (prioritized
                       ? tr("More than %1 profiles match, so only the best-ranked ones of each tier are kept.")
                       : tr("More than %1 profiles match, so only the best-ranked ones are kept."))
                      .arg(plan.poolCapUsed);

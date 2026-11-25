@@ -1,5 +1,8 @@
 #include "include/ui/mainwindow.h"
-#include "NkrVersion.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 #include <QApplication>
 #include <QScopeGuard>
@@ -12,6 +15,7 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSet>
 #include <QTimer>
 #include <QActionGroup>
 #include <QPainter>
@@ -26,6 +30,7 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/SettingsRepo.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/vpn/VpnAuthController.h"
 #include "include/engine/vpn/VpnEndpoints.h"
@@ -46,6 +51,20 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/TestProgressWidget.h"
+
+namespace {
+struct RunningContext {
+    QString groupName;
+    QString detail;
+};
+
+// The detail is the VPN endpoint's exit state while it reports one, else the exit country.
+RunningContext runningContextOf(const Configs::Profile *running, const QString &vpnExitState) {
+    if (running == nullptr) return {};
+    const auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
+    return {group != nullptr ? group->name : QString(), vpnExitState.isEmpty() ? running->runningCountryInfo : vpnExitState};
+}
+} // namespace
 
 void MainWindow::UpdateDataView(bool force) {
     const auto now = QDateTime::currentMSecsSinceEpoch();
@@ -76,25 +95,46 @@ void MainWindow::UpdateDataView(bool force) {
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }
 
-void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles) {
+void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds) {
+    int column = -1;
     switch (kind) {
         case Engine::TestKind::Latency:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url, totalProfiles);
+            column = ProfilesTableModel::ColLatency;
             break;
         case Engine::TestKind::Ip:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
+            column = ProfilesTableModel::ColExitIP;
             break;
         case Engine::TestKind::Service:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Service, totalProfiles);
+            column = ProfilesTableModel::ColExitIP;
             break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
+            column = ProfilesTableModel::ColSpeed;
             break;
         case Engine::TestKind::Udp:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Udp, totalProfiles);
             break;
     }
     runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
+    if (column < 0) return;
+    runOnUiThread([this, kind, column, profileIds] {
+        QSet<int> groups;
+        for (const auto &profile: Configs::dataManager->profilesRepo->GetProfileBatch(profileIds)) groups.insert(profile->gid);
+        bool currentChanged = false;
+        for (int gid: groups) {
+            const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (!group || (group->visible_columns & (1 << column))) continue;
+            // Service icons show in the Exit IP column only while the group includes them.
+            if (kind == Engine::TestKind::Service && !group->show_services) continue;
+            group->visible_columns |= 1 << column;
+            Configs::dataManager->groupsRepo->Save(group);
+            currentChanged |= gid == Configs::dataManager->settingsRepo->current_group;
+        }
+        if (currentChanged) refresh_proxy_list_column_size();
+    });
 }
 
 void MainWindow::testProgressed() {
@@ -159,19 +199,18 @@ void MainWindow::updateLogFilterFields() {
         }
     }
     const int rank = Configs::SingBox::LogLevelRank(level);
+    // Validated and compiled here, so the log thread neither compiles it nor warns on every line about an invalid pattern.
+    QRegularExpression hide(Configs::dataManager->settingsRepo->log_exclude_regex.join("|"));
+    if (hide.isValid())
+        hide.optimize();
+    else
+        hide = QRegularExpression();
     bool levelChanged;
     {
         QMutexLocker locker(&logMutex);
         levelChanged = minLogLevelRank >= 0 && rank != minLogLevelRank;
         minLogLevelRank = rank;
-        includeKeywords.clear();
-        excludeKeywords.clear();
-        for (const auto &inKeyword: Configs::dataManager->settingsRepo->log_include_keyword) includeKeywords.append(inKeyword);
-        for (const auto &exKeyword: Configs::dataManager->settingsRepo->log_exclude_keyword) excludeKeywords.append(exKeyword);
-        includeCombined.setPattern(Configs::dataManager->settingsRepo->log_include_regex.join("|"));
-        excludeCombined.setPattern(Configs::dataManager->settingsRepo->log_exclude_regex.join("|"));
-        includeCombined.optimize();
-        excludeCombined.optimize();
+        logHidePattern = hide;
     }
     // The lines already on screen went through the old threshold, so leaving them
     // would read as the selector doing nothing.
@@ -180,7 +219,7 @@ void MainWindow::updateLogFilterFields() {
         QString notice = tr("Log level: %1. Only lines at this level and above are shown.").arg(level);
         // Raising hides lines at once, but lowering cannot invent what the core never
         // emitted: it keeps writing at the level it started with until it restarts.
-        if (Configs::dataManager->settingsRepo->started_id >= 0 && coreLogLevelRank_ >= 0 && rank < coreLogLevelRank_) {
+        if (Engine::Lifecycle::ResumeTargetId() >= 0 && coreLogLevelRank_ >= 0 && rank < coreLogLevelRank_) {
             notice += QLatin1Char(' ') + tr("The running core writes at %1 - restart it to get more.")
                                              .arg(Configs::SingBox::LogLevels.value(coreLogLevelRank_));
         }
@@ -234,10 +273,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     const auto *settings = Configs::dataManager->settingsRepo.get();
 
     auto refresh_speed_label = [=, this] {
-        if (settings->disable_traffic_stats) {
-            setStatusText(ui->label_speed, "");
-            setStatusText(statusDirectSpeed, "");
-        } else if (traffic_update_cache == "") {
+        if (traffic_update_cache == "") {
             // Same shape as the populated state so the status bar does not
             // reflow, but with a placeholder instead of a dangling number.
             const QString idle = QStringLiteral("↑ —   ↓ —");
@@ -250,7 +286,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         }
     };
 
-    if (!traffic_update.isEmpty() && !settings->disable_traffic_stats) {
+    if (!traffic_update.isEmpty()) {
         traffic_update_cache = traffic_update;
         if (traffic_update == "STOP") {
             traffic_update_cache = "";
@@ -263,16 +299,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     refresh_speed_label();
 
     const auto running = runningSnapshot();
-    QString group_name;
-    if (running != nullptr) {
-        auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
-        if (group != nullptr) group_name = group->name;
-    }
-
-    const QString vpnExitState = vpnAuth()->exitStateText();
-    const QString runningDetail = vpnExitState.isEmpty()
-                                      ? (running ? running->runningCountryInfo : QString())
-                                      : vpnExitState;
+    const auto [group_name, runningDetail] = runningContextOf(running.get(), vpnAuth()->exitStateText());
 
     if (QDateTime::currentSecsSinceEpoch() - last_test_time > 2) {
         QString runningLabelText;
@@ -301,53 +328,56 @@ void MainWindow::refresh_status(const QString &traffic_update) {
             display_socks = DisplayAddress(lan, settings->inbound_socks_port);
         }
     }
-    setStatusText(ui->label_inbound, QString("Mixed: %1").arg(inbound_disabled ? "Disabled" : display_socks));
+    setStatusText(ui->label_inbound, tr("Mixed: %1").arg(inbound_disabled ? tr("Disabled") : display_socks));
     ui->label_inbound->setToolTip(inbound_tip);
     syncConnectionSourceColumn();
     ui->checkBox_VPN->setChecked(settings->spmode_vpn);
     ui->checkBox_SystemProxy->setChecked(settings->spmode_system_proxy);
     if (select_mode) {
         setStatusText(ui->label_running, tr("Select") + " *");
-        ui->label_running->setToolTip(tr("Select mode, double-click or press Enter to select a profile, press ESC to exit."));
+        ui->label_running->setToolTip(tr("Double-click or press Enter to pick a profile; Esc to cancel."));
     } else {
         ui->label_running->setToolTip({});
     }
 
-    const auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
-    const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
+    refresh_tray_tooltip();
+    refresh_startstop_button();
+}
+
+// The window title stays the plain "Throne" from the .ui: this status shows in the window itself.
+void MainWindow::refresh_tray_tooltip() {
+    if (tray == nullptr) return;
+    const auto *settings = Configs::dataManager->settingsRepo.get();
+
+    const auto running = runningSnapshot();
+    const auto [group_name, runningDetail] = runningContextOf(running.get(), vpnAuth()->exitStateText());
+    const QString routeName = Configs::dataManager->routesRepo->GetRouteProfileName(Configs::ActiveRouteId()).value_or(QString());
+    const QString activeRouteName = routeName != "Default" ? routeName : "";
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
     const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();
 
-    auto make_title = [=, this](bool isTray) {
-        QStringList tt;
-        if (!isTray && Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
-        if (select_mode) tt << "[" + tr("Select") + "]";
-        if (!title_error.isEmpty()) tt << "[" + title_error + "]";
-        if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
-        if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
-        if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
-        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
-        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
-            tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
+    QStringList tt;
+    if (Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
+    if (select_mode) tt << "[" + tr("Select") + "]";
+    if (!title_error.isEmpty()) tt << "[" + title_error + "]";
+    if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
+    if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System proxy") + "]";
+    if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System proxy") + "]";
+    if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
+    if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
+        tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
+    }
+    tt << software_name;
+    if (!activeRouteName.isEmpty()) {
+        tt << "[" + activeRouteName + "]";
+    }
+    if (running != nullptr) {
+        tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
+        if (!runningDetail.isEmpty()) {
+            tt << runningDetail;
         }
-        tt << software_name;
-        if (!isTray) tt << QString(NKR_VERSION);
-        if (!activeRouteName.isEmpty()) {
-            tt << "[" + activeRouteName + "]";
-        }
-        if (running != nullptr) {
-            tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
-            if (!runningDetail.isEmpty()) {
-                tt << runningDetail;
-            }
-        }
-        return tt.join(isTray ? "\n" : " ");
-    };
-
-    setWindowTitle(make_title(false));
-    if (tray != nullptr) tray->setToolTip(make_title(true));
-
-    refresh_startstop_button();
+    }
+    tray->setToolTip(tt.join("\n"));
 }
 
 void MainWindow::refresh_startstop_button() {
@@ -371,10 +401,11 @@ void MainWindow::refresh_startstop_button() {
     }
     btn->setMode(mode);
 
+    const bool stopHeld = connecting && connection()->stopPending();
     StartStopButton::State state;
-    if (connecting)
+    if (connecting && !stopHeld)
         state = StartStopButton::State::Connecting;
-    else if (disconnecting)
+    else if (connecting || disconnecting)
         state = StartStopButton::State::Disconnecting;
     else if (running != nullptr)
         state = StartStopButton::State::Running;
@@ -404,15 +435,16 @@ void MainWindow::refresh_startstop_button() {
     btn->setLock(lock);
 
     if (trayConnectAction != nullptr) {
-        if (connecting) {
+        if (connecting && !stopHeld) {
             trayConnectAction->setText(tr("Connecting"));
-        } else if (disconnecting) {
+        } else if (connecting || disconnecting) {
             trayConnectAction->setText(tr("Disconnecting"));
         } else {
             trayConnectAction->setText(running != nullptr ? tr("Disconnect") : tr("Connect"));
         }
         trayConnectAction->setEnabled(!connecting && !disconnecting &&
                                       (running != nullptr || get_profile_to_start() >= 0));
+        refreshTrayMenu();
     }
 
     // Here rather than in refresh_status(): the connecting/disconnecting flags only ever refresh this button.
@@ -447,7 +479,7 @@ void MainWindow::refresh_action_states() {
     ui->menu_resolve_selected->setEnabled(anySelected);
     ui->actionResolve_Selected_Out_IP->setEnabled(anySelected);
     ui->actionService_Check_Selected->setEnabled(anySelected);
-    ui->menu_find_settings->setEnabled(selectedRows == 1);
+    ui->menu_find_warp_endpoint->setEnabled(selectedRows == 1 && warpFinderTarget() != nullptr);
 
     const bool running = runningSnapshot() != nullptr;
     ui->actionSpeedtest_Current->setEnabled(running);
@@ -475,11 +507,17 @@ void MainWindow::refresh_proxy_list_column_size() {
     auto *hHeader = dynamic_cast<ProfilesTableFilterHeader *>(ui->profilesTableView->horizontalHeader());
     QTimer::singleShot(0, ui->profilesTableView, [=, this]() {
         // The resizeSection / scrollbar-policy changes below re-enter here via valueChanged.
-        if (m_adjustingColumns) return;
+        if (m_adjustingColumns || group != Configs::dataManager->groupsRepo->CurrentGroup()) return;
         m_adjustingColumns = true;
         QScrollBar *vBar = ui->profilesTableView->verticalScrollBar();
         const bool vBarBlocked = vBar->blockSignals(true);
         const int columnCount = hHeader->count();
+        // Comfortable rows hide their own columns; UDP follows show_udp_column through the column count.
+        if (profilesTableModel != nullptr && profilesTableModel->rowStyle() == ProfilesTableModel::RowStyle::Compact) {
+            for (int column = 0; column < std::min<int>(columnCount, ProfilesTableModel::ColUDP); ++column) {
+                ui->profilesTableView->setColumnHidden(column, !(group->visible_columns & (1 << column)));
+            }
+        }
         // Widths saved before the column set last changed no longer line up with
         // the header, so fall back to auto-sizing instead of indexing past the end.
         if (!group->column_width.isEmpty() && group->column_width.size() != columnCount) {
@@ -504,11 +542,13 @@ void MainWindow::refresh_proxy_list_column_size() {
             hHeader->setSectionResizeMode(ProfilesTableModel::ColType, QHeaderView::ResizeToContents);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColAddress, QHeaderView::Stretch);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColName, QHeaderView::Stretch);
-            hHeader->setSectionResizeMode(ProfilesTableModel::ColTestResult, QHeaderView::ResizeToContents);
-            hHeader->setSectionResizeMode(ProfilesTableModel::ColTraffic, QHeaderView::ResizeToContents);
+            for (int col = ProfilesTableModel::ColLatency; col < columnCount; ++col) {
+                hHeader->setSectionResizeMode(col, QHeaderView::ResizeToContents);
+            }
             // ResizeToContents only measures on-screen rows, so pin these or they jitter while scrolling.
-            for (int col: {ProfilesTableModel::ColType,
-                           ProfilesTableModel::ColTestResult, ProfilesTableModel::ColTraffic}) {
+            for (int col: {ProfilesTableModel::ColType, ProfilesTableModel::ColLatency, ProfilesTableModel::ColExitIP,
+                           ProfilesTableModel::ColSpeed, ProfilesTableModel::ColTraffic}) {
+                if (hHeader->isSectionHidden(col)) continue;
                 if (group->calculated_column_width.size() > col &&
                     group->calculated_column_width[col] > hHeader->sectionSize(col)) {
                     hHeader->setSectionResizeMode(col, QHeaderView::Fixed);
@@ -518,16 +558,21 @@ void MainWindow::refresh_proxy_list_column_size() {
             ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
-                auto size = hHeader->sectionSize(i);
+                const auto size = hHeader->isSectionHidden(i) ? 0 : hHeader->sectionSize(i);
                 hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
-                hHeader->resizeSection(i, size);
+                if (size > 0) hHeader->resizeSection(i, size);
                 group->calculated_column_width << size;
             }
         } else {
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
                 hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
-                hHeader->resizeSection(i, group->column_width.at(i));
+                if (hHeader->isSectionHidden(i)) continue;
+                const int width = group->column_width.at(i);
+                if (width > 0)
+                    hHeader->resizeSection(i, width);
+                else
+                    ui->profilesTableView->resizeColumnToContents(i);
             }
             ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         }
@@ -572,7 +617,7 @@ void MainWindow::refresh_proxy_list_impl(const QList<int> &ids, bool mayNeedRese
 
 void MainWindow::refresh_sort_indicator() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-    const int column = group == nullptr ? -1 : profilesTableModel->columnOfSort(group->sort.method);
+    const int column = group == nullptr ? -1 : profilesTableModel->columnOfSort(*group);
     const auto order = group != nullptr && group->sort.descending ? Qt::DescendingOrder : Qt::AscendingOrder;
     // Section -1 hides the indicator.
     profilesTableModel->setSortIndicator(column, order == Qt::DescendingOrder);
@@ -587,12 +632,12 @@ void MainWindow::sortCurrentGroup(GroupSortAction action) {
     Configs::ResortLater(group->id);
 }
 
-void MainWindow::stopSortingCurrentGroup() {
+void MainWindow::restoreOriginalOrder() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (group == nullptr) return;
-    group->SetSort({});
+    group->RestoreOriginalOrder();
     Configs::dataManager->groupsRepo->Save(group);
-    refresh_sort_indicator();
+    refresh_proxy_list({}, true);
 }
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int> &ids, bool mayNeedReset) {
@@ -609,7 +654,7 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int> &ids, boo
         profilesTableModel->refreshTable(
             Configs::dataManager->profilesRepo->GetAllProfileIds(), mayNeedReset);
     } else {
-        profilesTableModel->refreshTable(currentGroup->profiles, currentGroup->PinnedCount(), mayNeedReset);
+        profilesTableModel->refreshTable(currentGroup->DisplayedProfiles(), currentGroup->PinnedCount(), mayNeedReset);
     }
 }
 
@@ -723,10 +768,10 @@ void MainWindow::applyProfileColumnVisibility() {
     auto *view = ui->profilesTableView;
     const auto *settings = Configs::dataManager->settingsRepo.get();
     if (profilesTableModel->rowStyle() != ProfilesTableModel::RowStyle::Comfortable) {
-        // Compact columns are not configurable here, and a hidden index survives a
-        // style switch, so anything hidden earlier has to come back.
+        // A hidden index survives a style switch, so the group's own column choice is reapplied.
+        const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column)
-            view->setColumnHidden(column, false);
+            view->setColumnHidden(column, column < ProfilesTableModel::ColUDP && group != nullptr && !(group->visible_columns & (1 << column)));
         return;
     }
     // A narrow table keeps the server readable: the right-most enabled metrics give way first.
@@ -803,7 +848,7 @@ void MainWindow::toggleFavorite(const QList<int> &ids) {
 }
 
 void MainWindow::revealRunningProfile() {
-    const int id = Configs::dataManager->settingsRepo->started_id;
+    const int id = Engine::Lifecycle::ResumeTargetId();
     if (id < 0 || profilesTableModel == nullptr || profilesFilterModel == nullptr) return;
     const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
     if (profile == nullptr) return;
@@ -884,7 +929,7 @@ void MainWindow::url_test_current() {
 
         runOnUiThread([=, this] {
             if (!result.results[0].error.value().empty()) {
-                MW_show_log(QString("UrlTest error: %1").arg(QString::fromStdString(result.results[0].error.value())));
+                MW_show_log(QString("URL test error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
             if (latency <= 0) {
                 setStatusText(ui->label_running,

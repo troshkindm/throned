@@ -54,6 +54,7 @@ throned_add_qt_test(throned_window_notices_tests
             ${PROJECT_SOURCE_DIR}/src/ui/widget/HijackDeprecationNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/ui/widget/SimpleModeNotice.cpp
             ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/SettingsSchema.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
             ${PROJECT_SOURCE_DIR}/src/database/MarkersRepo.cpp
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
@@ -154,7 +155,6 @@ throned_add_qt_test(throned_outbound_tests
             ${PROJECT_SOURCE_DIR}/src/configs/outbounds/naive.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/outbounds/trusttunnel.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/outbounds/http.cpp
-            ${PROJECT_SOURCE_DIR}/src/configs/outbounds/juicity.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/Outbound.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/DialFields.cpp
             ${PROJECT_SOURCE_DIR}/src/configs/common/TLS.cpp
@@ -169,6 +169,7 @@ throned_add_qt_test(throned_outbound_tests
             ${PROJECT_SOURCE_DIR}/src/configs/ParseDiagnostics.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Validation.cpp
             ${PROJECT_SOURCE_DIR}/src/database/SettingsRepo.cpp
+            ${PROJECT_SOURCE_DIR}/src/database/SettingsSchema.cpp
             ${PROJECT_SOURCE_DIR}/src/database/Database.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Notice.cpp
             ${PROJECT_SOURCE_DIR}/src/global/Utils.cpp

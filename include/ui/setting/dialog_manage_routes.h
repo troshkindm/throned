@@ -2,10 +2,12 @@
 
 #include <QDialog>
 #include <QMenu>
+#include <QSet>
 
 #include <atomic>
 
-#include <v2/ui/QvAutoCompleteTextEdit.hpp>
+#include "include/database/SettingsValues.h"
+#include "include/database/entities/AppRoutes.h"
 #include "include/engine/EditLocks.h"
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/RouteItem.h"
@@ -13,7 +15,11 @@
 #include "ui_dialog_manage_routes.h"
 #include "include/database/entities/RouteProfile.h"
 
+class AppRoutesController;
+class SimpleRoutesPage;
+
 QT_BEGIN_NAMESPACE
+class QButtonGroup;
 namespace Ui {
 class DialogManageRoutes;
 }
@@ -35,9 +41,16 @@ private:
     Engine::EditLock settingsLock{Engine::EditTarget::Settings};
     Engine::EditLock routesLock{Engine::EditTarget::Routes};
 
+    Configs::SettingsValues snapshot_;
+
+    // Button ids are Configs::ExitThrough values.
+    QButtonGroup* exitButtons = nullptr;
+
     RouteItem* routeChainWidget;
 
     void reloadProfileItems();
+
+    void syncRouteChecks(QListWidgetItem* changed);
 
     void applyImportedProfile(const std::shared_ptr<Configs::RouteProfile>& profile, bool wasOldArray);
 
@@ -45,16 +58,36 @@ private:
 
     void updateRemoteProfiles(const QList<std::shared_ptr<Configs::RouteProfile>>& profiles);
 
-    // routeUpdateRunning is UI-thread only; routeUpdateCancel is set there and polled by the worker.
+    // routeUpdateRunning is UI-thread only; the worker polls the run's cancel flag, which outlives the window.
     bool routeUpdateRunning = false;
-    std::atomic<bool> routeUpdateCancel{false};
+    std::shared_ptr<std::atomic<bool>> routeUpdateCancel;
 
     QList<std::shared_ptr<Configs::RouteProfile>> chainList;
 
     // Saved profiles removed from the list, deleted on OK.
     QList<int> removedIds;
 
+    // Saved profiles replaced by an edit or a remote update, saved on OK; new ones (id < 0) are saved anyway.
+    QSet<int> editedIds;
+
     std::shared_ptr<Configs::RouteProfile> currentRoute;
+
+    // The apps page edits currentRoute like the other pages do: in copies, saved on OK.
+    QWidget* appsTab = nullptr;
+    SimpleRoutesPage* appsPage = nullptr;
+    AppRoutesController* appsController = nullptr;
+    std::shared_ptr<Configs::RouteProfile> appsShown;
+    QList<std::shared_ptr<Configs::RouteProfile>> appsEdited;
+    bool appsListsReady = false;
+    bool appsSaving = false;
+
+    void setupAppsPage();
+
+    void reloadAppsPage();
+
+    void takeAppRoutes(const QList<Configs::AppRoutes::Route>& routes, int rest);
+
+    void editRoute(int index);
 
     int tooltipID = 0;
 
@@ -63,6 +96,8 @@ private:
     void show_dns_advanced_editor();
 
     void show_dns_object_editor();
+
+    void show_warp_advanced_editor();
 
     void generate_warp_config();
 
@@ -83,17 +118,27 @@ private:
         QString query_timeout;
     };
 
+    // Untrimmed field text as WARP Advanced shows it; accept() trims and splits it.
+    struct WarpAdvancedDraft {
+        QString private_key;
+        QString public_key;
+        QString reserved;
+        QString masque_private_key;
+        QString masque_peer_public_key;
+        QString masque_sni;
+        int masque_http_mode = 0;
+    };
+
     // Held until accept() so the popups can be cancelled without touching the settings.
     bool predefined_dns_enabled = true;
     QString predefined_dns_text;
     DnsAdvancedDraft dns_advanced{};
     QString dns_object_text;
+    WarpAdvancedDraft warp_advanced{};
 
     QShortcut* deleteShortcut;
 public slots:
     void accept() override;
-
-    void updateCurrentRouteProfile(int idx);
 
     void on_new_route_clicked();
 

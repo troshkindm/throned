@@ -21,7 +21,7 @@ int MainWindow::get_profile_to_start() {
         }
         const auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
         if (currentGroup) {
-            const auto profiles = currentGroup->Profiles();
+            const auto profiles = currentGroup->DisplayedProfiles();
             if (!profiles.isEmpty()) {
                 const int firstId = profiles.first();
                 if (Configs::dataManager->profilesRepo->GetProfile(firstId) != nullptr) {
@@ -53,8 +53,8 @@ std::shared_ptr<Configs::Profile> MainWindow::runningSnapshot() const {
 
 void MainWindow::toggle_connection() {
     const auto state = connection()->connectionState();
-    if (select_mode || state == ConnectionState::Connecting || state == ConnectionState::Stopping) return;
-    if (runningSnapshot() != nullptr) {
+    if (select_mode || state == ConnectionState::Stopping) return;
+    if (state == ConnectionState::Connecting || runningSnapshot() != nullptr) {
         profile_stop(false, false, true);
         return;
     }

@@ -15,11 +15,6 @@ public:
     QString config;
     QString type;
 
-    // Transient bridge fields: Build() emits a socks outbound on this port; Xray gets the matching inbound.
-    int bridgePort = 0;
-    QString bridgeAuth;
-    QString bridgeHost = "127.0.0.1";
-
     bool ParseFromJson(const QJsonObject &object) override {
         if (object.isEmpty()) return false;
         if (object.contains("name")) name = object["name"].toString();
@@ -101,16 +96,6 @@ public:
     }
 
     BuildResult Build() override {
-        if (type == CustomXrayFullConfig) {
-            return {QJsonObject{
-                        {"type", "socks"},
-                        {"server", bridgeHost},
-                        {"server_port", bridgePort},
-                        {"username", bridgeAuth},
-                        {"password", bridgeAuth},
-                    },
-                    ""};
-        }
         if (type == CustomXrayOutbound) {
             // Dummy outbound so sing-box CheckConfig passes; the real one is in BuildXray().
             return {QJsonObject{

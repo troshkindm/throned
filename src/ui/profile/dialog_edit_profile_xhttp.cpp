@@ -1,20 +1,25 @@
 #include "include/ui/profile/dialog_edit_profile.h"
 
+#include "include/configs/common/utils.h"
 #include "include/configs/common/xrayStreamSetting.h"
-#include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/widget/json/JsonEditorDialog.h"
 
 #include <QAbstractButton>
-#include <QGridLayout>
+#include <QCoreApplication>
+#include <QJsonArray>
 #include <QLabel>
 
-#include <climits>
-
 namespace {
-void setXHTTPGridStretch(QGridLayout *layout) {
-    layout->setColumnStretch(1, 1);
-    layout->setColumnStretch(3, 1);
+QString xhttpExtraIssues(const QJsonObject &extra, const QString &mode, Validation::Severity severity) {
+    Validation::Issues issues;
+    Configs::Checks::XrayXHTTPExtra(issues, {}, extra, mode);
+    QStringList lines;
+    for (const auto &issue: issues) {
+        if (issue.severity == severity) lines << QCoreApplication::translate("Validation", "%1: %2").arg(issue.field, issue.message);
+    }
+    return lines.join('\n');
 }
 } // namespace
 
@@ -22,7 +27,7 @@ void DialogEditProfile::setXrayXHTTPHelp(QWidget *caption, QWidget *field,
                                          const QString &text,
                                          const QString &jsonKey,
                                          const QString &description) {
-    const auto tooltip = tr("JSON: %1\n%2").arg(jsonKey, description);
+    const auto tooltip = tr("%1: %2").arg(jsonKey, description);
     if (auto *label = qobject_cast<QLabel *>(caption)) {
         label->setText(text);
     } else if (auto *button = qobject_cast<QAbstractButton *>(caption)) {
@@ -33,253 +38,62 @@ void DialogEditProfile::setXrayXHTTPHelp(QWidget *caption, QWidget *field,
 }
 
 void DialogEditProfile::setupXrayXHTTPControls() {
-    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_common);
-    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_padding);
-    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_packet);
-    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_xmux);
-
-    ui->verticalLayout_xray_xhttp->setAlignment(Qt::AlignTop);
     ui->xray_mode->addItems(Configs::XrayXHTTPModes);
-    ui->xray_xpadding_method->addItems({"", "repeat-x", "tokenish"});
-    ui->xray_xpadding_method->setEditable(true);
-    ui->xray_xpadding_placement->addItems({"", "queryInHeader", "cookie", "header", "query"});
-    ui->xray_xpadding_placement->setEditable(true);
-    ui->xray_session_placement->addItems(Configs::XrayXHTTPMetaPlacements);
-    ui->xray_session_placement->setEditable(true);
-    ui->xray_seq_placement->addItems(Configs::XrayXHTTPMetaPlacements);
-    ui->xray_seq_placement->setEditable(true);
-    ui->xray_uplink_data_placement->addItems(Configs::XrayXHTTPUplinkDataPlacements);
-    ui->xray_uplink_data_placement->setEditable(true);
-    ui->xray_uplink_http_method->addItems(Configs::XrayXHTTPUplinkMethods);
-    ui->xray_uplink_http_method->setEditable(true);
-    setupXrayXHTTPDescriptions();
-}
-
-void DialogEditProfile::setupXrayXHTTPDescriptions() {
-    ui->xray_xhttp_packet_box->setTitle(tr("Upload / Stream Tuning"));
-    ui->xray_xhttp_xmux_box->setTitle(tr("Xmux Reuse"));
-
     setXrayXHTTPHelp(ui->xray_mode_l, ui->xray_mode, tr("Mode"), "mode",
-                     tr("XHTTP mode: auto usually uses packet-up, REALITY uses stream-one, "
-                        "and REALITY with downloadSettings uses stream-up. downloadSettings "
-                        "is removed when saving stream-one mode."));
-    setXrayXHTTPHelp(ui->xray_xpaddingbytes_l, ui->xray_xpaddingbytes, tr("X Padding Bytes"), "xPaddingBytes",
-                     tr("Range of extra XHTTP padding bytes. Default: 100-1000. If set, both bounds must be positive."));
-    setXrayXHTTPHelp(ui->xray_serverMaxHeaderBytes_l, ui->xray_serverMaxHeaderBytes,
-                     tr("Server Max Header Bytes"), "serverMaxHeaderBytes",
-                     tr("Maximum request header size accepted by the server. Default: 8192."));
-    setXrayXHTTPHelp(ui->xray_xpadding_obfs_mode, nullptr, tr("Enable Padding Obfuscation"),
-                     "xPaddingObfsMode",
-                     tr("Enable custom X-Padding placement, key, header, and method. When disabled, "
-                        "the client uses Referer?...x_padding and the server uses X-Padding."));
-    setXrayXHTTPHelp(ui->label_xpadding_method, ui->xray_xpadding_method,
-                     tr("Padding Method"), "xPaddingMethod",
-                     tr("Padding value format: repeat-x or tokenish. Default: repeat-x."));
-    setXrayXHTTPHelp(ui->label_xpadding_placement, ui->xray_xpadding_placement,
-                     tr("Padding Placement"), "xPaddingPlacement",
-                     tr("Where X-Padding is sent: queryInHeader, cookie, header, or query. Default: queryInHeader."));
-    setXrayXHTTPHelp(ui->label_xpadding_key, ui->xray_xpadding_key,
-                     tr("Padding Key"), "xPaddingKey",
-                     tr("Query or cookie key for X-Padding, and query key inside queryInHeader. Default: x_padding."));
-    setXrayXHTTPHelp(ui->label_xpadding_header, ui->xray_xpadding_header,
-                     tr("Padding Header"), "xPaddingHeader",
-                     tr("Header name used by header or queryInHeader padding. Default: X-Padding."));
-
-    setXrayXHTTPHelp(ui->xray_scMaxEachPostBytes_l, ui->xray_scMaxEachPostBytes,
-                     tr("Max Post Bytes"), "scMaxEachPostBytes",
-                     tr("Packet-up upload POST size: client split size and server reject limit. Default: 1000000."));
-    setXrayXHTTPHelp(ui->xray_scMinPostsIntervalMs_l, ui->xray_scMinPostsIntervalMs,
-                     tr("Min Post Interval"), "scMinPostsIntervalMs",
-                     tr("Packet-up client interval between upload POST requests per proxied connection, in milliseconds. Default: 30."));
-    setXrayXHTTPHelp(ui->xray_scMaxBufferedPosts_l, ui->xray_scMaxBufferedPosts,
-                     tr("Max Buffered Posts"), "scMaxBufferedPosts",
-                     tr("Packet-up server upload queue size per proxied connection. Default: 30."));
-    setXrayXHTTPHelp(ui->xray_uplink_http_method_l, ui->xray_uplink_http_method,
-                     tr("Uplink HTTP Method"), "uplinkHTTPMethod",
-                     tr("HTTP method for upload requests. Default: POST. Xray uppercases it; GET is accepted only in packet-up mode."));
-    setXrayXHTTPHelp(ui->xray_uplink_data_placement_l, ui->xray_uplink_data_placement,
-                     tr("Uplink Data Placement"), "uplinkDataPlacement",
-                     tr("Where upload data is placed. Default: auto. cookie/header are accepted only in packet-up mode; auto/body are always accepted."));
-    setXrayXHTTPHelp(ui->xray_uplink_data_key_l, ui->xray_uplink_data_key,
-                     tr("Uplink Data Key"), "uplinkDataKey",
-                     tr("Key used when upload data is placed in a cookie or header. Defaults: X-Data for auto/header, x_data for cookie."));
-    setXrayXHTTPHelp(ui->xray_uplink_chunk_size_l, ui->xray_uplink_chunk_size,
-                     tr("Uplink Chunk Size"), "uplinkChunkSize",
-                     tr("Packet-up header/cookie payload chunk size range. Defaults: cookie 2-3 KiB, header 3-4 KB, otherwise scMaxEachPostBytes. Values below 64 are clamped."));
-
-    setXrayXHTTPHelp(ui->xray_no_grpc, nullptr, tr("No GRPC Headers"), "noGRPCHeader",
-                     tr("Client-side stream-up/stream-one option: do not add Content-Type: application/grpc to upload requests."));
-    setXrayXHTTPHelp(ui->xray_no_sse, nullptr, tr("No SSE Headers"), "noSSEHeader",
-                     tr("Server-side downstream/stream-one option: do not send Content-Type: text/event-stream in responses."));
-    setXrayXHTTPHelp(ui->xray_scStreamUpServerSecs_l, ui->xray_scStreamUpServerSecs,
-                     tr("Stream Up Server Seconds"), "scStreamUpServerSecs",
-                     tr("Stream-up server interval for periodic xPaddingBytes keepalive writes, in seconds. Default: 20-80; values <= 0 disable periodic padding."));
-    setXrayXHTTPHelp(ui->xray_session_placement_l, ui->xray_session_placement,
-                     tr("Session Placement"), "sessionIDPlacement",
-                     tr("Where the XHTTP session id is sent: path, cookie, header, or query. Default: path."));
-    setXrayXHTTPHelp(ui->xray_session_key_l, ui->xray_session_key,
-                     tr("Session Key"), "sessionIDKey",
-                     tr("Key used for the session id outside path placement. Defaults: x_session for cookie/query, X-Session for header."));
-    setXrayXHTTPHelp(ui->xray_session_id_table_l, ui->xray_session_id_table,
-                     tr("Session ID Table"), "sessionIDTable",
-                     tr("Charset for generating the XHTTP session id: a predefined name "
-                        "(number, hex, HEX, base36, BASE36, alphabet, ALPHABET, Alphabet, Base62) "
-                        "or a literal ASCII string. Empty falls back to a random UUID."));
-    setXrayXHTTPHelp(ui->xray_session_id_length_l, ui->xray_session_id_length,
-                     tr("Session ID Length"), "sessionIDLength",
-                     tr("Length range of the generated session id, e.g. 8-16. "
-                        "Only used together with sessionIDTable; \"from\" must be greater than 0."));
-    setXrayXHTTPHelp(ui->xray_seq_placement_l, ui->xray_seq_placement,
-                     tr("Sequence Placement"), "seqPlacement",
-                     tr("Where the XHTTP packet sequence is sent: path, cookie, header, or query. Default: path."));
-    setXrayXHTTPHelp(ui->xray_seq_key_l, ui->xray_seq_key,
-                     tr("Sequence Key"), "seqKey",
-                     tr("Key used for the sequence value outside path placement. Defaults: x_seq for cookie/query, X-Seq for header."));
-
-    setXrayXHTTPHelp(ui->xray_max_concurrency_l, ui->xray_max_concurrency,
-                     tr("Max Concurrency"), "xmux.maxConcurrency",
-                     tr("Client-side H2/H3 xmux limit: maximum concurrent uses per underlying connection. Cannot be used together with maxConnections. Empty xmux defaults to 1-1."));
-    setXrayXHTTPHelp(ui->xray_max_connections_l, ui->xray_max_connections,
-                     tr("Max Connections"), "xmux.maxConnections",
-                     tr("Client-side H2/H3 xmux limit: maximum parallel underlying connections. Cannot be used together with maxConcurrency."));
-    setXrayXHTTPHelp(ui->xray_max_reuse_times_l, ui->xray_max_reuse_times,
-                     tr("Max Reuse times"), "xmux.cMaxReuseTimes",
-                     tr("Client-side H2/H3 xmux limit: maximum times an underlying connection may be selected for reuse."));
-    setXrayXHTTPHelp(ui->xray_hMaxRequestTimes_l, ui->xray_hMaxRequestTimes,
-                     tr("Max Request Times"), "xmux.hMaxRequestTimes",
-                     tr("Client-side H2/H3 xmux limit: maximum upload/download requests per underlying connection. Empty xmux defaults to 600-900."));
-    setXrayXHTTPHelp(ui->xray_hMaxReusableSecs_l, ui->xray_hMaxReusableSecs,
-                     tr("Max Reusable Secs"), "xmux.hMaxReusableSecs",
-                     tr("Client-side H2/H3 xmux limit: maximum seconds an underlying connection stays reusable. Empty xmux defaults to 1800-3000."));
-    setXrayXHTTPHelp(ui->xray_keep_alive_period_l, ui->xray_keep_alive_period,
-                     tr("Keep Alive Period"), "xmux.hKeepAlivePeriod",
-                     tr("Client-side H2/H3 keepalive interval for underlying connections, in seconds. 0 uses Xray defaults; negative values disable keepalive where supported."));
-    setXrayXHTTPHelp(ui->xray_downloadsettings_l, ui->xray_downloadsettings_edit,
-                     tr("Download Settings"), "downloadSettings",
-                     tr("Client-only downstream streamSettings, including address and port, for an independent download path. Not allowed in stream-one and removed when saving stream-one mode."));
+                     tr("XHTTP mode; auto picks packet-up, or stream-one with REALITY."));
 }
 
 void DialogEditProfile::loadXrayXHTTP(const Configs::xrayXHTTP &xhttp) {
-    ui->xray_xpaddingbytes->setText(xhttp.xPaddingBytes);
-    ui->xray_serverMaxHeaderBytes->setText(Int2String(xhttp.serverMaxHeaderBytes));
-
-    ui->xray_xpadding_obfs_mode->setChecked(xhttp.xPaddingObfsMode);
-    ui->xray_xpadding_method->setCurrentText(xhttp.xPaddingMethod);
-    ui->xray_xpadding_placement->setCurrentText(xhttp.xPaddingPlacement);
-    ui->xray_xpadding_key->setText(xhttp.xPaddingKey);
-    ui->xray_xpadding_header->setText(xhttp.xPaddingHeader);
-
-    ui->xray_scMaxEachPostBytes->setText(xhttp.scMaxEachPostBytes);
-    ui->xray_scMinPostsIntervalMs->setText(xhttp.scMinPostsIntervalMs);
-    ui->xray_scMaxBufferedPosts->setText(Int2String(xhttp.scMaxBufferedPosts));
-    ui->xray_uplink_http_method->setCurrentText(xhttp.uplinkHTTPMethod);
-    ui->xray_uplink_data_placement->setCurrentText(xhttp.uplinkDataPlacement);
-    ui->xray_uplink_data_key->setText(xhttp.uplinkDataKey);
-    ui->xray_uplink_chunk_size->setText(xhttp.uplinkChunkSize);
-    ui->xray_no_grpc->setChecked(xhttp.noGRPCHeader);
-    ui->xray_no_sse->setChecked(xhttp.noSSEHeader);
-    ui->xray_scStreamUpServerSecs->setText(xhttp.scStreamUpServerSecs);
-    ui->xray_session_placement->setCurrentText(xhttp.sessionIDPlacement);
-    ui->xray_session_key->setText(xhttp.sessionIDKey);
-    ui->xray_session_id_table->setText(xhttp.sessionIDTable);
-    ui->xray_session_id_length->setText(xhttp.sessionIDLength);
-    ui->xray_seq_placement->setCurrentText(xhttp.seqPlacement);
-    ui->xray_seq_key->setText(xhttp.seqKey);
-
-    ui->xray_max_concurrency->setText(xhttp.maxConcurrency);
-    ui->xray_max_connections->setText(xhttp.maxConnections);
-    ui->xray_hMaxRequestTimes->setText(xhttp.hMaxRequestTimes);
-    ui->xray_hMaxReusableSecs->setText(xhttp.hMaxReusableSecs);
-    ui->xray_max_reuse_times->setText(xhttp.cMaxReuseTimes);
-    ui->xray_keep_alive_period->setText(Int2String(xhttp.hKeepAlivePeriod));
+    CACHE.XrayXHTTPExtra = xhttp.ExportExtra();
+    CACHE.XrayXHTTPExtraEdited = false;
 }
 
 void DialogEditProfile::saveXrayXHTTP(Configs::xrayXHTTP &xhttp) {
-    xhttp.xPaddingBytes = ui->xray_xpaddingbytes->text().trimmed();
-    xhttp.serverMaxHeaderBytes = ui->xray_serverMaxHeaderBytes->text().trimmed().toInt();
-
-    xhttp.xPaddingObfsMode = ui->xray_xpadding_obfs_mode->isChecked();
-    xhttp.xPaddingMethod = ui->xray_xpadding_method->currentText().trimmed();
-    xhttp.xPaddingPlacement = ui->xray_xpadding_placement->currentText().trimmed();
-    xhttp.xPaddingKey = ui->xray_xpadding_key->text().trimmed();
-    xhttp.xPaddingHeader = ui->xray_xpadding_header->text().trimmed();
-
-    xhttp.scMaxEachPostBytes = ui->xray_scMaxEachPostBytes->text().trimmed();
-    xhttp.scMinPostsIntervalMs = ui->xray_scMinPostsIntervalMs->text().trimmed();
-    xhttp.scMaxBufferedPosts = ui->xray_scMaxBufferedPosts->text().trimmed().toLongLong();
-    xhttp.uplinkHTTPMethod = ui->xray_uplink_http_method->currentText().trimmed();
-    xhttp.uplinkDataPlacement = ui->xray_uplink_data_placement->currentText().trimmed();
-    xhttp.uplinkDataKey = ui->xray_uplink_data_key->text().trimmed();
-    xhttp.uplinkChunkSize = ui->xray_uplink_chunk_size->text().trimmed();
-    xhttp.noGRPCHeader = ui->xray_no_grpc->isChecked();
-    xhttp.noSSEHeader = ui->xray_no_sse->isChecked();
-    xhttp.scStreamUpServerSecs = ui->xray_scStreamUpServerSecs->text().trimmed();
-    xhttp.sessionIDPlacement = ui->xray_session_placement->currentText().trimmed();
-    xhttp.sessionIDKey = ui->xray_session_key->text().trimmed();
-    xhttp.sessionIDTable = ui->xray_session_id_table->text().trimmed();
-    xhttp.sessionIDLength = ui->xray_session_id_length->text().trimmed();
-    xhttp.seqPlacement = ui->xray_seq_placement->currentText().trimmed();
-    xhttp.seqKey = ui->xray_seq_key->text().trimmed();
-    xhttp.downloadSettings = xhttp.mode == "stream-one" ? QString() : CACHE.XrayDownloadSettings;
-
-    xhttp.maxConcurrency = ui->xray_max_concurrency->text().trimmed();
-    xhttp.maxConnections = ui->xray_max_connections->text().trimmed();
-    xhttp.hMaxRequestTimes = ui->xray_hMaxRequestTimes->text().trimmed();
-    xhttp.hMaxReusableSecs = ui->xray_hMaxReusableSecs->text().trimmed();
-    xhttp.cMaxReuseTimes = ui->xray_max_reuse_times->text().trimmed();
-    xhttp.hKeepAlivePeriod = ui->xray_keep_alive_period->text().trimmed().toLongLong();
+    if (CACHE.XrayXHTTPExtraEdited) xhttp.SetExtra(CACHE.XrayXHTTPExtra);
+    if (xhttp.mode == "stream-one") xhttp.downloadSettings.clear();
 }
 
-void DialogEditProfile::updateXrayXHTTPControls() {
-    setRowVisible(ui->xray_downloadsettings_l, ui->xray_downloadsettings_edit,
-                  ui->xray_mode->currentText() != "stream-one");
-
-    const bool obfs = ui->xray_xpadding_obfs_mode->isChecked();
-    setRowVisible(ui->label_xpadding_method, ui->xray_xpadding_method, obfs);
-    setRowVisible(ui->label_xpadding_placement, ui->xray_xpadding_placement, obfs);
-    setRowVisible(ui->label_xpadding_key, ui->xray_xpadding_key, obfs);
-    setRowVisible(ui->label_xpadding_header, ui->xray_xpadding_header, obfs);
+QJsonObject DialogEditProfile::shownXrayXHTTPExtra() {
+    auto extra = CACHE.XrayXHTTPExtra;
+    if (ui->xray_mode->currentText() == "stream-one") extra.remove("downloadSettings");
+    return extra;
 }
 
 void DialogEditProfile::bindXrayXHTTP() {
-    namespace Checks = Configs::Checks;
-    const auto mode = [this] { return ui->xray_mode->currentText(); };
-
-    form->bind(ui->xray_xpaddingbytes, Checks::XrayXPaddingBytes);
-    form->bind(ui->xray_serverMaxHeaderBytes, Validation::Rules::Int(0, INT_MAX));
-    form->bind(ui->xray_xpadding_method, Checks::XrayPaddingMethod);
-    form->bind(ui->xray_xpadding_placement, Checks::XrayPaddingPlacement);
-    // Xray checks both even with obfuscation off, while their rows are hidden.
-    form->addRule({ui->xray_xpadding_obfs_mode}, [this] {
-        if (ui->xray_xpadding_obfs_mode->isChecked()) return QString();
-        if (Checks::XrayPaddingMethod(ui->xray_xpadding_method->currentText().trimmed()).isEmpty() &&
-            Checks::XrayPaddingPlacement(ui->xray_xpadding_placement->currentText().trimmed()).isEmpty()) {
-            return QString();
-        }
-        return tr(
-            "The padding method or placement is not supported, and Xray refuses it even with obfuscation off. "
-            "Turn this on and fix the value, or clear it.");
-    });
-    for (auto *edit: {ui->xray_scMaxEachPostBytes, ui->xray_scMinPostsIntervalMs, ui->xray_uplink_chunk_size,
-                      ui->xray_scStreamUpServerSecs, ui->xray_session_id_length, ui->xray_max_concurrency,
-                      ui->xray_max_connections, ui->xray_hMaxRequestTimes, ui->xray_hMaxReusableSecs, ui->xray_max_reuse_times}) {
-        form->bind(edit, Checks::XrayInt32Range);
+    using Validation::Severity;
+    for (const auto severity: {Severity::Error, Severity::Warning}) {
+        form->addRule({ui->xray_xhttp_extra_edit, ui->xray_mode}, [this, severity] { return xhttpExtraIssues(CACHE.XrayXHTTPExtra, ui->xray_mode->currentText(), severity); }, nullptr, severity);
     }
-    form->bind(ui->xray_scMaxBufferedPosts, Validation::Rules::Int(0, LLONG_MAX));
-    form->bind(ui->xray_keep_alive_period, Validation::Rules::Int(LLONG_MIN, LLONG_MAX));
-    form->bind(ui->xray_uplink_http_method, Validation::Rules::HttpToken()).warning();
-    form->addRule({ui->xray_uplink_http_method, ui->xray_mode}, [this, mode] {
-        return Checks::XrayUplinkMethod(ui->xray_uplink_http_method->currentText(), mode());
-    });
-    form->addRule({ui->xray_uplink_data_placement, ui->xray_mode}, [this, mode] {
-        return Checks::XrayUplinkDataPlacement(ui->xray_uplink_data_placement->currentText(), mode());
-    });
-    form->bind(ui->xray_session_placement, Checks::XrayMetaPlacement);
-    form->bind(ui->xray_seq_placement, Checks::XrayMetaPlacement);
-    form->addRule({ui->xray_session_id_table, ui->xray_session_id_length}, [this] {
-        return Checks::XraySessionId(ui->xray_session_id_table->text().trimmed(), ui->xray_session_id_length->text());
-    });
-    form->addRule({ui->xray_max_connections, ui->xray_max_concurrency}, [this] {
-        return Checks::XrayXmuxExclusive(ui->xray_max_connections->text(), ui->xray_max_concurrency->text());
-    });
+}
+
+void DialogEditProfile::on_xray_xhttp_extra_edit_clicked() {
+    const auto shown = shownXrayXHTTPExtra();
+    auto editor = new JsonEdit::JsonEditorDialog(shown, this);
+    // Client keys only: the server-only ones still round-trip but do nothing here.
+    editor->SetPlaceholderText(tr("No extra settings are set. Available keys:") + QStringLiteral(
+                                                                                      "\nxPaddingBytes, xPaddingObfsMode, xPaddingKey, xPaddingHeader, xPaddingPlacement, xPaddingMethod, "
+                                                                                      "uplinkHTTPMethod, uplinkDataPlacement, uplinkDataKey, uplinkChunkSize, noGRPCHeader, "
+                                                                                      "sessionIDPlacement, sessionIDKey, sessionIDTable, sessionIDLength, seqPlacement, seqKey, "
+                                                                                      "scMaxEachPostBytes, scMinPostsIntervalMs, "
+                                                                                      "xmux: {maxConcurrency, maxConnections, cMaxReuseTimes, hMaxRequestTimes, hMaxReusableSecs, hKeepAlivePeriod}, "
+                                                                                      "downloadSettings"));
+    auto extra = Configs::CanonicalXHTTPExtra(editor->OpenEditor());
+    editor->deleteLater();
+    // Headers have their own row.
+    if (const auto headers = extra.take("headers"); headers.isObject() || headers.isArray()) {
+        ui->xray_headers->setText(Configs::getHeadersString(headers.isObject() ? Configs::jsonObjectToQStringList(headers.toObject())
+                                                                               : QJsonArray2QListString(headers.toArray())));
+        form->revalidate(ui->xray_headers);
+    }
+    if (extra != shown) {
+        // Stream-one hides downloadSettings without dropping it until the profile is saved.
+        if (const auto hidden = CACHE.XrayXHTTPExtra.value("downloadSettings");
+            !hidden.isUndefined() && !shown.contains("downloadSettings") && !extra.contains("downloadSettings")) {
+            extra["downloadSettings"] = hidden;
+        }
+        CACHE.XrayXHTTPExtra = extra;
+        CACHE.XrayXHTTPExtraEdited = true;
+    }
+    editor_cache_updated_impl();
+    form->revalidate(ui->xray_xhttp_extra_edit);
 }

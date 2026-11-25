@@ -2,6 +2,7 @@
 
 #include "include/global/CountryHelper.hpp"
 #include "include/global/Configs.hpp"
+#include "include/engine/EngineTr.h"
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <array>
@@ -45,7 +46,6 @@ void DataViewHtmlGenerator::setDownloadReport(const DownloadProgressReport &repo
 void DataViewHtmlGenerator::seedSpeedTest(int totalProfiles) {
     QMutexLocker lk(&mu_);
     testProgress.store(0);
-    Configs::dataManager->settingsRepo->speed_test_mode == Configs::TestConfig::COUNTRY ? speedtest_.kind = SpeedtestPanelState::Kind::Country : speedtest_.kind = SpeedtestPanelState::Kind::Speed;
     speedtest_.totalProfiles = totalProfiles;
     speedtest_.visible = true;
 }
@@ -209,8 +209,8 @@ QString DataViewHtmlGenerator::downloadSectionHtml() {
     auto progressText = getProgressBar(download_.report.downloadedSize, download_.report.totalSize);
     const QString stat =
         ReadableSize(download_.report.downloadedSize) + "/" + ReadableSize(download_.report.totalSize);
-    return QString("<p style='text-align:center;margin:0;'>Downloading %1: %2 %3</p>")
-        .arg(download_.report.fileName, stat, progressText);
+    return QString("<p style='text-align:center;margin:0;'>%1</p>")
+        .arg(MainWindowTr::tr("Downloading %1: %2 %3").arg(download_.report.fileName, stat, progressText));
 }
 
 DataViewHtmlGenerator::TestPanelState DataViewHtmlGenerator::testPanelState() const {
@@ -218,7 +218,7 @@ DataViewHtmlGenerator::TestPanelState DataViewHtmlGenerator::testPanelState() co
     TestPanelState state;
     state.visible = speedtest_.visible || latencyTest_.visible;
     if (speedtest_.visible) {
-        state.kind = speedtest_.kind == SpeedtestPanelState::Kind::Country ? TestPanelState::Kind::Country : TestPanelState::Kind::Speed;
+        state.kind = TestPanelState::Kind::Speed;
         state.total = qMax(0, speedtest_.totalProfiles);
         state.profileName = speedtest_.profileName;
         state.dlSpeed = speedtest_.dlSpeed;

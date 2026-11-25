@@ -74,7 +74,7 @@ bool ruleTesterNotRunning(const QString &error) {
 
 DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int preferredProfileId, QWidget *parent)
     : QDialog(parent), m_connection(connection), m_preferredProfileId(preferredProfileId) {
-    setWindowTitle(tr("Route path lookup"));
+    setWindowTitle(tr("Route Lookup"));
 
     auto *root = new QVBoxLayout(this);
     root->setContentsMargins(1, 1, 1, 1);
@@ -118,7 +118,7 @@ DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int pr
     completer->setFilterMode(Qt::MatchContains);
     completer->popup()->setTextElideMode(Qt::ElideMiddle);
     m_process->setCompleter(completer);
-    auto *pick = new QPushButton(tr("Pick…"), this);
+    auto *pick = new QPushButton(tr("Pick"), this);
     pick->setAutoDefault(false);
     pick->setToolTip(tr("Choose from running programs and the ones seen connecting, or browse for a file."));
     connect(pick, &QPushButton::clicked, this, &DialogRuleTester::pickProcess);
@@ -528,8 +528,6 @@ QString DialogRuleTester::originLabel(const Configs::RouteRuleOrigin &origin, co
             return tr("Service inbound (Throned)");
         case Kind::Sniff:
             return tr("Sniff (Throned)");
-        case Kind::TorOnion:
-            return tr("Onion sites via Tor (Throned)");
         case Kind::Resolve:
             return tr("Domain resolve (Throned)");
         case Kind::DnsHijack:

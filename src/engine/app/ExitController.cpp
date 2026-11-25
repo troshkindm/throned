@@ -1,7 +1,9 @@
 #include "include/engine/app/ExitController.h"
 
 #include "include/api/remote/Server.hpp"
+#include "include/database/ProfilesRepo.h"
 #include "include/engine/EnginePolicy.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
@@ -56,6 +58,10 @@ void ExitController::shutdown(bool interactive) {
     emit coreShutDown();
     // Only once the core is gone: until then the guard keeps blocking whatever would leak around the dying tunnel.
     Sys::KillSwitch::instance()->shutdown();
+    // After the stop above: its last test results and traffic counters are queued on the writer.
+    if (!Configs::dataManager->profilesRepo->WaitForWrites(5000)) {
+        LOG_WARN("profile writes were still running at exit; the last test results may be lost");
+    }
 
     mu_exit.unlock();
     qDebug() << "prepare exit done!";
@@ -68,7 +74,7 @@ void ExitController::persistSessionState() {
     auto *settings = Configs::dataManager->settingsRepo.get();
 
     // Backstop only: this runs on a graceful exit, so it must never be the sole write.
-    if (settings->remember_enable && settings->started_id >= 0) settings->remember_id = settings->started_id;
+    if (const int target = Lifecycle::ResumeTargetId(); settings->remember_enable && target >= 0) settings->remember_id = target;
     if (m_shutdownOptions.persistModes) {
         settings->remember_system_proxy = settings->spmode_system_proxy;
         settings->remember_tun = settings->spmode_vpn;

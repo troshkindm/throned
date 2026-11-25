@@ -191,7 +191,8 @@ QString trafficProfileName(int profileId, const QHash<int, QString> &metaNames) 
     if (profileId == Stats::DIRECT_STAT_PROFILE_ID) return QStringLiteral("Direct");
     if (const auto name = metaNames.value(profileId); !name.isEmpty()) return name;
     if (const auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) return profileDisplayName(*profile);
-    if (profileId == Configs::warpProfileID) return QStringLiteral("built-in warp");
+    if (const auto exit = Configs::ExitOfProfileID(profileId); exit != Configs::ExitThrough::Server)
+        return QStringLiteral("%1 exit").arg(Configs::ExitName(exit));
     return {};
 }
 } // namespace RemoteApi::RouterImpl
@@ -501,7 +502,7 @@ QList<std::shared_ptr<Configs::Profile>> Router::groupProfiles(int gid, const QR
     const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
     if (group == nullptr) return profiles;
     QSet<int> seen;
-    for (const auto &profile: Configs::dataManager->profilesRepo->GetProfileBatch(group->Profiles())) {
+    for (const auto &profile: Configs::dataManager->profilesRepo->GetProfileBatch(group->DisplayedProfiles())) {
         if (seen.contains(profile->id)) continue;
         seen.insert(profile->id);
         if (nameFilter.match(RouterImpl::profileDisplayName(*profile)).hasMatch()) profiles.append(profile);

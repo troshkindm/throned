@@ -108,7 +108,7 @@ void RawRouteEdit::keyPressEvent(QKeyEvent* e) {
 }
 
 RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::RouteProfile>& routeChain) : QDialog(parent) {
-    setWindowTitle(tr("Raw routing profile"));
+    setWindowTitle(tr("Raw Routing Profile"));
     chain = std::make_shared<Configs::RouteProfile>(*routeChain);
     chain->isRaw = true;
 
@@ -129,10 +129,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
 
     preventCheck = new QCheckBox(tr("Prevent modifications"), this);
     preventCheck->setChecked(chain->preventModifications);
-    preventCheck->setToolTip(tr(
-        "Use the route object exactly as written (outbound ids are still resolved to tags).\n"
-        "Throned will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray\n"
-        "outbounds and other Throned features may break. For advanced users only."));
+    preventCheck->setToolTip(tr("Use the route object as written, without Throned's DNS and Xray additions."));
     routeLayout->addWidget(preventCheck);
 
     jsonEdit = new RawRouteEdit(this);
@@ -166,7 +163,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
     for (int groupID: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
-        for (int profileID: group->profiles) {
+        for (int profileID: group->DisplayedProfiles()) {
             if (!idToName.contains(profileID)) continue;
             items.append({QString("[%1] %2").arg(group->name, idToName[profileID]), QString::number(profileID)});
         }
@@ -190,7 +187,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
 
     auto* formatBtn = new QPushButton(tr("Format JSON"), this);
     connect(formatBtn, &QPushButton::clicked, this, [this] {
-        if (!jsonEdit->formatDocument()) MessageBoxInfo(tr("Raw route"), tr("The route must be a valid JSON object"));
+        if (!jsonEdit->formatDocument()) MessageBoxInfo(tr("Raw routing profile"), tr("The route must be a valid JSON object"));
     });
 
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
@@ -215,12 +212,12 @@ void RawRouteItem::accept() {
     if (!dnsForm->validateAll()) return;
     chain->name = nameEdit->text().trimmed();
     if (chain->name.isEmpty()) {
-        MessageBoxWarning(tr("Invalid operation"), tr("Cannot create Route Profile with empty name"));
+        MessageBoxWarning(tr("Invalid operation"), tr("Cannot create routing profile with empty name"));
         return;
     }
     const auto doc = QJsonDocument::fromJson(jsonEdit->toPlainText().toUtf8());
     if (!doc.isObject()) {
-        MessageBoxWarning(tr("Invalid route"), tr("The route must be a valid JSON object"));
+        MessageBoxWarning(tr("Invalid routing profile"), tr("The route must be a valid JSON object"));
         return;
     }
     // setValidator re-checks right away.

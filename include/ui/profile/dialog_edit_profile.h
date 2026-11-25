@@ -32,7 +32,7 @@ public slots:
 
 private slots:
     void on_certificate_edit_clicked();
-    void on_xray_downloadsettings_edit_clicked();
+    void on_xray_xhttp_extra_edit_clicked();
     void on_xray_finalmask_edit_clicked();
     void on_xray_xdrive_template_edit_clicked();
 
@@ -53,13 +53,21 @@ private:
     int groupId = -1;
     bool newEnt = false;
     std::shared_ptr<Configs::Profile> ent;
+    QString originalAddress;
+    QString originalPort;
     std::optional<Engine::EditLock> editLock;
+    // Kept off ent until onEnd(): ent is the live profile, and a cancel must not switch its endpoint source.
+    bool pendingOwnEndpoint = false;
 
     QString network_title_base;
+    // The Fragment item the profile loaded as; its fields are rewritten only when the choice changes.
+    int fragmentLoadedIndex = -1;
 
     struct {
         QStringList certificate;
-        QString XrayDownloadSettings;
+        QJsonObject XrayXHTTPExtra;
+        // Applied on save only once edited, so untouched values stay byte for byte.
+        bool XrayXHTTPExtraEdited = false;
         QJsonObject XrayFinalmask;
         QJsonObject XrayXDriveTemplate;
         // Saved into the profile only while Multiplex is Custom.
@@ -76,11 +84,11 @@ private:
     void relayout();
     void fitToContent();
     bool onEnd();
+    std::shared_ptr<Configs::Profile> draftProfile();
     void editor_cache_updated_impl();
     void setCacheButtonText(QPushButton *button, bool isSet);
     static void setRowVisible(QWidget *label, QWidget *field, bool visible);
     static void selectComboText(QComboBox *combo, const QString &text);
-    static void offerCustomMux(QComboBox *combo, int customIndex);
 
     // dialog_edit_profile_singbox.cpp: sing-box transport, TLS and multiplex
     void setupSingboxStream();
@@ -103,14 +111,14 @@ private:
     void updateXrayRows();
     static void keepXrayComboValue(QComboBox *combo, const QString &value);
 
-    // dialog_edit_profile_xhttp.cpp: the XHTTP panel of the Xray stream
+    // dialog_edit_profile_xhttp.cpp: XHTTP mode and extra of the Xray stream
     void setupXrayXHTTPControls();
-    void setupXrayXHTTPDescriptions();
     void bindXrayXHTTP();
     void setXrayXHTTPHelp(QWidget *caption, QWidget *field, const QString &text, const QString &jsonKey, const QString &description);
     void loadXrayXHTTP(const Configs::xrayXHTTP &xhttp);
     void saveXrayXHTTP(Configs::xrayXHTTP &xhttp);
-    void updateXrayXHTTPControls();
+    // The extra object the Extra button edits; stream-one hides downloadSettings.
+    QJsonObject shownXrayXHTTPExtra();
 
     // dialog_edit_profile_xdrive.cpp: the XDRIVE panel of the Xray stream
     void setupXrayXDriveControls();

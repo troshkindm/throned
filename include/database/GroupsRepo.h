@@ -11,8 +11,19 @@
 #include <QJsonObject>
 #include <QList>
 #include <QSet>
+#include <QString>
 
 namespace Configs {
+enum class HopRole { Front,
+                     Landing };
+
+struct HopReference {
+    int groupId = -1;
+    QString groupName;
+    HopRole role = HopRole::Front;
+    int profileId = -1;
+};
+
 class GroupsRepo {
 private:
     Database& db;
@@ -50,7 +61,7 @@ public:
     std::shared_ptr<Group> CurrentGroup() const;
 
     // Deletes the tab-order row, the group and its profiles (listed or not) in one transaction, and forgets them all.
-    // False when the deletion failed and nothing changed.
+    // False when the deletion failed and nothing changed; otherwise other groups lose those profiles as front/landing proxy.
     bool DeleteGroup(int id);
 
     QList<int> GetAllGroupIds() const;
@@ -62,6 +73,12 @@ public:
 
     // No-op unless id >= 0; false for a deleted id, which is not written back.
     bool Save(const std::shared_ptr<Group>& group);
+
+    // Groups whose front or landing proxy is one of profileIds; exceptGroup (a group being deleted) is left out.
+    QList<HopReference> HopReferences(const QSet<int>& profileIds, int exceptGroup = -1) const;
+
+    // Sets those proxies to -1, saving and logging each; takes this repo's lock, so never call it with the lock held.
+    QList<HopReference> ClearHopReferences(const QSet<int>& deletedProfileIds);
 
     // Exit countries from earlier IP tests, keyed by profile content digest: the country filter's memory of
     // profiles it already removed, so a refresh does not import and test them again.
@@ -76,7 +93,7 @@ public:
 class Profile;
 
 // Keep sorted groups sorted from a background queue, one sort at a time; callable from any thread.
-// The main window gets GroupOrderChanged for each group whose order moved.
+// The main window gets GroupOrderChanged for each group whose order moved, and for every full sort.
 
 // For changes that can move any row.
 void ResortLater(int gid);

@@ -129,8 +129,7 @@ StepVerdict judgeSteps(const StepReport &report, const QStringList &names) {
                 breakAt = i;
                 if (alone.contains(i) && stepWorks(alone[i])) {
                     row = {EditChain::tr("Fails through the hops above"),
-                           joinLines({EditChain::tr("Works on its own (%1), but not through the hops above it: the hop above may not reach "
-                                                    "this server, or may not carry its protocol (UDP, for example).")
+                           joinLines({EditChain::tr("Works on its own (%1) but not through the hops above it.")
                                           .arg(stepLatencyText(alone[i])),
                                       result.error}),
                            "danger"};

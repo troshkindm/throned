@@ -7,7 +7,8 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/SettingsRepo.h"
-#include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/EditLocks.h"
+#include "include/engine/services/RouteService.h"
 #include "include/engine/services/StatsService.h"
 #include "include/global/Common.h"
 #include "include/global/LocalNetwork.hpp"
@@ -18,6 +19,9 @@
 #include "include/ui/utils/ConnectionsTreeFilterProxyModel.h"
 #include "include/ui/utils/ConnectionsTreeModel.h"
 #include "include/ui/widget/MaterialIcon.h"
+
+#include <algorithm>
+#include <array>
 
 #include <QHostAddress>
 
@@ -102,7 +106,7 @@ QList<RoutableServer> RoutableServers() {
         const auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
         const QString shortGroup = ShortDisplayName(group->name, 20);
-        for (const int profileID: group->profiles)
+        for (const int profileID: group->DisplayedProfiles())
             if (const auto it = names.constFind(profileID); it != names.cend())
                 servers << RoutableServer{profileID, "[" + shortGroup + "] " + it.value(), "[" + group->name + "] " + it.value()};
     }
@@ -171,6 +175,33 @@ int ColumnForSort(Stats::ConnectionSort sort) {
             return -1;
     }
 }
+
+// Saved by name, so a reordered column enum doesn't hand one column's width to another.
+const std::array<QLatin1String, ConnectionsTreeModel::ColumnCount> kConnectionColumnKeys = {
+    QLatin1String("target"), QLatin1String("source"), QLatin1String("protocol"),
+    QLatin1String("outbound"), QLatin1String("traffic"), QLatin1String("speed")};
+
+QHash<int, int> ParseConnectionColumnWidths(const QStringList& saved) {
+    QHash<int, int> widths;
+    for (const auto& entry: saved) {
+        const auto key = entry.section('=', 0, 0);
+        bool ok = false;
+        const int width = entry.section('=', 1).toInt(&ok);
+        const auto column = std::find(kConnectionColumnKeys.cbegin(), kConnectionColumnKeys.cend(), key);
+        if (ok && width > 0 && column != kConnectionColumnKeys.cend())
+            widths.insert(static_cast<int>(column - kConnectionColumnKeys.cbegin()), width);
+    }
+    return widths;
+}
+
+QStringList SerializeConnectionColumnWidths(const QHash<int, int>& widths) {
+    QStringList saved;
+    for (int column = 0; column < ConnectionsTreeModel::ColumnCount; ++column) {
+        if (widths.contains(column))
+            saved << QStringLiteral("%1=%2").arg(kConnectionColumnKeys[column]).arg(widths.value(column));
+    }
+    return saved;
+}
 } // namespace
 
 void MainWindow::setupConnectionList() {
@@ -187,13 +218,12 @@ void MainWindow::setupConnectionList() {
 
     auto* header = ui->connections->header();
     header->setHighlightSections(false);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColTarget, QHeaderView::Stretch);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColSource, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColProtocol, QHeaderView::ResizeToContents);
-    // Sized by the header itself, since it has to give way to a long Target.
-    header->setSectionResizeMode(ConnectionsTreeModel::ColOutbound, QHeaderView::Fixed);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColTraffic, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColSpeed, QHeaderView::ResizeToContents);
+    connectionFilterHeader->setUserWidths(ParseConnectionColumnWidths(Configs::dataManager->settingsRepo->connection_column_widths));
+    connect(connectionFilterHeader, &ConnectionsFilterHeader::userWidthsChanged, this, [this] {
+        auto* settings = Configs::dataManager->settingsRepo.get();
+        settings->connection_column_widths = SerializeConnectionColumnWidths(connectionFilterHeader->userWidths());
+        settings->Save();
+    });
 
     header->setResizeContentsPrecision(20);
     ui->connections->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -376,33 +406,46 @@ void MainWindow::setupConnectionSortMenu() {
         const int columnIndex = header->logicalIndexAt(pos);
         const bool isTraffic = columnIndex == ConnectionsTreeModel::ColTraffic;
         const bool isSpeed = columnIndex == ConnectionsTreeModel::ColSpeed;
-        if (!isTraffic && !isSpeed) return;
-
-        struct SortOption {
-            Stats::ConnectionSort value;
-            QString label;
-        };
-        const QList<SortOption> options = isTraffic
-                                              ? QList<SortOption>{
-                                                    {Stats::ByTraffic, tr("Total")},
-                                                    {Stats::ByDownload, tr("Downloaded")},
-                                                    {Stats::ByUpload, tr("Uploaded")}}
-                                              : QList<SortOption>{{Stats::BySpeed, tr("Total")}, {Stats::ByDownloadSpeed, tr("Download Speed")}, {Stats::ByUploadSpeed, tr("Upload Speed")}};
+        const bool resized = !connectionFilterHeader->userWidths().isEmpty();
+        if (!isTraffic && !isSpeed && !resized) return;
 
         QMenu menu(this);
-        auto* sortByLabel = menu.addAction(tr("Sort By:"));
-        sortByLabel->setEnabled(false);
+        if (isTraffic || isSpeed) {
+            struct SortOption {
+                Stats::ConnectionSort value;
+                QString label;
+            };
+            const QList<SortOption> options = isTraffic
+                                                  ? QList<SortOption>{
+                                                        {Stats::ByTraffic, tr("Total")},
+                                                        {Stats::ByDownload, tr("Downloaded")},
+                                                        {Stats::ByUpload, tr("Uploaded")}}
+                                                  : QList<SortOption>{{Stats::BySpeed, tr("Total")}, {Stats::ByDownloadSpeed, tr("Download speed")}, {Stats::ByUploadSpeed, tr("Upload speed")}};
 
-        const auto current = Stats::connection_lister->getSort();
-        for (const auto& opt: options) {
-            auto* act = menu.addAction(opt.label);
-            act->setData(static_cast<int>(opt.value));
-            act->setCheckable(true);
-            act->setChecked(current == opt.value);
+            auto* sortByLabel = menu.addAction(tr("Sort by:"));
+            sortByLabel->setEnabled(false);
+
+            const auto current = Stats::connection_lister->getSort();
+            for (const auto& opt: options) {
+                auto* act = menu.addAction(opt.label);
+                act->setData(static_cast<int>(opt.value));
+                act->setCheckable(true);
+                act->setChecked(current == opt.value);
+            }
+        }
+        QAction* resetWidths = nullptr;
+        if (resized) {
+            if (!menu.isEmpty()) menu.addSeparator();
+            resetWidths = menu.addAction(tr("Refresh column widths"));
         }
 
         auto* chosen = menu.exec(header->mapToGlobal(pos));
-        if (chosen == nullptr || !chosen->data().isValid()) return;
+        if (chosen == nullptr) return;
+        if (chosen == resetWidths) {
+            connectionFilterHeader->resetUserWidths();
+            return;
+        }
+        if (!chosen->data().isValid()) return;
 
         applyConnectionSort(static_cast<Stats::ConnectionSort>(chosen->data().toInt()));
     });
@@ -510,7 +553,7 @@ void MainWindow::syncConnectionExpandButton() {
     if (connectionExpandButton == nullptr) return;
     const bool expanded = connectionGroupsExpanded();
     connectionExpandButton->setIcon(expanded ? connectionCollapseIcon : connectionExpandIcon);
-    connectionExpandButton->setToolTip(expanded ? tr("Collapse All") : tr("Expand All"));
+    connectionExpandButton->setToolTip(expanded ? tr("Collapse all") : tr("Expand all"));
 }
 
 void MainWindow::addRuleFromConnection(const QString& entry, int action) {
@@ -542,12 +585,11 @@ void MainWindow::addRulesFromConnection(const QStringList& entries, int action) 
         changed = true;
     }
     if (!changed) return;
-    if (!Configs::dataManager->routesRepo->Save(profile)) {
+    if (Engine::RouteService::Save(profile)) {
         MessageBoxWarning(tr("Rule not added"), tr("Failed to save routing rule: %1").arg(entries.join('\n')));
         return;
     }
     refreshRoutingStatus();
-    connection()->noteRestartNeeded(Engine::RestartReason::Routing);
 }
 
 QString MainWindow::routeRuleAppendBlocker() const {
@@ -559,6 +601,8 @@ QString MainWindow::routeRuleAppendBlocker() const {
     if (currentRoute->isRemote && currentRoute->autoUpdate) return tr("The current routing profile auto-updates from a URL.");
     if (const auto owner = dm->groupsRepo->GetGroup(currentRoute->source_gid); owner != nullptr && owner->import_sub_route)
         return tr("The current routing profile is updated by the subscription \"%1\".").arg(owner->name);
+    if (Engine::IsBeingEdited(Engine::EditTarget::Routes, currentRoute->id))
+        return tr("Routing Settings is open; close it and try again.");
     return {};
 }
 
@@ -573,9 +617,9 @@ MainWindow::RuleToggle MainWindow::toggleRuleInCurrentRoute(const QString& rawRu
 
     if (const auto blocker = routeRuleAppendBlocker(); !blocker.isEmpty()) return fail(blocker);
 
-    const auto& dm = Configs::dataManager;
-    const auto currentRoute = dm->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
-    if (!currentRoute) return fail(tr("No active routing profile found."));
+    const auto stored = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
+    if (!stored) return fail(tr("No active routing profile found."));
+    const auto currentRoute = std::make_shared<Configs::RouteProfile>(*stored);
 
     const QString name = nameOf(target);
     RuleToggle result;
@@ -606,11 +650,10 @@ MainWindow::RuleToggle MainWindow::toggleRuleInCurrentRoute(const QString& rawRu
                         .arg(rawRule, movedFrom.join(", "), name, currentRoute->name);
     }
 
-    if (!dm->routesRepo->Save(currentRoute))
+    if (Engine::RouteService::Save(currentRoute))
         return fail(tr("Failed to save routing rule: %1").arg(rawRule));
 
     MW_show_log(log);
-    connection()->noteRestartNeeded(Engine::RestartReason::Routing);
     return result;
 }
 
@@ -618,8 +661,8 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
     QMenu menu(this);
     const QPoint globalPos = ui->connections->viewport()->mapToGlobal(pos);
     auto addExpandActions = [this, &menu] {
-        connect(menu.addAction(tr("Expand All")), &QAction::triggered, this, [this] { setConnectionGroupsExpanded(true); });
-        connect(menu.addAction(tr("Collapse All")), &QAction::triggered, this, [this] { setConnectionGroupsExpanded(false); });
+        connect(menu.addAction(tr("Expand all")), &QAction::triggered, this, [this] { setConnectionGroupsExpanded(true); });
+        connect(menu.addAction(tr("Collapse all")), &QAction::triggered, this, [this] { setConnectionGroupsExpanded(false); });
     };
 
     const QModelIndex proxyIndex = ui->connections->indexAt(pos);
@@ -650,7 +693,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
         {Configs::proxy, tr("Proxy")},
         {Configs::block, tr("Block")},
         // Not offered from here, but a target already sitting in its list still has to show up as taken.
-        {Configs::warpBypass, tr("Warp-bypass"), false},
+        {Configs::warpBypass, tr("Proxy without exit"), false},
     };
 
     // Looked up once per menu: the dialog asks for a server's name on every refresh.
@@ -700,12 +743,12 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
 
         // The server is picked in the dialog, where a search box copes with subscriptions of thousands.
         // Listing them waits for the dialog too, so a right click stays quick with a big subscription.
-        auto* serverAct = menu.addAction(tr("Specific server"));
+        auto* serverAct = menu.addAction(tr("Specific profile"));
         if (!currentRoute) {
             serverAct->setEnabled(false);
             serverAct->setToolTip(blocker);
         } else {
-            serverAct->setToolTip(tr("Route through another server"));
+            serverAct->setToolTip(tr("Route through another profile"));
             connect(serverAct, &QAction::triggered, this, [&pickedServer] { pickedServer = true; });
         }
         menu.addSeparator();
@@ -726,16 +769,16 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
 
         const auto servers = ra ? QList<RoutableServer>{} : RoutableServers();
         if (!ra && servers.isEmpty()) {
-            showTip(tr("There are no servers to route to."));
+            showTip(tr("There are no profiles to route to."));
             return;
         }
 
         QDialog dialog(this);
-        dialog.setWindowTitle(ra ? tr("%1 rules").arg(ra->label) : tr("Specific server rules"));
+        dialog.setWindowTitle(ra ? tr("%1 Rules").arg(ra->label) : tr("Specific Profile Rules"));
         auto* layout = new QVBoxLayout(&dialog);
         auto* hint = new QLabel(ra ? tr("Routing profile \"%1\". Checked targets go %2; unchecking one removes its rule.")
                                          .arg(currentRoute->name, ra->label)
-                                   : tr("Routing profile \"%1\". Checked targets go through the chosen server; unchecking one removes its rule.")
+                                   : tr("Routing profile \"%1\". Checked targets go through the chosen profile; unchecking one removes its rule.")
                                          .arg(currentRoute->name),
                                 &dialog);
         hint->setWordWrap(true);
@@ -743,7 +786,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
 
         QComboBox* serverBox = nullptr;
         if (!ra) {
-            auto* serverLabel = new QLabel(tr("Server (type part of its name to search):"), &dialog);
+            auto* serverLabel = new QLabel(tr("Profile (type part of its name to search):"), &dialog);
             layout->addWidget(serverLabel);
             serverBox = new QComboBox(&dialog);
             serverLabel->setBuddy(serverBox);
@@ -754,7 +797,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
             serverBox->setMinimumContentsLength(30);
             serverBox->completer()->setFilterMode(Qt::MatchContains);
             serverBox->completer()->setCompletionMode(QCompleter::PopupCompletion);
-            serverBox->lineEdit()->setPlaceholderText(tr("Search servers"));
+            serverBox->lineEdit()->setPlaceholderText(tr("Search profiles"));
             for (const auto& server: servers) {
                 serverBox->addItem(server.label, server.id);
                 if (server.fullLabel != server.label) serverBox->setItemData(serverBox->count() - 1, server.fullLabel, Qt::ToolTipRole);
@@ -812,7 +855,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
                     const QString coveringLabel = covering.startsWith("keyword:") ? "*" + value + "*" : "*." + value;
                     const QString coveringList = targetLabel(coveringTarget);
                     notes << tr("covered by %1 in %2").arg(coveringLabel, coveringList);
-                    tips << tr("%1 in %2 is matched first, so this rule would never apply").arg(covering, coveringList);
+                    tips << tr("Never applies: %1 in %2 is matched first.").arg(covering, coveringList);
                 }
 
                 auto* box = boxes[i].first;
@@ -921,8 +964,8 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
         if (!process.isEmpty()) targets << RouteTarget{tr("Process %1").arg(process), "processName:" + process, true};
         addRouteSection();
 
-        if (!host.isEmpty()) addCopyAction(tr("Copy Destination (%1)").arg(host), host);
-        if (!process.isEmpty()) addCopyAction(tr("Copy Process Name (%1)").arg(process), process);
+        if (!host.isEmpty()) addCopyAction(tr("Copy destination (%1)").arg(host), host);
+        if (!process.isEmpty()) addCopyAction(tr("Copy process name (%1)").arg(process), process);
 
         menu.addSeparator();
         if (!ids.isEmpty())
@@ -931,7 +974,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos) {
         if (!process.isEmpty()) {
             targets << RouteTarget{tr("Process %1").arg(process), "processName:" + process};
             addRouteSection();
-            addCopyAction(tr("Copy Process Name"), process);
+            addCopyAction(tr("Copy process name"), process);
         }
 
         menu.addSeparator();

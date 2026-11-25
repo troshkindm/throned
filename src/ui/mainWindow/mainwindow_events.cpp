@@ -11,6 +11,7 @@
 #include <QMoveEvent>
 #include <QTimer>
 
+#include "include/engine/Lifecycle.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/ui/widget/TrayOtpCodes.hpp"
 #include "include/ui/widget/TrayProfileSelector.hpp"
@@ -218,7 +219,7 @@ void MainWindow::refreshRoutingStatus() {
 void MainWindow::applyRoutingChange() {
     // Applying a routing change means regenerating the config, so a running profile has to be restarted.
     refreshRoutingStatus();
-    if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
+    if (Engine::Lifecycle::ResumeTargetId() >= 0) profile_start(Engine::Lifecycle::ResumeTargetId());
 }
 
 void MainWindow::openCurrentRouteEditor() {
@@ -299,10 +300,12 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
     // MainPreview uses a deliberate 40px circular control beside compact nav
     // buttons; do not resize it to the first menu button's height.
     // QMenu triggers an action on a right-button release too, which would switch to the profile instead of editing it.
-    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && obj == ui->menuRouting_Menu && static_cast<QMouseEvent *>(event)->button() == Qt::RightButton) {
-        const QAction *action = ui->menuRouting_Menu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
+    auto *routeMenu = qobject_cast<QMenu *>(obj);
+    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && routeMenu != nullptr && (routeMenu == ui->menuRouting_Menu || routeMenu->parent() == ui->menuRouting_Menu) && static_cast<QMouseEvent *>(event)->button() == Qt::RightButton) {
+        const QAction *action = routeMenu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
         if (const QVariant routeId = action != nullptr ? action->property("routeProfileId") : QVariant(); routeId.isValid()) {
             if (type == QEvent::MouseButtonRelease) {
+                routeMenu->close();
                 ui->menuRouting_Menu->close();
                 QTimer::singleShot(0, this, [this, id = routeId.toInt()] { openRouteProfileEditor(id); });
             }

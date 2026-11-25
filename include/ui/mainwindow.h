@@ -18,6 +18,7 @@
 #include <QtDBus>
 #endif
 
+#include <array>
 #include <deque>
 #include <optional>
 #include <QKeyEvent>
@@ -64,6 +65,7 @@ QList<QAction *> PreviewShortcutActions(MainWindow *window);
 namespace Configs {
 enum simpleAction : int;
 struct SimpleTarget;
+struct IpListEntry;
 } // namespace Configs
 
 namespace Configs {
@@ -93,14 +95,14 @@ class UpdateStatusWidget;
 class TestProgressWidget;
 class PendingRestartNotice;
 class HijackDeprecationNotice;
-class DialogScanner;
 class DialogIpLists;
 class DialogRuleTester;
 class CommandPalette;
 
 namespace Qv2ray::ui {
 class SyntaxHighlighter;
-}
+enum class LogLevel : quint8;
+} // namespace Qv2ray::ui
 namespace SettingsIndex {
 struct Item;
 }
@@ -175,6 +177,9 @@ public:
 
     void refresh_status(const QString &traffic_update = "");
 
+    // After the custom tray icons on disk changed.
+    void refreshTrayIcon();
+
     // Lines of the config about to run; must arrive before its first add_traffic_point.
     void set_traffic_lines(const QList<Stats::TrafficLine> &lines);
 
@@ -245,8 +250,6 @@ public:
 
     void showIpListsDialog(int selectListId = -1);
 
-    void showScannerDialog();
-
     void refreshScannerDataView(bool force = false);
 
 signals:
@@ -274,10 +277,6 @@ private slots:
     void on_menu_preset_settings_triggered();
 
     void on_menu_otp_manager_triggered();
-
-    void on_menu_scanner_triggered();
-
-    void on_menu_find_settings_triggered();
 
     void on_menu_integration_settings_triggered();
 
@@ -326,6 +325,16 @@ private slots:
     void on_profilesTableView_doubleClicked(const QModelIndex &index);
 
     void on_profilesTableView_customContextMenuRequested(const QPoint &pos);
+
+    void showProfilesContextMenu(const QPoint &pos);
+
+    void on_menu_server_aboutToHide();
+
+    void on_menu_edit_triggered();
+
+    void on_menu_find_warp_endpoint_triggered();
+
+    void on_menu_add_subscription_triggered();
 
     void on_tabWidget_currentChanged(int index);
 
@@ -379,10 +388,12 @@ private:
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;
     TrayIcon *tray = nullptr;
     QMenu *trayMenu = nullptr;
-    // Tray "Select Server"/"Select Routing" open this small Qt-drawn popup instead of a
-    // submenu, because a tray submenu isn't painted by Qt on Linux (SNI/DBusMenu) or macOS
-    // (native NSMenu) and so can't reliably expand a dynamic list. Recreated on each open.
+    QAction *trayStatusAction = nullptr;
     QAction *trayConnectAction = nullptr;
+    QAction *trayProfileAction = nullptr;
+    QAction *trayRoutingAction = nullptr;
+    // Tray "Profile"/"Routing" open this small Qt-drawn popup instead of a submenu, which
+    // Linux (SNI/DBusMenu) and macOS (native NSMenu) cannot reliably expand. Recreated on each open.
     QPointer<TrayProfileSelector> traySelector;
     QPointer<DiagnosticsWindow> diagnosticsWindow;
     void openTraySelector(bool routing);
@@ -398,8 +409,9 @@ private:
     void addRulesFromConnection(const QStringList &entries, int action);
     QPointer<TrayOtpCodes> trayOtpCodes;
     void openTrayOtpCodes();
-    QShortcut *shortcut_esc = new QShortcut(QKeySequence::Cancel, this);
-    //
+    void setupTrayMenu();
+    // DBusMenu may never send aboutToShow, so state changes call this instead.
+    void refreshTrayMenu();
     // Shared by the test sweeps and the batch profile scans (remove-invalid).
     QThreadPool *parallelCoreCallPool = new QThreadPool(this);
     // Engine::host()'s objects, in mainwindow_engine_control.cpp.
@@ -504,10 +516,7 @@ private:
     bool m_profilesTableHadFocus = false;
     int m_profilesScrollValue = 0;
 
-    QStringList includeKeywords;
-    QStringList excludeKeywords;
-    QRegularExpression includeCombined;
-    QRegularExpression excludeCombined;
+    QRegularExpression logHidePattern;
     // -1 until the first updateLogFilterFields(), so startup is not treated as a change.
     int minLogLevelRank = -1;
     // Level the running core was configured with, so a selection below it can say so.
@@ -529,25 +538,21 @@ private:
     // while the user is scrolled up, arrivals wait in m_logHeld so the view stays frozen.
     struct LogLine {
         QString text;
+        Qv2ray::ui::LogLevel level{};
         bool visible = true;
     };
     std::deque<LogLine> m_logLines;
     std::deque<QString> m_logHeld;
     bool m_logFollow = true;
     QRegularExpression m_logSearch;
+    // One bit per LogLevel: what the chips select, and what the view is filtered by (all while the bar is hidden).
+    quint8 m_logLevelChoice = 0x0F;
+    quint8 m_logLevelFilter = 0x0F;
+    std::array<int, 4> m_logLevelCounts{};
+    std::array<QToolButton *, 4> logLevelChips{};
     QTimer *m_logSearchDebounce = nullptr;
     QToolButton *logFilterButton = nullptr;
     FloatingJumpButton *logJumpLatestButton = nullptr;
-
-    struct LogFilter {
-        bool enableInclude = false;
-        bool enableExclude = false;
-        QStringList includeKeywords;
-        QStringList excludeKeywords;
-        QRegularExpression includeCombined;
-        QRegularExpression excludeCombined;
-        int minLevelRank = 0;
-    };
 
     void append_log(const QString &log);
 
@@ -556,6 +561,12 @@ private:
     void flush_log_batch();
 
     void setupLogView();
+
+    void pushLogLine(QString &&text);
+
+    [[nodiscard]] bool logLineVisible(const LogLine &line) const;
+
+    void refreshLogLevelChips();
 
     void releaseHeldLogs();
 
@@ -570,8 +581,6 @@ private:
 
     void updateLogStatus();
 
-    bool should_print_log(const QString &log, const LogFilter &filter);
-
     void clear_log_view();
 
     void updateLogFilterFields();
@@ -584,8 +593,14 @@ private:
 
     QList<int> get_now_selected_list();
     void refresh_startstop_button();
+    void refresh_tray_tooltip();
     void refresh_pin_action();
     void refresh_action_states();
+
+    // The one selected profile when it is a WARP profile, else nullptr.
+    std::shared_ptr<Configs::Profile> warpFinderTarget();
+
+    void applyFoundWarpEndpoint(int profileId, const Configs::IpListEntry &entry, bool junk, bool http2);
 
     // View slots of ConnectionManager and VpnAuthController, in mainwindow_view.cpp.
     void showRestartReasons();
@@ -619,6 +634,9 @@ private:
 
     void dialog_message_impl(MwMessage cmd, const QStringList &args);
 
+    // The SettingsSchema Ui bits in effects, for a settings commit.
+    void applySettingsUi(quint32 effects);
+
     void handle_deeplink_impl(const QString &url);
 
     void handle_addsub(const QString &url, const QString &name);
@@ -645,7 +663,7 @@ private:
     // Keeps the current group sorted by `action` from now on.
     void sortCurrentGroup(GroupSortAction action);
 
-    void stopSortingCurrentGroup();
+    void restoreOriginalOrder();
 
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);
 
@@ -741,19 +759,12 @@ private:
     void openCurrentRouteEditor();
     class QStackedWidget *simplePages = nullptr;
     class SimpleRoutesPage *simpleRoutesPage = nullptr;
-    QHash<QString, bool> simpleDetectedApps;
-    bool simpleAppScanStarted = false;
+    class AppRoutesController *simpleRoutesController = nullptr;
+    class StackTransition *simplePageTransition = nullptr;
     void setupSimpleRoutes();
     void openSimpleRoutes();
     void reloadSimpleRoutes();
-    void scanSimpleApps();
     QString simpleRoutesSummary() const;
-    bool simpleRuleSetBusy = false;
-    QStringList simpleRuleSetNext;
-    std::function<void(bool)> simpleRuleSetNextThen;
-    void downloadSimpleRuleSets(const QStringList &names, const std::function<void(bool)> &then);
-    void refreshStaleRuleSets();
-    void loadSimpleIcons(QHash<QString, QString> paths);
     void applySimpleRoutes(int profileId, const QList<Configs::AppRoutes::Route> &routes, int rest);
     int simpleRoutesProfileId = -1;
     QHash<int, std::pair<QList<Configs::AppRoutes::Route>, int>> simpleRouteDrafts;
@@ -815,10 +826,6 @@ private:
 
     void revealSetting(const SettingsIndex::Item &item);
 
-    void applyUiMode();
-
-    void setSimpleInterface(bool simple);
-
     // Takes or frees the one-settings-dialog slot (dialog_is_using) and lets an open command palette catch up.
     void setDialogInUse(bool inUse);
 
@@ -856,9 +863,10 @@ private:
     void confirm_disable_kill_switch();
 
     QPointer<QMessageBox> m_killSwitchDialog;
+    // The last box each EnginePolicy method opened, keyed by the method's name; at most one is open per method.
+    QHash<QString, QPointer<QMessageBox>> m_policyBoxes;
 
     QPointer<DialogVpnAuth> m_vpnAuthDialog;
-    QPointer<DialogScanner> m_scannerDialog;
     QPointer<DialogIpLists> m_ipListsDialog;
     QPointer<DialogRuleTester> m_ruleTesterDialog;
     QHash<int, QString> m_scannerNames;
@@ -884,6 +892,8 @@ private:
     void updateStatsPanelChevron(qreal openProgress);
 
     void openLogSettings();
+
+    void setupRoutingMenu();
 
     void setupConnectionSortMenu();
 
@@ -930,7 +940,7 @@ private:
     // EnginePolicy, in mainwindow_policy.cpp; reached through EngineHost::policy().
     void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) override;
 
-    bool confirmGeoAssetDownload(const QString &contextName) override;
+    void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override;
 
     void geoAssetDownloadFinished(const QString &error) override;
 
@@ -944,9 +954,9 @@ private:
 
     void strictRouteUnavailable(const QString &error) override;
 
-    bool offerCoreReset(const QString &error) override;
+    void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) override;
 
-    bool offerLeftoverTunAdapterRetry(const QString &error) override;
+    void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) override;
 
     void stopFailed(const QString &error) override;
 
@@ -965,6 +975,9 @@ private:
     void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                 const std::function<void(const QString &username, const QString &password)> &retryWith) override;
 
+    void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                               std::function<void(bool restart)> answered) override;
+
     void vpnChallengesCleared() override;
 
     void settingsNeedTunRestart() override;
@@ -973,10 +986,12 @@ private:
 
     void testSessionBusy(const QString &text) override;
 
+    void testsInconclusive(const QList<int> &profileIds) override;
+
     void exitProgram(ExitReason reason, bool unattended) override;
 
     // TestObserver, in mainwindow_view.cpp; synchronous, so a panel seed never lands after the next session's clear.
-    void testPanelSeeded(Engine::TestKind kind, int totalProfiles) override;
+    void testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds) override;
 
     void testProgressed() override;
 

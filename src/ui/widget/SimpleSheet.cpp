@@ -243,14 +243,14 @@ QLabel#simpleSheetEmpty { color: #747C86; background: transparent; }
 QPushButton#simpleSheetLink { border: none; background: transparent; color: #A4ABB4; padding: 4px 2px; }
 QPushButton#simpleSheetLink:hover { color: #F1F3F5; }
 QPushButton#simpleSheetLink:disabled { color: #747C86; }
-QPushButton#simpleSheetTab { border: 1px solid #2F3136; border-radius: 13px; background: transparent; color: #A4ABB4; padding: 3px 11px; }
+QPushButton#simpleSheetTab { border: 1px solid transparent; border-radius: 13px; background: #222529; color: #A4ABB4; padding: 3px 11px; }
 QPushButton#simpleSheetTab:hover { color: #F1F3F5; }
-QPushButton#simpleSheetTab:checked { background: #182530; border-color: #237AE9; color: #F1F3F5; }
+QPushButton#simpleSheetTab:checked { background: #193452; color: #F1F3F5; }
 QPushButton#simpleSheetAllowance { border: none; background: transparent; color: #A4ABB4; text-align: left; padding: 0; }
 QPushButton#simpleSheetAllowance:hover { color: #F1F3F5; }
 QProgressBar#simpleSheetAllowanceBar { border: none; border-radius: 1px; background: #2F3136; }
 QProgressBar#simpleSheetAllowanceBar::chunk { border-radius: 1px; background: #237AE9; }
-QPushButton#simpleSheetAction { border: 1px solid #2F3136; border-radius: 9px; background: transparent; color: #A4ABB4; padding: 7px 10px; }
+QPushButton#simpleSheetAction { border: none; border-radius: 9px; background: #222529; color: #A4ABB4; padding: 7px 10px; }
 QPushButton#simpleSheetAction:hover { background: #292D33; color: #F1F3F5; }
 QListView#simpleSheetList { background: transparent; border: none; outline: none; }
 QLabel#simpleOptionTitle { font-weight: 600; color: #F1F3F5; background: transparent; }

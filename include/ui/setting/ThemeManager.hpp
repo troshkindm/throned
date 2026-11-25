@@ -36,6 +36,8 @@ public:
 
     // QStyle::standardIcon loads from the system on every call: about 9 ms for a message box icon on Windows.
     QIcon standardIcon(QStyle::StandardPixmap pixmap);
+    // Inner radius of the main pane's one-pixel border under the current QStyle.
+    [[nodiscard]] int paneCornerRadius() const { return m_paneCornerRadius; }
 signals:
     void themeChanged(QString themeName);
 
@@ -43,6 +45,13 @@ private:
     QMap<QString, ThronedSkin> skins; // keyed by lowercased display name
     QString base_font_family;
     QHash<int, QIcon> standardIcons; // the current style's; ApplyTheme() reloads the message box icons
+    int m_paneCornerRadius = 0;
 };
 
 ThemeManager *themeManager();
+
+// Walks color's HSL lightness away from surface until their contrast ratio reaches ratio; hue and saturation stay.
+QColor ContrastSeparated(const QColor &color, const QColor &surface, double ratio);
+
+// The calm colour the toolbar icons wear: hue at low saturation, kept 3:1 off surface.
+QColor MutedTint(int hue, const QColor &surface);

@@ -158,6 +158,14 @@ KillSwitch *KillSwitch::instance() {
     return self;
 }
 
+bool KillSwitch::BlocksAppTraffic() {
+    // Never instance(): built on a worker thread, the switch would live there.
+    const auto *self = g_killSwitchInstance.load();
+    if (self == nullptr) return false;
+    const auto current = self->state();
+    return current == State::Armed || current == State::Arming;
+}
+
 bool KillSwitch::allowsStart() const {
     const auto current = state();
     return current == State::Disabled || current == State::Armed;

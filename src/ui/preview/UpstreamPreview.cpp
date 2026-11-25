@@ -8,8 +8,7 @@
 #include "include/configs/generate.h"
 #include "include/configs/common/Outbound.h"
 #include "include/configs/common/DialFields.h"
-#include "include/ui/scanner/dialog_scanner.h"
-#include "include/ui/scanner/dialog_new_scan.h"
+#include "include/database/IpScansRepo.h"
 #include "include/ui/scanner/dialog_scan_instance.h"
 #include "include/ui/setting/dialog_integration.h"
 #include "include/ui/setting/dialog_manage_routes.h"
@@ -57,6 +56,14 @@ bool verifyDatabaseMigration() {
         profile->gid = groupId;
         profile->favorite = true;
         profile->traffic_downlink = 12345;
+        // Save only updates an existing row and leaves the favourite mark alone, so the legacy row is inserted first.
+        Configs::ProfileInsertRow row{};
+        row.id = profile->id;
+        row.type = "direct";
+        row.gid = groupId;
+        row.outbound_json = "{}";
+        row.favorite = profile->favorite;
+        db.execBatchInsertProfiles({row});
         if (!profiles.Save(profile)) return false;
         for (const auto *column: {"endpoint_json", "sub_options_json", "sub_metadata_json", "sort_method", "sort_descending"})
             db.execThrow(std::string("ALTER TABLE groups DROP COLUMN ") + column);
@@ -109,7 +116,13 @@ bool verifyDatabaseMigration() {
     auto &settings = *Configs::dataManager->settingsRepo;
     const auto previous = settings.sub_auto_update;
     settings.sub_auto_update = 0;
-    const bool disabled = Subscription::ResolveAutoUpdate(*group).interval == 0;
+    // A group's own interval stands alone; one that only inherits follows the global switch off.
+    const bool ownStands = Subscription::ResolveAutoUpdate(*group).interval == 90 * 60;
+    group->sub_options.update_interval = 0;
+    group->provider.updateIntervalMinutes = 0;
+    const bool disabled = ownStands && Subscription::ResolveAutoUpdate(*group).interval == 0;
+    group->sub_options.update_interval = 90;
+    group->provider.updateIntervalMinutes = 180;
     settings.sub_auto_update = 60;
     const bool overridden = Subscription::ResolveAutoUpdate(*group).interval == 90 * 60;
     group->sub_options.respect_server_interval = true;
@@ -153,11 +166,16 @@ static void captureNovemberScreens(QWidget *parent, const QString &prefix) {
         std::function<QWidget *()> open;
     };
     auto steps = std::make_shared<QList<Step>>();
-    *steps << Step{QStringLiteral("tor"), [parent]() -> QWidget * {
+    // The merge folded the Tor page away; the exit choice it fed now lives on the Exit page.
+    *steps << Step{QStringLiteral("routing-exit"), [parent]() -> QWidget * {
                        auto *routing = new DialogManageRoutes(parent);
                        auto *tabs = routing->findChild<QTabWidget *>(QStringLiteral("routeSettingsPages"));
-                       auto *tor = routing->findChild<QWidget *>(QStringLiteral("tab_tor"));
-                       if (tabs && tor) tabs->setCurrentWidget(tor);
+                       auto *exit = routing->findChild<QWidget *>(QStringLiteral("tab_5"));
+                       if (!tabs || !exit) {
+                           delete routing;
+                           return nullptr;
+                       }
+                       tabs->setCurrentWidget(exit);
                        return routing;
                    }};
     *steps << Step{QStringLiteral("rule-tester"), [parent]() -> QWidget * {
@@ -224,52 +242,40 @@ void CaptureUpstreamFeatures(QWidget *parent, const QString &prefix) {
         qApp->exit(2);
         return;
     }
-    auto *scanner = new DialogScanner(parent);
-    scanner->show();
-    QTimer::singleShot(300, scanner, [scanner, parent, prefix] {
-        const bool ok = captureUpstream(scanner, prefix + "-scanner.png");
-        scanner->close();
-        if (!ok) {
+    auto scan = Configs::IpScansRepo::NewIpScan(Configs::IpScan::Kind::Resolver);
+    scan->name = QStringLiteral("Preview resolvers");
+    if (!Configs::dataManager->ipScansRepo->AddIpScan(scan)) {
+        qApp->exit(2);
+        return;
+    }
+    QTimer::singleShot(0, parent, [parent, prefix, scanId = scan->id] {
+        DialogScanInstance::Open(scanId);
+        DialogScanInstance *scanWindow = nullptr;
+        for (auto *widget: QApplication::topLevelWidgets())
+            if (auto *window = qobject_cast<DialogScanInstance *>(widget)) scanWindow = window;
+        if (!scanWindow) {
             qApp->exit(2);
             return;
         }
-        auto *newScan = new DialogNewScan(parent);
-        newScan->show();
-        QTimer::singleShot(300, newScan, [newScan, parent, prefix] {
-            const bool ok = captureUpstream(newScan, prefix + "-new-scan.png");
-            newScan->accept();
-            if (!ok || newScan->CreatedScanId() < 0) {
+        QTimer::singleShot(300, scanWindow, [scanWindow, parent, prefix] {
+            if (!captureUpstream(scanWindow, prefix + "-scan-editor.png")) {
                 qApp->exit(2);
                 return;
             }
-            DialogScanInstance::Open(newScan->CreatedScanId());
-            DialogScanInstance *scanWindow = nullptr;
-            for (auto *widget: QApplication::topLevelWidgets())
-                if (auto *window = qobject_cast<DialogScanInstance *>(widget)) scanWindow = window;
-            if (!scanWindow) {
-                qApp->exit(2);
-                return;
-            }
-            QTimer::singleShot(300, scanWindow, [scanWindow, parent, prefix] {
-                if (!captureUpstream(scanWindow, prefix + "-scan-editor.png")) {
+            scanWindow->close();
+            auto *integration = new DialogIntegration(parent);
+            auto *tabs = integration->findChild<QTabWidget *>("tabWidget");
+            if (tabs) tabs->setCurrentIndex(tabs->count() - 1);
+            integration->show();
+            QTimer::singleShot(300, integration, [integration, parent, prefix] {
+                const bool ok = captureUpstream(integration, prefix + "-integration.png");
+                integration->hide();
+                integration->deleteLater();
+                if (!ok) {
                     qApp->exit(2);
                     return;
                 }
-                scanWindow->close();
-                auto *integration = new DialogIntegration(parent);
-                auto *tabs = integration->findChild<QTabWidget *>("tabWidget");
-                if (tabs) tabs->setCurrentIndex(tabs->count() - 1);
-                integration->show();
-                QTimer::singleShot(300, integration, [integration, parent, prefix] {
-                    const bool ok = captureUpstream(integration, prefix + "-integration.png");
-                    integration->hide();
-                    integration->deleteLater();
-                    if (!ok) {
-                        qApp->exit(2);
-                        return;
-                    }
-                    captureNovemberScreens(parent, prefix);
-                });
+                captureNovemberScreens(parent, prefix);
             });
         });
     });

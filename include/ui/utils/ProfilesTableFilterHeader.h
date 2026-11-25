@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QScrollBar>
 #include <QToolButton>
+#include <QStyle>
 
 #include "include/ui/utils/ProfilesTableModel.h"
 
@@ -43,9 +44,7 @@ public:
 
         test_filter = new QLineEdit(this->viewport());
         test_filter->setPlaceholderText(tr("Filter by country or service..."));
-        test_filter->setToolTip(tr(
-            "Countries and working services, e.g. \"DE gemini\" or \"ai\".\n"
-            "\"!netflix\" finds profiles Netflix refused."));
+        test_filter->setToolTip(tr("Countries or working services, e.g. \"!RU gemini+US\" (Gemini sees US); \"!netflix\" finds refusals."));
         test_filter->setClearButtonEnabled(true);
         connect(test_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit testFilterChanged(text);
@@ -59,6 +58,8 @@ public:
     }
 
     void setLastFilterColumn(int column) {
+        // The former combined test column (3) held the country filter.
+        if (!m_comfortable && column == ProfilesTableModel::ColLatency) column = ProfilesTableModel::ColExitIP;
         const int fallback = m_comfortable ? ProfilesTableModel::ColcServer : ProfilesTableModel::ColName;
         m_lastFilterColumn = editForColumn(column) ? column : fallback;
     }
@@ -79,7 +80,19 @@ public:
         // A column index saved under the other row style has no field here.
         if (edit == nullptr) edit = editForColumn(m_comfortable ? ProfilesTableModel::ColcServer
                                                                 : ProfilesTableModel::ColName);
-        if (edit == nullptr) return;
+        if (!edit || isSectionHidden(columnOf(edit))) {
+            edit = nullptr;
+            for (auto *candidate: filterEdits()) {
+                if (editForColumn(columnOf(candidate)) == candidate && !isSectionHidden(columnOf(candidate))) {
+                    edit = candidate;
+                    break;
+                }
+            }
+        }
+        if (!edit) {
+            emit focusTableRequested(false);
+            return;
+        }
         // Tab/Backtab/Shortcut focus reasons make QLineEdit select all; OtherFocusReason does not.
         edit->setFocus(Qt::OtherFocusReason);
         edit->end(false);
@@ -87,6 +100,8 @@ public:
 
     QSize sizeHint() const override {
         QSize s = QHeaderView::sizeHint();
+        // Keep a right-clickable header even when every column has been unchecked.
+        s.setHeight(qMax(s.height(), fontMetrics().height() + 2 * style()->pixelMetric(QStyle::PM_HeaderMargin, nullptr, this)));
         if (m_filtersVisible) {
             s.setHeight(s.height() + 32);
         }
@@ -140,12 +155,13 @@ public slots:
         }
 
         if (auto btn = qobject_cast<QToolButton *>(sender())) {
-            btn->setToolTip(QString("%1\n%2").arg(visible ? tr("Disable Filter") : tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
+            btn->setToolTip(QString("%1 (%2)").arg(visible ? tr("Disable Filter") : tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
         }
 
         for (QLineEdit *edit: filterEdits()) edit->setVisible(visible && editForColumn(columnOf(edit)) == edit);
 
         emit geometriesChanged();
+        adjustPositions();
 
         if (visible)
             focusLastFilterField();
@@ -166,20 +182,29 @@ public slots:
             placeComfortable(test_filter, ProfilesTableModel::ColcPing);
             return;
         }
-        if (!m_filtersVisible || !address_filter || !name_filter || !type_filter || !test_filter || count() <= ProfilesTableModel::ColTestResult) {
+        if (!m_filtersVisible || !address_filter || !name_filter || !type_filter || !test_filter || count() <= ProfilesTableModel::ColExitIP) {
             return;
         }
 
         const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
+        QLineEdit *hiddenFocus = nullptr;
 
         auto place = [&](QLineEdit *edit, int section) {
+            const bool visible = !isSectionHidden(section);
+            if (!visible) {
+                if (edit->hasFocus()) hiddenFocus = edit;
+                edit->clear();
+            }
+            edit->setVisible(visible);
+            if (!visible) return;
             edit->setGeometry(sectionViewportPosition(section) + 2, topPos, sectionSize(section) - 4, editHeight);
         };
         place(type_filter, ProfilesTableModel::ColType);
         place(address_filter, ProfilesTableModel::ColAddress);
         place(name_filter, ProfilesTableModel::ColName);
-        place(test_filter, ProfilesTableModel::ColTestResult);
+        place(test_filter, ProfilesTableModel::ColExitIP);
+        if (hiddenFocus) focusLastFilterField();
     }
 
 signals:
@@ -232,7 +257,7 @@ private:
                 return address_filter;
             case ProfilesTableModel::ColName:
                 return name_filter;
-            case ProfilesTableModel::ColTestResult:
+            case ProfilesTableModel::ColExitIP:
                 return test_filter;
             default:
                 return nullptr;
@@ -248,7 +273,7 @@ private:
         if (edit == type_filter) return ProfilesTableModel::ColType;
         if (edit == address_filter) return ProfilesTableModel::ColAddress;
         if (edit == name_filter) return ProfilesTableModel::ColName;
-        if (edit == test_filter) return ProfilesTableModel::ColTestResult;
+        if (edit == test_filter) return ProfilesTableModel::ColExitIP;
         return -1;
     }
 

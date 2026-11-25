@@ -73,7 +73,7 @@ void StartStopButton::updateToolTip() {
             tip = tr("Start");
             break;
         case State::Connecting:
-            tip = tr("Connecting…");
+            tip = tr("Connecting… click to stop");
             break;
         case State::Running:
             tip = tr("Stop");
@@ -89,10 +89,10 @@ void StartStopButton::updateToolTip() {
             tip += "\n" + tr("Kill switch: starting…");
             break;
         case Lock::Blocking:
-            tip += "\n" + tr("Kill switch: Tun is not running, so most traffic is blocked");
+            tip += "\n" + tr("Kill switch: most traffic blocked while Tun is off");
             break;
         case Lock::Passing:
-            tip += "\n" + tr("Kill switch: on — traffic only flows through Throne's Tun");
+            tip += "\n" + tr("Kill switch: on");
             break;
         case Lock::Fault:
             tip += "\n" + (Sys::KillSwitch::instance()->failedForIdentity() ? tr("Kill switch is blocking traffic") : tr("Kill switch is not active"));
@@ -102,13 +102,13 @@ void StartStopButton::updateToolTip() {
 }
 
 void StartStopButton::applyState(bool animated) {
-    const bool interactive = (m_state == State::Idle || m_state == State::Running);
+    const bool interactive = (m_state == State::Idle || m_state == State::Running || m_state == State::Connecting);
     setEnabled(interactive);
     setCursor(interactive ? Qt::PointingHandCursor : Qt::ArrowCursor);
 
     updateToolTip();
 
-    const qreal morphTarget = (m_state == State::Running || m_state == State::Disconnecting) ? 1.0 : 0.0;
+    const qreal morphTarget = (m_state == State::Idle || m_state == State::Disabled) ? 0.0 : 1.0;
     const qreal dimTarget = (m_state == State::Disabled) ? 0.58 : 1.0;
     const QColor ringTarget = targetRingColor();
 
@@ -329,7 +329,7 @@ void StartStopButton::paintEvent(QPaintEvent *) {
     QPen gpen(glyph, corner);
     gpen.setJoinStyle(Qt::RoundJoin);
     gpen.setCapStyle(Qt::RoundCap);
-    const qreal glyphAlpha = (m_state == State::Connecting || m_state == State::Disconnecting) ? 0.5 : 1.0;
+    const qreal glyphAlpha = m_state == State::Disconnecting ? 0.5 : 1.0;
     p.setOpacity(m_dim * glyphAlpha);
     p.setPen(gpen);
     p.setBrush(glyph);

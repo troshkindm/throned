@@ -19,6 +19,7 @@
 #include "include/api/RPC.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/EngineTypes.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/app/ExitCodes.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/headless/HeadlessApi.h"
@@ -137,9 +138,14 @@ void HeadlessRuntime::attach(EngineHost *engine) {
                      .arg(kStayUpRetryMs / 60000));
         // resetCore() only posts the restart, so the boot start is in place before the new core's coreStarted.
         if (core->resetCore() && m_retryResumeId >= 0) {
+            if (!core->setStartWhenUp(m_retryResumeId)) {
+                LOG_WARN(QStringLiteral("[Core] No core process to resume profile %1 in; the stay-up retry no longer resumes it.")
+                             .arg(m_retryResumeId));
+                m_retryResumeId = -1;
+                return;
+            }
             m_host->connection()->setBootStart(StartRequest{m_retryResumeId, false, m_bootSerial});
             m_bootPhase = BootPhase::Waiting;
-            core->setStartWhenUp(m_retryResumeId);
         }
     });
     connect(supervisor, &CoreSupervisor::stateChanged, this, [this](CoreState state) {
@@ -164,8 +170,8 @@ void HeadlessRuntime::attach(EngineHost *engine) {
             m_guard->arm(profileId); }, Qt::DirectConnection);
     connect(supervisor, &CoreSupervisor::coreExited, this, [this](bool) {
             ++m_runGeneration;
-            // A crash stop keeps started_id; a switch or a disconnect has already moved it off the boot profile.
-            const int startedId = Configs::dataManager->settingsRepo->started_id;
+            // A crash stop keeps the resume target; a switch or a disconnect has already moved it off the boot profile.
+            const int startedId = Lifecycle::ResumeTargetId();
             if (m_bootPhase == BootPhase::Armed || (m_bootProfileId >= 0 && startedId == m_bootProfileId)) {
                 m_guard->strike();
             } else {

@@ -1060,6 +1060,20 @@
         <source>The core returned an incomplete site test result.</source>
         <translation>The core returned an incomplete site test result.</translation>
     </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>Its endpoints will be added as %n new profile to the group &quot;%1&quot;.</numerusform>
+            <numerusform>Its endpoints will be added as %n new profiles to the group &quot;%1&quot;.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <translation>
+            <numerusform>%n profile could not be tested because the network was unavailable. Its earlier result was kept.</numerusform>
+            <numerusform>%n profiles could not be tested because the network was unavailable. Their earlier results were kept.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
@@ -1193,6 +1207,13 @@
             <numerusform></numerusform>
         </translation>
     </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>Its endpoints will be added as %n new profile to the group &quot;%1&quot;.</numerusform>
+            <numerusform>Its endpoints will be added as %n new profiles to the group &quot;%1&quot;.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>DialogOtpManager</name>
@@ -1276,6 +1297,122 @@
         <translation type="unfinished">
             <numerusform></numerusform>
             <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message numerus="yes">
+        <source>After each update, profiles whose exit country is unknown get an exit IP test, so the next update can test up to %n profile(s). On a large group this takes a while.</source>
+        <translation>
+            <numerusform>After each update, profiles whose exit country is unknown get an exit IP test, so the next update can test up to %n profile. On a large group this takes a while.</numerusform>
+            <numerusform>After each update, profiles whose exit country is unknown get an exit IP test, so the next update can test up to %n profiles. On a large group this takes a while.</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>DialogWarpFinder</name>
+    <message numerus="yes">
+        <source>Found %n endpoint(s) in %1 s</source>
+        <translation>
+            <numerusform>Found %n endpoint in %1 s</numerusform>
+            <numerusform>Found %n endpoints in %1 s</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>RouteRulesPage</name>
+    <message numerus="yes">
+        <source>Remove all %n entries from the %1 list?</source>
+        <translation>
+            <numerusform>Remove the %n entry from the %1 list?</numerusform>
+            <numerusform>Remove all %n entries from the %1 list?</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>RouteThenPicker</name>
+    <message numerus="yes">
+        <source>%n more profiles: type to find them.</source>
+        <translation>
+            <numerusform>%n more profile: type to find it.</numerusform>
+            <numerusform>%n more profiles: type to find them.</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::ScanManager</name>
+    <message numerus="yes">
+        <source>No %1 result answered, so %n failed %1 result(s) were kept</source>
+        <translation>
+            <numerusform>No %1 result answered, so %n failed %1 result was kept</numerusform>
+            <numerusform>No %1 result answered, so %n failed %1 results were kept</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Probing %n system or profile resolver(s)</source>
+        <translation>
+            <numerusform>Probing %n system or profile resolver</numerusform>
+            <numerusform>Probing %n system or profile resolvers</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n new result(s); stopping as configured</source>
+        <translation>
+            <numerusform>Found %n new result; stopping as configured</numerusform>
+            <numerusform>Found %n new results; stopping as configured</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>The tunnel answered through none of the %n result(s), so none was removed</source>
+        <translation>
+            <numerusform>The tunnel did not answer through the %n result, so it was not removed</numerusform>
+            <numerusform>The tunnel answered through none of the %n results, so none was removed</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Finding open ports on %n address(es)</source>
+        <translation>
+            <numerusform>Finding open ports on %n address</numerusform>
+            <numerusform>Finding open ports on %n addresses</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Round %1: probing %n address(es)</source>
+        <translation>
+            <numerusform>Round %1: probing %n address</numerusform>
+            <numerusform>Round %1: probing %n addresses</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Checking data through %n endpoint(s)</source>
+        <translation>
+            <numerusform>Checking data through %n endpoint</numerusform>
+            <numerusform>Checking data through %n endpoints</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Confirmed %n endpoint(s)</source>
+        <translation>
+            <numerusform>Confirmed %n endpoint</numerusform>
+            <numerusform>Confirmed %n endpoints</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n endpoint(s)</source>
+        <translation>
+            <numerusform>Found %n endpoint</numerusform>
+            <numerusform>Found %n endpoints</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>ScannerUi</name>
+    <message numerus="yes">
+        <source>Starting over keeps the %n current result(s) until the first new one replaces them. Continue?</source>
+        <translation>
+            <numerusform>Starting over keeps the %n current result until the first new one replaces it. Continue?</numerusform>
+            <numerusform>Starting over keeps the %n current results until the first new one replaces them. Continue?</numerusform>
         </translation>
     </message>
 </context>

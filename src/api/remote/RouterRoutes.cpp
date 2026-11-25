@@ -8,7 +8,6 @@
 #include "include/engine/services/RouteService.h"
 #include "include/engine/services/ServiceTypes.h"
 #include "include/global/Configs.hpp"
-#include "include/global/RunningProfiles.hpp"
 
 namespace RemoteApi::RouterRoutesImpl {
 Response busyConnection() {
@@ -88,13 +87,11 @@ void Router::putRoute(const Request &request, const Responder &respond, int id) 
         respond(RouterRoutesImpl::busyConnection());
         return;
     }
-    const bool inUse = id == Configs::ActiveRouteId();
     QStringList warnings;
     if (const auto refused = Engine::RouteService::Update(id, body, &warnings)) {
         respond(serviceError(*refused));
         return;
     }
-    if (inUse && engine_->runningSnapshot() != nullptr) engine_->noteRestartNeeded(Engine::RestartReason::Routing);
     noteChanged(Engine::ChangeTopic::Status);
     const auto route = Configs::dataManager->routesRepo->GetRouteProfile(id);
     if (route == nullptr) {
@@ -123,13 +120,10 @@ void Router::deleteRoute(const Request &request, const Responder &respond, int i
         respond(RouterRoutesImpl::busyConnection());
         return;
     }
-    // Deleting it moves current_route_id and the group overrides elsewhere, so ask before it goes.
-    const bool inUse = id == Configs::ActiveRouteId();
     if (const auto refused = Engine::RouteService::Delete(id)) {
         respond(serviceError(*refused));
         return;
     }
-    if (inUse && engine_->runningSnapshot() != nullptr) engine_->noteRestartNeeded(Engine::RestartReason::Routing);
     noteChanged(Engine::ChangeTopic::Status | Engine::ChangeTopic::Groups);
     respond(Response::Ok(QJsonObject{
         {"deleted", id},

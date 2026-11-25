@@ -20,7 +20,6 @@
 #include "include/configs/outbounds/ssh.h"
 #include "include/configs/outbounds/trojan.h"
 #include "include/configs/outbounds/tuic.h"
-#include "include/configs/outbounds/juicity.h"
 #include "include/configs/outbounds/trusttunnel.h"
 #include "include/configs/outbounds/naive.h"
 #include "include/configs/outbounds/openvpn.h"
@@ -81,6 +80,12 @@ public:
     [[nodiscard]] bool IsWorking() const { return latency > 0 || latency == kLatencyConnectOnly; }
 
     [[nodiscard]] bool IsUnavailable() const { return latency < 0 && latency != kLatencyConnectOnly; }
+
+    [[nodiscard]] QString DisplayLatency() const;
+
+    [[nodiscard]] QString DisplayExitIP() const;
+
+    [[nodiscard]] QString DisplaySpeed() const;
 
     [[nodiscard]] QString DisplayTestResult() const;
 
@@ -153,10 +158,6 @@ public:
 
     [[nodiscard]] Configs::tuic *TUIC() const {
         return dynamic_cast<Configs::tuic *>(outbound.get());
-    };
-
-    [[nodiscard]] Configs::juicity *Juicity() const {
-        return dynamic_cast<Configs::juicity *>(outbound.get());
     };
 
     [[nodiscard]] Configs::trusttunnel *TrustTunnel() const {

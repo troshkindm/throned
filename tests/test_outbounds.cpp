@@ -23,6 +23,7 @@ void Logging::WriteUserLog(const QString &) {}
 Configs::DatabaseManager::DatabaseManager(const std::string &path) : db(path), statsDb(":memory:"), scanDb(":memory:") {
     settingsRepo = std::make_unique<SettingsRepo>(db);
 }
+Configs::ProfilesRepo::~ProfilesRepo() = default;
 
 class TestOutbounds : public QObject {
     Q_OBJECT

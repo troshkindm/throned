@@ -8,6 +8,7 @@
 #include "include/database/entities/Profile.h"
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ItemViewFit.h"
 
 #include <QComboBox>
 #include <QDateTime>
@@ -46,6 +47,7 @@ DialogTrafficStats::DialogTrafficStats(QWidget* parent) : QDialog(parent), ui(ne
     ui->verticalLayout->setStretch(1, 2); // chart
     ui->verticalLayout->setStretch(2, 3); // tabs
 
+    for (auto* table: {ui->profileTable, ui->appTable}) table->setItemDelegate(new ItemViewFit::Delegate(table));
     ui->profileTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->profileTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     for (int c = 2; c <= 4; ++c)
@@ -169,8 +171,8 @@ void DialogTrafficStats::populateProfileTable(long long fromSecs, long long toSe
                 name = tr("Direct");
             } else if (const auto prof = Configs::dataManager->profilesRepo->GetProfile(u.profile_id)) {
                 name = prof->name;
-            } else if (u.profile_id == Configs::warpProfileID) {
-                name = "built-in warp";
+            } else if (const auto exit = Configs::ExitOfProfileID(u.profile_id); exit != Configs::ExitThrough::Server) {
+                name = tr("%1 exit").arg(Configs::ExitName(exit));
             } else {
                 name = tr("Profile #%1 (deleted)").arg(u.profile_id);
             }

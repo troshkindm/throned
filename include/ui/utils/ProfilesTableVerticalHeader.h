@@ -23,6 +23,7 @@ public:
     ProfilesTableModel *profilesModel() const { return m_model; }
 
     void updateWidthFromRowCount();
+    bool setPinnedVisible(bool visible);
 
 protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override;
@@ -37,4 +38,5 @@ private:
     QColor m_sectionBackground;
     QColor m_sectionForeground;
     QColor m_sectionBorder;
+    bool m_pinnedVisible = false;
 };

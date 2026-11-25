@@ -4,12 +4,13 @@
 set -e
 
 TAGS="with_clash_api,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,with_naive_outbound,badlinkname,tfogo_checklinkname0"
+[[ "$(go env GOOS)" == "windows" ]] && TAGS+=",with_purego"
 
 cd "$(dirname "$0")/.."
 OUT="$PWD/res/schema/sing-box.json"
 
 pushd core
-go run -tags "$TAGS" ./cmd/schemagen -o "$OUT"
+go run -ldflags=-checklinkname=0 -tags "$TAGS" ./cmd/schemagen -o "$OUT"
 popd
 
 echo "wrote $OUT"

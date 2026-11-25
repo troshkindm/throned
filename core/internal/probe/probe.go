@@ -15,7 +15,7 @@ import (
 	"github.com/sagernet/sing/service"
 )
 
-// What a probe needs from an instance; *boxbox.Box and core/mobile's box handle both satisfy it.
+// What a probe needs from an instance; *boxmain.Box and core/mobile's box handle both satisfy it.
 type Box interface {
 	Context() context.Context
 	Outbound() adapter.OutboundManager
@@ -359,7 +359,7 @@ func awaitTunnels(ctx context.Context, i Box, tag string) error {
 
 // A DNS tunnel opens its session on the first dial whether or not the request is a warm-up.
 func firstRequestTimeout(i Box, tag string, cold bool, timeout time.Duration) time.Duration {
-	timeout += dnsTunnelAllowance(i, tag)
+	timeout += startupAllowance(i, tag)
 	if !cold {
 		return timeout
 	}

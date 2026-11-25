@@ -7,6 +7,7 @@
 #include "include/database/DatabaseManager.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/ThreadCheck.h"
+#include "include/engine/services/SettingsService.h"
 #include "include/global/Utils.hpp"
 
 namespace Engine::WarpService {
@@ -49,7 +50,7 @@ Status Current() {
     const auto &settings = Configs::dataManager->settingsRepo;
     const bool masque = settings->warp_mode == QLatin1String("masque");
     return Status{
-        .enabled = settings->enable_warp,
+        .enabled = Configs::ExitOf(settings->exit_through) == Configs::ExitThrough::Warp,
         .mode = settings->warp_mode,
         .configured = Configs::WarpConfigured(settings->warp_mode),
         .endpoint = masque ? settings->warp_masque_ep : settings->warp_ep,
@@ -69,8 +70,8 @@ std::optional<ServiceError> Apply(const Change &change, const std::function<std:
     if (change.mode) {
         if (auto refused = warpServiceCheckMode(*change.mode)) return refused;
     }
-    auto &settings = Configs::dataManager->settingsRepo;
-    const bool wasEnabled = settings->enable_warp;
+    const auto &settings = Configs::dataManager->settingsRepo;
+    const bool wasEnabled = Configs::ExitOf(settings->exit_through) == Configs::ExitThrough::Warp;
     const bool enabled = change.enabled.value_or(wasEnabled);
     const QString mode = change.mode.value_or(settings->warp_mode);
     if (enabled == wasEnabled && mode == settings->warp_mode) return std::nullopt;
@@ -83,14 +84,13 @@ std::optional<ServiceError> Apply(const Change &change, const std::function<std:
     if (beforeWrite) {
         if (auto refused = beforeWrite()) return refused;
     }
+    const auto refused = SettingsService::Update([enabled, &mode](Configs::SettingsValues &values) {
+        values.exit_through = Configs::ExitValue(enabled ? Configs::ExitThrough::Warp : Configs::ExitThrough::Server);
+        values.warp_mode = mode;
+    });
+    if (refused) return refused;
     result->changed = true;
-    const bool torWas = settings->enable_tor;
-    settings->enable_warp = enabled;
-    if (enabled) settings->enable_tor = false;
-    settings->warp_mode = mode;
-    settings->Save();
-    // Tor outranks WARP, so WARP changes under a Tor that stays on change nothing.
-    result->restartNeeded = torWas ? enabled : wasEnabled || enabled;
+    result->restartNeeded = wasEnabled || enabled;
     return std::nullopt;
 }
 
@@ -132,7 +132,7 @@ std::optional<ServiceError> Register(const QString &mode, bool acceptTerms,
                 result.error = refused;
             } else {
                 warpServiceStore(mode, *identity, packets);
-                result.restartNeeded = Configs::dataManager->settingsRepo->enable_warp && !Configs::dataManager->settingsRepo->enable_tor;
+                result.restartNeeded = Configs::ExitOf(Configs::dataManager->settingsRepo->exit_through) == Configs::ExitThrough::Warp;
             }
             done(result);
         });

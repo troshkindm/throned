@@ -43,10 +43,7 @@ public:
     };
 
     struct SpeedtestPanelState {
-        enum class Kind { Speed,
-                          Country };
         bool visible = false;
-        Kind kind = Kind::Speed;
         QString profileName;
         QString dlSpeed;
         QString ulSpeed;

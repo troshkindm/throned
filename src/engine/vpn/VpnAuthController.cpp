@@ -7,6 +7,7 @@
 #include "include/engine/EngineControl.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/vpn/VpnEndpoints.h"
 #include "include/global/OtpPlaceholder.hpp"
@@ -91,7 +92,14 @@ bool vpnAuthControllerBuildFormAnswer(const VpnAuthChallenge &challenge, const C
 
 namespace Engine {
 VpnAuthController::VpnAuthController(EnginePolicy *policy, EngineControl *control, QObject *parent)
-    : QObject(parent), m_policy(policy), m_control(control) {}
+    : QObject(parent), m_policy(policy), m_control(control) {
+    connect(m_control, &EngineControl::startFinished, this, [this](quint64 serial, int profileId, StartOutcome, const QString &) {
+        if (m_vpnAuthRestartSerial == 0 || serial != m_vpnAuthRestartSerial) return;
+        m_vpnAuthRestartSerial = 0;
+        // noteRunStopped consumed the marker of a restart that reached its switch stop; this drops one refused before it.
+        if (m_vpnAuthRestartID == profileId) m_vpnAuthRestartID = -1;
+    });
+}
 
 void VpnAuthController::noteRunStarted() {
     if (m_vpnChallengeTimer == nullptr) {
@@ -103,9 +111,9 @@ void VpnAuthController::noteRunStarted() {
     m_vpnChallengeTimer->start();
 }
 
-void VpnAuthController::noteRunStopped(int profileId, bool manual) {
-    // start() stops the old run first, so only a stop outside a restart is the user's.
-    const bool restartingForAuth = manual && profileId == m_vpnAuthRestartID;
+void VpnAuthController::noteRunStopped(int profileId, bool manual, bool switching) {
+    // Only the restart's own switch stop keeps the session credentials; a user stop while it waits (ranking) does not.
+    const bool restartingForAuth = switching && profileId == m_vpnAuthRestartID;
     m_vpnAuthRestartID = -1;
     if (manual && !restartingForAuth) clearCredentialOverrides();
     stopPoll();
@@ -187,6 +195,7 @@ void VpnAuthController::resetTracking() {
     m_vpnTroubleDetail.clear();
     m_vpnOtpLastCode.clear();
     m_vpnOtpRejects.clear();
+    m_vpnOtpRejectAt.clear();
     m_vpnChallengeAnswering.clear();
     m_vpnPendingChallenges.clear();
     for (const auto &timer: std::as_const(m_cancelTimers)) {
@@ -196,11 +205,13 @@ void VpnAuthController::resetTracking() {
     }
     m_cancelTimers.clear();
     m_authFailed = false;
+    m_vpnRestartOffered = false;
+    ++m_vpnRunSerial;
     emit endpointStatusChanged({}, {}, false);
 }
 
 void VpnAuthController::poll() {
-    if (Configs::dataManager->settingsRepo->started_id < 0) return;
+    if (Lifecycle::ResumeTargetId() < 0) return;
     if (m_vpnChallengeBusy.exchange(true)) return;
 
     runOnNewThread([this] {
@@ -284,7 +295,13 @@ void VpnAuthController::updateEndpointStates(const QList<VpnEndpointState> &stat
         const auto name = Stats::VpnEndpointDisplayName(state.tag);
         const auto text = Stats::VpnExitStateText(state.state, state.error);
         if (state.tag == QStringLiteral("proxy")) exitState = text;
-        if (state.connected) m_vpnOtpRejects.remove(state.tag);
+        // A renegotiation keeps the old keys up while its answer is judged, so a rejected one still polls as
+        // connected; only a link that outlived its last attempt refills the budgets.
+        if (state.connected) {
+            const auto now = QDateTime::currentSecsSinceEpoch();
+            if (now - m_vpnOtpRejectAt.value(state.tag) >= kStableConnectedSecs) m_vpnOtpRejects.remove(state.tag);
+            if (now - m_vpnAutoRestartAt >= kStableConnectedSecs) m_vpnAutoRestarts.remove(Stats::VpnEndpointProfileID(state.tag));
+        }
 
         const auto previous = m_vpnEndpointLastState.value(state.tag);
         seenStates.insert(state.tag, state.state);
@@ -367,7 +384,7 @@ bool VpnAuthController::autoAnswer(const VpnAuthChallenge &challenge) {
     QString user, pass, secret;
     QMap<QString, QString> formValues;
     if (ovpn != nullptr) {
-        // The core packs the answer as SCRV1 whatever it gets, so the code rides the secret slot.
+        // A static challenge packs the secret as SCRV1; a query_credentials login stages user and password raw.
         secret = code;
         if (credentialsKind) {
             user = Configs::SubstituteOtp(creds.username, code);
@@ -379,6 +396,7 @@ bool VpnAuthController::autoAnswer(const VpnAuthChallenge &challenge) {
 
     if (!challenge.error.isEmpty()) {
         m_vpnOtpRejects[challenge.endpointTag] = m_vpnOtpRejects.value(challenge.endpointTag) + 1;
+        m_vpnOtpRejectAt.insert(challenge.endpointTag, QDateTime::currentSecsSinceEpoch());
     }
     m_vpnOtpLastCode.insert(challenge.endpointTag, code);
     submitAutoAnswer(challenge, user, pass, secret, formValues);
@@ -409,33 +427,39 @@ void VpnAuthController::submitAutoAnswer(const VpnAuthChallenge &challenge, cons
     });
 }
 
-bool VpnAuthController::autoRestartForAuth(const QString &endpointTag, int profileID) {
-    const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
+void VpnAuthController::autoRestartForAuth(const QString &endpointTag, int profileID) {
     const auto running = m_control->runningSnapshot();
-    if (ent == nullptr || running == nullptr) return false;
-
-    int otpID = -1;
-    if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr)
-        otpID = ovpn->otp_profile_id;
-    else if (const auto *ocon = ent->OpenConnect(); ocon != nullptr) {
-        if (ocon->password_authentication_disabled) return false;
-        otpID = ocon->otp_profile_id;
-    }
-    if (otpID < 0) return false;
-    if (m_vpnAutoRestarts.value(profileID) >= kMaxAutoRestarts) return false;
+    if (running == nullptr) return;
 
     const auto now = QDateTime::currentSecsSinceEpoch();
-    if (now - m_vpnAutoRestartAt < kAutoRestartCooldownSecs) return true;
+    if (now - m_vpnAutoRestartAt < kAutoRestartCooldownSecs) return;
 
     m_vpnAutoRestarts[profileID] = m_vpnAutoRestarts.value(profileID) + 1;
     m_vpnAutoRestartAt = now;
+    m_vpnRestartOffered = true;
 
     MW_show_log(MainWindowTr::tr("[VPN] %1 rejected the saved credentials; restarting the profile with a new one-time code.")
                     .arg(Stats::VpnEndpointDisplayName(endpointTag)));
+    restartForAuth(running->id, false);
+}
+
+void VpnAuthController::offerRestartForAuth(const QString &endpointTag, int profileID, const QString &error) {
+    const auto running = m_control->runningSnapshot();
+    if (running == nullptr) return;
+    m_vpnRestartOffered = true;
+
+    const auto name = Stats::VpnEndpointDisplayName(endpointTag);
+    MW_show_log(MainWindowTr::tr("[VPN] %1 rejected its sign-in; it stays down until the profile restarts.").arg(name));
+
     const int runningID = running->id;
-    m_vpnAuthRestartID = runningID;
-    m_control->start(StartRequest{runningID});
-    return true;
+    const auto run = m_vpnRunSerial;
+    QPointer<VpnAuthController> self(this);
+    policy()->offerVpnSignInRestart(name, error, [self, run, runningID, profileID](bool restart) {
+        if (!restart || self == nullptr || self->m_vpnRunSerial != run) return;
+        if (const auto current = self->m_control->runningSnapshot(); current == nullptr || current->id != runningID) return;
+        self->m_vpnAutoRestarts[profileID] = self->m_vpnAutoRestarts.value(profileID) + 1;
+        self->restartForAuth(runningID, true);
+    });
 }
 
 void VpnAuthController::showChallenge(const VpnAuthChallenge &challenge) {
@@ -459,30 +483,43 @@ void VpnAuthController::showAuthFailure(const QString &endpointTag, const QStrin
     const auto key = endpointTag + QChar(0x1F) + "auth-failed";
     if (m_vpnChallengeSeen.contains(key)) return;
 
-    // The core reads credentials once, at build time; rebuilding is the only way to hand it a new code.
-    if (autoRestartForAuth(endpointTag, profileID)) return;
+    const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
+    if (ent == nullptr) return;
+    const auto *ovpn = ent->OpenVPN();
+    const auto *ocon = ent->OpenConnect();
+    // The core reports a refused password-less login the same way, and neither a restart nor credentials can fix it.
+    if ((ovpn == nullptr && ocon == nullptr) || (ocon != nullptr && ocon->password_authentication_disabled)) {
+        m_vpnChallengeSeen.insert(key);
+        return;
+    }
+
+    // Only the exit's failure has already cut the proxy off; a restart for any other endpoint drops working connections.
+    const bool isExit = endpointTag == QStringLiteral("proxy");
+    // OpenConnect reads credentials once, at build time, so only a rebuild hands it a new code. OpenVPN asks the poller
+    // on every session, so its terminal failure goes to the credentials prompt.
+    if (ocon != nullptr && ocon->otp_profile_id >= 0 && m_vpnAutoRestarts.value(profileID) < kMaxAutoRestarts) {
+        if (isExit)
+            autoRestartForAuth(endpointTag, profileID);
+        else if (!m_vpnRestartOffered)
+            offerRestartForAuth(endpointTag, profileID, error);
+        return;
+    }
 
     m_vpnChallengeSeen.insert(key);
     if (m_vpnAuthPrompted.value(profileID) >= kMaxCredentialPrompts) return;
 
-    const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
-    if (ent == nullptr) return;
-
     VpnAuthChallenge challenge;
     challenge.endpointTag = endpointTag;
     challenge.kind = "credentials";
-    if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr)
-        challenge.username = ovpn->username;
-    else if (const auto *ocon = ent->OpenConnect(); ocon != nullptr) {
-        // The core reports a refused password-less login the same way, and credentials cannot fix it.
-        if (ocon->password_authentication_disabled) return;
-        challenge.username = ocon->username;
-    } else
-        return;
+    challenge.username = ovpn != nullptr ? ovpn->username : ocon->username;
     challenge.error = error;
-    challenge.message = MainWindowTr::tr(
-        "The server refused the credentials saved with this profile. Enter the ones "
-        "to use for this session; the profile itself is left unchanged.");
+    challenge.message = isExit ? MainWindowTr::tr(
+                                     "The server refused the credentials saved with this profile. Enter the ones "
+                                     "to use for this session; the profile itself is left unchanged.")
+                               : MainWindowTr::tr(
+                                     "The server refused the credentials saved with this profile. Enter the ones "
+                                     "to use for this session; the profile itself is left unchanged. Reconnecting "
+                                     "restarts the running profile and drops its open connections.");
 
     m_vpnAuthPrompted[profileID] = m_vpnAuthPrompted.value(profileID) + 1;
     MW_show_log(MainWindowTr::tr("[VPN] %1 rejected the saved credentials.").arg(Stats::VpnEndpointDisplayName(endpointTag)));
@@ -497,8 +534,14 @@ void VpnAuthController::retryWithCredentials(int runningProfileId, int profileId
                                              const QString &password) {
     if (const auto current = m_control->runningSnapshot(); current == nullptr || current->id != runningProfileId) return;
     Configs::SetVpnCredentialOverride(profileId, {username, password});
+    restartForAuth(runningProfileId, true);
+}
+
+void VpnAuthController::restartForAuth(int runningProfileId, bool interactive) {
+    // Both set first: a refused start emits startFinished from inside start().
     m_vpnAuthRestartID = runningProfileId;
-    m_control->start(StartRequest{runningProfileId});
+    m_vpnAuthRestartSerial = m_control->nextStartSerial();
+    m_control->start(StartRequest{runningProfileId, interactive, m_vpnAuthRestartSerial});
 }
 
 void VpnAuthController::clearCredentialOverrides() {

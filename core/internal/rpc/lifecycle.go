@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"runtime"
@@ -25,6 +24,11 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	lifecycleMu.Lock()
 	defer lifecycleMu.Unlock()
 
+	// Ahead of the cleanup below, which would orphan the running box and the system DNS it owns.
+	if currentBox() != nil {
+		return &gen.ErrorResp{Error: To("instance already started")}, nil
+	}
+
 	var err error
 
 	defer func() {
@@ -41,11 +45,6 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		if in.XrayConfig != nil {
 			log.Println("Start Xray:", *in.XrayConfig)
 		}
-	}
-
-	if currentBox() != nil {
-		err = errors.New("instance already started")
-		return
 	}
 
 	if *in.NeedExtraProcess {
@@ -79,50 +78,6 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 
 	autoRedirectMark.Store(autoRedirectMarkFor([]byte(in.GetCoreConfig())))
 
-	// Filled in below, once boxmain.Create has built the box these sidecars resolve through.
-	var boxCtx boxContextHolder
-	prepareXray := xrayPreparer(in.GetXrayOutboundDnsStrategy(), boxCtx.get)
-
-	if *in.NeedXray {
-		if in.GetXrayLazyStart() {
-			gate, e := xray.StartGate(*in.XrayConfig,
-				time.Duration(in.GetXrayIdleSeconds())*time.Second, prepareXray)
-			if e != nil {
-				err = e
-				return
-			}
-			setXray(nil, gate)
-		} else {
-			instance, e := xray.CreateXrayInstance(*in.XrayConfig)
-			if e != nil {
-				err = e
-				return
-			}
-			if e = prepareXray(instance); e != nil {
-				instance.Close()
-				err = e
-				return
-			}
-			if e = instance.Start(); e != nil {
-				instance.Close()
-				err = e
-				return
-			}
-			setXray(instance, nil)
-		}
-	}
-
-	if fullConfigs := in.GetXrayFullConfigs(); len(fullConfigs) > 0 {
-		gates, e := startXrayFullGates(fullConfigs,
-			time.Duration(in.GetXrayFullIdleSeconds())*time.Second, prepareXray)
-		if e != nil {
-			closeXray()
-			err = e
-			return
-		}
-		setXrayFullGates(gates)
-	}
-
 	stopSidecars := func() {
 		sysdns.Release()
 		if extraProcess != nil {
@@ -130,6 +85,23 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 			extraProcess = nil
 		}
 		closeXray()
+	}
+
+	stack := new(xray.Stack)
+	setXrayStack(stack)
+	if e := stack.Start(xray.StackOptions{
+		NeedXray:    *in.NeedXray,
+		Config:      in.GetXrayConfig(),
+		Lazy:        in.GetXrayLazyStart(),
+		Idle:        time.Duration(in.GetXrayIdleSeconds()) * time.Second,
+		FullConfigs: in.GetXrayFullConfigs(),
+		FullIdle:    time.Duration(in.GetXrayFullIdleSeconds()) * time.Second,
+		DNSStrategy: in.GetXrayOutboundDnsStrategy(),
+		Egress:      currentEgress,
+	}); e != nil {
+		stopSidecars()
+		err = e
+		return
 	}
 
 	// A macOS Tun whose system resolver cannot be pointed at it would start with every lookup scoped past it.
@@ -144,7 +116,7 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 
 	var routeRules []option.Rule
 	var xrayTunnelHops map[string]int
-	box, cancel, err := boxmain.Create([]byte(*in.CoreConfig), boxCtx.publish, func(options *option.Options) {
+	box, cancel, err := boxmain.Create([]byte(*in.CoreConfig), stack.PublishBoxContext, func(options *option.Options) {
 		if options.Route != nil {
 			routeRules = options.Route.Rules
 		}
@@ -193,6 +165,10 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 		}
 	}()
 
+	// Before the box closes, so the system resolver never points at a listener that is already gone; also without a box,
+	// so no lost instance can keep the system DNS.
+	sysdns.Release()
+
 	box, cancel := currentInstance()
 	if box == nil {
 		return
@@ -208,8 +184,6 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 		untrackDNSTunnels = nil
 	}
 
-	// Before the box closes, so the system resolver never points at a listener that is already gone.
-	sysdns.Release()
 	// Unpublished first, so a poll mid-teardown sees no instance rather than a dying one.
 	setBoxInstance(nil, nil, nil)
 	box.CloseWithTimeout(cancel, time.Second*2, log.Println, true)

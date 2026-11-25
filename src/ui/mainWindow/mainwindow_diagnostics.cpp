@@ -60,7 +60,7 @@ DiagnosticsWindow::Usage MainWindow::diagnosticsUsage(int rangeDays) {
         usage.available = false;
         return usage;
     }
-    usage.recording = !Configs::dataManager->settingsRepo->disable_traffic_stats && !Configs::dataManager->settingsRepo->disable_traffic_aggregation;
+    usage.recording = !Configs::dataManager->settingsRepo->disable_traffic_aggregation;
     // The minute in progress is still in memory; without this the last bar is empty.
     if (Stats::trafficStatsManager) Stats::trafficStatsManager->Flush();
 

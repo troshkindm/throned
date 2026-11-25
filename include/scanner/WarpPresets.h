@@ -3,10 +3,11 @@
 #include <QList>
 #include <QStringList>
 
-// Seeds for editable IP lists, not probe constants: Cloudflare changes them silently.
+// The ranges seed editable IP lists, since Cloudflare changes them silently; the port lists drive WARP port discovery.
 namespace Scanner::WarpPresets {
 inline const QStringList kWireGuardRanges = {
     QStringLiteral("162.159.192.0/24"),
+    QStringLiteral("162.159.193.0/24"),
     QStringLiteral("162.159.195.0/24"),
     QStringLiteral("188.114.96.0/22"),
     QStringLiteral("2606:4700:d0::/64"),
@@ -82,4 +83,9 @@ inline const QStringList kMasqueEndpoints = {
 };
 // HTTP/3 over UDP and HTTP/2 over TCP alike.
 inline const QList<int> kMasquePorts = {443, 500, 1701, 4500, 4443, 8443, 8095};
+
+// Throne's built-in AmneziaWG junk for WARP: Jc, Jmin and Jmax.
+inline constexpr int kJunkCount = 4;
+inline constexpr int kJunkMin = 40;
+inline constexpr int kJunkMax = 70;
 } // namespace Scanner::WarpPresets

@@ -441,22 +441,22 @@ jobs:
           rm -rf Throne
           ####
           mkdir Throne
-          mv darwin-arm64/Throne.app Throne/Throne.app
-          mv Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/Throne-${{ github.event.inputs.tag }}-macos-arm64.dSYM
+          mv darwin-arm64/Throned.app Throne/Throned.app
+          mv darwin-arm64/Throned.dSYM debug/Throne-${{ github.event.inputs.tag }}-macos-arm64.dSYM
           zip -9 --symlinks -r Throne-${{ github.event.inputs.tag }}-macos-arm64.zip Throne
           rm -rf darwin-arm64
           rm -rf Throne
           ####
           mkdir Throne
-          mv darwin-amd64/Throne.app Throne/Throne.app
-          mv Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/Throne-${{ github.event.inputs.tag }}-macos-amd64.dSYM
+          mv darwin-amd64/Throned.app Throne/Throned.app
+          mv darwin-amd64/Throned.dSYM debug/Throne-${{ github.event.inputs.tag }}-macos-amd64.dSYM
           zip -9 --symlinks -r Throne-${{ github.event.inputs.tag }}-macos-amd64.zip Throne
           rm -rf darwin-amd64
           rm -rf Throne
           ####
           mkdir Throne
-          mv darwinlegacy-amd64/Throne.app Throne/Throne.app
-          mv Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/Throne-${{ github.event.inputs.tag }}-macoslegacy-amd64.dSYM
+          mv darwinlegacy-amd64/Throned.app Throne/Throned.app
+          mv darwinlegacy-amd64/Throned.dSYM debug/Throne-${{ github.event.inputs.tag }}-macoslegacy-amd64.dSYM
           zip -9 --symlinks -r Throne-${{ github.event.inputs.tag }}-macoslegacy-amd64.zip Throne
           rm -rf darwinlegacy-amd64
           rm -rf Throne

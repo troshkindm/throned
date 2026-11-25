@@ -115,6 +115,7 @@ QString vless::ExportToLink() {
     mergeUrlQuery(query, multiplex->ExportToLink());
 
     query.addQueryItem("packetEncoding", packet_encoding.isEmpty() ? "none" : packet_encoding);
+    mergeUrlQuery(query, outbound::ExportToLink());
 
     if (!query.isEmpty()) url.setQuery(query);
     return url.toString(QUrl::FullyEncoded);

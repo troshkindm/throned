@@ -80,6 +80,15 @@ QList<Category> serviceChecksCategories(const libcore::ParseServiceChecksRespons
     return categories;
 }
 
+QList<Check> serviceChecksChecks(const libcore::ParseServiceChecksResponse &parsed) {
+    QList<Check> checks;
+    for (const auto &check: parsed.checks) {
+        checks << Check{QString::fromStdString(check.id.value()), QString::fromStdString(check.name.value()),
+                        QString::fromStdString(check.category.value())};
+    }
+    return checks;
+}
+
 // On a newer valid download, stores it and hands it back through cached, parsed and usable.
 void serviceChecksRefresh(QByteArray *cached, libcore::ParseServiceChecksResponse *parsed, bool *usable) {
     auto meta = serviceChecksReadMeta();
@@ -119,10 +128,8 @@ void serviceChecksRefresh(QByteArray *cached, libcore::ParseServiceChecksRespons
     *parsed = std::move(fresh);
     *usable = true;
 }
-} // namespace
 
-Definitions Prepare() {
-    QMutexLocker locker(&serviceChecksMutex);
+Definitions serviceChecksPick(bool refresh) {
     Definitions defs;
     bool ok = false;
     QString coreError;
@@ -144,15 +151,34 @@ Definitions Prepare() {
         parsed = API::defaultClient->ParseServiceChecks(&cacheOK, cached);
         usable = serviceChecksUsable(cacheOK, parsed);
     }
-    serviceChecksRefresh(&cached, &parsed, &usable);
+    if (refresh) serviceChecksRefresh(&cached, &parsed, &usable);
 
-    if (usable && parsed.revision.value() > embedded.revision.value()) {
-        defs.text = cached;
-        defs.categories = serviceChecksCategories(parsed);
-    } else {
-        defs.categories = serviceChecksCategories(embedded);
-    }
+    const bool useCache = usable && parsed.revision.value() > embedded.revision.value();
+    if (useCache) defs.text = cached;
+    const auto &picked = useCache ? parsed : embedded;
+    defs.categories = serviceChecksCategories(picked);
+    defs.checks = serviceChecksChecks(picked);
     return defs;
+}
+} // namespace
+
+Definitions Prepare() {
+    QMutexLocker locker(&serviceChecksMutex);
+    return serviceChecksPick(true);
+}
+
+// Unlocked: the refresh replaces the cache file atomically, and waiting out a download would stall the caller.
+Definitions Current() {
+    return serviceChecksPick(false);
+}
+
+QStringList Enabled(const Definitions &definitions) {
+    const auto disabled = Configs::dataManager->settingsRepo->service_check_disabled;
+    QStringList ids;
+    for (const auto &check: definitions.checks) {
+        if (!disabled.contains(check.id)) ids << check.id;
+    }
+    return ids;
 }
 
 QString ResultJson(const libcore::ServiceTestResult &result, const QList<Category> &categories, qint64 checkedAt) {

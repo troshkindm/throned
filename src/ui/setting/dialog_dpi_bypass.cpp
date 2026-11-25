@@ -5,6 +5,7 @@
 #include "include/database/entities/RouteProfile.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
+#include "include/engine/Lifecycle.h"
 #include "include/ui/mainwindow.h"
 #include "include/ui/setting/RouteProfileSimpleEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -203,7 +204,7 @@ void DialogDpiBypass::applyDpiPreset() {
     // a running core keeps the old routes until it is rebuilt.
     if (auto *mainWindow = GetMainWindow()) {
         mainWindow->refreshRoutingStatus();
-        if (settings->started_id >= 0) mainWindow->profile_start(settings->started_id);
+        if (const int running = Engine::Lifecycle::ResumeTargetId(); running >= 0) mainWindow->profile_start(running);
     }
     ui->dpi_status->setText(
         (isNew ? tr("Created routing profile \"%1\" and selected it.") : tr("Updated routing profile \"%1\" and selected it."))

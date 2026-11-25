@@ -8,7 +8,7 @@ class HeadlessPolicy final : public EnginePolicy {
 public:
     void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) override;
 
-    bool confirmGeoAssetDownload(const QString &contextName) override;
+    void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override;
 
     void geoAssetDownloadFinished(const QString &error) override;
 
@@ -22,9 +22,9 @@ public:
 
     void strictRouteUnavailable(const QString &error) override;
 
-    bool offerCoreReset(const QString &error) override;
+    void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) override;
 
-    bool offerLeftoverTunAdapterRetry(const QString &error) override;
+    void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) override;
 
     void stopFailed(const QString &error) override;
 
@@ -41,6 +41,9 @@ public:
     void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                 const std::function<void(const QString &username, const QString &password)> &retryWith) override;
 
+    void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                               std::function<void(bool restart)> answered) override;
+
     void vpnChallengesCleared() override;
 
     void settingsNeedTunRestart() override;
@@ -48,6 +51,8 @@ public:
     bool confirmRestartProgram() override;
 
     void testSessionBusy(const QString &text) override;
+
+    void testsInconclusive(const QList<int> &profileIds) override;
 
     void exitProgram(ExitReason reason, bool unattended) override;
 };

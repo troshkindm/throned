@@ -44,6 +44,8 @@ struct StopOptions {
     int rpcTimeoutMs = 0;
     // Skip StopTests in the stop.
     bool skipTests = false;
+    // A start's own stop of the previous profile: pending starts stay valid.
+    bool keepIntent = false;
 };
 
 struct ModeChange {
@@ -52,13 +54,6 @@ struct ModeChange {
     bool interactive = true;
     bool restart = true;
     quint64 restartSerial = 0;
-};
-
-// Where the traffic chart marks a run.
-enum class RunMarker {
-    Started,
-    Switched,
-    Stopped,
 };
 
 // Why the running profile should restart to apply a change; the view translates it.

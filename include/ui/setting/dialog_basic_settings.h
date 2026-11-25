@@ -1,11 +1,13 @@
 #pragma once
 
 #include <QDialog>
+#include <QFont>
 #include <QJsonObject>
 #include <QTimer>
 #include "include/ui/setting/SettingsBindings.h"
 #include <memory>
 #include "ui_dialog_basic_settings.h"
+#include "include/database/SettingsValues.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/services/WebDavBackup.h"
 
@@ -18,6 +20,8 @@ class QStackedWidget;
 namespace Validation {
 class Form;
 }
+
+class ServiceCheckSelector;
 
 class DialogBasicSettings : public QDialog {
     Q_OBJECT
@@ -33,7 +37,9 @@ public:
 
 public slots:
 
-    void accept();
+    void accept() override;
+
+    void done(int r) override;
 
 private:
     // Pages migrated off the .ui build their controls where they are used and bind
@@ -54,9 +60,13 @@ private:
 
     Engine::EditLock settingsLock{Engine::EditTarget::Settings};
 
-    void bindValidation();
+    Configs::SettingsValues snapshot_;
+    // What the bound controls on the code-built pages save into; accept() starts from it.
+    Configs::SettingsValues draft_;
 
-    void applyRegexHighlighting();
+    ServiceCheckSelector *serviceChecks_ = nullptr;
+
+    void bindValidation();
 
     void refreshUrlSchemeStatus();
 
@@ -89,14 +99,15 @@ private:
 
     struct {
         QString custom_inbound;
-        bool needRestart = false;
-        bool updateDisableTray = false;
-        bool updateTrayIcon = false;
-        bool updateMaxLogLines = false;
         // What the log font boxes showed on open; left untouched, an unset family/size keeps following its default.
         QString shownLogFontFamily;
         int shownLogFontSize = 0;
-        bool updateDisableAdmin = false;
+        // Previewed live and committed only by OK; any other close restores the look the window opened with.
+        QString theme;
+        QString font;
+        int font_size = 0;
+        QString openTheme;
+        QFont openFont;
     } CACHE;
 
 private slots:

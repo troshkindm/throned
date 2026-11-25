@@ -16,10 +16,23 @@
 #include <QMutex>
 #include <QSemaphore>
 #include <QSet>
+#include <QThread>
 
 #include <utility>
 
 namespace {
+// Selector plans and the pool writes they lead to, one at a time, on a thread that is never deleted.
+void autoSelectorQueue(const std::function<void()> &job) {
+    static QObject *const context = [] {
+        auto *thread = new QThread;
+        thread->start();
+        auto *object = new QObject;
+        object->moveToThread(thread);
+        return object;
+    }();
+    QMetaObject::invokeMethod(context, job, Qt::QueuedConnection);
+}
+
 // Shared with the result hook, which a late result poll can still call after rank() has returned.
 struct AutoSelectorSweep {
     QMutex mu;
@@ -57,29 +70,36 @@ void AutoSelectorController::startMonitorLoop() {
 }
 
 bool AutoSelectorController::rankBeforeStart(const std::shared_ptr<Configs::Profile> &ent, bool interactive,
-                                             const std::function<void()> &resume) {
+                                             const std::function<bool()> &wanted, const std::function<void()> &resume) {
     ENGINE_CHECK_MAIN_THREAD();
-    // A pool can still need ranking right after a sweep (validity 0, refused sweep); re-ranking on resume would loop.
+    // Right after a sweep, re-ranking on resume would loop on a refused one, or undo an early start's untrusted order.
     const bool justRanked = std::exchange(rankedFor_, -1) == ent->id;
     // A second sweep would only be refused while one runs, and an early-started selector restarts during it.
     if (rankingInFlight_ > 0 || justRanked) return false;
     // Behind fixed hops a direct test says nothing about a member, so the core ranks them itself.
     const auto selectorEnt = Configs::RunningSelectorOf(ent);
     if (selectorEnt == nullptr || Configs::SelectorBehindHops(ent)) return false;
-    const auto plan = Configs::PlanAutoSelector(selectorEnt);
-    if (!plan.error.isEmpty() || !plan.needsRanking) return false;
 
-    ++rankingInFlight_;
     const auto resumeRanked = [=, this] { startRanked(ent->id, resume); };
-    runOnNewThread([=, this] {
-        const bool startedEarly = rank(selectorEnt, interactive, {}, resumeRanked);
-        runOnUiThread([=, this] {
-            --rankingInFlight_;
-            if (startedEarly)
-                finishEarlySweep(ent);
-            else
-                resumeRanked();
-        });
+    autoSelectorQueue([=, this] {
+        const auto plan = Configs::PlanAutoSelector(selectorEnt);
+        const bool sweep = plan.error.isEmpty() && plan.needsRanking;
+        // Results stored since the last sweep (manual tests, persisted health) reorder the pool this build takes.
+        if (plan.error.isEmpty() && !plan.needsRanking) Configs::RerankAutoSelectorPool(selectorEnt);
+        QMetaObject::invokeMethod(this, [=, this] {
+                if (!sweep || rankingInFlight_ > 0 || !wanted()) {
+                    resumeRanked();
+                    return;
+                }
+                ++rankingInFlight_;
+                runOnNewThread([=, this] {
+                    const bool startedEarly = rank(selectorEnt, interactive, {}, resumeRanked);
+                    runOnUiThread([=, this] {
+                        --rankingInFlight_;
+                        if (startedEarly) finishEarlySweep(ent);
+                        else resumeRanked();
+                    });
+                }); }, Qt::QueuedConnection);
     });
     return true;
 }
@@ -218,7 +238,7 @@ void AutoSelectorController::finishEarlySweep(const std::shared_ptr<Configs::Pro
             MW_show_log(MainWindowTr::tr(
                 "[Auto selector] Every profile is measured and the best ones changed — rebuilding "
                 "with the full ranking."));
-            startRanked(ent->id, [=, this] { control_->start(StartRequest{ent->id}); });
+            startRanked(ent->id, [=, this] { control_->start(StartRequest{ent->id, false}); });
         });
     });
 }
@@ -257,7 +277,7 @@ void AutoSelectorController::onSubscriptionGroupChanged(int gid, const QList<int
 
     if (restartID < 0) return;
     MW_show_log(MainWindowTr::tr("[Auto selector] The subscription replaced profiles it was running on — rebuilding."));
-    control_->start(StartRequest{restartID});
+    control_->start(StartRequest{restartID, false});
 }
 
 void AutoSelectorController::onPoolExhausted(int profileID) {
@@ -268,13 +288,18 @@ void AutoSelectorController::onPoolExhausted(int profileID) {
     const int runningID = running->id;
 
     if (Configs::SelectorBehindHops(running)) {
-        const auto plan = Configs::PlanAutoSelector(ent);
-        if (!plan.error.isEmpty() || plan.pool.size() <= plan.build.size()) return;
-        MW_show_log(MainWindowTr::tr(
-            "[Auto selector] Every running profile stopped working through the hops in front "
-            "of it — rebuilding with the next candidates."));
-        if (auto selector = ent->AutoSelector(); selector != nullptr) Configs::DemoteAutoSelectorMembers(ent, selector->lastBuilt);
-        control_->start(StartRequest{runningID});
+        QList<int> exhausted;
+        if (const auto *selector = ent->AutoSelector(); selector != nullptr) exhausted = selector->lastBuilt;
+        autoSelectorQueue([=, this] {
+            const auto plan = Configs::PlanAutoSelector(ent);
+            if (!plan.error.isEmpty() || plan.pool.size() <= plan.build.size()) return;
+            Configs::DemoteAutoSelectorMembers(ent, plan, exhausted);
+            QMetaObject::invokeMethod(this, [=, this] {
+                    if (const auto current = control_->runningSnapshot(); current == nullptr || current->id != runningID) return;
+                    MW_show_log(MainWindowTr::tr("[Auto selector] Every running profile stopped working through the hops in front "
+                                                 "of it — rebuilding with the next candidates."));
+                    control_->start(StartRequest{runningID, false}); }, Qt::QueuedConnection);
+        });
         return;
     }
 
@@ -284,12 +309,12 @@ void AutoSelectorController::onPoolExhausted(int profileID) {
     ++rankingInFlight_;
     const auto restart = [=, this] {
         if (const auto current = control_->runningSnapshot(); current == nullptr || current->id != runningID) return;
-        startRanked(runningID, [=, this] { control_->start(StartRequest{runningID}); });
+        startRanked(runningID, [=, this] { control_->start(StartRequest{runningID, false}); });
     };
     runOnNewThread([=, this] {
         QList<int> stale;
         if (auto selector = ent->AutoSelector(); selector != nullptr) stale = selector->lastBuilt;
-        const bool startedEarly = rank(ent, true, stale, restart);
+        const bool startedEarly = rank(ent, false, stale, restart);
         runOnUiThread([=, this] {
             --rankingInFlight_;
             if (startedEarly)

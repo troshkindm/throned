@@ -14,7 +14,6 @@ enum class RouteRuleOriginKind {
     TunPeerReject,
     ServiceProxy,
     Sniff,
-    TorOnion,
     Resolve,
     DnsHijack,
     DnsInboundReject,

@@ -1,6 +1,7 @@
 #include "include/ui/utils/ProfilesTableVerticalHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/engine/Lifecycle.h"
 #include "include/global/Configs.hpp"
 #include "include/database/SettingsRepo.h"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -65,10 +66,6 @@ void ProfilesTableVerticalHeader::setProfilesModel(ProfilesTableModel *model, Pr
             updateWidthFromRowCount();
             update();
         });
-        connect(m_model, &ProfilesTableModel::pinnedCountChanged, this, [this]() {
-            updateWidthFromRowCount();
-            update();
-        });
     }
     if (m_proxy) {
         connect(m_proxy, &QAbstractItemModel::rowsInserted, this, [this] { update(); });
@@ -92,7 +89,16 @@ void ProfilesTableVerticalHeader::updateWidthFromRowCount() {
 }
 
 int ProfilesTableVerticalHeader::pinRoom() const {
-    return m_model && m_model->pinnedCount() > 0 ? pinSide(QFontMetrics(font())) + 4 : 0;
+    return m_pinnedVisible ? pinSide(QFontMetrics(font())) + 4 : 0;
+}
+
+bool ProfilesTableVerticalHeader::setPinnedVisible(bool visible) {
+    if (m_pinnedVisible == visible) return false;
+    m_pinnedVisible = visible;
+    updateWidthFromRowCount();
+    updateGeometry();
+    update();
+    return true;
 }
 
 void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const {
@@ -103,7 +109,7 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
     // The id, not the whole RowVisual: building one costs a group lookup and half
     // a dozen strings, and this runs for every visible row on every repaint.
-    const bool running = m_model != nullptr && sourceRow >= 0 && m_model->index(sourceRow, 0).data(ProfilesTableModel::ProfileIdRole).toInt() == Configs::dataManager->settingsRepo->started_id;
+    const bool running = m_model != nullptr && sourceRow >= 0 && m_model->index(sourceRow, 0).data(ProfilesTableModel::ProfileIdRole).toInt() == Engine::Lifecycle::ResumeTargetId();
     const auto colors = themeManager()->Colors();
     const QColor background = selected
                                   ? colors.selection

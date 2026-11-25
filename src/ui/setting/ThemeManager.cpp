@@ -21,6 +21,7 @@
 
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/setting/ThronedStyle.h"
 #include "include/ui/widget/MaterialIcon.h"
 #include "include/ui/widget/ThronedWindowChrome.h"
 #ifdef Q_OS_WIN
@@ -28,6 +29,8 @@
 #endif
 
 #include <QGlobalStatic>
+#include <algorithm>
+#include <cmath>
 
 Q_GLOBAL_STATIC(ThemeManager, themeManagerInstance)
 
@@ -71,45 +74,6 @@ QString chevronAssetPath(const QColor &color, const QString &skinId) {
     return path;
 }
 
-// Fusion paints combo, spin and menu arrows from windowText at alpha 160, which on
-// the dark grounds lands a few units above the surface and reads as an artefact.
-class ThronedStyle final : public QProxyStyle {
-public:
-    using QProxyStyle::QProxyStyle;
-
-    void drawPrimitive(PrimitiveElement element, const QStyleOption *option,
-                       QPainter *painter, const QWidget *widget) const override {
-        if (element == PE_IndicatorArrowDown || element == PE_IndicatorArrowUp) {
-            const auto colors = themeManager()->Colors();
-            const QColor color = !option->state.testFlag(State_Enabled)    ? colors.textSubtle
-                                 : option->state.testFlag(State_MouseOver) ? colors.text
-                                                                           : colors.textMuted;
-            // The glyph carries padding inside its box, so it is drawn a little larger
-            // than the slot the style hands us or it reads as a speck.
-            const int side = qBound(10, qMin(option->rect.width(), option->rect.height()) + 3, 18);
-            if (option->rect.width() >= 7 && option->rect.height() >= 7) {
-                const QPixmap glyph = MaterialIcon::pixmap(element == PE_IndicatorArrowDown
-                                                               ? MaterialIcon::Glyph::ChevronDown
-                                                               : MaterialIcon::Glyph::ChevronUp,
-                                                           color, side);
-                painter->drawPixmap(alignedRect(option->direction, Qt::AlignCenter,
-                                                glyph.deviceIndependentSize().toSize(), option->rect),
-                                    glyph);
-                return;
-            }
-        }
-        QProxyStyle::drawPrimitive(element, option, painter, widget);
-    }
-
-    // QTabBar sizes its scrollers from this metric, not from their size hint, so a stylesheet width cannot hide them.
-    int pixelMetric(PixelMetric metric, const QStyleOption *option,
-                    const QWidget *widget) const override {
-        if (metric == PM_TabBarScrollButtonWidth && widget != nullptr && widget->inherits("GroupTabBar"))
-            return 0;
-        return QProxyStyle::pixelMetric(metric, option, widget);
-    }
-};
-
 // Hide native-material skins on platforms that cannot supply their backdrop.
 bool skinRunsHere(const ThronedSkin &skin) {
     if (skin.windowsBuild == 0) return true;
@@ -120,7 +84,37 @@ bool skinRunsHere(const ThronedSkin &skin) {
 #endif
 }
 
+double relativeLuminance(const QColor &c) {
+    const auto channel = [](int v8) {
+        const double v = v8 / 255.0;
+        return v <= 0.03928 ? v / 12.92 : std::pow((v + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * channel(c.red()) + 0.7152 * channel(c.green()) + 0.0722 * channel(c.blue());
+}
+
+double contrastRatio(const QColor &a, const QColor &b) {
+    const double la = relativeLuminance(a), lb = relativeLuminance(b);
+    return (std::max(la, lb) + 0.05) / (std::min(la, lb) + 0.05);
+}
 } // namespace
+
+QColor ContrastSeparated(const QColor &color, const QColor &surface, double ratio) {
+    QColor c = color;
+    const int dir = relativeLuminance(surface) > 0.5 ? -1 : 1;
+    for (int i = 0; i < 24 && contrastRatio(c, surface) < ratio; ++i) {
+        int h, s, l, a;
+        c.getHsl(&h, &s, &l, &a);
+        const int next = qBound(0, l + dir * 10, 255);
+        if (next == l) break;
+        c.setHsl(h < 0 ? 0 : h, s, next, a); // getHsl reports -1 for achromatic; s is 0 there anyway
+    }
+    return c;
+}
+
+QColor MutedTint(int hue, const QColor &surface) {
+    const QColor muted = QColor::fromHslF(static_cast<float>(qMax(0, hue) % 360) / 360.0f, 0.38f, surface.lightnessF() < 0.5f ? 0.68f : 0.42f);
+    return ContrastSeparated(muted, surface, 3.0);
+}
 
 struct ThemeColors {
     QColor window, windowText;
@@ -258,6 +252,12 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     const auto activeSheet = qApp->styleSheet();
     qApp->setFont(qApp->font());
     if (!activeSheet.isEmpty()) qApp->setStyleSheet(activeSheet);
+
+    const QString styleName = qApp->style()->name();
+    if (styleName.compare(QStringLiteral("macos"), Qt::CaseInsensitive) == 0)
+        m_paneCornerRadius = 5;
+    else
+        m_paneCornerRadius = styleName.compare(QStringLiteral("windows11"), Qt::CaseInsensitive) == 0 || lowerTheme == "qdarkstyle" ? 3 : 0;
 
     current_theme = theme;
 

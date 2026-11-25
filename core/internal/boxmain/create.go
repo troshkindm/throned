@@ -7,9 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	"ThroneCore/internal/boxbox"
-	"ThroneCore/internal/torproc"
-
+	box "github.com/sagernet/sing-box"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
@@ -40,19 +38,15 @@ func pinTailscaleDirectories(options *option.Options) {
 	}
 }
 
-// Fixed so that a config cannot run another program as tor or point its data at an arbitrary folder.
-func pinTorPaths(options *option.Options) {
-	for _, outbound := range options.Outbounds {
-		if torOptions, isTor := outbound.Options.(*option.TorOutboundOptions); isTor {
-			torOptions.ExecutablePath = torproc.ExecutablePath()
-			torOptions.DataDirectory = torproc.DataDirectoryPath()
-			torOptions.ExtraArgs = nil
-		}
+// Otherwise sing-box serves pprof on debug.listen and applies the config's GC and memory limits to this whole process.
+func dropDebugOptions(options *option.Options) {
+	if options.Experimental != nil {
+		options.Experimental.Debug = nil
 	}
 }
 
-// onCreated runs between New and Start: the Xray sidecars start first and resolve through this box.
-func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*option.Options)) (*boxbox.Box, context.CancelFunc, error) {
+// onCreated gets the box's context between New and Start: the Xray sidecars start first and resolve through this box.
+func Create(configContent []byte, onCreated func(context.Context), adjust ...func(*option.Options)) (*Box, context.CancelFunc, error) {
 	// Fresh context per call: concurrent boxes sharing one service.Registry clobber each other's OutboundManager.
 	ctx := newBoxContext()
 	options, err := parseConfig(ctx, configContent)
@@ -60,7 +54,7 @@ func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*o
 		return nil, nil, err
 	}
 	pinTailscaleDirectories(options)
-	pinTorPaths(options)
+	dropDebugOptions(options)
 	if disableColor {
 		if options.Log == nil {
 			options.Log = &option.LogOptions{}
@@ -71,17 +65,16 @@ func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*o
 		fn(options)
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	instance, err := boxbox.New(boxbox.Options{
-		Context:          ctx,
-		Options:          *options,
-		DefaultLogWriter: newConnectionLogWriter(ctx, os.Stderr),
+	instance, err := box.New(box.Options{
+		Context: ctx,
+		Options: *options,
 	})
 	if err != nil {
 		cancel()
 		return nil, nil, E.Cause(err, "create service")
 	}
 	if onCreated != nil {
-		onCreated(instance)
+		onCreated(ctx)
 	}
 
 	osSignals := make(chan os.Signal, 1)
@@ -104,7 +97,7 @@ func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*o
 		cancel()
 		return nil, nil, E.Cause(err, "start service")
 	}
-	return instance, cancel, nil
+	return &Box{Box: instance, ctx: ctx}, cancel, nil
 }
 
 func closeMonitor(ctx context.Context) {

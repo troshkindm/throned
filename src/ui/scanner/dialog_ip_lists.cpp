@@ -84,12 +84,11 @@ DialogIpLists::DialogIpLists(QWidget *parent) : QDialog(parent), ui(new Ui::Dial
     for (auto *button: findChildren<QPushButton *>()) button->setAutoDefault(false);
 
     auto *importMenu = new QMenu(this);
-    importMenu->addAction(tr("From text…"), this, [this] {
+    importMenu->addAction(tr("From text"), this, [this] {
         createList(Configs::IpList::SourceKind::Manual, QGuiApplication::clipboard()->text());
     });
-    importMenu->addAction(tr("From file…"), this, [this] { importFromFiles(); });
-    importMenu->addAction(tr("From URL…"), this, [this] { createList(Configs::IpList::SourceKind::Url); });
-    importMenu->addAction(tr("From rule-set…"), this, [this] { createList(Configs::IpList::SourceKind::RuleSet); });
+    importMenu->addAction(tr("From file"), this, [this] { importFromFiles(); });
+    importMenu->addAction(tr("From URL"), this, [this] { createList(Configs::IpList::SourceKind::Url); });
     importMenu->addSeparator();
     importMenu->addAction(tr("Add default lists"), this, [this] {
         if (Scanner::DefaultIpLists::EnsureAll() == 0) {
@@ -422,7 +421,7 @@ void DialogIpLists::importFromFiles() {
     if (importing) return;
     const auto paths = NativeFileDialog::getOpenFileNames(
         this, tr("Import IP lists"), QDir::homePath(),
-        tr("All files (*);;Text and CSV (*.txt *.csv *.lst *.list);;sing-box rule-sets (*.srs *.json)"));
+        tr("All files (*);;Text and CSV (*.txt *.csv *.lst *.list)"));
     if (paths.isEmpty()) return;
 
     importing = true;

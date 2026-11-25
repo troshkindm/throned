@@ -1,5 +1,4 @@
 #include "include/ui/utils/CommandPalette.h"
-#include "include/ui/utils/UiMode.h"
 
 #include <algorithm>
 
@@ -397,7 +396,7 @@ void CommandPalette::collect(QMenu *menu, const QString &section, const QString 
     // Menus that fill their actions on demand.
     if (!refreshed.contains(menu)) emit menu->aboutToShow();
     for (QAction *action: menu->actions()) {
-        if (action->isSeparator() || action == skipAction) continue;
+        if (action->isSeparator() || action == skipAction || action->property("menuHeading").toBool()) continue;
         // Toggled or disabled from a menu or the tray: an open palette shows it at once.
         connect(action, &QAction::changed, this, &CommandPalette::queueRefilter, Qt::UniqueConnection);
         if (auto *sub = action->menu()) {
@@ -441,11 +440,8 @@ QList<CommandPalette::Row> CommandPalette::matchRows() const {
         text = text.mid(1).trimmed();
     }
     const QStringList terms = text.toLower().split(' ', Qt::SkipEmptyParts);
-    const bool simple = UiMode::Simple();
-    const auto parked = [simple](const Entry &entry) { return simple && entry.advanced; };
     const auto wanted = [&](const Entry &entry) {
-        // A parked setting's dialog opener may be one of the actions Simple mode hides.
-        if (!parked(entry) && !effective(entry, &QAction::isVisible)) return false;
+        if (!effective(entry, &QAction::isVisible)) return false;
         if (commandsOnly) return entry.kind == Entry::Command;
         if (settingsOnly) return entry.kind == Entry::Setting;
         return true;
@@ -457,7 +453,7 @@ QList<CommandPalette::Row> CommandPalette::matchRows() const {
         QString section;
         for (int i = 0; i < entries.size(); ++i) {
             const auto &entry = entries[i];
-            if (!wanted(entry) || parked(entry) || (entry.kind == Entry::Setting && !settingsOnly)) continue;
+            if (!wanted(entry) || (entry.kind == Entry::Setting && !settingsOnly)) continue;
             if (entry.section != section) {
                 section = entry.section;
                 header(section);
@@ -474,7 +470,6 @@ QList<CommandPalette::Row> CommandPalette::matchRows() const {
     };
     QList<Match> commands;
     QList<Match> settings;
-    QList<Match> advanced;
     const QString &first = terms.first();
     for (int i = 0; i < entries.size(); ++i) {
         const auto &entry = entries[i];
@@ -493,14 +488,11 @@ QList<CommandPalette::Row> CommandPalette::matchRows() const {
             score = 2;
         else if (entry.path.toLower().contains(first))
             score = 3;
-        (entry.kind == Entry::Command ? commands : parked(entry) ? advanced
-                                                                 : settings)
-            .append({i, score, start});
+        (entry.kind == Entry::Command ? commands : settings).append({i, score, start});
     }
     const auto byScore = [](const Match &a, const Match &b) { return a.score < b.score; };
     std::stable_sort(commands.begin(), commands.end(), byScore);
     std::stable_sort(settings.begin(), settings.end(), byScore);
-    std::stable_sort(advanced.begin(), advanced.end(), byScore);
 
     const auto matched = [&](const Match &match) {
         out.append({match.index, {}, qMax(match.start, 0), match.start >= 0 ? int(first.size()) : 0});
@@ -509,9 +501,7 @@ QList<CommandPalette::Row> CommandPalette::matchRows() const {
     for (const auto &match: commands) matched(match);
     if (!settings.isEmpty()) header(tr("Settings"));
     for (const auto &match: settings) matched(match);
-    if (!advanced.isEmpty()) header(tr("Settings in Advanced mode"));
-    for (const auto &match: advanced) matched(match);
-    if (commands.isEmpty() && settings.isEmpty() && advanced.isEmpty()) header(tr("Nothing found"));
+    if (commands.isEmpty() && settings.isEmpty()) header(tr("Nothing found"));
     return out;
 }
 

@@ -32,7 +32,8 @@ public:
     // Any thread; the running profile, or null.
     using RunningSnapshot = std::function<std::shared_ptr<Configs::Profile>()>;
 
-    // Test threads, after each stored URL result (a profile may report twice); a late result poll can still call it after onFinished.
+    // Main thread, once per profile after its URL result is applied, never for an inconclusive one; a late result poll
+    // can still call it after onFinished.
     using ResultHook = std::function<void(const std::shared_ptr<Configs::Profile>&)>;
 
     struct ChainStepResult {
@@ -158,14 +159,11 @@ private:
 
     void runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions);
 
-    void applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::URLTestResp& res,
-                        const QHash<QString, bool>* vpnConnected = nullptr);
-
-    void applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res);
+    void reportSessionBusy(bool interactive) const;
 
     void applyUdpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::UDPTestRes& res);
-    void applyServiceResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::ServiceTestResult& res,
-                            const QList<ServiceChecks::Category>& categories);
+
+    void reportProbeFailure(const QString& failedText, const QString& coreError, int contextID) const;
 
     QString contextName(int entID) const;
 
@@ -176,7 +174,8 @@ private:
 
     void pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen);
 
-    void pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen);
+    // Puts back the dl/ul a poll showed on every polled profile outside `stored`.
+    void restorePolledSpeeds(const QSet<int>& stored);
 
     void creditTraffic(const std::shared_ptr<Configs::Profile>& profile, const QString& tag,
                        qint64 curUp, qint64 curDown);
@@ -196,12 +195,19 @@ private:
     // The running session's flag: an unattended session never prompts for geo assets.
     std::atomic<bool> interactive_ = true;
 
+    // The running URL session's profiles whose failure the core put down to the local network.
+    QMutex inconclusiveMu_;
+    QList<int> inconclusive_;
+
     // Tests bypass the clash tracker, so their bytes are counted only here, diffed per tag.
     QMutex creditMu_;
     QHash<QString, QPair<qint64, qint64>> credited_;
     QHash<int, std::shared_ptr<Configs::Profile>> pendingTraffic_;
     QElapsedTimer trafficFlushTimer_;
     QMutex trafficFlushMu_;
+
+    // UI thread: the dl/ul each polled profile had before its speed test showed partial values.
+    QHash<int, QPair<QString, QString>> speedBefore_;
 
     // Last, so it is destroyed first, while the members its probes use still exist.
     QThreadPool pool_;

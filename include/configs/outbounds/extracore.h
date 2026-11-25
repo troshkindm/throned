@@ -109,7 +109,7 @@ public:
         return object;
     }
 
-    QString DisplayType() override { return "ExtraCore"; };
+    QString DisplayType() override { return QObject::tr("Extra Core"); };
 
     // The config is owned by an external core, so we cannot inspect it.
     SecurityInfo GetSecurity() override { return {}; }

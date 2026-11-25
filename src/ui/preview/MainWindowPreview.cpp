@@ -33,6 +33,7 @@
 #include "include/api/RPC.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/Lifecycle.h"
 #include "include/global/Configs.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/ui/group/dialog_edit_group.h"
@@ -164,8 +165,12 @@ void RunMainWindow(const QString &prefix) {
                 // One starred row, so the favourites view and the row mark are visible.
                 profile->favorite = QString::fromLatin1(sample.name) == QStringLiteral("Demo East");
                 Configs::dataManager->profilesRepo->AddProfile(profile, group->id);
-                if (profileIndex++ == 1)
-                    Configs::dataManager->settingsRepo->started_id = profile->id;
+                if (profileIndex++ == 1) {
+                    // No engine runs in a preview, so the hooks alone mark this row as the running one.
+                    const int running = profile->id;
+                    Engine::Lifecycle::SetStateHooks({.resumeTarget = [running] { return running; },
+                                                      .runningId = [running] { return running; }});
+                }
             }
         }
 

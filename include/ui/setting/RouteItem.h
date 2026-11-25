@@ -1,24 +1,29 @@
 #pragma once
 
-#include <QWidget>
-#include <QListWidgetItem>
 #include <QDialog>
-#include <QEvent>
+#include <QList>
+#include <QMap>
+#include <QPair>
+// dialog_manage_routes.h declares a QShortcut member and takes the class from here.
 #include <QShortcut>
 
-#include <v2/ui/QvAutoCompleteTextEdit.hpp>
-#include "ui_RouteItem.h"
-#include "include/database/entities/RouteProfile.h"
+#include <memory>
 
-class QListWidget;
-class QStandardItemModel;
-class RouteDnsEditor;
-class QAbstractButton;
-class QFrame;
+#include "include/database/entities/RouteProfile.h"
+#include "ui_RouteItem.h"
+
+class QCheckBox;
+class QCloseEvent;
+class QKeyEvent;
 class QLabel;
+class QTabBar;
+class RouteDnsEditor;
 class RouteProfileSimpleEditor;
-class QStackedWidget;
-class QVBoxLayout;
+class RouteRulesPage;
+
+namespace Validation {
+class Form;
+}
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -28,77 +33,93 @@ public:
     ~RouteItem() override;
 
     std::shared_ptr<Configs::RouteProfile> chain;
+
+public slots:
+    void accept() override;
+
+    // Asks before throwing away changes.
+    void reject() override;
+
 signals:
     void settingsChanged(std::shared_ptr<Configs::RouteProfile> routingChain);
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
+    void keyPressEvent(QKeyEvent* event) override;
+
 private:
+    struct EndpointRow {
+        int profileId = -1;
+        bool innerHops = false;
+        QWidget* widget = nullptr;
+        QLabel* subtitle = nullptr;
+        QCheckBox* toggle = nullptr;
+    };
+
     Ui::RouteItem* ui;
-    int currentIndex = -1;
 
-    int lastNum = 0;
+    Validation::Form* form = nullptr;
 
-    QStringList geo_items;
-
-    QShortcut* deleteShortcut;
-
-    QStringList outbounds;
-
-    std::map<int, int> outboundMap;
-
-    // Shared by every rule's outbound combo: refilling and re-measuring thousands of profiles froze each rule switch.
-    QStandardItemModel* outboundsModel = nullptr;
-
-    int outboundsPopupWidth = -1;
+    RouteRulesPage* rulesPage = nullptr;
 
     RouteDnsEditor* dnsEditor = nullptr;
 
-    AutoCompleteTextEdit* simpleDirect;
-
-    AutoCompleteTextEdit* simpleBlock;
-
-    AutoCompleteTextEdit* simpleProxy;
-
-    AutoCompleteTextEdit* simpleWarpBypass;
-
-    // One via-profile bucket per chosen profile, id -> its rule lines. Buckets are
-    // created on demand, so this holds only the ones the user asked for.
-    QMap<int, QString> viaBucketRules_;
-    QList<QPair<int, QString>> viaCatalog_;
-    void reloadViaBuckets();
-    void pushViaBuckets();
-    QString saveViaBuckets();
-
+    // The Simple tab: the four lists, the via-profile buckets and the local proxy option over the same rules.
     RouteProfileSimpleEditor* simpleEditor = nullptr;
 
-    QStackedWidget* advancedStack = nullptr;
-    QVBoxLayout* advancedRulesLayout = nullptr;
-    QFrame* advancedSidebar = nullptr;
-    QLabel* advancedTotalLabel = nullptr;
-    std::map<int, QAbstractButton*> advancedActionButtons;
-    int advancedActionFilter = 2;
-    bool advancedShowAllActions = false;
+    QWidget* simpleTab = nullptr;
 
-    void rebuildAdvancedSummary();
+    QTabBar* modeTabs = nullptr;
 
-    void showAdvancedDetail(int ruleIndex);
+    // Every editor action's lines as last loaded from chain, keyed like RouteProfileSimpleEditor actions.
+    QMap<int, QString> simpleLoaded;
 
-    void syncSimpleEditorsToRouteProfile();
+    QList<int> viaBucketsLoaded;
 
-    void syncRouteProfileToSimpleEditors();
+    QList<int> viaBuckets;
 
-    QListWidget* ruleAttrPlusList = nullptr;
+    QList<QPair<int, QString>> viaCatalog;
 
-    QWidget* lastTabPage = nullptr;
+    bool localProxyLoaded = false;
+
+    bool localProxyWanted = false;
+
+    QList<QPair<QString, int>> endpointCandidates;
+
+    QList<EndpointRow> endpointRows;
+
+    // The state Cancel compares against.
+    QString openedFingerprint;
+
+    // Set once the user agreed to discard, so closing does not ask twice.
+    bool discardConfirmed = false;
+
+    void setupHeader();
+
+    void setupSimpleTab();
+
+    void setupChrome();
+
+    void loadSimpleEditor();
+
+    void pushViaBuckets();
+
+    [[nodiscard]] bool simpleEditorChanged() const;
+
+    // Writes the Simple tab's edits into profile as line additions and removals; returns the lines it could not add.
+    QString applySimpleEditor(Configs::RouteProfile& profile) const;
+
+    // Applies the Simple tab to chain when it changed; false when some lines could not be added.
+    bool commitSimpleEditor();
 
     void setupRemoteSection();
 
     void fetchRemote(bool applyToChain);
 
-    QList<QPair<QString, int>> endpointCandidates;
-
     void setupEndpointsSection();
 
-    void refreshEndpointCandidates() const;
+    void refreshEndpointCandidates();
 
     void addEndpointRow(int profileId, bool innerHops);
 
@@ -108,52 +129,21 @@ private:
 
     [[nodiscard]] QList<int> listedInnerHopEndpointIDs() const;
 
-    // The listed endpoint profileId is an opened-up inner hop of, or -1.
-    [[nodiscard]] int innerHopOwner(int profileId) const;
-
     void setEndpointRowInnerHops(int profileId, bool innerHops);
 
     // One endpointPreferredBy rule per listed endpoint and opened-up inner hop, keeping existing rules where they sit.
     void syncEndpointRules();
 
-    [[nodiscard]] bool currentRuleIsEndpoint() const;
+    void refreshEndpointSubtitles();
 
-    void applyRuleEditLock();
+    void reloadRules();
 
-    void reloadRuleViewsFromChain();
+    void setDefaultOutbound(int outboundID);
 
-    void ensurePlusTabBuiltOnce();
+    [[nodiscard]] int defaultOutbound() const;
 
-    void removeAllAttributeTabsExceptPlus();
+    [[nodiscard]] QString fingerprint() const;
 
-    void syncPlusListCheckStatesFromRule();
-
-    void persistCurrentRuleAttrTabLabel();
-
-    void applyStoredRuleAttrTabSelection();
-
-    void syncRuleActionCombo();
-
-    void rebuildRuleAttributeTabs();
-
-    [[nodiscard]] QWidget* makeAttributeEditorPage(const QString& attr);
-
-    void updateRuleSection();
-
-    void updateRulePreview();
-
-    void updateRouteItemsView();
-
-    void applyAttributeVisibilityChange(const QString& attr, bool visible);
-
-protected:
-    bool eventFilter(QObject* watched, QEvent* event) override;
-
-private slots:
-    void accept() override;
-
-    void on_new_route_item_clicked();
-    void on_moveup_route_item_clicked();
-    void on_movedown_route_item_clicked();
-    void on_delete_route_item_clicked();
+    // True when nothing changed or the user chose to discard.
+    bool confirmDiscard();
 };

@@ -3,6 +3,7 @@
 #include <functional>
 #include <utility>
 
+#include <QList>
 #include <QString>
 
 #include "include/engine/EngineTypes.h"
@@ -30,7 +31,8 @@ private:
 };
 
 // Every point where the engine asks or tells the user something; MainWindow answers with dialogs, HeadlessPolicy without.
-// Main thread only. A method that returns an answer may block for it; the others return at once or after a modal notice.
+// Main thread only. A method that returns an answer may block for it (user-started paths only); the others never block, and
+// an `answered` callback runs exactly once on the main thread, possibly before the call returns.
 class EnginePolicy {
 public:
     virtual ~EnginePolicy() = default;
@@ -38,7 +40,7 @@ public:
     virtual void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) = 0;
 
     // Whether to download the missing geoip.dat / geosite.dat now.
-    virtual bool confirmGeoAssetDownload(const QString &contextName) = 0;
+    virtual void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) = 0;
 
     // error is empty when every file arrived.
     virtual void geoAssetDownloadFinished(const QString &error) = 0;
@@ -58,10 +60,10 @@ public:
     virtual void strictRouteUnavailable(const QString &error) = 0;
 
     // Tun did not come up; whether to reset the core.
-    virtual bool offerCoreReset(const QString &error) = 0;
+    virtual void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) = 0;
 
     // Windows still held the Tun adapter of a session that did not close cleanly; whether to start the profile again.
-    virtual bool offerLeftoverTunAdapterRetry(const QString &error) = 0;
+    virtual void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) = 0;
 
     // Interactive stops only.
     virtual void stopFailed(const QString &error) = 0;
@@ -83,6 +85,11 @@ public:
     virtual void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                         const std::function<void(const QString &username, const QString &password)> &retryWith) = 0;
 
+    // An endpoint other than the exit refused its sign-in; whether to restart the profile, dropping its open connections,
+    // so the endpoint signs in again with a new one-time code.
+    virtual void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                       std::function<void(bool restart)> answered) = 0;
+
     // The run the pending prompts belong to has ended.
     virtual void vpnChallengesCleared() = 0;
 
@@ -93,6 +100,9 @@ public:
 
     // Interactive test requests only.
     virtual void testSessionBusy(const QString &text) = 0;
+
+    // A URL test run left these profiles untested because the local network was down; their earlier results stay.
+    virtual void testsInconclusive(const QList<int> &profileIds) = 0;
 
     // Ends the program the way the front end does (relaunch, updater, elevation); the engine passes only None and Restart.
     // unattended: no dialog during the teardown.

@@ -4,6 +4,7 @@
 #include "include/api/RPC.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/entities/RouteProfile.h"
+#include "include/engine/Lifecycle.h"
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
 
@@ -45,9 +46,10 @@ libcore::DiagnosticsAttachment makeAttachment(const QString &name, const QByteAr
 
 QByteArray clientInfo() {
     const auto *settings = Configs::dataManager->settingsRepo.get();
+    const int startedId = Engine::Lifecycle::ResumeTargetId();
     QString profileType;
-    if (settings->started_id >= 0) {
-        if (const auto profile = Configs::dataManager->profilesRepo->GetProfile(settings->started_id))
+    if (startedId >= 0) {
+        if (const auto profile = Configs::dataManager->profilesRepo->GetProfile(startedId))
             profileType = profile->type;
     }
 
@@ -59,12 +61,11 @@ QByteArray clientInfo() {
     info["kernel"] = QStringLiteral("%1 %2").arg(QSysInfo::kernelType(), QSysInfo::kernelVersion());
     info["cpu_arch"] = QSysInfo::currentCpuArchitecture();
     info["core_running"] = settings->core_running;
-    info["proxy_running"] = settings->started_id >= 0;
+    info["proxy_running"] = Engine::Lifecycle::RunningProfileId() >= 0;
     info["running_profile_type"] = profileType;
     info["tun"] = settings->spmode_vpn;
     info["system_proxy"] = settings->spmode_system_proxy;
     info["enable_stats"] = settings->enable_stats;
-    info["traffic_stats"] = !settings->disable_traffic_stats;
     info["traffic_aggregation"] = !settings->disable_traffic_aggregation;
     info["resolve_domain_strategy"] = settings->resolve_domain_strategy;
     bool routeOwnsDns = false;

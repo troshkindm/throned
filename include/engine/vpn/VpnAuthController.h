@@ -28,6 +28,7 @@ public:
     static constexpr int kMaxOtpRejects = 3;
     static constexpr int kMaxAutoRestarts = 3;
     static constexpr qint64 kAutoRestartCooldownSecs = 20;
+    static constexpr qint64 kStableConnectedSecs = 60;
     static constexpr int kMaxCredentialPrompts = 3;
 
     // policy and control outlive the controller.
@@ -36,8 +37,9 @@ public:
     // Main thread, from the start success hop.
     void noteRunStarted();
 
-    // Main thread, from the stop teardown before mu_stopping is released.
-    void noteRunStopped(int profileId, bool manual);
+    // Main thread, from the stop teardown, before another start or stop can be accepted. switching: a start's stop of the
+    // previous profile.
+    void noteRunStopped(int profileId, bool manual, bool switching);
 
     // Main thread; returns at once. done runs on the main thread with the core's error, empty when accepted.
     void answer(const QString &endpointTag, const QString &challengeId, const VpnAuthAnswer &reply,
@@ -79,13 +81,17 @@ private:
     void submitAutoAnswer(const VpnAuthChallenge &challenge, const QString &username, const QString &password,
                           const QString &secret, const QMap<QString, QString> &formValues);
 
-    bool autoRestartForAuth(const QString &endpointTag, int profileID);
+    void autoRestartForAuth(const QString &endpointTag, int profileID);
+
+    void offerRestartForAuth(const QString &endpointTag, int profileID, const QString &error);
 
     void showChallenge(const VpnAuthChallenge &challenge);
 
     void showAuthFailure(const QString &endpointTag, const QString &error);
 
     void retryWithCredentials(int runningProfileId, int profileId, const QString &username, const QString &password);
+
+    void restartForAuth(int runningProfileId, bool interactive);
 
     void clearCredentialOverrides();
 
@@ -102,12 +108,17 @@ private:
     QHash<QString, QString> m_vpnEndpointLastState;
     QHash<QString, QString> m_vpnOtpLastCode;
     QHash<QString, int> m_vpnOtpRejects;
+    QHash<QString, qint64> m_vpnOtpRejectAt;
     QSet<QString> m_vpnChallengeAnswering;
     QHash<int, int> m_vpnAutoRestarts;
     qint64 m_vpnAutoRestartAt = 0;
+    // This run already restarted for a sign-in, or asked whether to; one question per run.
+    bool m_vpnRestartOffered = false;
+    quint64 m_vpnRunSerial = 0;
     // Survives the restart the recovery itself triggers, so a rejected retry cannot loop.
     QHash<int, int> m_vpnAuthPrompted;
     int m_vpnAuthRestartID = -1;
+    quint64 m_vpnAuthRestartSerial = 0;
     // Keyed by endpoint tag + U+001F + challenge id; cleared in resetTracking().
     QHash<QString, QPointer<QTimer>> m_cancelTimers;
     bool m_authFailed = false;

@@ -74,7 +74,6 @@ void Router::putProfileConfig(const Request &request, const Responder &respond, 
         respond(serviceError(*refused));
         return;
     }
-    if (applied.usedByRunning) engine_->noteRestartNeeded(Engine::RestartReason::Profile);
     noteChanged(Engine::ChangeTopic::Profiles);
     const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
     if (profile == nullptr) {

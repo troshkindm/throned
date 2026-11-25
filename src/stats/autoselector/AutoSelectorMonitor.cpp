@@ -147,7 +147,10 @@ void AutoSelectorMonitor::PersistHealth() {
     for (const auto &member: members) {
         if (member.profileID < 0 || member.probes == 0) continue;
         int latency;
-        if (member.isUsable() && member.averageMs > 0) {
+        if (member.isUsable() && (member.selected || member.selectedUDP) && member.minMs > 0) {
+            // The core ranks the member carrying traffic by its best time, since that traffic inflates its average.
+            latency = member.minMs;
+        } else if (member.isUsable() && member.averageMs > 0) {
             latency = member.averageMs;
         } else if (member.isDead()) {
             // -1 means every sample failed; softer states are inconclusive and keep their existing result.
@@ -161,7 +164,7 @@ void AutoSelectorMonitor::PersistHealth() {
         dirty << profile;
     }
     if (dirty.isEmpty()) return;
-    Configs::dataManager->profilesRepo->SaveBatch(dirty);
+    Configs::dataManager->profilesRepo->SaveColumns(dirty, Configs::ProfileColumn::Latency);
     Configs::RepositionLater(dirty, Configs::SortInput::TestResult);
 }
 

@@ -2,18 +2,23 @@
 #include "include/ui/preview/UpstreamPreview.h"
 #include "include/ui/preview/GeometryReport.h"
 #include "include/database/GroupsRepo.h"
+#include "include/database/RoutesRepo.h"
+#include "include/database/entities/AppRoutes.h"
 #include "include/ui/profile/dialog_edit_profile.h"
 #include "include/ui/setting/dialog_manage_routes.h"
+#include "include/ui/widget/SimpleRoutesPage.h"
 
 #include <QApplication>
+#include <QAbstractButton>
 #include <QComboBox>
-#include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPixmap>
 #include <QPushButton>
 #include <QSet>
 #include <QTabWidget>
 #include <QTimer>
+#include <QToolButton>
 
 namespace UiPreview {
 namespace {
@@ -47,8 +52,16 @@ void CaptureProtocolEditors(QWidget *parent, const QString &prefix) {
         QTimer::singleShot(400, editor, [editor, parent, prefix] {
             auto *headers = editor->findChild<QLineEdit *>(QStringLiteral("extra_headers"));
             auto *utls = editor->findChild<QComboBox *>(QStringLiteral("utlsFingerprint"));
+            // The headers sit behind the editor's Advanced disclosure, which starts collapsed for a new profile.
+            QWidget *box = headers;
+            while (box != nullptr && box->objectName() != QStringLiteral("advanced_box")) box = box->parentWidget();
+            auto *disclosure = box != nullptr && box->parentWidget() != nullptr
+                                   ? box->parentWidget()->findChild<QToolButton *>(QStringLiteral("advanced_toggle"), Qt::FindDirectChildrenOnly)
+                                   : nullptr;
+            if (headers && !headers->isVisible() && disclosure) disclosure->click();
             if (!headers || !headers->isVisible() || !utls || utls->isEnabled() ||
                 !capture(editor, prefix + QStringLiteral("-naive.png"))) {
+                qWarning("Naive editor: its extra headers must open from Advanced and its uTLS choice must stay disabled");
                 qApp->exit(2);
                 return;
             }
@@ -60,8 +73,8 @@ void CaptureProtocolEditors(QWidget *parent, const QString &prefix) {
             auto *strategy = routing->findChild<QComboBox *>(QStringLiteral("domainStrategyCombo"));
             auto *defaultStrategy = routing->findChild<QComboBox *>(QStringLiteral("default_domain_strategy"));
             if (!tabs || !mode || navigation.size() != tabs->count() || !strategy || !defaultStrategy ||
-                tabs->currentWidget()->objectName() != QStringLiteral("tab_2")) {
-                qWarning("Routing settings: navigation must match the real pages and open on profiles");
+                tabs->currentWidget()->objectName() != QStringLiteral("tab_apps")) {
+                qWarning("Routing settings: navigation must match the real pages and open on apps and sites");
                 qApp->exit(2);
                 return;
             }
@@ -96,34 +109,74 @@ void CaptureProtocolEditors(QWidget *parent, const QString &prefix) {
             mode->setCurrentIndex(1);
             routing->show();
             QTimer::singleShot(400, routing, [routing, parent, prefix] {
-                auto *masque = routing->findChild<QGroupBox *>(QStringLiteral("warp_masque_box"));
-                auto *wireguard = routing->findChild<QGroupBox *>(QStringLiteral("warp_wg_box"));
-                const bool ok = masque && masque->isVisible() && wireguard && !wireguard->isVisible() &&
-                                capture(routing, prefix + QStringLiteral("-warp.png"));
-                auto *settings = Configs::dataManager->settingsRepo.get();
-                const auto originalResolve = settings->resolve_domain_strategy;
-                const auto originalDefault = settings->default_domain_strategy;
-                auto *resolve = routing->findChild<QComboBox *>(QStringLiteral("domainStrategyCombo"));
-                auto *defaultDomain = routing->findChild<QComboBox *>(QStringLiteral("default_domain_strategy"));
-                resolve->setCurrentIndex(resolve->findData(QStringLiteral("prefer_ipv6")));
-                defaultDomain->setCurrentIndex(defaultDomain->findData(QString()));
-                routing->accept();
-                settings->Save();
-                const Configs::SettingsRepo reloaded(Configs::dataManager->getDatabase());
-                const bool strategiesSaved = reloaded.resolve_domain_strategy == QStringLiteral("prefer_ipv6") &&
-                                             reloaded.default_domain_strategy.isEmpty();
-                settings->resolve_domain_strategy = originalResolve;
-                settings->default_domain_strategy = originalDefault;
-                settings->Save();
-                if (!strategiesSaved) {
-                    qWarning("Routing settings: translated labels must not become stored strategy values");
-                    qApp->exit(2);
-                    return;
-                }
-                if (ok)
-                    CaptureUpstreamFeatures(parent, prefix);
-                else
-                    qApp->exit(2);
+                // MASQUE and WireGuard share one grid: the chosen mode's fields show and its label follows them.
+                auto *masqueEndpoint = routing->findChild<QLineEdit *>(QStringLiteral("warp_masque_ep"));
+                auto *wireguardEndpoint = routing->findChild<QLineEdit *>(QStringLiteral("warp_ep"));
+                auto *endpointLabel = routing->findChild<QLabel *>(QStringLiteral("warp_ep_l"));
+                const bool warpOk = masqueEndpoint && masqueEndpoint->isVisible() && wireguardEndpoint && !wireguardEndpoint->isVisible() &&
+                                    endpointLabel && endpointLabel->buddy() == masqueEndpoint && capture(routing, prefix + QStringLiteral("-warp.png"));
+                if (!warpOk) qWarning("Routing settings: WARP in MASQUE mode must show only the MASQUE endpoint");
+                auto *tabs = routing->findChild<QTabWidget *>(QStringLiteral("routeSettingsPages"));
+                tabs->setCurrentWidget(routing->findChild<QWidget *>(QStringLiteral("tab_apps")));
+                QTimer::singleShot(400, routing, [routing, parent, prefix, warpOk] {
+                    auto *page = routing->findChild<SimpleRoutesPage *>();
+                    auto *telegram = page ? page->findChild<QAbstractButton *>(QStringLiteral("simpleRouteToggle_telegram")) : nullptr;
+                    auto *apply = page ? page->findChild<QAbstractButton *>(QStringLiteral("simpleRouteApply")) : nullptr;
+                    auto *name = page ? page->findChild<QLabel *>(QStringLiteral("simpleRoutesProfile")) : nullptr;
+                    if (!page || !page->isVisible() || !telegram || telegram->isChecked() || !apply || apply->isVisible() || !name || !name->isVisible() ||
+                        !capture(routing, prefix + QStringLiteral("-apps.png"))) {
+                        qWarning("Routing settings: the apps page must list the apps found, name its profile and leave saving to the window");
+                        qApp->exit(2);
+                        return;
+                    }
+                    const auto routeId = Configs::dataManager->settingsRepo->current_route_id;
+                    const auto before = Configs::dataManager->routesRepo->GetRouteProfile(routeId);
+                    const auto originalRules = before ? before->Rules : QList<std::shared_ptr<Configs::RouteRule>>();
+                    const int originalRest = before ? before->defaultOutboundID : Configs::directID;
+                    const bool originalApply = before ? before->applyProfileRules : true;
+                    telegram->click();
+                    QTimer::singleShot(400, routing, [routing, parent, prefix, warpOk, routeId, originalRules, originalRest, originalApply] {
+                        const bool ok = warpOk;
+                        auto *settings = Configs::dataManager->settingsRepo.get();
+                        const auto originalResolve = settings->resolve_domain_strategy;
+                        const auto originalDefault = settings->default_domain_strategy;
+                        auto *resolve = routing->findChild<QComboBox *>(QStringLiteral("domainStrategyCombo"));
+                        auto *defaultDomain = routing->findChild<QComboBox *>(QStringLiteral("default_domain_strategy"));
+                        resolve->setCurrentIndex(resolve->findData(QStringLiteral("prefer_ipv6")));
+                        defaultDomain->setCurrentIndex(defaultDomain->findData(QString()));
+                        routing->accept();
+                        settings->Save();
+                        const Configs::SettingsRepo reloaded(Configs::dataManager->getDatabase());
+                        const bool strategiesSaved = reloaded.resolve_domain_strategy == QStringLiteral("prefer_ipv6") &&
+                                                     reloaded.default_domain_strategy.isEmpty();
+                        settings->resolve_domain_strategy = originalResolve;
+                        settings->default_domain_strategy = originalDefault;
+                        settings->Save();
+                        if (!strategiesSaved) {
+                            qWarning("Routing settings: translated labels must not become stored strategy values");
+                            qApp->exit(2);
+                            return;
+                        }
+                        const auto saved = Configs::dataManager->routesRepo->GetRouteProfile(routeId);
+                        const auto routes = saved ? Configs::AppRoutes::Read(saved->Rules) : QList<Configs::AppRoutes::Route>();
+                        const bool handedOver = std::any_of(routes.begin(), routes.end(), [](const Configs::AppRoutes::Route &route) { return route.id == QStringLiteral("telegram"); });
+                        if (saved) {
+                            saved->Rules = originalRules;
+                            saved->defaultOutboundID = originalRest;
+                            saved->applyProfileRules = originalApply;
+                            Configs::dataManager->routesRepo->Save(saved);
+                        }
+                        if (!handedOver) {
+                            qWarning("Routing settings: an app switched on in the apps page must be saved with the window");
+                            qApp->exit(2);
+                            return;
+                        }
+                        if (ok)
+                            CaptureUpstreamFeatures(parent, prefix);
+                        else
+                            qApp->exit(2);
+                    });
+                });
             });
         });
     });

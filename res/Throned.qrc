@@ -1,6 +1,37 @@
 <RCC>
     <qresource prefix="/">
         <file>icon/material/check.svg</file>
+        <file>icon/material/keep.png</file>
+        <file>icon/lucide/arrow-left-right.png</file>
+        <file>icon/lucide/arrow-left-right@2x.png</file>
+        <file>icon/lucide/arrow-left-right@3x.png</file>
+        <file>icon/lucide/copy.png</file>
+        <file>icon/lucide/copy@2x.png</file>
+        <file>icon/lucide/copy@3x.png</file>
+        <file>icon/lucide/folders.png</file>
+        <file>icon/lucide/folders@2x.png</file>
+        <file>icon/lucide/folders@3x.png</file>
+        <file>icon/lucide/funnel.png</file>
+        <file>icon/lucide/funnel@2x.png</file>
+        <file>icon/lucide/funnel@3x.png</file>
+        <file>icon/lucide/menu.png</file>
+        <file>icon/lucide/menu@2x.png</file>
+        <file>icon/lucide/menu@3x.png</file>
+        <file>icon/lucide/route.png</file>
+        <file>icon/lucide/route@2x.png</file>
+        <file>icon/lucide/route@3x.png</file>
+        <file>icon/lucide/settings.png</file>
+        <file>icon/lucide/settings@2x.png</file>
+        <file>icon/lucide/settings@3x.png</file>
+        <file>icon/lucide/sliders-horizontal.png</file>
+        <file>icon/lucide/sliders-horizontal@2x.png</file>
+        <file>icon/lucide/sliders-horizontal@3x.png</file>
+        <file>icon/lucide/trash.png</file>
+        <file>icon/lucide/trash@2x.png</file>
+        <file>icon/lucide/trash@3x.png</file>
+        <file>icon/lucide/wrench.png</file>
+        <file>icon/lucide/wrench@2x.png</file>
+        <file>icon/lucide/wrench@3x.png</file>
     </qresource>
     <qresource prefix="/Throned">
         <file alias="Throned.png">public/Throned.png</file>
@@ -27,9 +58,6 @@
         <file alias="retro-2009-teal/icons/star.svg">../skins/retro-2009-teal/icons/star.svg</file>
     </qresource>
     <qresource prefix="/scanner">
-        <file alias="cloudflare-cdn.txt">scanner/cloudflare-cdn.txt</file>
-        <file alias="fastly-cdn.txt">scanner/fastly-cdn.txt</file>
-        <file alias="gcore-cdn.txt">scanner/gcore-cdn.txt</file>
         <file alias="iran-resolvers.txt">scanner/iran-resolvers.txt</file>
         <file alias="russia-resolvers.txt">scanner/russia-resolvers.txt</file>
     </qresource>

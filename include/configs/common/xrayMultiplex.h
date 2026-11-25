@@ -5,6 +5,8 @@
 #include <optional>
 
 namespace Configs {
+struct SettingsValues;
+
 inline QStringList xrayXudpProxyUDP443Modes = {"reject", "allow", "skip"};
 
 // Index of "Custom" in the profile's Keep Default / On / Off / Custom Xray mux combo.
@@ -28,7 +30,7 @@ struct XrayMuxSettings {
     QString xudp_proxy_udp443 = "reject";
 
     static XrayMuxSettings Preset();
-    void SaveAsPreset() const;
+    void SaveAsPreset(SettingsValues& values) const;
     // The enabled mux object for the Xray config.
     QJsonObject Build() const;
 };

@@ -1,6 +1,8 @@
 #include "include/ui/widget/SimpleRoutesPage.h"
 
 #include <QAbstractButton>
+#include <QApplication>
+#include <QEvent>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -9,15 +11,21 @@
 #include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QStyle>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSignalBlocker>
+#include <QStyle>
 #include <QTimer>
 #include <QToolButton>
+#include <QVariantAnimation>
 #include <QStylePainter>
 #include <QStyleOptionButton>
 #include <QStyleOptionToolButton>
 #include <QVBoxLayout>
+#include <QtMath>
+
+#include <functional>
+#include <utility>
 
 #include "include/database/entities/RouteRule.h"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -117,6 +125,12 @@ public:
     }
     QSize sizeHint() const override { return {240, 52}; }
     QSize minimumSizeHint() const override { return {160, 52}; }
+    void setLook(Look look) {
+        look_ = std::move(look);
+        setAccessibleName(look_.name);
+        setAccessibleDescription(look_.meta);
+        update();
+    }
 
 protected:
     void paintEvent(QPaintEvent *) override {
@@ -248,8 +262,8 @@ protected:
         const auto visual = [this](const QRect &r) { return QStyle::visualRect(layoutDirection(), rect(), r); };
         if (selected_ || underMouse() || hasFocus()) {
             painter.setPen(hasFocus() ? QPen(colors.borderStrong, 1) : Qt::NoPen);
-            painter.setBrush(colors.surfaceHover);
-            painter.drawRoundedRect(QRectF(rect()).adjusted(.5, .5, -.5, -.5), 7, 7);
+            painter.setBrush(selected_ ? colors.accentSoft : colors.surfaceHover);
+            painter.drawRoundedRect(QRectF(rect()).adjusted(.5, .5, -.5, -.5), 8, 8);
         }
         const QRect radio = visual(QRect(8, (height() - 14) / 2, 14, 14));
         painter.setBrush(Qt::NoBrush);
@@ -327,8 +341,91 @@ private:
 };
 
 namespace {
+constexpr int kRevealMs = 180;
+
+// Hidden and orphaned first: a deferred delete would still be found, laid out and focused otherwise.
+void retire(QWidget *widget) {
+    widget->hide();
+    widget->setParent(nullptr);
+    widget->deleteLater();
+}
+} // namespace
+
+// A detail card's clip: it grows from nothing to the card's height, so the rows below move instead of jumping.
+class RouteReveal : public QWidget {
+public:
+    explicit RouteReveal(QWidget *parent) : QWidget(parent), animation_(new QVariantAnimation(this)) {
+        animation_->setEasingCurve(QEasingCurve::OutCubic);
+        connect(animation_, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) { setReveal(value.toReal()); });
+        connect(animation_, &QVariantAnimation::finished, this, [this] {
+            if (const auto done = std::exchange(done_, {})) done();
+        });
+    }
+    [[nodiscard]] QWidget *content() const { return content_; }
+    void setContent(QWidget *content) {
+        if (content_ != nullptr) retire(content_);
+        content_ = content;
+        content->setParent(this);
+        content->setGeometry(0, 0, width(), fullHeight(width()));
+        content->show();
+        updateGeometry();
+    }
+    // Reverses from wherever it is, so a second click mid-way turns it around instead of restarting.
+    void animateTo(qreal target, bool animated, std::function<void()> done = {}) {
+        animation_->stop();
+        done_ = std::move(done);
+        if (!animated || qAbs(reveal_ - target) < 0.001) {
+            setReveal(target);
+            if (const auto finished = std::exchange(done_, {})) finished();
+            return;
+        }
+        animation_->setStartValue(reveal_);
+        animation_->setEndValue(target);
+        animation_->setDuration(qMax(1, qRound(kRevealMs * qAbs(target - reveal_))));
+        animation_->start();
+    }
+    bool hasHeightForWidth() const override { return true; }
+    int heightForWidth(int width) const override { return qCeil(fullHeight(width) * reveal_); }
+    QSize sizeHint() const override {
+        const int hint = content_ != nullptr ? content_->sizeHint().width() : 0;
+        return {hint, heightForWidth(width() > 0 ? width() : hint)};
+    }
+    QSize minimumSizeHint() const override { return {content_ != nullptr ? content_->minimumSizeHint().width() : 0, sizeHint().height()}; }
+
+protected:
+    void resizeEvent(QResizeEvent *) override { placeContent(); }
+    bool event(QEvent *event) override {
+        // The card is not in a layout of ours, so its size changes arrive here as a request.
+        if (event->type() == QEvent::LayoutRequest) {
+            updateGeometry();
+            placeContent();
+        }
+        return QWidget::event(event);
+    }
+
+private:
+    [[nodiscard]] int fullHeight(int width) const {
+        if (content_ == nullptr) return 0;
+        return content_->hasHeightForWidth() ? content_->heightForWidth(width) : content_->sizeHint().height();
+    }
+    void placeContent() {
+        if (content_ != nullptr) content_->setGeometry(0, 0, width(), fullHeight(width()));
+    }
+    void setReveal(qreal value) {
+        reveal_ = value;
+        updateGeometry();
+    }
+
+    QVariantAnimation *animation_;
+    QWidget *content_ = nullptr;
+    qreal reveal_ = 0;
+    std::function<void()> done_;
+};
+
+namespace {
 const QString kRoutesStyle = QStringLiteral(R"(
 QLabel#simpleRoutesTitle { font-size: 16px; font-weight: 600; color: #F1F3F5; background: transparent; }
+QLabel#simpleRoutesProfile { color: #A4ABB4; font-size: 12px; background: transparent; }
 QToolButton#simpleRoutesHeaderButton, QToolButton#simpleRoutesBack { border: none; border-radius: 8px; background: transparent; }
 QToolButton#simpleRoutesHeaderButton:hover, QToolButton#simpleRoutesBack:hover { background: #292D33; }
 QLineEdit#simpleRoutesSearch { background: #171B21; border: 1px solid #2F3136; border-radius: 10px; padding: 6px 10px; color: #F1F3F5; }
@@ -339,10 +436,10 @@ QScrollArea#simpleRoutesScroll QScrollBar::handle:vertical { background: #3A424D
 QScrollArea#simpleRoutesScroll QScrollBar::handle:vertical:hover { background: #4B5663; }
 QScrollArea#simpleRoutesScroll QScrollBar::add-line:vertical, QScrollArea#simpleRoutesScroll QScrollBar::sub-line:vertical { height: 0; }
 QScrollArea#simpleRoutesScroll QScrollBar::add-page:vertical, QScrollArea#simpleRoutesScroll QScrollBar::sub-page:vertical { background: transparent; }
-QFrame#simpleRouteCard { background: #222529; border: 1px solid #2F3136; border-radius: 12px; }
+QFrame#simpleRouteCard { background: #222529; border: none; border-radius: 12px; }
 QLabel#simpleRouteGroup, QLabel#simpleRouteCaption { color: #747C86; font-size: 11px; font-weight: 600; background: transparent; }
-QFrame#simpleRouteTargets { background: #171B21; border: 1px solid #2F3136; border-radius: 10px; }
-QFrame#simpleRouteChip { background: #171B21; border: 1px solid #2F3136; border-radius: 6px; }
+QFrame#simpleRouteTargets { background: #171B21; border: none; border-radius: 10px; }
+QFrame#simpleRouteChip { background: #171B21; border: none; border-radius: 8px; }
 QLabel#simpleRouteChipText { color: #A4ABB4; font-size: 12px; background: transparent; }
 QToolButton#simpleRouteChipRemove { border: none; background: transparent; color: #747C86; padding: 0 3px; }
 QToolButton#simpleRouteChipRemove:hover { color: #F1F3F5; }
@@ -394,16 +491,24 @@ SimpleRoutesPage::SimpleRoutesPage(QWidget *parent) : QWidget(parent), catalog_(
         connect(themeManager(), &ThemeManager::themeChanged, button, tint);
         return button;
     };
-    auto *backButton = headerButton(MaterialIcon::Glyph::ChevronRight, tr("Back"), true);
-    backButton->setObjectName(QStringLiteral("simpleRoutesBack"));
-    connect(backButton, &QToolButton::clicked, this, &SimpleRoutesPage::back);
-    head->addWidget(backButton);
-    auto *title = new QLabel(tr("Routing"), this);
-    title->setObjectName(QStringLiteral("simpleRoutesTitle"));
-    head->addWidget(title, 1);
+    backButton_ = headerButton(MaterialIcon::Glyph::ChevronRight, tr("Back"), true);
+    backButton_->setObjectName(QStringLiteral("simpleRoutesBack"));
+    connect(backButton_, &QToolButton::clicked, this, &SimpleRoutesPage::back);
+    head->addWidget(backButton_);
+    auto *titles = new QVBoxLayout;
+    titles->setSpacing(1);
+    title_ = new QLabel(tr("Routing"), this);
+    title_->setObjectName(QStringLiteral("simpleRoutesTitle"));
+    titles->addWidget(title_);
+    profileName_ = new QLabel(this);
+    profileName_->setObjectName(QStringLiteral("simpleRoutesProfile"));
+    profileName_->setTextFormat(Qt::PlainText);
+    profileName_->hide();
+    titles->addWidget(profileName_);
+    head->addLayout(titles, 1);
     auto *advanced = headerButton(MaterialIcon::Glyph::Tune, tr("Advanced editor"), false);
     connect(advanced, &QToolButton::clicked, this, &SimpleRoutesPage::openAdvanced);
-    head->addWidget(advanced);
+    head->addWidget(advanced, 0, Qt::AlignVCenter);
     layout->addLayout(head);
 
     search_ = new QLineEdit(this);
@@ -418,7 +523,7 @@ SimpleRoutesPage::SimpleRoutesPage(QWidget *parent) : QWidget(parent), catalog_(
     connect(themeManager(), &ThemeManager::themeChanged, search_, tintSearch);
     connect(search_, &QLineEdit::textChanged, this, [this] {
         scroll_->verticalScrollBar()->setValue(0);
-        render();
+        refresh();
     });
     connect(search_, &QLineEdit::returnPressed, this, [this] {
         if (Configs::AppRoutes::Classify(search_->text()).first == Kind::Invalid) return;
@@ -431,6 +536,13 @@ SimpleRoutesPage::SimpleRoutesPage(QWidget *parent) : QWidget(parent), catalog_(
     scroll_->setWidgetResizable(true);
     scroll_->setFrameShape(QFrame::NoFrame);
     scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    // One content widget for the page's life: replacing it reset the scroll range and flashed an empty frame.
+    content_ = new QWidget;
+    content_->setObjectName(QStringLiteral("simpleRoutesContent"));
+    auto *contentLayout = new QVBoxLayout(content_);
+    contentLayout->setContentsMargins(0, 0, 8, 12);
+    contentLayout->setSpacing(14);
+    scroll_->setWidget(content_);
     fade_ = new ScrollEdgeFade(scroll_, &windowColor);
     sticky_ = new StickyHeader(scroll_);
     connect(scroll_->verticalScrollBar(), &QScrollBar::valueChanged, this, &SimpleRoutesPage::updateSticky);
@@ -479,9 +591,12 @@ SimpleRoutesPage::SimpleRoutesPage(QWidget *parent) : QWidget(parent), catalog_(
     layout->addWidget(footer);
 
     themeManager()->RegisterStyle(this, kRoutesStyle);
-    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { render(); });
-    rest_ = loadedRest_ = Configs::directID;
-    render();
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] {
+        built_ = false;
+        refresh();
+    });
+    rest_ = loadedRest_ = handedRest_ = Configs::directID;
+    refresh();
 }
 
 QWidget *SimpleRoutesPage::scrollArea() const { return scroll_; }
@@ -489,19 +604,21 @@ QWidget *SimpleRoutesPage::scrollArea() const { return scroll_; }
 void SimpleRoutesPage::load(const QList<Route> &routes, int restOutbound, int foreignRules, bool editable, bool rulesEnabled, bool resetView) {
     if (!resetView && !isDirty() && loaded_ == routes && loadedRest_ == restOutbound && foreign_ == foreignRules &&
         editable_ == editable && rulesEnabled_ == rulesEnabled) return;
-    loaded_ = routes_ = routes;
-    loadedRest_ = rest_ = restOutbound;
+    loaded_ = routes_ = handed_ = routes;
+    loadedRest_ = rest_ = handedRest_ = restOutbound;
     foreign_ = foreignRules;
     editable_ = editable;
     rulesEnabled_ = rulesEnabled;
     open_.clear();
-    render(false);
+    // Another profile, or the same one changed elsewhere: nothing on screen is worth animating away.
+    built_ = false;
+    refresh(false);
 }
 
 void SimpleRoutesPage::setDraft(const QList<Route> &routes, int restOutbound) {
     routes_ = routes;
     rest_ = restOutbound;
-    render();
+    refresh();
 }
 
 void SimpleRoutesPage::markApplied(const QList<Route> &routes, int restOutbound) {
@@ -512,38 +629,50 @@ void SimpleRoutesPage::markApplied(const QList<Route> &routes, int restOutbound)
 }
 
 void SimpleRoutesPage::setTargets(const SimpleRouteTarget &main, const QList<SimpleRouteTarget> &others) {
+    // Called on every status refresh; an unchanged list must not rebuild the open card under the cursor.
+    if (main_ == main && others_ == others) return;
     main_ = main;
     others_ = others;
-    render();
+    refresh();
 }
 
 void SimpleRoutesPage::setDetected(const QHash<QString, bool> &runningById) {
+    if (detected_ == runningById) return;
     detected_ = runningById;
-    render();
+    refresh();
 }
 
 void SimpleRoutesPage::setIcon(const QString &id, const QIcon &icon) {
     icons_.insert(id, icon);
-    if (renderQueued_) return;
-    // Icons arrive one by one; the list is rebuilt once for the batch.
-    renderQueued_ = true;
-    QTimer::singleShot(0, this, [this] {
-        renderQueued_ = false;
-        render();
-    });
+    // Icons arrive one by one while the list is on screen; each repaints its own row only.
+    if (rows_.contains(id)) updateHeader(id);
 }
 
 void SimpleRoutesPage::setWholeComputer(bool wholeComputer) {
-    // Called on every status refresh; rebuilding the list would drop what is being typed.
     if (wholeComputer_ == wholeComputer) return;
     wholeComputer_ = wholeComputer;
-    render();
+    refresh();
 }
 
 void SimpleRoutesPage::setConnected(bool connected) {
     if (connected_ == connected) return;
     connected_ = connected;
     renderFooter();
+}
+
+void SimpleRoutesPage::setEmbedded(bool embedded) {
+    embedded_ = embedded;
+    backButton_->setVisible(!embedded);
+    apply_->setVisible(!embedded);
+    title_->setText(embedded ? tr("Apps and sites") : tr("Routing"));
+    profileName_->setVisible(embedded && !profileName_->text().isEmpty());
+    built_ = false;
+    refresh();
+}
+
+void SimpleRoutesPage::setProfileName(const QString &name) {
+    profileName_->setText(name.isEmpty() ? QString() : tr("Profile: %1").arg(name));
+    profileName_->setVisible(embedded_ && !name.isEmpty());
 }
 
 void SimpleRoutesPage::addEntries(const QStringList &lines) {
@@ -617,6 +746,12 @@ Route *SimpleRoutesPage::route(const QString &id) {
     return nullptr;
 }
 
+const Route *SimpleRoutesPage::routeOf(const QString &id) const {
+    for (const auto &item: routes_)
+        if (item.id == id) return &item;
+    return nullptr;
+}
+
 const CatalogEntry *SimpleRoutesPage::entry(const QString &id) const {
     for (const auto &item: catalog_)
         if (item.id == id) return &item;
@@ -637,6 +772,19 @@ QString SimpleRoutesPage::targetName(int outbound) const {
     return tr("Missing server");
 }
 
+QString SimpleRoutesPage::detailKey(const QString &id) const {
+    QStringList key;
+    if (const Route *current = routeOf(id)) {
+        key << QString::number(current->outbound) << current->processes.join(QLatin1Char('\n')) << current->processPaths.join(QLatin1Char('\n'))
+            << current->ruleSets.join(QLatin1Char('\n')) << current->domains.join(QLatin1Char('\n')) << current->cidrs.join(QLatin1Char('\n'));
+    } else {
+        key << QStringLiteral("off");
+    }
+    key << QString::number(rest_) << main_.name << main_.latencyText << (isModified(id) ? QStringLiteral("edited") : QString());
+    for (const auto &target: others_) key << QString::number(target.outbound) + target.name + target.latencyText;
+    return key.join(QChar(0x1f));
+}
+
 void SimpleRoutesPage::setRouteEnabled(const QString &id, bool enabled) {
     if (!enabled) {
         routes_.removeIf([&id](const Route &item) { return item.id == id; });
@@ -648,7 +796,7 @@ void SimpleRoutesPage::setRouteEnabled(const QString &id, bool enabled) {
         }
         open_ = id;
     }
-    render();
+    refresh();
 }
 
 void SimpleRoutesPage::setRest(int outbound) {
@@ -657,7 +805,7 @@ void SimpleRoutesPage::setRest(int outbound) {
     // Entries that followed the default flip with it; one sent to a named server keeps that server.
     for (auto &item: routes_)
         if (item.outbound == before) item.outbound = defaultOutbound();
-    render();
+    refresh();
 }
 
 bool SimpleRoutesPage::addValue(const QString &id, const QString &text) {
@@ -677,7 +825,7 @@ bool SimpleRoutesPage::addValue(const QString &id, const QString &text) {
     if (!list.contains(value, Qt::CaseInsensitive)) list.append(value);
     open_ = id;
     focusAdd_ = id;
-    render();
+    refresh();
     return true;
 }
 
@@ -690,14 +838,12 @@ void SimpleRoutesPage::removeValue(const QString &id, int kind, const QString &v
                                                                             : target->cidrs)
         .removeAll(value);
     if (target->isEmpty()) routes_.removeIf([&id](const Route &item) { return item.id == id; });
-    render();
+    refresh();
 }
 
 bool SimpleRoutesPage::isModified(const QString &id) const {
     const auto *catalogEntry = entry(id);
-    const Route *current = nullptr;
-    for (const auto &item: routes_)
-        if (item.id == id) current = &item;
+    const Route *current = routeOf(id);
     if (catalogEntry == nullptr || current == nullptr) return false;
     Route defaults = defaultsOf(catalogEntry);
     defaults.outbound = current->outbound;
@@ -729,19 +875,12 @@ QWidget *SimpleRoutesPage::makeSection(const QString &title, const QString &coun
     return section;
 }
 
-QWidget *SimpleRoutesPage::makeRow(const QString &id) {
+void SimpleRoutesPage::updateHeader(const QString &id) {
+    auto *header = static_cast<RouteHeader *>(rows_.value(id).header);
+    if (header == nullptr) return;
     const bool custom = id == kCustomId;
     const auto *catalogEntry = entry(id);
-    const Route *current = route(id);
-    auto *card = currentCard_;
-    auto *row = new RouteRow(card->layout()->count() == 0, card);
-    auto *rowLayout = new QVBoxLayout(row);
-    rowLayout->setContentsMargins(0, 0, 0, 0);
-    rowLayout->setSpacing(0);
-    auto *line = new QHBoxLayout;
-    line->setContentsMargins(0, 0, custom ? 4 : 12, 0);
-    line->setSpacing(8);
-
+    const Route *current = routeOf(id);
     RouteHeader::Look look;
     look.name = custom ? tr("My sites and apps") : catalogEntry->name;
     look.tile = custom ? themeManager()->Colors().borderStrong : QColor(catalogEntry->color);
@@ -765,33 +904,63 @@ QWidget *SimpleRoutesPage::makeRow(const QString &id) {
         look.pill = pillFor(current->outbound);
         look.pillText = targetName(current->outbound);
     }
-    auto *header = new RouteHeader(look, row);
+    header->setLook(std::move(look));
+}
+
+void SimpleRoutesPage::makeRow(const QString &id, bool animateOpen) {
+    const bool custom = id == kCustomId;
+    auto *card = currentCard_;
+    auto *row = new RouteRow(card->layout()->count() == 0, card);
+    auto *rowLayout = new QVBoxLayout(row);
+    rowLayout->setContentsMargins(0, 0, 0, 0);
+    rowLayout->setSpacing(0);
+    auto *line = new QHBoxLayout;
+    line->setContentsMargins(0, 0, custom ? 4 : 12, 0);
+    line->setSpacing(8);
+    auto *header = new RouteHeader({}, row);
     header->setObjectName(QStringLiteral("simpleRouteRow_") + (custom ? kCustomId : id));
     connect(header, &QAbstractButton::clicked, this, [this, id] {
         open_ = open_ == id ? QString() : id;
-        render();
+        refresh();
     });
     line->addWidget(header, 1);
+    RowParts &parts = rows_[id];
+    parts.row = row;
+    parts.header = header;
     if (!custom) {
-        auto *toggle = new ThronedToggle(current != nullptr, row);
+        auto *toggle = new ThronedToggle(routeOf(id) != nullptr, row);
         toggle->setObjectName(QStringLiteral("simpleRouteToggle_") + id);
-        toggle->setAccessibleName(look.name);
+        toggle->setAccessibleName(entry(id)->name);
         connect(toggle, &QAbstractButton::toggled, this, [this, id](bool on) {
-            // Deferred: the toggle is rebuilt with the list and must not delete itself mid-signal.
+            // Deferred: switching an entry off can drop its row, and a widget must not delete itself mid-signal.
             QTimer::singleShot(0, this, [this, id, on] { setRouteEnabled(id, on); });
         });
         line->addWidget(toggle, 0, Qt::AlignVCenter);
+        parts.toggle = toggle;
     }
     rowLayout->addLayout(line);
-    if (open_ == id) rowLayout->addWidget(makeDetail(id));
+    updateHeader(id);
+    if (open_ == id) openDetail(id, animateOpen);
     card->layout()->addWidget(row);
-    return row;
 }
 
-QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
-    const Route *current = route(id);
+void SimpleRoutesPage::openDetail(const QString &id, bool animate) {
+    RowParts &parts = rows_[id];
+    auto *reveal = new RouteReveal(parts.row);
+    reveal->setContent(makeDetail(id, reveal));
+    parts.row->layout()->addWidget(reveal);
+    reveal->show();
+    parts.reveal = reveal;
+    parts.detailKey = detailKey(id);
+    parts.closing = false;
+    reveal->animateTo(1, animate && animated_);
+}
+
+QWidget *SimpleRoutesPage::makeDetail(const QString &id, QWidget *parent) {
+    const Route *current = routeOf(id);
     const auto *catalogEntry = entry(id);
-    auto *detail = new QWidget(content_);
+    // Parented at once: the chips measure their text in the page's style sheet font.
+    auto *detail = new QWidget(parent);
     auto *layout = new QVBoxLayout(detail);
     layout->setContentsMargins(50, 0, 12, 12);
     layout->setSpacing(8);
@@ -805,12 +974,13 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
         auto *targetsLayout = new QVBoxLayout(targets);
         targetsLayout->setContentsMargins(3, 3, 3, 3);
         targetsLayout->setSpacing(2);
-        const auto option = [this, targets, targetsLayout, current, id](int outbound, const QString &text, const QString &latency, int latencyMs) {
-            auto *button = new TargetOption(text, latency, latencyMs, current->outbound == outbound, targets);
+        const int selected = current->outbound;
+        const auto option = [this, targets, targetsLayout, selected, id](int outbound, const QString &text, const QString &latency, int latencyMs) {
+            auto *button = new TargetOption(text, latency, latencyMs, selected == outbound, targets);
             connect(button, &QAbstractButton::clicked, this, [this, id, outbound] {
                 QTimer::singleShot(0, this, [this, id, outbound] {
                     if (Route *target = route(id)) target->outbound = outbound;
-                    render();
+                    refresh();
                 });
             });
             targetsLayout->addWidget(button);
@@ -821,8 +991,8 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
             option(Configs::directID, tr("Directly, around the VPN"), {}, 0);
         for (const auto &target: others_) option(target.outbound, tr("Through %1").arg(target.name), target.latencyText, target.latency);
         if (rest_ != Configs::directID) option(Configs::proxyID, tr("Main VPN · %1").arg(main_.name), main_.latencyText, main_.latency);
-        if (current->outbound >= 0 && std::none_of(others_.begin(), others_.end(), [current](const SimpleRouteTarget &t) { return t.outbound == current->outbound; }))
-            option(current->outbound, tr("Missing server"), {}, 0);
+        if (selected >= 0 && std::none_of(others_.begin(), others_.end(), [selected](const SimpleRouteTarget &t) { return t.outbound == selected; }))
+            option(selected, tr("Missing server"), {}, 0);
         layout->addWidget(targets);
     }
 
@@ -894,6 +1064,7 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
         QTimer::singleShot(0, this, [this, id, text] { addValue(id, text); });
     });
     layout->addWidget(add);
+    rows_[id].add = add;
 
     auto *links = new QHBoxLayout;
     if (id == kCustomId) {
@@ -914,13 +1085,16 @@ QWidget *SimpleRoutesPage::makeDetail(const QString &id) {
                 const int outbound = target->outbound;
                 *target = defaultsOf(catalogEntry);
                 target->outbound = outbound;
-                render();
+                refresh();
             });
         });
         links->addWidget(reset);
     }
     links->addStretch();
-    if (links->count() > 1) layout->addLayout(links);
+    if (links->count() > 1)
+        layout->addLayout(links);
+    else
+        delete links;
     return detail;
 }
 
@@ -940,13 +1114,29 @@ QWidget *SimpleRoutesPage::makeRestRow() {
     line->addWidget(header, 1);
     auto *pill = new TargetPill(row);
     pill->setObjectName(QStringLiteral("simpleRoutePill"));
-    pill->setProperty("route", rest_ == Configs::directID ? QStringLiteral("direct") : QStringLiteral("vpn"));
-    pill->setText(targetName(rest_));
-    pill->setToolTip(targetName(rest_));
-    pill->setAccessibleName(tr("Everything else: %1").arg(targetName(rest_)));
     pill->setCursor(Qt::PointingHandCursor);
     pill->setPopupMode(QToolButton::InstantPopup);
-    auto *menu = new QMenu(pill);
+    pill->setMenu(new QMenu(pill));
+    restPill_ = pill;
+    updateRestPill();
+    line->addWidget(pill, 0, Qt::AlignVCenter);
+    card->layout()->addWidget(row);
+    return section;
+}
+
+void SimpleRoutesPage::updateRestPill() {
+    if (restPill_ == nullptr) return;
+    const QString route = rest_ == Configs::directID ? QStringLiteral("direct") : QStringLiteral("vpn");
+    if (restPill_->property("route").toString() != route) {
+        restPill_->setProperty("route", route);
+        restPill_->style()->unpolish(restPill_);
+        restPill_->style()->polish(restPill_);
+    }
+    restPill_->setText(targetName(rest_));
+    restPill_->setToolTip(targetName(rest_));
+    restPill_->setAccessibleName(tr("Everything else: %1").arg(targetName(rest_)));
+    QMenu *menu = restPill_->menu();
+    menu->clear();
     QList<std::pair<int, QString>> options{{Configs::directID, tr("Directly")}, {Configs::proxyID, tr("Through the VPN")}};
     for (const auto &target: others_) options.append({target.outbound, tr("Through %1").arg(target.name)});
     if (std::none_of(options.begin(), options.end(), [this](const auto &option) { return option.first == loadedRest_; }))
@@ -957,54 +1147,12 @@ QWidget *SimpleRoutesPage::makeRestRow() {
         action->setChecked(rest_ == outbound);
         connect(action, &QAction::triggered, this, [this, outbound] { QTimer::singleShot(0, this, [this, outbound] { setRest(outbound); }); });
     }
-    pill->setMenu(menu);
-    line->addWidget(pill, 0, Qt::AlignVCenter);
-    card->layout()->addWidget(row);
-    return section;
 }
 
-void SimpleRoutesPage::render(bool keepDrafts) {
-    const quint64 generation = ++renderGeneration_;
-    const int keep = scroll_->verticalScrollBar()->value();
-    QHash<QString, QString> drafts;
-    QString focused;
-    int cursor = 0;
-    int selection = 0;
-    for (auto *input: keepDrafts ? scroll_->findChildren<QLineEdit *>(QStringLiteral("simpleRouteAdd")) : QList<QLineEdit *>()) {
-        const QString id = input->property("routeId").toString();
-        drafts.insert(id, input->text());
-        if (input->hasFocus()) {
-            focused = id;
-            cursor = input->selectionStart() >= 0 ? input->selectionStart() : input->cursorPosition();
-            selection = input->selectedText().size();
-        }
-    }
-    auto *old = scroll_->takeWidget();
-    if (old != nullptr) old->deleteLater();
-    content_ = new QWidget;
-    content_->setObjectName(QStringLiteral("simpleRoutesContent"));
-    sections_.clear();
-    sticky_->hide();
-    auto *layout = new QVBoxLayout(content_);
-    layout->setContentsMargins(0, 0, 8, 12);
-    layout->setSpacing(14);
-    search_->setEnabled(editable_);
-
-    if (!editable_) {
-        auto *note = new QLabel(tr("This routing profile is written by hand, so it can only be changed in the advanced editor."), content_);
-        note->setObjectName(QStringLiteral("simpleRouteNote"));
-        note->setWordWrap(true);
-        layout->addWidget(note);
-        auto *open = new QPushButton(tr("Open the advanced editor"), content_);
-        open->setObjectName(QStringLiteral("simpleRouteMore"));
-        connect(open, &QPushButton::clicked, this, &SimpleRoutesPage::openAdvanced);
-        layout->addWidget(open);
-        layout->addStretch();
-        scroll_->setWidget(content_);
-        renderFooter();
-        return;
-    }
-
+SimpleRoutesPage::Plan SimpleRoutesPage::plan() const {
+    Plan next;
+    next.editable = editable_;
+    if (!editable_) return next;
     const QString query = search_->text().trimmed();
     const auto matches = [&query](const QString &name, const QStringList &values) {
         if (query.isEmpty() || name.contains(query, Qt::CaseInsensitive)) return true;
@@ -1016,35 +1164,14 @@ void SimpleRoutesPage::render(bool keepDrafts) {
         if ((!item.processes.isEmpty() || !item.processPaths.isEmpty()) && item.outbound != Configs::directID)
             withPrograms << (item.id == kCustomId ? tr("Your programs") : entry(item.id) ? entry(item.id)->name
                                                                                          : item.id);
-    if (!wholeComputer_ && !withPrograms.isEmpty() && query.isEmpty()) {
-        auto *banner = new WarningFrame(content_);
-        auto *bannerLayout = new QHBoxLayout(banner);
-        bannerLayout->setContentsMargins(12, 8, 8, 8);
-        auto *text = new QLabel(tr("%1: programs go through the VPN only in Whole computer mode.").arg(withPrograms.join(QStringLiteral(", "))), banner);
-        text->setObjectName(QStringLiteral("simpleRouteBannerText"));
-        text->setWordWrap(true);
-        bannerLayout->addWidget(text, 1);
-        auto *enable = new QPushButton(tr("Switch"), banner);
-        enable->setObjectName(QStringLiteral("simpleRouteBannerButton"));
-        enable->setCursor(Qt::PointingHandCursor);
-        connect(enable, &QPushButton::clicked, this, &SimpleRoutesPage::wholeComputerRequested);
-        bannerLayout->addWidget(enable, 0, Qt::AlignVCenter);
-        layout->addWidget(banner);
-    }
+    if (!wholeComputer_ && !withPrograms.isEmpty() && query.isEmpty())
+        next.banner = (embedded_ ? tr("%1: programs go through the VPN only in TUN mode.") : tr("%1: programs go through the VPN only in Whole computer mode."))
+                          .arg(withPrograms.join(QStringLiteral(", ")));
 
     if (const auto [kind, value] = Configs::AppRoutes::Classify(query); kind != Kind::Invalid) {
         const QString what = (kind == Kind::Process || kind == Kind::ProcessPath) ? tr("Add the program %1") : kind == Kind::Domain ? tr("Add the site %1")
                                                                                                                                     : tr("Add the addresses %1");
-        auto *addRow = new RouteActionButton(what.arg(value) + QStringLiteral("\n") + tr("to My sites and apps"), content_);
-        addRow->setObjectName(QStringLiteral("simpleRouteAddRow"));
-        addRow->setCursor(Qt::PointingHandCursor);
-        connect(addRow, &QPushButton::clicked, this, [this] {
-            const QString text = search_->text();
-            QTimer::singleShot(0, this, [this, text] {
-                if (addValue(kCustomId, text)) search_->clear();
-            });
-        });
-        layout->addWidget(addRow);
+        next.addRow = what.arg(value) + QStringLiteral("\n") + tr("to My sites and apps");
     }
 
     QStringList found, rest;
@@ -1052,16 +1179,12 @@ void SimpleRoutesPage::render(bool keepDrafts) {
         if (!matches(item.name, item.processes + item.domains)) continue;
         (detected_.contains(item.id) ? found : rest).append(item.id);
     }
-    if (!found.isEmpty()) {
-        layout->addWidget(makeSection(tr("Found on this computer"), QString::number(found.size())));
-        for (const QString &id: found) makeRow(id);
-    }
+    if (!found.isEmpty()) next.groups.append({tr("Found on this computer"), QString::number(found.size()), found});
     QStringList shownRest;
     for (const QString &id: rest)
-        if (showMore_ || !query.isEmpty() || route(id) != nullptr) shownRest.append(id);
+        if (showMore_ || !query.isEmpty() || routeOf(id) != nullptr) shownRest.append(id);
     if (!shownRest.isEmpty() && !showMore_ && query.isEmpty()) {
-        layout->addWidget(makeSection(tr("Switched on from the catalog"), QString::number(shownRest.size())));
-        for (const QString &id: shownRest) makeRow(id);
+        next.groups.append({tr("Switched on from the catalog"), QString::number(shownRest.size()), shownRest});
     } else if (!shownRest.isEmpty()) {
         // A hundred entries in one card is a wall; the categories are how people look for them.
         QStringList categories;
@@ -1071,35 +1194,121 @@ void SimpleRoutesPage::render(bool keepDrafts) {
             QStringList members;
             for (const QString &id: shownRest)
                 if (entry(id)->category == category) members.append(id);
-            layout->addWidget(makeSection(categoryName(category), QString::number(members.size())));
-            for (const QString &id: members) makeRow(id);
+            next.groups.append({categoryName(category), QString::number(members.size()), members});
         }
     }
     if (query.isEmpty()) {
-        const int hidden = rest.size() - shownRest.size();
-        if (showMore_ || hidden > 0) {
-            auto *more = new RouteActionButton(showMore_ ? tr("Hide the catalog") : tr("%n more app(s) and site(s)", nullptr, hidden), content_);
+        const int hidden = int(rest.size() - shownRest.size());
+        if (showMore_ || hidden > 0) next.more = showMore_ ? tr("Hide the catalog") : tr("%n more app(s) and site(s)", nullptr, hidden);
+    }
+    const Route *custom = routeOf(kCustomId);
+    next.custom = query.isEmpty() || (custom != nullptr && matches(tr("My sites and apps"), custom->processes + custom->processPaths + custom->domains + custom->cidrs));
+    next.restRow = query.isEmpty();
+    next.foreign = query.isEmpty() ? foreign_ : 0;
+    next.nothing = next.banner.isEmpty() && next.addRow.isEmpty() && next.groups.isEmpty() && next.more.isEmpty() && !next.custom && !next.restRow;
+    return next;
+}
+
+void SimpleRoutesPage::releaseFocus() {
+    // A focused widget that disappears hands focus on, and the scroll area scrolls to wherever that lands.
+    if (QWidget *focus = QApplication::focusWidget(); focus != nullptr && content_->isAncestorOf(focus)) scroll_->setFocus(Qt::OtherFocusReason);
+}
+
+void SimpleRoutesPage::clearContent() {
+    releaseFocus();
+    auto *layout = content_->layout();
+    while (QLayoutItem *item = layout->takeAt(0)) {
+        if (QWidget *widget = item->widget()) {
+            retire(widget);
+        } else if (QLayout *inner = item->layout()) {
+            while (QLayoutItem *child = inner->takeAt(0)) {
+                if (QWidget *widget = child->widget()) retire(widget);
+                delete child;
+            }
+        }
+        delete item;
+    }
+    rows_.clear();
+    sections_.clear();
+    restPill_ = nullptr;
+    currentCard_ = nullptr;
+    sticky_->hide();
+}
+
+void SimpleRoutesPage::rebuild(const Plan &next, const QSet<QString> &wasOpen) {
+    const quint64 generation = ++renderGeneration_;
+    const int keep = scroll_->verticalScrollBar()->value();
+    // Held at its old height while the rows are swapped, so the scroll range cannot shrink and drop the position.
+    content_->setUpdatesEnabled(false);
+    content_->setMinimumHeight(content_->height());
+    clearContent();
+    auto *layout = static_cast<QVBoxLayout *>(content_->layout());
+    search_->setEnabled(editable_);
+
+    if (!next.editable) {
+        auto *note = new QLabel(tr("This routing profile is written by hand, so it can only be changed in the advanced editor."), content_);
+        note->setObjectName(QStringLiteral("simpleRouteNote"));
+        note->setWordWrap(true);
+        layout->addWidget(note);
+        auto *open = new QPushButton(tr("Open the advanced editor"), content_);
+        open->setObjectName(QStringLiteral("simpleRouteMore"));
+        connect(open, &QPushButton::clicked, this, &SimpleRoutesPage::openAdvanced);
+        layout->addWidget(open);
+    } else {
+        if (!next.banner.isEmpty()) {
+            auto *banner = new WarningFrame(content_);
+            auto *bannerLayout = new QHBoxLayout(banner);
+            bannerLayout->setContentsMargins(12, 8, 8, 8);
+            auto *text = new QLabel(next.banner, banner);
+            text->setObjectName(QStringLiteral("simpleRouteBannerText"));
+            text->setWordWrap(true);
+            bannerLayout->addWidget(text, 1);
+            // Inside a settings window the switch would change the connection behind its Save.
+            if (!embedded_) {
+                auto *enable = new QPushButton(tr("Switch"), banner);
+                enable->setObjectName(QStringLiteral("simpleRouteBannerButton"));
+                enable->setCursor(Qt::PointingHandCursor);
+                connect(enable, &QPushButton::clicked, this, &SimpleRoutesPage::wholeComputerRequested);
+                bannerLayout->addWidget(enable, 0, Qt::AlignVCenter);
+            }
+            layout->addWidget(banner);
+        }
+        if (!next.addRow.isEmpty()) {
+            auto *addRow = new RouteActionButton(next.addRow, content_);
+            addRow->setObjectName(QStringLiteral("simpleRouteAddRow"));
+            addRow->setCursor(Qt::PointingHandCursor);
+            connect(addRow, &QPushButton::clicked, this, [this] {
+                const QString text = search_->text();
+                QTimer::singleShot(0, this, [this, text] {
+                    if (addValue(kCustomId, text)) search_->clear();
+                });
+            });
+            layout->addWidget(addRow);
+        }
+        for (const auto &group: next.groups) {
+            layout->addWidget(makeSection(group.title, group.count));
+            for (const QString &id: group.ids) makeRow(id, !wasOpen.contains(id));
+        }
+        if (!next.more.isEmpty()) {
+            auto *more = new RouteActionButton(next.more, content_);
             more->setObjectName(QStringLiteral("simpleRouteMore"));
             more->setCursor(Qt::PointingHandCursor);
             connect(more, &QPushButton::clicked, this, [this] {
                 QTimer::singleShot(0, this, [this] {
                     showMore_ = !showMore_;
-                    render();
+                    refresh();
                 });
             });
             layout->addWidget(more);
         }
-    }
-    const Route *custom = route(kCustomId);
-    if (query.isEmpty() || (custom != nullptr && matches(tr("My sites and apps"), custom->processes + custom->processPaths + custom->domains + custom->cidrs))) {
-        layout->addWidget(makeSection(tr("Your own"), {}));
-        makeRow(kCustomId);
-    }
-    if (query.isEmpty()) {
-        layout->addWidget(makeRestRow());
-        if (foreign_ > 0) {
+        if (next.custom) {
+            layout->addWidget(makeSection(tr("Your own"), {}));
+            makeRow(kCustomId, !wasOpen.contains(kCustomId));
+        }
+        if (next.restRow) layout->addWidget(makeRestRow());
+        if (next.foreign > 0) {
             auto *other = new QHBoxLayout;
-            auto *label = new QLabel(tr("Other rules in this profile: %1").arg(foreign_), content_);
+            auto *label = new QLabel(tr("Other rules in this profile: %1").arg(next.foreign), content_);
             label->setObjectName(QStringLiteral("simpleRouteNote"));
             label->setWordWrap(true);
             other->addWidget(label, 1);
@@ -1110,44 +1319,135 @@ void SimpleRoutesPage::render(bool keepDrafts) {
             other->addWidget(open);
             layout->addLayout(other);
         }
-    }
-    if (layout->count() == 0) {
-        auto *none = new QLabel(tr("Nothing found. Type a site or an .exe to add your own."), content_);
-        none->setObjectName(QStringLiteral("simpleRouteNote"));
-        none->setWordWrap(true);
-        none->setAlignment(Qt::AlignCenter);
-        layout->addWidget(none);
-    }
-    layout->addStretch();
-    scroll_->setWidget(content_);
-    scroll_->verticalScrollBar()->setValue(keep);
-    // Section positions exist only after the new content is laid out.
-    for (auto *input: content_->findChildren<QLineEdit *>(QStringLiteral("simpleRouteAdd"))) {
-        const QString id = input->property("routeId").toString();
-        if (id == focusAdd_) continue;
-        input->setText(drafts.value(id));
-        if (id == focused) {
-            input->setFocus();
-            if (selection > 0)
-                input->setSelection(cursor, selection);
-            else
-                input->setCursorPosition(cursor);
+        if (next.nothing) {
+            auto *none = new QLabel(tr("Nothing found. Type a site or an .exe to add your own."), content_);
+            none->setObjectName(QStringLiteral("simpleRouteNote"));
+            none->setWordWrap(true);
+            none->setAlignment(Qt::AlignCenter);
+            layout->addWidget(none);
         }
     }
+    layout->addStretch();
+    plan_ = next;
+    built_ = true;
+    // Section positions exist only after the new content is laid out.
     QTimer::singleShot(0, this, [this, generation, keep] {
         if (generation != renderGeneration_) return;
+        content_->setMinimumHeight(0);
+        content_->setUpdatesEnabled(true);
         scroll_->verticalScrollBar()->setValue(keep);
         updateSticky();
     });
+}
+
+void SimpleRoutesPage::updateRows() {
+    for (auto it = rows_.begin(); it != rows_.end(); ++it) {
+        const QString &id = it.key();
+        RowParts &parts = it.value();
+        updateHeader(id);
+        if (parts.toggle != nullptr && parts.toggle->isChecked() != (routeOf(id) != nullptr)) {
+            const QSignalBlocker blocker(parts.toggle);
+            parts.toggle->setChecked(routeOf(id) != nullptr);
+        }
+        if (open_ == id) {
+            if (parts.reveal == nullptr) {
+                openDetail(id, true);
+                continue;
+            }
+            if (parts.closing) {
+                parts.closing = false;
+                parts.reveal->animateTo(1, animated_);
+            }
+            if (const QString key = detailKey(id); key != parts.detailKey) {
+                if (QWidget *focus = QApplication::focusWidget(); focus != nullptr && parts.reveal->isAncestorOf(focus)) releaseFocus();
+                parts.detailKey = key;
+                parts.reveal->setContent(makeDetail(id, parts.reveal));
+            }
+        } else if (parts.reveal != nullptr && !parts.closing) {
+            parts.closing = true;
+            if (QWidget *focus = QApplication::focusWidget(); focus != nullptr && parts.reveal->isAncestorOf(focus)) releaseFocus();
+            RouteReveal *reveal = parts.reveal;
+            reveal->animateTo(0, animated_, [this, id, reveal] {
+                auto found = rows_.find(id);
+                if (found == rows_.end() || found->reveal != reveal) return;
+                found->reveal = nullptr;
+                found->add = nullptr;
+                found->closing = false;
+                found->detailKey.clear();
+                retire(reveal);
+            });
+        }
+    }
+    updateRestPill();
+}
+
+SimpleRoutesPage::Drafts SimpleRoutesPage::captureDrafts() const {
+    Drafts drafts;
+    for (auto it = rows_.cbegin(); it != rows_.cend(); ++it) {
+        QLineEdit *input = it->add;
+        if (input == nullptr) continue;
+        drafts.text.insert(it.key(), input->text());
+        if (input->hasFocus()) {
+            drafts.focused = it.key();
+            drafts.cursor = input->selectionStart() >= 0 ? input->selectionStart() : input->cursorPosition();
+            drafts.selection = int(input->selectedText().size());
+        }
+    }
+    return drafts;
+}
+
+void SimpleRoutesPage::restoreDrafts(const Drafts &drafts) {
+    for (auto it = rows_.begin(); it != rows_.end(); ++it) {
+        QLineEdit *input = it->add;
+        if (input == nullptr || it.key() == focusAdd_) continue;
+        // A field that survived kept its own text; only a rebuilt one takes the draft back.
+        if (input->text().isEmpty() && !drafts.text.value(it.key()).isEmpty()) input->setText(drafts.text.value(it.key()));
+        if (it.key() == drafts.focused && !input->hasFocus()) {
+            input->setFocus();
+            if (drafts.selection > 0)
+                input->setSelection(drafts.cursor, drafts.selection);
+            else
+                input->setCursorPosition(drafts.cursor);
+        }
+    }
+    if (!focusAdd_.isEmpty()) {
+        if (QLineEdit *input = rows_.value(focusAdd_).add) {
+            input->clear();
+            input->setFocus();
+        }
+        focusAdd_.clear();
+    }
+}
+
+void SimpleRoutesPage::handOver() {
+    if (!embedded_ || !editable_ || (routes_ == handed_ && rest_ == handedRest_)) return;
+    handed_ = routes_;
+    handedRest_ = rest_;
+    // The owner turns the profile's rules on with the first change, as Apply does.
+    rulesEnabled_ = true;
+    emit stagedChanged(routes_, rest_);
+}
+
+void SimpleRoutesPage::refresh(bool keepDrafts) {
+    const Drafts drafts = keepDrafts ? captureDrafts() : Drafts{};
+    const Plan next = plan();
+    if (!built_ || !(next == plan_)) {
+        QSet<QString> wasOpen;
+        // A rebuild caused by something else must not replay the opening of a card that was already open.
+        if (built_)
+            for (auto it = rows_.cbegin(); it != rows_.cend(); ++it)
+                if (it->reveal != nullptr && !it->closing) wasOpen.insert(it.key());
+        if (!built_) wasOpen.insert(open_);
+        rebuild(next, wasOpen);
+    } else {
+        updateRows();
+    }
+    restoreDrafts(drafts);
     if (const QStringList needed = neededRuleSets(); needed != lastNeeded_) {
         lastNeeded_ = needed;
         emit ruleSetsNeeded(needed);
     }
-    if (!focusAdd_.isEmpty()) {
-        for (auto *add: content_->findChildren<QLineEdit *>(QStringLiteral("simpleRouteAdd")))
-            if (add->property("routeId").toString() == focusAdd_) add->setFocus();
-        focusAdd_.clear();
-    }
+    handOver();
     renderFooter();
 }
 
@@ -1178,9 +1478,11 @@ void SimpleRoutesPage::renderFooter() {
                  .toHtmlEscaped();
     QString sentence = parts.join(QStringLiteral(" · "));
     if (!sentence.isEmpty() && !sentence.startsWith(QLatin1Char('<'))) sentence[0] = sentence[0].toUpper();
-    if (!rulesEnabled_ && editable_)
-        sentence = tr("Profile rules are disabled. Apply to enable them.").toHtmlEscaped() + QStringLiteral("<br>") + sentence;
-    sentence_->setFixedHeight(sentence_->fontMetrics().lineSpacing() * (!rulesEnabled_ && editable_ ? 3 : 2) + 2);
+    const bool rulesOff = !rulesEnabled_ && editable_;
+    if (rulesOff)
+        sentence = (embedded_ ? tr("Profile rules are disabled. Any change here turns them on.") : tr("Profile rules are disabled. Apply to enable them.")).toHtmlEscaped() +
+                   QStringLiteral("<br>") + sentence;
+    sentence_->setFixedHeight(sentence_->fontMetrics().lineSpacing() * (rulesOff ? 3 : 2) + 2);
     sentence_->setText(sentence);
     const bool dirty = isDirty();
     apply_->setEnabled(dirty && editable_ && !downloading_);

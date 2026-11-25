@@ -33,10 +33,6 @@ constexpr qsizetype kTrafficLooperMaxExtraLines = 4;
 } // namespace
 
 void TrafficLooper::UpdateAll() {
-    if (Configs::dataManager->settingsRepo->disable_traffic_stats) {
-        return;
-    }
-
     auto resp = API::defaultClient->QueryStats();
     const auto now = MonotonicMs();
     const auto durationMs = lastProbeMs > 0 ? now - lastProbeMs : 0;
@@ -104,10 +100,6 @@ void TrafficLooper::Loop() {
     };
     while (true) {
         QThread::msleep(kTrafficLooperProbeIntervalMs);
-
-        if (Configs::dataManager->settingsRepo->disable_traffic_stats) {
-            continue;
-        }
 
         if (!loop_enabled) {
             {

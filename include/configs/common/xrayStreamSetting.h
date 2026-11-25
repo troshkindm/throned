@@ -26,6 +26,9 @@ bool XrayFinalmaskHasXdns(const QJsonObject& finalmask);
 // Go's strings.ToLower, for comparing against ASCII names: Qt lowercases U+0130 to two characters, Go to 'i'.
 QString XrayLower(const QString& text);
 
+// An XHTTP extra object with every key in Xray's spelling, xmux ones included, as the link importer folds them.
+QJsonObject CanonicalXHTTPExtra(const QJsonObject& extra);
+
 // The spellings Go merges into the one XHTTP download leg Xray dials for an outbound (the object holding streamSettings), in decode order.
 QList<QJsonObject> XrayDownloadLeg(const QJsonObject& outbound);
 
@@ -46,6 +49,12 @@ bool StripXrayDialerState(QJsonObject& stream);
 
 // Turns on useSystemCA in every TLS block of an Xray outbound, the XHTTP download leg included, unless the block sets it itself.
 void UseXraySystemCA(QJsonObject& outbound);
+
+// The inbound Throne feeds an Xray full config through, in place of the config's own listeners.
+inline constexpr auto XrayFullConfigBridgeTag = "throne-bridge";
+
+// Adds the bridge tag to every routing rule bound to a client listener inbound of config, so bridged traffic takes those rules too.
+void RouteXrayListenerRulesViaBridge(QJsonObject& config);
 
 // Rules the Xray stream editor and the import check share; each returns an empty string when acceptable.
 namespace Checks {
@@ -74,6 +83,8 @@ QString XrayUplinkDataPlacement(const QString& placement, const QString& mode);
 QString XrayUplinkMethod(const QString& method, const QString& mode);
 QString XraySessionId(const QString& table, const QString& length);
 QString XrayXmuxExclusive(const QString& maxConnections, const QString& maxConcurrency);
+// The stream editor's rules over an XHTTP extra object as xrayXHTTP::SetExtra reads it; stream-one drops downloadSettings unchecked.
+void XrayXHTTPExtra(Validation::Issues& issues, const QString& at, const QJsonObject& extra, const QString& mode);
 // Errors for an outbound's XHTTP download leg that would crash the core: no address, no port 1-65535, or another network.
 void XrayXHTTPDownloadLeg(Validation::Issues& issues, const QString& at, const QJsonObject& outbound);
 
@@ -191,6 +202,10 @@ public:
     // extra/downloadSettings
     QString downloadSettings;
 
+    // The extra object as links carry it, minus headers, which have their own field; downloadSettings stays in stream-one mode too.
+    QJsonObject ExportExtra() const;
+    // Replaces every extra field but headers with what extra holds, read as a link's extra is.
+    void SetExtra(const QJsonObject& extra);
     bool ParseExtraJson(const QString& str);
     bool ParseFromLink(const QString& link) override;
     bool ParseFromJson(const QJsonObject& object) override;

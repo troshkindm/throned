@@ -95,7 +95,7 @@ class Database {
     void maybeVacuum();
 
     void execDeleteByIdInChunk(const std::string& table, const std::string& idColumn, const std::vector<int>& ids);
-    void execBatchSettingsReplaceChunk(const std::vector<std::pair<std::string, std::string>>& keyValues);
+    bool execBatchSettingsReplaceChunk(const std::vector<std::pair<std::string, std::string>>& keyValues);
     void execBatchInsertIntPairsChunk(const std::string& table, const std::string& colA, const std::string& colB,
                                       const std::vector<int>& pairs);
     void execBatchInsertProfilesChunk(const std::vector<ProfileInsertRow>& rows);
@@ -172,14 +172,15 @@ private:
         }
     }
 
-    void execBatchSettingsReplace0(const std::vector<std::pair<std::string, std::string>>& keyValues) {
+    bool execBatchSettingsReplace0(const std::vector<std::pair<std::string, std::string>>& keyValues) {
         const size_t chunkSize = BATCH_LIMIT_WRITE / 2;
         for (size_t off = 0; off < keyValues.size(); off += chunkSize) {
             size_t end = std::min(off + chunkSize, keyValues.size());
             std::vector<std::pair<std::string, std::string>> chunk(keyValues.begin() + static_cast<std::ptrdiff_t>(off),
                                                                    keyValues.begin() + static_cast<std::ptrdiff_t>(end));
-            execBatchSettingsReplaceChunk(chunk);
+            if (!execBatchSettingsReplaceChunk(chunk)) return false;
         }
+        return true;
     }
 
     void execBatchInsertIntPairs0(const std::string& table, const std::string& colA, const std::string& colB,
@@ -270,6 +271,9 @@ public:
         return query0(sql, std::forward<Args>(args)...);
     }
 
+    // For a write run on a statement from queryThrow: counts it toward the WAL checkpoint, as execThrow does.
+    void countWrites(int count) { maybeCheckpoint(count); }
+
     void execDeleteByIdIn(const std::string& table, const std::string& idColumn, const std::vector<int>& ids) {
         try {
             execDeleteByIdIn0(table, idColumn, ids);
@@ -281,11 +285,12 @@ public:
     // Throws instead of swallowing, so a caller's explicit transaction aborts as one unit.
     void execDeleteByIdInThrow(const std::string& table, const std::string& idColumn, const std::vector<int>& ids);
 
-    void execBatchSettingsReplace(const std::vector<std::pair<std::string, std::string>>& keyValues) {
+    bool execBatchSettingsReplace(const std::vector<std::pair<std::string, std::string>>& keyValues) {
         try {
-            execBatchSettingsReplace0(keyValues);
+            return execBatchSettingsReplace0(keyValues);
         } catch (std::exception& e) {
             NotifyError("execBatchSettingsReplace", e);
+            return false;
         }
     }
 

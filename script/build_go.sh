@@ -7,10 +7,44 @@ rm -rf $DEST
 mkdir -p $DEST
 
 [[ "$GOOS" =~ legacy$ ]] && IS_LEGACY=true && GOCMD="$PWD/golang.org/go/bin/go" && GOOS="${GOOS%legacy}" || { IS_LEGACY=false; GOCMD="go"; }
-# a go.mod newer than the patched toolchain must fail the build, not auto-fetch an unpatched official Go
+# never auto-fetch an unpatched official Go: legacy_modfile lowers the go lines the patched toolchain is older than
 if $IS_LEGACY; then
   export GOTOOLCHAIN=local
 fi
+
+# The patched toolchain refuses every module whose go line is newer than itself, so it builds against a temporary
+# go.mod with its go line lowered, where each such module is replaced by a copy with its go line lowered as well.
+legacy_modfile() {
+  local version_pattern='^go([0-9]+\.[0-9]+(\.[0-9]+)?)' legacy modules path go_version version dir n=0
+  local stale=()
+  [[ "$("$GOCMD" env GOVERSION)" =~ $version_pattern ]] || { echo "cannot read the legacy Go version" >&2; return 1; }
+  legacy=${BASH_REMATCH[1]}
+  LEGACY_WORK=$(mktemp -d)
+  trap 'rm -rf "$LEGACY_WORK"' EXIT
+  cp go.mod go.sum "$LEGACY_WORK/"
+  go mod edit -go="$legacy" -toolchain=none "$LEGACY_WORK/go.mod"
+  # Xray's Chrome 155 uTLS needs Go 1.27 APIs, so legacy builds keep the previous uTLS and its Chrome 133 fingerprint.
+  go mod edit -require=github.com/refraction-networking/utls@v1.8.3-0.20260301010127-aa6edf4b11af \
+    -droprequire=github.com/molecule-man/go-brrr "$LEGACY_WORK/go.mod"
+  go mod download -modfile="$LEGACY_WORK/go.mod" github.com/refraction-networking/utls
+  modules=$(go list -modfile="$LEGACY_WORK/go.mod" -m -f '{{if not .Main}}{{.Path}} {{.GoVersion}}{{end}}' all)
+  while read -r path go_version; do
+    if [[ -n "$go_version" ]] && ! printf '%s\n%s\n' "$go_version" "$legacy" | sort -V -C; then
+      stale+=("$path")
+    fi
+  done <<< "$modules"
+  [[ ${#stale[@]} -gt 0 ]] || return 0
+  go mod download -modfile="$LEGACY_WORK/go.mod" "${stale[@]}"
+  modules=$(go list -modfile="$LEGACY_WORK/go.mod" -m -f '{{.Path}}|{{.Version}}|{{.Dir}}' "${stale[@]}")
+  while IFS='|' read -r path version dir; do
+    n=$((n + 1))
+    cp -R "$dir" "$LEGACY_WORK/mod$n"
+    chmod -R u+w "$LEGACY_WORK/mod$n"
+    go mod edit -go="$legacy" -toolchain=none "$LEGACY_WORK/mod$n/go.mod"
+    go mod edit -replace="$path@$version=$LEGACY_WORK/mod$n" "$LEGACY_WORK/go.mod"
+    echo "$path@$version needs a newer Go than $legacy, building a copy with its go line lowered"
+  done <<< "$modules"
+}
 
 if [[ "$GOOS" == "windows" || "$GOOS" == "linux" ]]; then
     EXE_SUFFIX=""
@@ -77,5 +111,10 @@ if [[ "$GOOS" == "darwin" ]]; then
 fi
 VERSION_SINGBOX=$(go list -m -f '{{.Version}}' github.com/sagernet/sing-box)
 CORE_NAME="ThronedCore${EXE_SUFFIX:-}"
-$GOCMD build -v -o "$DEST/$CORE_NAME" -trimpath -ldflags "-w -s -X 'github.com/sagernet/sing-box/constant.Version=${VERSION_SINGBOX}' -X 'internal/godebug.defaultGODEBUG=multipathtcp=0' -checklinkname=0" -tags "$TAGS"
+BUILD_FLAGS=()
+if $IS_LEGACY; then
+  legacy_modfile
+  BUILD_FLAGS=(-modfile="$LEGACY_WORK/go.mod")
+fi
+$GOCMD build -v "${BUILD_FLAGS[@]}" -o "$DEST/$CORE_NAME" -trimpath -ldflags "-w -s -X 'github.com/sagernet/sing-box/constant.Version=${VERSION_SINGBOX}' -X 'internal/godebug.defaultGODEBUG=multipathtcp=0' -checklinkname=0" -tags "$TAGS"
 popd

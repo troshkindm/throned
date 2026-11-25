@@ -7,8 +7,6 @@ import (
 	"net"
 	"time"
 
-	"ThroneCore/internal/boxbox"
-
 	"github.com/sagernet/sing-box/adapter"
 	metadata "github.com/sagernet/sing/common/metadata"
 )
@@ -35,7 +33,7 @@ type UDPTestResult struct {
 	Error    error
 }
 
-func BatchUDPTest(ctx context.Context, i *boxbox.Box, outboundTags []string, target string, probeCount int, maxConcurrency int, timeout time.Duration) []*UDPTestResult {
+func BatchUDPTest(ctx context.Context, i Box, outboundTags []string, target string, probeCount int, maxConcurrency int, timeout time.Duration) []*UDPTestResult {
 	if timeout <= 0 {
 		timeout = UDPTestTimeout
 	}

@@ -4,11 +4,13 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/entities/RouteProfile.h"
 
+#include <QAbstractButton>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QTest>
+#include <QToolButton>
 
 ThemeManager *themeManager() {
     static ThemeManager manager;
@@ -170,6 +172,86 @@ private slots:
         add->click();
         QTRY_COMPARE(page.stagedRoutes().size(), 1);
         QCOMPARE(page.stagedRoutes().first().domains, QStringList{domain});
+    }
+
+    void embeddedHandsEachChangeOverAtOnce() {
+        SimpleRoutesPage page(nullptr);
+        page.setEmbedded(true);
+        page.load({}, Configs::directID, 0, true, false, true);
+        QList<Configs::AppRoutes::Route> handed;
+        int handedDefault = 0;
+        int emitted = 0;
+        connect(&page, &SimpleRoutesPage::stagedChanged, &page, [&](const auto &routes, int rest) {
+            ++emitted;
+            handed = routes;
+            handedDefault = rest;
+        });
+        QVERIFY(page.findChild<QPushButton *>(QStringLiteral("simpleRouteApply"))->isHidden());
+        QVERIFY(page.findChild<QToolButton *>(QStringLiteral("simpleRoutesBack"))->isHidden());
+        page.addEntries({QStringLiteral("example.org")});
+        QCOMPARE(emitted, 1);
+        QCOMPARE(handedDefault, int(Configs::directID));
+        QCOMPARE(handed.size(), 1);
+        QCOMPARE(handed.first().domains, QStringList{QStringLiteral("example.org")});
+        // Refreshes that change nothing staged hand nothing over.
+        page.setTargets({Configs::proxyID, QStringLiteral("Example main"), {}, 0}, {});
+        page.setWholeComputer(false);
+        QCOMPARE(emitted, 1);
+        page.load({}, Configs::proxyID, 0, true, true, true);
+        QCOMPARE(emitted, 1);
+    }
+
+    void switchingAnAppOnUpdatesItsRowInPlace() {
+        SimpleRoutesPage page(nullptr);
+        page.resize(420, 650);
+        page.load({}, Configs::directID, 0, true);
+        page.setDetected({{QStringLiteral("telegram"), true}});
+        page.show();
+        auto *toggle = page.findChild<QAbstractButton *>(QStringLiteral("simpleRouteToggle_telegram"));
+        QVERIFY(toggle);
+        toggle->click();
+        QTRY_VERIFY(page.findChild<QLineEdit *>(QStringLiteral("simpleRouteAdd")) != nullptr);
+        QCOMPARE(page.findChild<QAbstractButton *>(QStringLiteral("simpleRouteToggle_telegram")), toggle);
+        QVERIFY(toggle->isChecked());
+        QCOMPARE(page.stagedRoutes().size(), 1);
+    }
+
+    void rebuildingTheListNeverMovesTheScrollPosition() {
+        SimpleRoutesPage page(nullptr);
+        page.resize(420, 650);
+        page.load({}, Configs::directID, 0, true);
+        page.addEntries({QStringLiteral("processPath:/opt/example/client")});
+        page.show();
+        page.findChild<QPushButton *>(QStringLiteral("simpleRouteMore"))->click();
+        auto *area = qobject_cast<QScrollArea *>(page.scrollArea());
+        QTRY_VERIFY(area->verticalScrollBar()->maximum() > 2000);
+        area->verticalScrollBar()->setValue(1500);
+        int lowest = 1500;
+        connect(area->verticalScrollBar(), &QScrollBar::valueChanged, &page, [&lowest](int value) { lowest = qMin(lowest, value); });
+        // A warning banner above the list changes its structure, so the whole list is rebuilt.
+        page.setWholeComputer(false);
+        QTest::qWait(50);
+        QCOMPARE(lowest, 1500);
+        QCOMPARE(area->verticalScrollBar()->value(), 1500);
+    }
+
+    void interruptedCardAnimationsSettle() {
+        auto *page = new SimpleRoutesPage(nullptr);
+        page->setAnimated(true);
+        page->resize(420, 650);
+        page->load({}, Configs::directID, 0, true);
+        page->show();
+        auto *header = page->findChild<QAbstractButton *>(QStringLiteral("simpleRouteRow_custom"));
+        QVERIFY(header);
+        header->click();
+        QTest::qWait(40);
+        header->click();
+        header->click();
+        QTRY_VERIFY(page->findChild<QLineEdit *>(QStringLiteral("simpleRouteAdd")) != nullptr);
+        header->click();
+        // Gone with its card still closing: the animation goes with it and nothing fires afterwards.
+        delete page;
+        QTest::qWait(300);
     }
 
     void readOnlyProfilesCannotBeApplied() {
