@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QLocale>
+#include <QMenu>
 #include <QSignalBlocker>
 #include <QScopedValueRollback>
 #include <QStackedWidget>
@@ -17,6 +18,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/SubInfo.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -228,6 +230,18 @@ void MainWindow::setupSimpleMode() {
 
     simpleServerSheet = new SimpleServerSheet(simpleModeContent);
     connect(simpleServerSheet, &SimpleServerSheet::groupShown, this, &MainWindow::refreshSimpleServerSheet);
+    connect(simpleServerSheet, &SimpleServerSheet::groupMenuRequested, this, [this](int groupId, const QPoint &pos) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(groupId);
+        QMenu menu(this);
+        if (group && !group->url.isEmpty())
+            menu.addAction(ui->menu_update_subscription->text(), this, [this, groupId] {
+                if (mw_sub_updating) return;
+                mw_sub_updating = true;
+                Subscription::updater()->RefreshGroup(groupId, [this] { mw_sub_updating = false; }, true);
+            });
+        menu.addAction(ui->actionUpdate_All_Subscriptions);
+        menu.exec(pos);
+    });
     connect(simpleServerSheet, &SimpleServerSheet::serverChosen, this, [this](int id) {
         selectSimpleProfile(id);
         simpleServerSheet->dismiss();

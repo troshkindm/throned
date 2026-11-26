@@ -1140,12 +1140,12 @@ QTabWidget#groupsCard::pane { background: transparent; border: none; top: 7px; }
 QTabWidget#groupsCard::tab-bar { left: 6px; }
 QTabWidget#groupsCard QTabBar { background: transparent; qproperty-drawBase: 0; }
 QTabWidget#groupsCard QTabBar::tab {
-    background: transparent; border: 1px solid transparent; border-radius: 8px;
+    background: #222529; border: 1px solid #3E454F; border-radius: 8px;
     padding: 6px 12px; margin: 1px 4px 5px 0;
     color: #A4ABB4; font-weight: 500;
 }
-QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #222529; }
-QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #193452; font-weight: 600; }
+QTabWidget#groupsCard QTabBar::tab:hover { color: #F1F3F5; background: #292D33; border-color: #4A4F57; }
+QTabWidget#groupsCard QTabBar::tab:selected { color: #F1F3F5; background: #193452; border-color: #237AE9; font-weight: 600; }
 /* The scroll buttons exist only so Qt can slide an overflowing strip; the mouse
    wheel drives them (GroupTabBar::wheelEvent), so they occupy no space. */
 QTabWidget#groupsCard QTabBar QToolButton {
@@ -1154,11 +1154,11 @@ QTabWidget#groupsCard QTabBar QToolButton {
 /* Same pill as a group tab, square: the fixed height carries the bottom margin
    so the painted box comes out square and lines up with the tabs. */
 QToolButton#favoritesTabButton {
-    background: transparent; border: 1px solid transparent; border-radius: 8px;
+    background: #222529; border: 1px solid #3E454F; border-radius: 8px;
     margin: 0 10px 19px 0;
 }
-QToolButton#favoritesTabButton:hover { background: #222529; }
-QToolButton#favoritesTabButton:checked { background: #193452; }
+QToolButton#favoritesTabButton:hover { background: #292D33; border-color: #4A4F57; }
+QToolButton#favoritesTabButton:checked { background: #193452; border-color: #237AE9; }
 QWidget#profilesEmptyState { background: transparent; }
 QLabel#emptyStateTitle { color: #F1F3F5; font-size: 15px; font-weight: 600; background: transparent; }
 QLabel#emptyStateSub { color: #A4ABB4; font-size: 13px; background: transparent; }

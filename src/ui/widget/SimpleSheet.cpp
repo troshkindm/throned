@@ -243,9 +243,9 @@ QLabel#simpleSheetEmpty { color: #747C86; background: transparent; }
 QPushButton#simpleSheetLink { border: none; background: transparent; color: #A4ABB4; padding: 4px 2px; }
 QPushButton#simpleSheetLink:hover { color: #F1F3F5; }
 QPushButton#simpleSheetLink:disabled { color: #747C86; }
-QPushButton#simpleSheetTab { border: 1px solid transparent; border-radius: 13px; background: #222529; color: #A4ABB4; padding: 3px 11px; }
-QPushButton#simpleSheetTab:hover { color: #F1F3F5; }
-QPushButton#simpleSheetTab:checked { background: #193452; color: #F1F3F5; }
+QPushButton#simpleSheetTab { border: 1px solid #3E454F; border-radius: 13px; background: #222529; color: #A4ABB4; padding: 3px 11px; }
+QPushButton#simpleSheetTab:hover { color: #F1F3F5; border-color: #4A4F57; }
+QPushButton#simpleSheetTab:checked { background: #193452; border-color: #237AE9; color: #F1F3F5; }
 QPushButton#simpleSheetAllowance { border: none; background: transparent; color: #A4ABB4; text-align: left; padding: 0; }
 QPushButton#simpleSheetAllowance:hover { color: #F1F3F5; }
 QProgressBar#simpleSheetAllowanceBar { border: none; border-radius: 1px; background: #2F3136; }
@@ -522,6 +522,9 @@ void SimpleServerSheet::setGroups(const QList<QPair<int, QString>> &groups, int 
             tab->setObjectName(QStringLiteral("simpleSheetTab"));
             tab->setCheckable(true);
             tab->setCursor(Qt::PointingHandCursor);
+            tab->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(tab, &QWidget::customContextMenuRequested, this,
+                    [this, tab, id = id](const QPoint &pos) { emit groupMenuRequested(id, tab->mapToGlobal(pos)); });
             tabGroup_->addButton(tab, id);
             tabsLayout_->insertWidget(tabsLayout_->count() - 1, tab);
         }

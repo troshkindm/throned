@@ -91,6 +91,7 @@ public:
 
 signals:
     void groupShown(int groupId);
+    void groupMenuRequested(int groupId, const QPoint &globalPos);
     void serverChosen(int profileId);
     void testRequested();
     void addFromClipboard();
