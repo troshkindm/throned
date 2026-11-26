@@ -1,15 +1,17 @@
 <!-- throned:lang=en -->
 ## What's new
 
-- Routing rules can be moved between actions: drag a rule onto another action, or right-click it and choose Move to. A profile group can change its profile or hand all its rules to another action, and a new profile group can be created right from the move menu.
-- Every routing action has a ⋯ menu in its header with the same move and profile options.
-- The log's Jump to latest control is now a floating round button with a count of held lines.
-- The global hotkeys page is grouped into Window and Connection sections with icons and clear buttons. Starting a profile, the system proxy and TUN can all be toggled from any application.
-- Groups can use their own routing profile, and a subscription can ship one. Routing profiles get their own DNS settings.
-- The auto selector can exclude countries (!RU), starts as soon as enough profiles work, and reconnects after a subscription update replaces the running profile.
-- Connections show which routing rule they matched, and a connection can be routed to a specific server from its context menu.
-- Added a Ctrl+K command palette, WebDAV backups, a Web UI, an option to serve DNS to other devices, and a core restart button in TUN settings.
-- Merged upstream fixes for WireGuard, Xray XHTTP, Hysteria v1 speeds, macOS DNS and freezes in large routing profiles.
+- Routing by application is now in the Routing settings window: the new Apps and sites page lists the programs found on this computer and lets you send each one directly, through the VPN or through a specific server. It is the same screen simple mode has, saved with the window's Save button.
+- That screen no longer flickers or jumps while it loads, and its cards and the switch between simple mode's pages are animated.
+- Menus, buttons, fields, drop-downs, checkboxes and tabs in every dialog are drawn in the application's own style instead of the stock Qt look. The main window, settings, diagnostics and simple mode lost most of their outlines.
+- The route profile editor's Advanced tab is rebuilt around one rule list with a rule editor beside it, quick lists, and a switch on every rule. Remote route profiles keep your local rules.
+- DNS servers are edited as lists, with several servers per role. A rule tester shows which rule a domain, address or program matches.
+- The scanner now finds working WARP endpoints and DNS resolvers. WARP settings are gathered on one Exit page.
+- Profiles can be pinned, connection columns can be resized, download and upload speeds are coloured, and the tray icon shows the connection state.
+- Added a service availability check, a subscription profile filter, more auto selector options and a program picker for process rules.
+- On Windows the core is elevated instead of the whole application.
+- Removed, following upstream: Tor, Psiphon and Juicity, the IP scanner section, the "Only Country" speed test mode, the option to disable traffic statistics, and the keyword log filters (one "hide lines matching" expression replaces them).
+- Merged upstream fixes for WireGuard, OpenVPN one-time passwords, Xray validation, macOS DNS cleanup and the sing-box core.
 <!-- throned:lang=end -->
 
 <details>
@@ -18,15 +20,17 @@
 <!-- throned:lang=ru -->
 ## Что нового
 
-- Правила маршрутизации можно переносить между действиями: перетащите правило на другое действие или нажмите на нём ПКМ → «Перенести в». У группы через профиль можно сменить профиль или перенести все её правила, а новую группу можно создать прямо из меню переноса.
-- У каждого действия маршрутизации в шапке есть меню ⋯ с теми же пунктами.
-- «Перейти к последним» в логах теперь круглая плавающая кнопка со счётчиком новых строк.
-- Страница глобальных горячих клавиш разбита на разделы «Окно» и «Подключение», с иконками и кнопкой очистки. Запуск профиля, системный прокси и TUN переключаются из любого приложения.
-- Группа может использовать свой профиль маршрутизации, а подписка может его прислать. У профилей маршрутизации появились свои настройки DNS.
-- Автовыбор умеет исключать страны (!RU), стартует, как только набралось достаточно рабочих профилей, и переподключается, если обновление подписки заменило запущенный профиль.
-- Во вкладке подключений видно, какое правило сработало, а подключение можно направить на конкретный сервер из контекстного меню.
-- Добавлены палитра команд Ctrl+K, резервные копии через WebDAV, веб-интерфейс, раздача DNS другим устройствам и кнопка перезапуска ядра в настройках TUN.
-- Подтянуты исправления из upstream для WireGuard, Xray XHTTP, скоростей Hysteria v1, DNS на macOS и зависаний в больших профилях маршрутизации.
+- Маршрутизация по приложениям теперь есть в окне настроек маршрутизации: новая страница «Приложения» показывает программы, найденные на компьютере, и позволяет пустить каждую напрямую, через VPN или через конкретный сервер. Это тот же экран, что в простом режиме; сохраняется общей кнопкой окна.
+- Этот экран больше не мигает и не прыгает при загрузке, а карточки и переход между страницами простого режима стали плавными.
+- Меню, кнопки, поля, выпадающие списки, флажки и вкладки во всех диалогах рисуются в стиле приложения, а не стандартном виде Qt. В главном окне, настройках, диагностике и простом режиме убрана большая часть обводок.
+- Вкладка «Расширенный» в редакторе профиля маршрутизации переделана: один список правил с редактором рядом, быстрые списки и выключатель у каждого правила. Удалённые профили маршрутизации сохраняют ваши локальные правила.
+- DNS-серверы задаются списками, по несколько на роль. Тестер правил показывает, под какое правило попадает домен, адрес или программа.
+- Сканер теперь ищет рабочие адреса WARP и DNS-резолверы. Настройки WARP собраны на одной странице «Выход».
+- Профили можно закреплять, столбцы подключений — растягивать, скорости загрузки и отдачи выделены цветом, а значок в трее показывает состояние подключения.
+- Добавлены проверка доступности сервисов, фильтр профилей подписки, новые параметры автовыбора и выбор программы для правил по процессам.
+- В Windows с правами администратора запускается ядро, а не всё приложение.
+- Убрано вслед за upstream: Tor, Psiphon и Juicity, раздел IP-сканера, режим теста скорости «только страна», отключение статистики трафика и фильтры логов по ключевым словам (вместо них одно выражение «скрывать строки»).
+- Подтянуты исправления из upstream для WireGuard, одноразовых паролей OpenVPN, проверки конфигурации Xray, очистки DNS на macOS и ядра sing-box.
 <!-- throned:lang=end -->
 
 </details>
